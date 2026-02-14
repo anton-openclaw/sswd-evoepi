@@ -1,0 +1,15 @@
+{
+  "n_years": 20,
+  "n_nodes": 5,
+  "node_names": [
+    "Sitka, AK",
+    "Howe Sound, BC",
+    "San Juan Islands, WA",
+    "Newport, OR",
+    "Monterey, CA"
+  ],
+  "disease_year": 5,
+  "seed": 42,
+  "initial_total_pop": 3500,
+  "final_total_pop": 230
+}

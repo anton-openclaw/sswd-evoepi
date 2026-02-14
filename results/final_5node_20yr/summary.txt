@@ -1,0 +1,114 @@
+========================================================================
+SSWD-EvoEpi: 20-Year Epidemic Simulation Results
+========================================================================
+
+Simulation: 20 years, 5 nodes
+Disease introduction: year 5
+Seed: 42
+Total initial population: 3500
+Total final population: 230
+
+─── Per-Node Summary ───
+Node                          K  Pre-N  Min-N Final-N  Peak Prev Tot Deaths  Crash%
+─────────────────────────────────────────────────────────────────────────────────────
+Sitka, AK                  1000    865    121     121      7.9%        766  86.0%
+Howe Sound, BC              400    386     72      72      5.7%        355  81.3%
+San Juan Islands, WA        800    694     27      27     22.8%        839  96.1%
+Newport, OR                 600    542      9       9     16.7%        624  98.3%
+Monterey, CA                700    618      1       1     66.7%        693  99.8%
+
+─── Genetics Summary ───
+Node                       r̄ pre r̄ post r̄ yr20     Δr̄  EF1A pre  EF1A yr20
+──────────────────────────────────────────────────────────────────────────────
+Sitka, AK                  0.1059  0.1065  0.1104 +0.0045    0.2017     0.2273
+Howe Sound, BC             0.1035  0.1103  0.1274 +0.0239    0.1943     0.2569
+San Juan Islands, WA       0.1131  0.1250  0.1314 +0.0182    0.2269     0.2778
+Newport, OR                0.1093  0.1112  0.0825 -0.0267    0.2113     0.1667
+Monterey, CA               0.1125  0.1191  0.1954 +0.0829    0.2201     0.5000
+
+─── Allele Frequency Shifts (top 3 effect-size loci) ───
+Node                           Δq₁      Δq₂      Δq₃
+───────────────────────────────────────────────────────
+Sitka, AK                  +0.0031  +0.0027  -0.0134
+Howe Sound, BC             -0.0014  -0.0056  -0.0015
+San Juan Islands, WA       +0.0007  +0.0423  +0.0184
+Newport, OR                -0.0039  +0.0156  +0.0153
+Monterey, CA               -0.0253  -0.0229  +0.0303
+
+─── Functional Extinction Check ───
+  Sitka, AK: Surviving (min=121, 12.1% of K) at year 19
+  Howe Sound, BC: Surviving (min=72, 18.0% of K) at year 19
+  San Juan Islands, WA: Surviving (min=27, 3.4% of K) at year 19
+  Newport, OR: Surviving (min=9, 1.5% of K) at year 19
+  Monterey, CA: FUNCTIONALLY EXTINCT (min=1, 0.1% of K) at year 15
+
+─── Year-by-Year Total Population ───
+  Year   0:   3462
+  Year   1:   3388
+  Year   2:   3302
+  Year   3:   3239
+  Year   4:   3173
+  Year   5:   3105 ← disease
+  Year   6:   1414
+  Year   7:   1055
+  Year   8:    844
+  Year   9:    690
+  Year  10:    586
+  Year  11:    515
+  Year  12:    473
+  Year  13:    437
+  Year  14:    405
+  Year  15:    353
+  Year  16:    346
+  Year  17:    291
+  Year  18:    256
+  Year  19:    230
+
+─── Verification Results ───
+  Passed:   36
+  Failed:   0
+  Warnings: 4
+
+WARNINGS:
+  ⚠ Expected Monterey as worst-affected, got San Juan Islands, WA
+  ⚠ [Node 3 Newport, OR] Resistance did not increase: 0.1093 → 0.0968 (Δ=-0.0125)
+  ⚠ [Node 4 Monterey, CA] Pop too low (1) for meaningful resistance check
+  ⚠ [Node 1 Howe Sound, BC] No positive allele shift at top loci
+
+PASSED:
+  ✓ [Node 0 Sitka, AK] Pre-epidemic pop=888 (88.8% of K=1000) ✓
+  ✓ [Node 1 Howe Sound, BC] Pre-epidemic pop=389 (97.2% of K=400) ✓
+  ✓ [Node 2 San Juan Islands, WA] Pre-epidemic pop=711 (88.9% of K=800) ✓
+  ✓ [Node 3 Newport, OR] Pre-epidemic pop=557 (92.8% of K=600) ✓
+  ✓ [Node 4 Monterey, CA] Pre-epidemic pop=628 (89.7% of K=700) ✓
+  ✓ [Node 0 Sitka, AK] Epidemic mortality=58.4% (505 deaths in 3yr) ✓
+  ✓ [Node 1 Howe Sound, BC] Epidemic mortality=48.4% (187 deaths in 3yr) ✓
+  ✓ [Node 2 San Juan Islands, WA] Epidemic mortality=94.2% (654 deaths in 3yr) ✓
+  ✓ [Node 3 Newport, OR] Epidemic mortality=87.6% (475 deaths in 3yr) ✓
+  ✓ [Node 4 Monterey, CA] Epidemic mortality=102.1% (631 deaths in 3yr) ✓
+  ✓ Howe Sound (fjord) has lowest disease mortality ✓
+  ✓ Howe Sound (355 deaths) ≤ SJI (839) — fjord protection ✓
+  ✓ [Node 0 Sitka, AK] Mean resistance increased: 0.1059 → 0.1113 (Δ=+0.0053) ✓
+  ✓ [Node 1 Howe Sound, BC] Mean resistance increased: 0.1035 → 0.1155 (Δ=+0.0120) ✓
+  ✓ [Node 2 San Juan Islands, WA] Mean resistance increased: 0.1131 → 0.1365 (Δ=+0.0234) ✓
+  ✓ [Node 0 Sitka, AK] Population crash: 86% decline (min=121) ✓
+  ✓ [Node 1 Howe Sound, BC] Population crash: 81% decline (min=72) ✓
+  ✓ [Node 2 San Juan Islands, WA] Population crash: 96% decline (min=27) ✓
+  ✓ [Node 3 Newport, OR] Population crash: 98% decline (min=9) ✓
+  ✓ [Node 4 Monterey, CA] Population crash: 100% decline (min=1) ✓
+  ✓ [Node 0 Sitka, AK] Never fully extinct (min=121) ✓
+  ✓ [Node 1 Howe Sound, BC] Never fully extinct (min=72) ✓
+  ✓ [Node 2 San Juan Islands, WA] Never fully extinct (min=27) ✓
+  ✓ [Node 3 Newport, OR] Never fully extinct (min=9) ✓
+  ✓ [Node 4 Monterey, CA] Never fully extinct (min=1) ✓
+  ✓ [Node 0 Sitka, AK] Peak disease prevalence: 7.9% ✓
+  ✓ [Node 1 Howe Sound, BC] Peak disease prevalence: 5.7% ✓
+  ✓ [Node 2 San Juan Islands, WA] Peak disease prevalence: 22.8% ✓
+  ✓ [Node 3 Newport, OR] Peak disease prevalence: 16.7% ✓
+  ✓ [Node 4 Monterey, CA] Peak disease prevalence: 66.7% ✓
+  ✓ [Node 0 Sitka, AK] Top-locus Δq: +0.0031, +0.0027, -0.0134 ✓
+  ✓ [Node 2 San Juan Islands, WA] Top-locus Δq: +0.0007, +0.0423, +0.0184 ✓
+  ✓ [Node 3 Newport, OR] Top-locus Δq: -0.0039, +0.0156, +0.0153 ✓
+  ✓ [Node 4 Monterey, CA] Top-locus Δq: -0.0253, -0.0229, +0.0303 ✓
+  ✓ No NaN values in output ✓
+  ✓ No negative population values ✓
