@@ -6,10 +6,14 @@ pyyaml>=6.0
 # Testing
 pytest>=8.0
 
+# Visualization
+matplotlib>=3.8
+plotly>=5.18
+pandas>=2.1
+
 # Optional (for full simulation)
 # numba>=0.59
 # xarray>=2024.0
 # h5py>=3.10
-# matplotlib
 # cartopy
 # SALib>=1.4
