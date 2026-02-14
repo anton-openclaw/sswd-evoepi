@@ -1,9 +1,10 @@
 """Population dynamics module — stub.
 
-Handles: lifecycle (VB growth, aging, stage transitions), reproduction
-(broadcast spawning, SRS lottery, fertilization kinetics), mortality
-(stage-specific, senescence), settlement (Beverton-Holt density-dependent),
-Allee effects.
+Handles: lifecycle (VB growth, aging, stage transitions), natural mortality
+(stage-specific, senescence), the annual demographic update cycle.
 
-Build target: Phase 2.
+Reproduction, spawning, SRS, fertilization, settlement, and Allee effects
+are in reproduction.py (Phase 3).
+
+Build target: Phase 2 (lifecycle) + Phase 3 (reproduction — COMPLETE).
 """

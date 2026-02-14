@@ -69,3 +69,50 @@ Already specified in genetics-evolution-spec §2.1. No change needed.
 **Resolution:** Effect sizes drawn from Exp(λ), normalized to sum to W_add ≈ 0.840. Sorted descending.
 
 **Status:** ✅ Resolved (matches spec)
+
+### CE-4. Beverton-Holt Denominator Corrected
+**Found by:** Phase 3 (Reproduction)
+**Date:** 2026-02-13
+**Severity:** 🔴 HIGH
+**Affects:** Population module, settlement, all demographic calibration
+
+**Issue:** The population-dynamics-spec.md §5.2 BH formula uses denominator
+`1 + S/(K × s0)`, which gives asymptote `K × s0² ≈ 0.45` — meaning zero
+recruits ever survive (rounds to 0 with s0=0.03, K=500). The spec text
+claims asymptote is `K × s0 = 15`, which is the correct biological target.
+
+**Resolution:** Corrected BH formula to `R = S × s0 / (1 + S/K)`, which gives:
+- Low S: R ≈ S × s0 (supply-limited, correct)
+- High S: R → K × s0 = 15 (correct asymptote)
+- spec.md formula had wrong denominator; text description was correct
+
+**Status:** ✅ Resolved in reproduction.py
+
+### CE-5. High-Fecundity Broadcast Spawner Allee Effect
+**Found by:** Phase 3 (Reproduction)
+**Date:** 2026-02-13
+**Severity:** 🟡 MEDIUM
+**Affects:** Allee effect interpretation, population recovery dynamics
+
+**Issue:** The population-dynamics-spec.md §6.2 states that at post-SSWD
+density (ρ=0.001), per-capita growth `r(D) < 0` — a deterministic Allee
+threshold. However, with F0=10⁷ eggs/female, the deterministic threshold
+is effectively zero: even 0.01% fertilization produces enough recruits.
+
+The practical Allee effect operates through:
+1. Dramatically reduced growth RATE at low density (>100× reduction)
+2. Demographic stochasticity at small N (integer effects, drift)
+3. Environmental stochasticity overwhelming the tiny growth rate
+
+The spec's simplified formula `r = F(D) × f_recruit × s0 − m` omits
+the fecundity multiplier, giving qualitatively correct shape but wrong
+magnitude. The actual per-capita growth rate includes fecundity:
+`r = F(D) × (eggs/2) × larval_surv × s0 − m_adult`
+
+**Resolution:** Implementation uses the full formula. Tests verify Allee
+SHAPE (growth rate increases with density, >100× difference between
+post-SSWD and healthy density) rather than absolute zero-crossing.
+Population decline at low density emerges from stochastic simulation,
+not deterministic formula.
+
+**Status:** ✅ Resolved — documented as biological reality for high-fecundity species
