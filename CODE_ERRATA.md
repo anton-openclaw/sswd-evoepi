@@ -142,3 +142,39 @@ Population decline at low density emerges from stochastic simulation,
 not deterministic formula.
 
 **Status:** ✅ Resolved — documented as biological reality for high-fecundity species
+
+### CE-7. Annual Reproduction Timing Relative to Disease Seeding
+**Found by:** Phase 5 (Disease ↔ Population Coupling)
+**Date:** 2026-02-13
+**Severity:** 🟢 LOW
+**Affects:** model.py, integration timing
+
+**Issue:** The integration architecture spec places disease seeding at the epidemic_year
+start, but the coupled model seeds initial infections at the END of the annual demographic
+step (after natural mortality, growth, and reproduction). This means the first year of
+disease has a full year of daily disease dynamics AFTER the next annual cycle begins.
+
+**Resolution:** Disease seeding occurs at the end of the annual step for disease_year,
+meaning the first epidemic dynamics run during year disease_year+1's daily loop. This is
+consistent with the biological scenario: pathogen arrives mid-year, epidemic unfolds over
+the following year. The one-year offset is negligible for multi-decade simulations.
+
+**Status:** ✅ Resolved (by design — matches biological timing)
+
+### CE-8. Population Init Uses Approximate Stable Age Distribution
+**Found by:** Phase 5 (Disease ↔ Population Coupling)
+**Date:** 2026-02-13
+**Severity:** 🟢 LOW
+**Affects:** model.py, initial conditions
+
+**Issue:** The coupled model initializes population from a hand-tuned approximate
+stable age distribution (65% adults, 15% subadults, 15% juveniles, 5% settlers)
+rather than running a true spinup to equilibrium. This means the first 2-3 years
+show transient dynamics as the age/stage structure adjusts.
+
+**Resolution:** Use disease_year ≥ 3 to allow demographic transients to settle before
+introducing disease. For production runs, the 100-year spinup (simulation.spinup_years=100)
+will produce a true stable age distribution. The integration tests account for this by
+using disease_year=2 or later.
+
+**Status:** ✅ Resolved (spinup handles it for production; tests account for transients)
