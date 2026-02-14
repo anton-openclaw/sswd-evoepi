@@ -256,3 +256,40 @@ Pre-epidemic snapshot taken at disease_year (before seeding infections).
 Post-epidemic snapshot taken at disease_year + 2 (after initial epidemic wave).
 
 **Status:** ✅ Resolved
+
+### CE-12. Numba Dependency Removed From Environment/Spatial Modules
+**Found by:** Phase 9 (Spatial)
+**Date:** 2026-02-14
+**Severity:** 🟢 LOW
+**Affects:** environment.py, spatial.py
+
+**Issue:** Initial implementation used `@njit(cache=True)` decorators from Numba for
+environment and spatial functions (SST interpolation, haversine, salinity modifier, etc.).
+Numba is not installed in the runtime environment.
+
+**Resolution:** Removed Numba dependency. All functions use pure NumPy/Python. Performance
+is adequate for the 5-node test network (~11s for 8-year disease-free simulation). If
+profiling shows these functions as bottlenecks at 150 nodes, Numba can be re-added as
+an optional dependency with a try/except import pattern.
+
+**Status:** ✅ Resolved
+
+### CE-13. Pathogen Dispersal Matrix D Is Effectively Zero for 5-Node Test Network
+**Found by:** Phase 9 (Spatial)
+**Date:** 2026-02-14
+**Severity:** 🟢 LOW
+**Affects:** spatial.py, disease dynamics in spatial simulation
+
+**Issue:** The 5-node test network has nodes separated by hundreds of kilometres (minimum
+~180 km between Howe Sound and SJI after tortuosity). With D_P = 15 km and max_range =
+50 km, all pairwise distances exceed the pathogen dispersal range, so D is effectively a
+zero matrix. This is biologically correct — Vibrio cannot spread hundreds of km between
+these widely-spaced nodes. Pathogen spread between sites requires the full 150-node network
+with densely-spaced coastal nodes.
+
+**Resolution:** The 5-node network validates the spatial simulation loop (dispersal code
+paths are tested via direct unit tests with synthetic D matrices). The production 150-node
+network will have adjacent nodes within 50 km, producing meaningful D entries. Added unit
+tests with small synthetic D matrices to verify pathogen transport mechanics independently.
+
+**Status:** ✅ Resolved (by design — documented for clarity)

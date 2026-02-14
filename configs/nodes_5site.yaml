@@ -1,0 +1,107 @@
+# 5-Node Test Network for SSWD-EvoEpi
+#
+# Representative sites spanning the Pycnopodia range:
+#   0: Sitka, AK — cold open coast, large pop, low disease risk
+#   1: Howe Sound, BC — fjord refugium, freshwater layer, low flushing
+#   2: San Juan Islands, WA — Salish Sea, moderate SST, Willem's backyard
+#   3: Newport, OR — open coast, moderate SST
+#   4: Monterey, CA — warm southern range, near functional extinction
+#
+# SST parameters: annual sinusoidal cycle + linear warming trend
+#   T(d,y) = mean_sst + sst_trend × (y − 2000) + sst_amplitude × cos(2π(d − 227)/365)
+#
+# References:
+#   - spatial-connectivity-spec.md §1.3, §2
+#   - ERRATA E3: flushing range [0.007, 0.05] for fjords
+#   - Hamilton 2021, Schultz 2016, Gehman 2025
+
+nodes:
+- node_id: 0
+  name: Sitka, AK
+  lat: 57.06
+  lon: -135.34
+  subregion: AK-SE
+  habitat_area: 50000.0
+  carrying_capacity: 1000
+  is_fjord: false
+  sill_depth: null
+  flushing_rate: 0.8
+  mean_sst: 8.0
+  sst_amplitude: 3.5
+  sst_trend: 0.015
+  salinity: 32.0
+  depth_range:
+  - 5.0
+  - 60.0
+
+- node_id: 1
+  name: Howe Sound, BC
+  lat: 49.52
+  lon: -123.25
+  subregion: SS
+  habitat_area: 20000.0
+  carrying_capacity: 400
+  is_fjord: true
+  sill_depth: 30.0
+  flushing_rate: 0.03
+  mean_sst: 10.0
+  sst_amplitude: 4.0
+  sst_trend: 0.02
+  salinity: 22.0
+  depth_range:
+  - 5.0
+  - 100.0
+
+- node_id: 2
+  name: San Juan Islands, WA
+  lat: 48.53
+  lon: -123.02
+  subregion: SS
+  habitat_area: 40000.0
+  carrying_capacity: 800
+  is_fjord: false
+  sill_depth: null
+  flushing_rate: 0.3
+  mean_sst: 10.0
+  sst_amplitude: 4.0
+  sst_trend: 0.02
+  salinity: 30.0
+  depth_range:
+  - 5.0
+  - 40.0
+
+- node_id: 3
+  name: Newport, OR
+  lat: 44.63
+  lon: -124.05
+  subregion: WA-OR
+  habitat_area: 30000.0
+  carrying_capacity: 600
+  is_fjord: false
+  sill_depth: null
+  flushing_rate: 1.0
+  mean_sst: 12.0
+  sst_amplitude: 3.0
+  sst_trend: 0.02
+  salinity: 33.0
+  depth_range:
+  - 5.0
+  - 50.0
+
+- node_id: 4
+  name: Monterey, CA
+  lat: 36.62
+  lon: -121.90
+  subregion: CA-BJ
+  habitat_area: 35000.0
+  carrying_capacity: 700
+  is_fjord: false
+  sill_depth: null
+  flushing_rate: 0.8
+  mean_sst: 14.0
+  sst_amplitude: 2.5
+  sst_trend: 0.025
+  salinity: 33.5
+  depth_range:
+  - 10.0
+  - 60.0

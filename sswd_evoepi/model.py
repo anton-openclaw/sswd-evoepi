@@ -1,9 +1,10 @@
-"""Coupled disease ↔ population ↔ genetics single-node simulation.
+"""Coupled disease ↔ population ↔ genetics simulation.
 
-Implements the master simulation loop for a single node (Phases 5+7):
-  - Daily loop: environment update → disease step
+Single-node simulation (Phases 5+7) and multi-node spatial simulation
+(Phase 9):
+  - Daily loop: environment update → disease step → pathogen dispersal
   - Annual loop: natural mortality → growth → stage transitions →
-                 reproduction → recruitment
+                 reproduction → larval dispersal → recruitment
   - Disease kills individuals (sets alive=False), reducing population
   - Reduced population → reduced reproduction → Allee effects
   - Post-epidemic recovery dynamics
@@ -12,9 +13,13 @@ Implements the master simulation loop for a single node (Phases 5+7):
       Disease kills low-r_i individuals → survivors enriched for resistance alleles
       Post-epidemic reproduction passes resistance alleles to offspring via SRS
       Allele frequencies tracked pre/post-epidemic for calibration
+  - Spatial coupling (Phase 9):
+      Daily: pathogen exchange between nodes via D matrix
+      Annual: larvae dispersed between nodes via C matrix
 
 References:
   - integration-architecture-spec.md §2.1 (master loop pseudocode)
+  - spatial-connectivity-spec.md §8 (node-level simulation loop)
   - population-dynamics-spec.md §2 (lifecycle)
   - disease-module-spec.md (SEIPD+R)
   - genetics-evolution-spec.md §6 (selection mechanisms), §9 (calibration)
@@ -22,7 +27,7 @@ References:
   - CODE_ERRATA CE-4: corrected Beverton-Holt formula
   - CODE_ERRATA CE-5: demographic Allee for high-fecundity species
 
-Build target: Phase 5 (disease ↔ population coupling) + Phase 7 (genetics ↔ disease).
+Build target: Phase 5 (single-node) + Phase 7 (genetics) + Phase 9 (spatial).
 """
 
 from __future__ import annotations
@@ -814,3 +819,347 @@ def run_coupled_simulation(
         recovered=recovered,
     )
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPATIAL MULTI-NODE SIMULATION (Phase 9)
+# ═══════════════════════════════════════════════════════════════════════
+
+@dataclass
+class SpatialSimResult:
+    """Results from a multi-node spatial simulation."""
+    n_years: int = 0
+    n_nodes: int = 0
+    # Per-node, per-year: shape (n_nodes, n_years)
+    yearly_pop: Optional[np.ndarray] = None
+    yearly_adults: Optional[np.ndarray] = None
+    yearly_recruits: Optional[np.ndarray] = None
+    yearly_natural_deaths: Optional[np.ndarray] = None
+    yearly_disease_deaths: Optional[np.ndarray] = None
+    yearly_mean_resistance: Optional[np.ndarray] = None
+    yearly_vibrio_max: Optional[np.ndarray] = None
+    # Per-year totals
+    yearly_total_pop: Optional[np.ndarray] = None
+    yearly_total_larvae_dispersed: Optional[np.ndarray] = None
+    # Summary
+    initial_total_pop: int = 0
+    final_total_pop: int = 0
+
+
+def run_spatial_simulation(
+    network: 'MetapopulationNetwork',
+    n_years: int = 10,
+    disease_year: Optional[int] = None,
+    initial_infected_per_node: int = 5,
+    seed: int = 42,
+    config: Optional[SimulationConfig] = None,
+) -> SpatialSimResult:
+    """Run multi-node spatial simulation.
+
+    Each node runs independently within a daily timestep. At the end
+    of each daily step, pathogen is exchanged between nodes via the D
+    matrix. At the end of each annual step, larvae are dispersed via
+    the C matrix.
+
+    Args:
+        network: MetapopulationNetwork (from spatial.build_network).
+        n_years: Number of years to simulate.
+        disease_year: Year to introduce disease (None = no disease).
+        initial_infected_per_node: Infections per node at disease_year.
+        seed: RNG seed.
+        config: SimulationConfig; uses default if None.
+
+    Returns:
+        SpatialSimResult with per-node annual timeseries.
+    """
+    from sswd_evoepi.spatial import (
+        SpatialNode,
+        MetapopulationNetwork,
+        distribute_larvae,
+        pathogen_dispersal_step,
+    )
+    from sswd_evoepi.environment import sst_with_trend, seasonal_flushing
+
+    if config is None:
+        config = default_config()
+
+    pop_cfg = config.population
+    dis_cfg = config.disease
+
+    rng = np.random.default_rng(seed)
+    N = network.n_nodes
+
+    # ── Initialize populations at each node ──────────────────────────
+    effect_sizes = make_effect_sizes(config.genetics.effect_size_seed)
+
+    for node in network.nodes:
+        nd = node.definition
+        K = nd.carrying_capacity
+        max_agents = max(int(K * 2.5), K + 500)
+        agents, geno = initialize_population(
+            n_individuals=K,
+            max_agents=max_agents,
+            habitat_area=nd.habitat_area,
+            effect_sizes=effect_sizes,
+            pop_cfg=pop_cfg,
+            rng=rng,
+            q_init=0.05,
+            q_ef1a=config.genetics.q_ef1a_init,
+        )
+        # Stamp node_id on all agents
+        agents['node_id'][:K] = nd.node_id
+        node.agents = agents
+        node.genotypes = geno
+
+        # Init vibrio from environmental background
+        if dis_cfg.scenario == "ubiquitous":
+            env = environmental_vibrio(nd.mean_sst, nd.salinity, dis_cfg)
+            xi = vibrio_decay_rate(nd.mean_sst)
+            phi = nd.flushing_rate
+            node.vibrio_concentration = (
+                env / (xi + phi) if (xi + phi) > 0 else 0.0
+            )
+        else:
+            node.vibrio_concentration = 0.0
+
+    # ── Allocate result arrays ───────────────────────────────────────
+    yearly_pop = np.zeros((N, n_years), dtype=np.int32)
+    yearly_adults = np.zeros((N, n_years), dtype=np.int32)
+    yearly_recruits = np.zeros((N, n_years), dtype=np.int32)
+    yearly_nat_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_dis_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_mean_r = np.zeros((N, n_years), dtype=np.float64)
+    yearly_vibrio_max = np.zeros((N, n_years), dtype=np.float64)
+    yearly_total_pop = np.zeros(n_years, dtype=np.int32)
+    yearly_total_larvae = np.zeros(n_years, dtype=np.int32)
+
+    initial_total = network.total_population()
+
+    # Per-node disease tracking
+    node_disease_states = []
+    disease_active_flags = [False] * N
+    cumulative_dis_deaths = [0] * N
+
+    for i in range(N):
+        node_disease_states.append(NodeDiseaseState(node_id=i))
+        node_disease_states[i].vibrio_concentration = (
+            network.nodes[i].vibrio_concentration
+        )
+
+    # ── Main simulation loop ─────────────────────────────────────────
+    start_year = 2000  # reference year for SST
+
+    for year in range(n_years):
+        cal_year = start_year + year
+        year_dd_before = list(cumulative_dis_deaths)
+
+        # Track max vibrio per node this year
+        max_vibrio_year = np.zeros(N, dtype=np.float64)
+
+        # ── DAILY LOOP (365 days) ────────────────────────────────────
+        for day in range(DAYS_PER_YEAR):
+            month = min(day // 30, 11)
+
+            # 1. Update environment at each node
+            for i, node in enumerate(network.nodes):
+                nd = node.definition
+                node.current_sst = sst_with_trend(
+                    day, cal_year, nd.mean_sst, nd.sst_amplitude,
+                    nd.sst_trend, reference_year=start_year,
+                )
+                node.current_flushing = seasonal_flushing(
+                    nd.flushing_rate, month, nd.is_fjord,
+                )
+                node.current_salinity = nd.salinity
+
+            # 2. Per-node disease step (if disease is active at that node)
+            for i, node in enumerate(network.nodes):
+                if not disease_active_flags[i]:
+                    continue
+                deaths_before = node_disease_states[i].cumulative_deaths
+                node_disease_states[i] = daily_disease_update(
+                    agents=node.agents,
+                    node_state=node_disease_states[i],
+                    T_celsius=node.current_sst,
+                    salinity=node.current_salinity,
+                    phi_k=node.current_flushing,
+                    dispersal_input=0.0,  # handled below
+                    day=year * DAYS_PER_YEAR + day,
+                    cfg=dis_cfg,
+                    rng=rng,
+                )
+                new_deaths = (
+                    node_disease_states[i].cumulative_deaths - deaths_before
+                )
+                cumulative_dis_deaths[i] += new_deaths
+
+            # 3. Pathogen dispersal between nodes (D matrix)
+            P = np.array([
+                node_disease_states[i].vibrio_concentration
+                for i in range(N)
+            ])
+            dispersal_in = pathogen_dispersal_step(P, network.D)
+            for i in range(N):
+                node_disease_states[i].vibrio_concentration += dispersal_in[i]
+                network.nodes[i].vibrio_concentration = (
+                    node_disease_states[i].vibrio_concentration
+                )
+
+            # Track max vibrio
+            for i in range(N):
+                v = node_disease_states[i].vibrio_concentration
+                if v > max_vibrio_year[i]:
+                    max_vibrio_year[i] = v
+
+        # ── ANNUAL DEMOGRAPHIC STEP ──────────────────────────────────
+
+        # 1. Natural mortality + growth at each node
+        node_nat_deaths = np.zeros(N, dtype=np.int32)
+        for i, node in enumerate(network.nodes):
+            nd = node.agents
+            n_killed = annual_natural_mortality(nd, pop_cfg, rng)
+            node_nat_deaths[i] = n_killed
+            annual_growth_and_aging(nd, pop_cfg, rng)
+
+        # 2. Reproduction at each node → produce larval cohorts
+        source_ids = []
+        source_n = []
+        source_geno = []
+        node_repro_diags = []
+
+        for i, node in enumerate(network.nodes):
+            pop_now = node.n_alive
+            if pop_now == 0:
+                node_repro_diags.append({'n_recruits': 0})
+                continue
+            repro_diag = annual_reproduction(
+                agents=node.agents,
+                genotypes=node.genotypes,
+                effect_sizes=effect_sizes,
+                habitat_area=node.definition.habitat_area,
+                sst=node.current_sst,
+                carrying_capacity=node.definition.carrying_capacity,
+                pop_cfg=pop_cfg,
+                rng=rng,
+            )
+            node_repro_diags.append(repro_diag)
+
+            # Collect larvae for dispersal
+            n_comp = repro_diag.get('n_competent', 0)
+            if n_comp > 0:
+                # Get genotypes of alive individuals for sampling
+                alive_mask = node.agents['alive'].astype(bool)
+                alive_geno = node.genotypes[alive_mask]
+                # Sample n_comp genotypes (representing competent larvae)
+                if len(alive_geno) > 0:
+                    idx = rng.choice(len(alive_geno), size=min(n_comp, 1000),
+                                     replace=True)
+                    source_ids.append(i)
+                    source_n.append(min(n_comp, 1000))
+                    source_geno.append(alive_geno[idx])
+
+        # 3. Larval dispersal via C matrix
+        total_larvae = sum(source_n)
+        if total_larvae > 0:
+            settler_map = distribute_larvae(
+                source_ids, source_n, source_geno,
+                network.C, rng,
+            )
+
+            # 4. Settle larvae at destination nodes
+            for k in range(N):
+                if not settler_map[k]:
+                    continue
+                node = network.nodes[k]
+                nd = node.definition
+                for geno_batch, src in settler_map[k]:
+                    n_settlers = len(geno_batch)
+                    # Find empty slots
+                    dead_slots = np.where(~node.agents['alive'])[0]
+                    n_to_place = min(n_settlers, len(dead_slots))
+                    if n_to_place == 0:
+                        continue
+                    # B-H density check
+                    current_alive = node.n_alive
+                    available = max(0, nd.carrying_capacity - current_alive)
+                    n_to_place = min(n_to_place, available)
+                    if n_to_place <= 0:
+                        continue
+
+                    hab_side = np.sqrt(max(nd.habitat_area, 1.0))
+                    for j in range(n_to_place):
+                        slot = dead_slots[j]
+                        node.agents[slot]['alive'] = True
+                        node.agents[slot]['x'] = rng.uniform(0, hab_side)
+                        node.agents[slot]['y'] = rng.uniform(0, hab_side)
+                        node.agents[slot]['heading'] = rng.uniform(0, 2*np.pi)
+                        node.agents[slot]['speed'] = 0.1
+                        node.agents[slot]['size'] = 0.5
+                        node.agents[slot]['age'] = 0.0
+                        node.agents[slot]['stage'] = Stage.SETTLER
+                        node.agents[slot]['sex'] = rng.integers(0, 2)
+                        node.agents[slot]['disease_state'] = DiseaseState.S
+                        node.agents[slot]['disease_timer'] = 0
+                        node.agents[slot]['fecundity_mod'] = 1.0
+                        node.agents[slot]['node_id'] = k
+                        node.agents[slot]['origin'] = 0
+                        node.genotypes[slot] = geno_batch[j]
+                        node.agents[slot]['resistance'] = _compute_resistance(
+                            geno_batch[j], effect_sizes, 0.160,
+                        )
+
+        # 5. Seed disease if it's the epidemic year
+        if disease_year is not None and year == disease_year:
+            for i, node in enumerate(network.nodes):
+                disease_active_flags[i] = True
+                alive_idx = np.where(node.agents['alive'])[0]
+                n_to_infect = min(initial_infected_per_node, len(alive_idx))
+                if n_to_infect > 0:
+                    infect_idx = rng.choice(alive_idx, size=n_to_infect,
+                                            replace=False)
+                    mu_EI1 = arrhenius(dis_cfg.mu_EI1_ref, dis_cfg.Ea_EI1,
+                                       node.current_sst)
+                    from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
+                    for idx in infect_idx:
+                        node.agents['disease_state'][idx] = DiseaseState.E
+                        node.agents['disease_timer'][idx] = (
+                            sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
+                        )
+
+        # ── Record annual metrics ────────────────────────────────────
+        for i, node in enumerate(network.nodes):
+            alive_mask = node.agents['alive'].astype(bool)
+            pop_now = int(np.sum(alive_mask))
+            adult_mask = alive_mask & (node.agents['stage'] == Stage.ADULT)
+            yearly_pop[i, year] = pop_now
+            yearly_adults[i, year] = int(np.sum(adult_mask))
+            yearly_recruits[i, year] = node_repro_diags[i].get('n_recruits', 0)
+            yearly_nat_deaths[i, year] = node_nat_deaths[i]
+            yearly_dis_deaths[i, year] = (
+                cumulative_dis_deaths[i] - year_dd_before[i]
+            )
+            yearly_vibrio_max[i, year] = max_vibrio_year[i]
+            if pop_now > 0:
+                yearly_mean_r[i, year] = float(
+                    np.mean(node.agents['resistance'][alive_mask])
+                )
+
+        yearly_total_pop[year] = int(yearly_pop[:, year].sum())
+        yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
+
+    # ── Compile result ────────────────────────────────────────────────
+    return SpatialSimResult(
+        n_years=n_years,
+        n_nodes=N,
+        yearly_pop=yearly_pop,
+        yearly_adults=yearly_adults,
+        yearly_recruits=yearly_recruits,
+        yearly_natural_deaths=yearly_nat_deaths,
+        yearly_disease_deaths=yearly_dis_deaths,
+        yearly_mean_resistance=yearly_mean_r,
+        yearly_vibrio_max=yearly_vibrio_max,
+        yearly_total_pop=yearly_total_pop,
+        yearly_total_larvae_dispersed=yearly_total_larvae,
+        initial_total_pop=initial_total,
+        final_total_pop=int(yearly_total_pop[-1]),
+    )
