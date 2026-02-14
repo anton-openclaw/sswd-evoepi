@@ -178,3 +178,26 @@ will produce a true stable age distribution. The integration tests account for t
 using disease_year=2 or later.
 
 **Status:** ✅ Resolved (spinup handles it for production; tests account for transients)
+
+### CE-9. EF1A Lethal Purging Dynamics Without Disease Selection
+**Found by:** Phase 6 (Genetics)
+**Date:** 2026-02-14
+**Severity:** 🟢 LOW
+**Affects:** Calibration, spinup dynamics, EF1A equilibrium interpretation
+
+**Issue:** Without disease (heterozygote advantage only active during epidemics), the
+EF1A insertion allele is progressively purged by lethal homozygote elimination. Each
+generation, q' ≈ q/(1+q), meaning after t generations: q ≈ 1/(1/q₀ + t). Starting at
+q=0.24, after 30 disease-free generations q drops to ~0.03. This is NOT a bug — it's
+correct population genetics. The EF1A equilibrium frequency of ~0.16–0.24 cited in the
+spec only holds DURING active disease (when heterozygote survival advantage maintains q).
+
+**Resolution:** During disease-free spinup, EF1A q will decrease. This is biologically
+correct and means the pre-epidemic EF1A frequency depends on recent disease history.
+For the model:
+- Initialize EF1A q at 0.24 (observed coast-wide, reflects recent disease history)
+- During 100-year disease-free spinup, q will decrease substantially
+- Disease introduction will push q back up via heterozygote advantage
+- Sensitivity analysis should test initial q_EF1A ∈ [0.05, 0.30]
+
+**Status:** ✅ Resolved (documented as expected behavior)
