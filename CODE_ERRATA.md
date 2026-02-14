@@ -293,3 +293,52 @@ network will have adjacent nodes within 50 km, producing meaningful D entries. A
 tests with small synthetic D matrices to verify pathogen transport mechanics independently.
 
 **Status:** ✅ Resolved (by design — documented for clarity)
+
+### CE-14. Ongoing Population Decline Post-Epidemic (No Recovery Phase)
+**Found by:** Phase 10 (Full Integration)
+**Date:** 2026-02-14
+**Severity:** 🟡 MEDIUM
+**Affects:** model.py, population dynamics, epidemic calibration
+
+**Issue:** In the 20-year 5-node epidemic simulation, populations continue declining after
+the initial epidemic wave rather than stabilizing or recovering. Total population goes from
+3105 (year 5) to 230 (year 19) — a monotonic decline with no recovery inflection. This
+is because:
+1. Disease remains endemic after the initial wave (ubiquitous Vibrio + warm summers)
+2. Ongoing disease mortality exceeds recruitment at low density
+3. Allee effects suppress reproduction at low N (reduced fertilization success)
+4. Natural mortality on top of disease mortality compounds the decline
+
+This is arguably biologically correct for SSWD — Hamilton 2021 documented continued absence
+of Pycnopodia 7+ years post-epidemic with no recovery. The model captures this "SSWD trap"
+where endemic disease + Allee effects prevent recovery.
+
+**Resolution:** The ongoing decline is consistent with field observations. Recovery in the
+real system requires either:
+- Disease pressure reduction (climate cooling, pathogen attenuation)
+- Conservation intervention (captive breeding releases — Phase 11+)
+- Resistance evolution reaching a threshold where R₀ < 1
+
+For production runs, 100+ year simulations will test whether evolutionary rescue occurs.
+The conservation module will test intervention scenarios.
+
+**Status:** ✅ Resolved (documented as biologically correct; matches literature)
+
+### CE-15. SJI Higher Total Deaths Than Monterey Despite Lower SST
+**Found by:** Phase 10 (Full Integration)
+**Date:** 2026-02-14
+**Severity:** 🟢 LOW
+**Affects:** Verification checks, interpretation of spatial results
+
+**Issue:** San Juan Islands (SST=10°C) had 839 total disease deaths vs Monterey (SST=14°C)
+with 693 deaths. This seems paradoxical given the temperature-mortality relationship, but
+is explained by population size: SJI has K=800 (more individuals to die) while Monterey
+K=700. Additionally, Monterey's population crashed so fast (to 1 individual) that few
+remained to die in later years. In terms of mortality *fraction*, Monterey (99.8%) > SJI
+(96.1%), which is the correct comparison.
+
+**Resolution:** Verification check adjusted to compare mortality fractions rather than
+absolute death counts for the north-south gradient test. Monterey has highest mortality
+fraction as expected.
+
+**Status:** ✅ Resolved (correct interpretation)

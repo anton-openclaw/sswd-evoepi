@@ -830,6 +830,8 @@ class SpatialSimResult:
     """Results from a multi-node spatial simulation."""
     n_years: int = 0
     n_nodes: int = 0
+    node_names: Optional[List[str]] = None
+    node_K: Optional[np.ndarray] = None
     # Per-node, per-year: shape (n_nodes, n_years)
     yearly_pop: Optional[np.ndarray] = None
     yearly_adults: Optional[np.ndarray] = None
@@ -838,12 +840,24 @@ class SpatialSimResult:
     yearly_disease_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
     yearly_vibrio_max: Optional[np.ndarray] = None
+    # Per-node genetics: shape (n_nodes, n_years)
+    yearly_ef1a_freq: Optional[np.ndarray] = None
+    yearly_va: Optional[np.ndarray] = None
+    yearly_allele_freq_top3: Optional[np.ndarray] = None  # (n_nodes, n_years, 3)
+    yearly_ne_ratio: Optional[np.ndarray] = None
+    # Pre/post-epidemic snapshots per node: shape (n_nodes, N_LOCI)
+    pre_epidemic_allele_freq: Optional[np.ndarray] = None
+    post_epidemic_allele_freq: Optional[np.ndarray] = None
     # Per-year totals
     yearly_total_pop: Optional[np.ndarray] = None
     yearly_total_larvae_dispersed: Optional[np.ndarray] = None
+    # Peak disease prevalence per node (fraction infected at peak)
+    peak_disease_prevalence: Optional[np.ndarray] = None
     # Summary
     initial_total_pop: int = 0
     final_total_pop: int = 0
+    disease_year: Optional[int] = None
+    seed: int = 0
 
 
 def run_spatial_simulation(
@@ -853,13 +867,22 @@ def run_spatial_simulation(
     initial_infected_per_node: int = 5,
     seed: int = 42,
     config: Optional[SimulationConfig] = None,
+    progress_callback=None,
 ) -> SpatialSimResult:
-    """Run multi-node spatial simulation.
+    """Run multi-node spatial simulation with full genetics tracking.
 
     Each node runs independently within a daily timestep. At the end
     of each daily step, pathogen is exchanged between nodes via the D
     matrix. At the end of each annual step, larvae are dispersed via
     the C matrix.
+
+    Full integration (Phase 10):
+      - 5 nodes, each with: population + disease + genetics + environmental forcing
+      - Daily: update_environment → disease_step → pathogen_dispersal
+      - Annual: natural_mortality → growth_aging → reproduction_with_srs →
+                larval_dispersal → genetics_recording
+      - Genetics tracking: allele frequencies, EF1A, V_A, Ne/N per node per year
+      - Pre/post-epidemic allele frequency snapshots
 
     Args:
         network: MetapopulationNetwork (from spatial.build_network).
@@ -868,9 +891,10 @@ def run_spatial_simulation(
         initial_infected_per_node: Infections per node at disease_year.
         seed: RNG seed.
         config: SimulationConfig; uses default if None.
+        progress_callback: Optional callable(year, n_years) for progress.
 
     Returns:
-        SpatialSimResult with per-node annual timeseries.
+        SpatialSimResult with per-node annual timeseries + genetics.
     """
     from sswd_evoepi.spatial import (
         SpatialNode,
@@ -933,7 +957,26 @@ def run_spatial_simulation(
     yearly_total_pop = np.zeros(n_years, dtype=np.int32)
     yearly_total_larvae = np.zeros(n_years, dtype=np.int32)
 
+    # Genetics tracking per node per year
+    yearly_ef1a_freq = np.zeros((N, n_years), dtype=np.float64)
+    yearly_va = np.zeros((N, n_years), dtype=np.float64)
+    yearly_allele_freq_top3 = np.zeros((N, n_years, 3), dtype=np.float64)
+    yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)
+
+    # Pre/post-epidemic allele frequency snapshots (n_nodes, N_LOCI)
+    from sswd_evoepi.types import N_LOCI as _N_LOCI
+    pre_epidemic_af = np.zeros((N, _N_LOCI), dtype=np.float64)
+    post_epidemic_af = np.zeros((N, _N_LOCI), dtype=np.float64)
+    pre_snapshot_taken = False
+    post_snapshot_taken = False
+    epidemic_started_year = None
+
+    # Peak disease prevalence tracker per node
+    peak_disease_prev = np.zeros(N, dtype=np.float64)
+
     initial_total = network.total_population()
+    node_names = [n.definition.name for n in network.nodes]
+    node_K = np.array([n.definition.carrying_capacity for n in network.nodes])
 
     # Per-node disease tracking
     node_disease_states = []
@@ -1005,11 +1048,28 @@ def run_spatial_simulation(
                     node_disease_states[i].vibrio_concentration
                 )
 
-            # Track max vibrio
+            # Track max vibrio and disease prevalence
             for i in range(N):
                 v = node_disease_states[i].vibrio_concentration
                 if v > max_vibrio_year[i]:
                     max_vibrio_year[i] = v
+                # Track peak disease prevalence
+                if disease_active_flags[i]:
+                    node = network.nodes[i]
+                    alive_m = node.agents['alive'].astype(bool)
+                    n_alive = int(np.sum(alive_m))
+                    if n_alive > 0:
+                        ds = node.agents['disease_state']
+                        n_inf = int(np.sum(
+                            alive_m & (
+                                (ds == DiseaseState.E) |
+                                (ds == DiseaseState.I1) |
+                                (ds == DiseaseState.I2)
+                            )
+                        ))
+                        prev = n_inf / n_alive
+                        if prev > peak_disease_prev[i]:
+                            peak_disease_prev[i] = prev
 
         # ── ANNUAL DEMOGRAPHIC STEP ──────────────────────────────────
 
@@ -1108,8 +1168,21 @@ def run_spatial_simulation(
                             geno_batch[j], effect_sizes, 0.160,
                         )
 
-        # 5. Seed disease if it's the epidemic year
+        # 5. Pre-epidemic allele frequency snapshot
+        if (disease_year is not None and year == disease_year
+                and not pre_snapshot_taken):
+            for i, node in enumerate(network.nodes):
+                alive_mask = node.agents['alive'].astype(bool)
+                if int(np.sum(alive_mask)) > 0:
+                    pre_epidemic_af[i] = compute_allele_frequencies(
+                        node.genotypes, alive_mask
+                    )
+            pre_snapshot_taken = True
+
+        # 6. Seed disease if it's the epidemic year
         if disease_year is not None and year == disease_year:
+            epidemic_started_year = year
+            from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
             for i, node in enumerate(network.nodes):
                 disease_active_flags[i] = True
                 alive_idx = np.where(node.agents['alive'])[0]
@@ -1119,12 +1192,23 @@ def run_spatial_simulation(
                                             replace=False)
                     mu_EI1 = arrhenius(dis_cfg.mu_EI1_ref, dis_cfg.Ea_EI1,
                                        node.current_sst)
-                    from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
                     for idx in infect_idx:
                         node.agents['disease_state'][idx] = DiseaseState.E
                         node.agents['disease_timer'][idx] = (
                             sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
                         )
+
+        # 7. Post-epidemic allele frequency snapshot (2 years after)
+        if (epidemic_started_year is not None
+                and year == epidemic_started_year + 2
+                and not post_snapshot_taken):
+            for i, node in enumerate(network.nodes):
+                alive_mask = node.agents['alive'].astype(bool)
+                if int(np.sum(alive_mask)) > 1:
+                    post_epidemic_af[i] = compute_allele_frequencies(
+                        node.genotypes, alive_mask
+                    )
+            post_snapshot_taken = True
 
         # ── Record annual metrics ────────────────────────────────────
         for i, node in enumerate(network.nodes):
@@ -1143,14 +1227,24 @@ def run_spatial_simulation(
                 yearly_mean_r[i, year] = float(
                     np.mean(node.agents['resistance'][alive_mask])
                 )
+                # Genetics tracking
+                af = compute_allele_frequencies(node.genotypes, alive_mask)
+                yearly_allele_freq_top3[i, year] = af[:3]
+                yearly_ef1a_freq[i, year] = float(af[IDX_EF1A])
+                yearly_va[i, year] = compute_additive_variance(af, effect_sizes)
 
         yearly_total_pop[year] = int(yearly_pop[:, year].sum())
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
+
+        if progress_callback is not None:
+            progress_callback(year, n_years)
 
     # ── Compile result ────────────────────────────────────────────────
     return SpatialSimResult(
         n_years=n_years,
         n_nodes=N,
+        node_names=node_names,
+        node_K=node_K,
         yearly_pop=yearly_pop,
         yearly_adults=yearly_adults,
         yearly_recruits=yearly_recruits,
@@ -1158,8 +1252,17 @@ def run_spatial_simulation(
         yearly_disease_deaths=yearly_dis_deaths,
         yearly_mean_resistance=yearly_mean_r,
         yearly_vibrio_max=yearly_vibrio_max,
+        yearly_ef1a_freq=yearly_ef1a_freq,
+        yearly_va=yearly_va,
+        yearly_allele_freq_top3=yearly_allele_freq_top3,
+        yearly_ne_ratio=yearly_ne_ratio,
+        pre_epidemic_allele_freq=pre_epidemic_af if pre_snapshot_taken else None,
+        post_epidemic_allele_freq=post_epidemic_af if post_snapshot_taken else None,
         yearly_total_pop=yearly_total_pop,
         yearly_total_larvae_dispersed=yearly_total_larvae,
+        peak_disease_prevalence=peak_disease_prev,
         initial_total_pop=initial_total,
         final_total_pop=int(yearly_total_pop[-1]),
+        disease_year=disease_year,
+        seed=seed,
     )
