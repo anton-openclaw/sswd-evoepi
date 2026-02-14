@@ -1,22 +1,28 @@
-"""Coupled disease ↔ population single-node simulation.
+"""Coupled disease ↔ population ↔ genetics single-node simulation.
 
-Implements the master simulation loop for a single node (Phase 5):
+Implements the master simulation loop for a single node (Phases 5+7):
   - Daily loop: environment update → disease step
   - Annual loop: natural mortality → growth → stage transitions →
                  reproduction → recruitment
   - Disease kills individuals (sets alive=False), reducing population
   - Reduced population → reduced reproduction → Allee effects
   - Post-epidemic recovery dynamics
+  - Genetics ↔ Disease coupling:
+      r_i feeds into force of infection λ_i (higher r_i → lower infection prob)
+      Disease kills low-r_i individuals → survivors enriched for resistance alleles
+      Post-epidemic reproduction passes resistance alleles to offspring via SRS
+      Allele frequencies tracked pre/post-epidemic for calibration
 
 References:
   - integration-architecture-spec.md §2.1 (master loop pseudocode)
   - population-dynamics-spec.md §2 (lifecycle)
   - disease-module-spec.md (SEIPD+R)
+  - genetics-evolution-spec.md §6 (selection mechanisms), §9 (calibration)
   - CODE_ERRATA CE-1: no cost of resistance
   - CODE_ERRATA CE-4: corrected Beverton-Holt formula
   - CODE_ERRATA CE-5: demographic Allee for high-fecundity species
 
-Build target: Phase 5 (disease ↔ population coupling).
+Build target: Phase 5 (disease ↔ population coupling) + Phase 7 (genetics ↔ disease).
 """
 
 from __future__ import annotations
@@ -40,6 +46,12 @@ from sswd_evoepi.disease import (
     vibrio_decay_rate,
     arrhenius,
     compute_R0,
+)
+from sswd_evoepi.genetics import (
+    compute_allele_frequencies,
+    compute_additive_variance,
+    compute_genetic_diagnostics,
+    update_resistance_scores,
 )
 from sswd_evoepi.reproduction import (
     beverton_holt_recruitment,
@@ -455,7 +467,7 @@ def annual_reproduction(
 
 @dataclass
 class CoupledSimResult:
-    """Results from a coupled disease + population simulation."""
+    """Results from a coupled disease + population + genetics simulation."""
     n_years: int = 0
     # Annual timeseries (length = n_years)
     yearly_pop: Optional[np.ndarray] = None
@@ -465,6 +477,13 @@ class CoupledSimResult:
     yearly_disease_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
     yearly_fert_success: Optional[np.ndarray] = None
+
+    # Genetics tracking (Phase 7)
+    yearly_allele_freq_top3: Optional[np.ndarray] = None   # (n_years, 3)
+    yearly_ef1a_freq: Optional[np.ndarray] = None           # (n_years,)
+    yearly_va: Optional[np.ndarray] = None                  # (n_years,) additive variance
+    pre_epidemic_allele_freq: Optional[np.ndarray] = None   # (N_LOCI,) snapshot
+    post_epidemic_allele_freq: Optional[np.ndarray] = None  # (N_LOCI,) snapshot
 
     # Daily timeseries (length = n_years * 365)
     daily_pop: Optional[np.ndarray] = None
@@ -587,6 +606,14 @@ def run_coupled_simulation(
     yearly_mean_resistance = np.zeros(n_years, dtype=np.float64)
     yearly_fert_success = np.zeros(n_years, dtype=np.float64)
 
+    # Genetics tracking (Phase 7)
+    yearly_allele_freq_top3 = np.zeros((n_years, 3), dtype=np.float64)
+    yearly_ef1a_freq = np.zeros(n_years, dtype=np.float64)
+    yearly_va = np.zeros(n_years, dtype=np.float64)
+    pre_epidemic_allele_freq = None
+    post_epidemic_allele_freq = None
+    epidemic_started_year = None  # track when epidemic begins for snapshot timing
+
     if record_daily:
         daily_pop = np.zeros(total_days, dtype=np.int32)
         daily_infected = np.zeros(total_days, dtype=np.int32)
@@ -676,7 +703,15 @@ def run_coupled_simulation(
 
         # B5. Seed disease at disease_year
         if year == disease_year and not disease_active:
+            # ── Pre-epidemic allele frequency snapshot (Phase 7) ──────
+            alive_mask_pre = agents['alive'].astype(bool)
+            if int(np.sum(alive_mask_pre)) > 0:
+                pre_epidemic_allele_freq = compute_allele_frequencies(
+                    genotypes, alive_mask_pre
+                )
+
             disease_active = True
+            epidemic_started_year = year
             alive_idx = np.where(agents['alive'])[0]
             n_to_infect = min(initial_infected, len(alive_idx))
             if n_to_infect > 0:
@@ -690,6 +725,17 @@ def run_coupled_simulation(
                     agents['disease_timer'][idx] = sample_stage_duration(
                         mu_EI1, K_SHAPE_E, rng
                     )
+
+        # ── Post-epidemic allele frequency snapshot (Phase 7) ────────
+        # Take snapshot 2 years after epidemic start (when initial wave is over)
+        if (epidemic_started_year is not None
+                and year == epidemic_started_year + 2
+                and post_epidemic_allele_freq is None):
+            alive_mask_post = agents['alive'].astype(bool)
+            if int(np.sum(alive_mask_post)) > 1:
+                post_epidemic_allele_freq = compute_allele_frequencies(
+                    genotypes, alive_mask_post
+                )
 
         # ── Record annual metrics ────────────────────────────────────
         alive_mask = agents['alive'].astype(bool)
@@ -713,6 +759,15 @@ def run_coupled_simulation(
             )
         else:
             yearly_mean_resistance[year] = 0.0
+
+        # ── Genetics tracking (Phase 7) ──────────────────────────────
+        if pop_after > 0:
+            allele_freq = compute_allele_frequencies(genotypes, alive_mask)
+            yearly_allele_freq_top3[year] = allele_freq[:3]
+            yearly_ef1a_freq[year] = float(allele_freq[IDX_EF1A])
+            yearly_va[year] = compute_additive_variance(
+                allele_freq, effect_sizes
+            )
 
         # Track minimum population
         if pop_after < min_pop:
@@ -739,9 +794,17 @@ def run_coupled_simulation(
         yearly_disease_deaths=yearly_disease_deaths,
         yearly_mean_resistance=yearly_mean_resistance,
         yearly_fert_success=yearly_fert_success,
+        # Genetics (Phase 7)
+        yearly_allele_freq_top3=yearly_allele_freq_top3,
+        yearly_ef1a_freq=yearly_ef1a_freq,
+        yearly_va=yearly_va,
+        pre_epidemic_allele_freq=pre_epidemic_allele_freq,
+        post_epidemic_allele_freq=post_epidemic_allele_freq,
+        # Daily
         daily_pop=daily_pop,
         daily_infected=daily_infected,
         daily_vibrio=daily_vibrio,
+        # Summary
         initial_pop=initial_pop,
         final_pop=final_pop,
         min_pop=min_pop,
