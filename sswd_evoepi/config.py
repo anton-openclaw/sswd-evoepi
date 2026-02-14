@@ -89,7 +89,7 @@ class DiseaseSection:
     # Shedding (field-effective; ERRATA E2)
     sigma_1_eff: float = 5.0      # I₁ shedding (bact/mL/d/host)
     sigma_2_eff: float = 50.0     # I₂ shedding
-    sigma_D: float = 150.0        # Saprophytic burst (ERRATA E14)
+    sigma_D: float = 15.0         # Saprophytic burst, field-effective (CE-6)
     Ea_sigma: float = 5000.0      # Shedding E_a/R (K)
 
     # Disease progression rates at T_ref=20°C

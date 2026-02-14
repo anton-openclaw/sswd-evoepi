@@ -88,6 +88,32 @@ claims asymptote is `K × s0 = 15`, which is the correct biological target.
 
 **Status:** ✅ Resolved in reproduction.py
 
+### CE-6. Saprophytic Carcass Shedding Rate Reduced (σ_D: 150 → 15)
+**Found by:** Phase 4 (Disease)
+**Date:** 2026-02-13
+**Severity:** 🔴 HIGH
+**Affects:** Disease module, R₀ computation, epidemic calibration
+
+**Issue:** The spec-derived field-effective σ_D = 150 bact/mL/d/carcass was 10× larger than
+σ₂_eff = 50 (symptomatic shedding at 20°C) when accounting for the 3-day carcass duration.
+Each carcass produced 450 total bact/mL — more pathogen than the entire I₂ stage (289 at 20°C).
+This created a dominant positive feedback loop (death → saprophytic burst → more infections)
+that made R₀ >> 1 even at 8°C (cold temperatures where epidemics should not sustain).
+
+The R₀ formula in the spec §6.6 excluded carcass contribution, masking this issue:
+- Spec R₀ at 8°C/φ=0.1: 0.72 (sub-threshold, correct target)
+- Actual R₀ with carcass (σ_D=150): 2.34 (epidemic, wrong)
+
+**Resolution:**
+- Reduced σ_D from 150 to 15 bact/mL/d/carcass (★☆☆ confidence parameter)
+- R₀ computation now includes carcass term: σ_D × τ_D in shedding integral
+- At σ_D=15: carcass total = 45, ~15% of I₂ stage — biologically minor, as intended
+- Corrected R₀ at 8°C/φ=0.1: ~0.80 (sub-threshold ✓)
+- Corrected R₀ at 16°C/φ=0.02: ~2.1 (epidemic ✓)
+- Updated default.yaml and config.py
+
+**Status:** ✅ Resolved
+
 ### CE-5. High-Fecundity Broadcast Spawner Allee Effect
 **Found by:** Phase 3 (Reproduction)
 **Date:** 2026-02-13

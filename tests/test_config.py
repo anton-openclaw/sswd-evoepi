@@ -152,7 +152,7 @@ class TestLoadConfig:
             assert config.disease.scenario == "ubiquitous"
             assert config.disease.Ea_I2D == 2000.0  # ERRATA E1
             assert config.disease.sigma_1_eff == 5.0  # ERRATA E2
-            assert config.disease.sigma_D == 150.0    # ERRATA E14
+            assert config.disease.sigma_D == 15.0     # CE-6: reduced from 150
             assert config.genetics.n_loci == 52
 
 
@@ -219,7 +219,7 @@ class TestSections:
         assert ds.scenario == "ubiquitous"
         assert ds.Ea_I2D == 2000.0  # ERRATA E1
         assert ds.mu_I2D_ref == 0.173
-        assert ds.sigma_D == 150.0   # ERRATA E14
+        assert ds.sigma_D == 15.0    # CE-6: reduced from 150
         assert ds.T_ref == 20.0
 
     def test_genetics_section_no_cost(self):
