@@ -1,0 +1,351 @@
+"""Configuration system for SSWD-EvoEpi.
+
+Hierarchical YAML configuration with deep-merge support:
+  base.yaml → scenario override → climate override → sweep overrides
+
+References:
+  - integration-architecture-spec.md §5
+  - data-parameterization-plan.md §1 (authoritative parameter inventory)
+
+Design decisions (from Willem):
+  - NO cost_of_resistance parameter (CE-1)
+  - Both etiological scenarios supported: "ubiquitous" | "invasion" (CE-2)
+  - Exponential decay for effect sizes (CE-3)
+"""
+
+from __future__ import annotations
+
+import copy
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+import yaml
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONFIGURATION DATACLASSES
+# ═══════════════════════════════════════════════════════════════════════
+
+@dataclass
+class SimulationSection:
+    """Top-level simulation timing and control."""
+    start_year: int = 1910
+    epidemic_year: int = 2013
+    end_year: int = 2100
+    spinup_years: int = 100
+    seed: int = 42
+    checkpoint_interval: int = 10
+
+
+@dataclass
+class SpatialSection:
+    """Spatial network and connectivity parameters."""
+    node_file: str = "data/nodes/node_definitions.csv"
+    forcing_dir: str = "data/forcing/"
+    C_matrix_file: str = "data/connectivity/C_matrix.npz"
+    D_matrix_file: str = "data/connectivity/D_matrix.npz"
+    D_L: float = 400.0           # Larval dispersal scale (km)
+    D_P: float = 15.0            # Pathogen dispersal scale (km)
+    r_total: float = 0.02        # Total settlement success fraction
+
+
+@dataclass
+class PopulationSection:
+    """Population dynamics parameters."""
+    L_inf: float = 1000.0        # VB asymptotic size (mm)
+    k_growth: float = 0.08       # VB growth rate (yr⁻¹)
+    t0_growth: float = -0.5      # VB age offset (yr)
+    F0: float = 1.0e7            # Reference fecundity (eggs)
+    fecundity_exp: float = 2.5   # Allometric exponent
+    L_ref: float = 500.0         # Reference size for fecundity (mm)
+    L_min_repro: float = 400.0   # Minimum reproductive size (mm)
+    gamma_fert: float = 4.5      # Fertilization kinetics parameter (m²)
+    alpha_srs: float = 1.35      # Pareto SRS shape
+    sigma_alpha: float = 0.10    # Annual SRS shape variation
+    settler_survival: float = 0.03  # Annual settler survival (B-H s₀)
+    annual_survival: List[float] = field(
+        default_factory=lambda: [0.001, 0.03, 0.90, 0.95, 0.98]
+    )
+    senescence_age: float = 50.0
+    senescence_mortality: float = 0.10
+    urchin_submodel: bool = False
+
+
+@dataclass
+class DiseaseSection:
+    """Disease dynamics parameters.
+
+    scenario: "ubiquitous" — pathogen always present, SST-triggered epidemics
+              "invasion"   — pathogen absent until explicit introduction
+    """
+    scenario: str = "ubiquitous"
+
+    # Transmission
+    a_exposure: float = 0.75      # Exposure rate (d⁻¹)
+    K_half: float = 87000.0       # Half-infective dose (bact/mL)
+
+    # Shedding (field-effective; ERRATA E2)
+    sigma_1_eff: float = 5.0      # I₁ shedding (bact/mL/d/host)
+    sigma_2_eff: float = 50.0     # I₂ shedding
+    sigma_D: float = 150.0        # Saprophytic burst (ERRATA E14)
+    Ea_sigma: float = 5000.0      # Shedding E_a/R (K)
+
+    # Disease progression rates at T_ref=20°C
+    mu_EI1_ref: float = 0.57      # E→I₁ rate (d⁻¹)
+    mu_I1I2_ref: float = 0.40     # I₁→I₂ rate (d⁻¹)
+    mu_I2D_ref: float = 0.173     # I₂→D rate (d⁻¹; ERRATA E1 corrected)
+
+    # Activation energies (E_a/R in K)
+    Ea_EI1: float = 4000.0
+    Ea_I1I2: float = 5000.0
+    Ea_I2D: float = 2000.0        # ERRATA E1: was 6000
+
+    # Recovery
+    rho_rec: float = 0.05         # Base recovery rate (d⁻¹)
+    recovery_exponent: int = 2    # r_i exponent in recovery probability
+
+    # Environmental pathogen
+    P_env_max: float = 500.0      # Background Vibrio input (bact/mL/d)
+
+    # Temperature
+    T_vbnc: float = 12.0          # VBNC midpoint (°C)
+    T_ref: float = 20.0           # V. pectenicida T_opt (°C)
+
+    # Salinity
+    s_min: float = 10.0           # Salinity minimum for Vibrio (psu)
+    s_full: float = 28.0          # Full-marine salinity (psu)
+
+    # Invasion scenario extras
+    invasion_year: Optional[int] = None
+    invasion_nodes: Optional[List[int]] = None
+
+
+@dataclass
+class GeneticsSection:
+    """Genetics and evolution parameters.
+
+    NOTE: cost_resistance is intentionally absent (Willem's decision, CE-1).
+    """
+    n_additive: int = 51
+    n_loci: int = 52
+    s_het: float = 0.19           # EF1A heterozygote advantage
+    q_ef1a_init: float = 0.24     # Initial EF1A allele frequency
+    mu_per_locus: float = 1.0e-8  # Mutation rate (per allele per generation)
+    n_bank: int = 100             # Tier 2 genotype bank size
+    effect_size_seed: int = 12345 # Seed for reproducible effect sizes
+
+
+@dataclass
+class ConservationSection:
+    """Conservation intervention parameters."""
+    enabled: bool = False
+    schedule_file: Optional[str] = None
+    breeding_protocol: str = "standard"
+    n_broodstock: int = 130
+    production_scaling: bool = True
+    releases: List[Dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class OutputSection:
+    """Output control."""
+    directory: str = "results/"
+    weekly_state: bool = True
+    daily_disease: bool = True
+    annual_genetics: bool = True
+    decadal_genotype_snapshots: bool = True
+    netcdf_compression: int = 4
+
+
+@dataclass
+class SimulationConfig:
+    """Complete simulation configuration.
+
+    Load from YAML via `load_config()`. Sections map 1:1 to YAML top-level keys.
+    """
+    simulation: SimulationSection = field(default_factory=SimulationSection)
+    spatial: SpatialSection = field(default_factory=SpatialSection)
+    population: PopulationSection = field(default_factory=PopulationSection)
+    disease: DiseaseSection = field(default_factory=DiseaseSection)
+    genetics: GeneticsSection = field(default_factory=GeneticsSection)
+    conservation: ConservationSection = field(default_factory=ConservationSection)
+    output: OutputSection = field(default_factory=OutputSection)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# YAML LOADING & MERGING
+# ═══════════════════════════════════════════════════════════════════════
+
+def deep_merge(base: Dict, override: Dict) -> Dict:
+    """Recursively merge override into base. Modifies base in place.
+
+    - Dict values are merged recursively
+    - Non-dict values are replaced
+    - Keys in override but not base are added
+
+    Args:
+        base: Base dictionary (modified in place).
+        override: Override dictionary.
+
+    Returns:
+        The merged base dictionary.
+    """
+    for key, value in override.items():
+        if (
+            key in base
+            and isinstance(base[key], dict)
+            and isinstance(value, dict)
+        ):
+            deep_merge(base[key], value)
+        else:
+            base[key] = value
+    return base
+
+
+def _dict_to_section(section_cls, data: Dict) -> Any:
+    """Convert a dict to a dataclass, ignoring unknown keys."""
+    import dataclasses
+    valid_fields = {f.name for f in dataclasses.fields(section_cls)}
+    filtered = {k: v for k, v in data.items() if k in valid_fields}
+    return section_cls(**filtered)
+
+
+def _yaml_to_config(data: Dict) -> SimulationConfig:
+    """Convert a merged YAML dict to a SimulationConfig."""
+    sections = {}
+    section_map = {
+        'simulation': SimulationSection,
+        'spatial': SpatialSection,
+        'population': PopulationSection,
+        'disease': DiseaseSection,
+        'genetics': GeneticsSection,
+        'conservation': ConservationSection,
+        'output': OutputSection,
+    }
+    for key, cls in section_map.items():
+        if key in data and isinstance(data[key], dict):
+            sections[key] = _dict_to_section(cls, data[key])
+        else:
+            sections[key] = cls()
+    return SimulationConfig(**sections)
+
+
+def validate_config(config: SimulationConfig) -> None:
+    """Validate configuration constraints. Raises ValueError on failure.
+
+    Checks:
+      - Disease scenario is valid
+      - Year ordering is consistent
+      - Genetic parameters are consistent
+      - No cost_of_resistance sneaking in
+    """
+    # Disease scenario
+    valid_scenarios = {"ubiquitous", "invasion"}
+    if config.disease.scenario not in valid_scenarios:
+        raise ValueError(
+            f"disease.scenario must be one of {valid_scenarios}, "
+            f"got '{config.disease.scenario}'"
+        )
+
+    # Invasion scenario requires year and nodes
+    if config.disease.scenario == "invasion":
+        if config.disease.invasion_year is None:
+            raise ValueError(
+                "disease.invasion_year required for 'invasion' scenario"
+            )
+
+    # Year ordering
+    if config.simulation.start_year >= config.simulation.end_year:
+        raise ValueError(
+            f"start_year ({config.simulation.start_year}) must be < "
+            f"end_year ({config.simulation.end_year})"
+        )
+    if config.simulation.epidemic_year < config.simulation.start_year:
+        raise ValueError(
+            f"epidemic_year ({config.simulation.epidemic_year}) must be >= "
+            f"start_year ({config.simulation.start_year})"
+        )
+
+    # Genetics
+    if config.genetics.n_loci != config.genetics.n_additive + 1:
+        raise ValueError(
+            f"n_loci ({config.genetics.n_loci}) must equal "
+            f"n_additive + 1 ({config.genetics.n_additive + 1})"
+        )
+
+    # Annual survival array length
+    if len(config.population.annual_survival) != 5:
+        raise ValueError(
+            f"population.annual_survival must have 5 elements (one per stage), "
+            f"got {len(config.population.annual_survival)}"
+        )
+
+    # Positive parameters
+    if config.simulation.seed < 0:
+        raise ValueError("simulation.seed must be non-negative")
+    if config.population.L_inf <= 0:
+        raise ValueError("population.L_inf must be positive")
+    if config.disease.K_half <= 0:
+        raise ValueError("disease.K_half must be positive")
+
+
+def load_config(
+    base_path: Union[str, Path],
+    scenario_path: Optional[Union[str, Path]] = None,
+    climate_path: Optional[Union[str, Path]] = None,
+    sweep_overrides: Optional[Dict] = None,
+) -> SimulationConfig:
+    """Load and merge hierarchical YAML configuration.
+
+    Merge order: base → scenario → climate → sweep overrides.
+    Each layer overrides only the fields it specifies.
+
+    Args:
+        base_path: Path to base configuration YAML.
+        scenario_path: Optional scenario override YAML.
+        climate_path: Optional climate override YAML.
+        sweep_overrides: Optional dict of parameter sweep overrides.
+
+    Returns:
+        Validated SimulationConfig.
+
+    Raises:
+        FileNotFoundError: If base_path doesn't exist.
+        ValueError: If validation fails.
+    """
+    base_path = Path(base_path)
+    if not base_path.exists():
+        raise FileNotFoundError(f"Config file not found: {base_path}")
+
+    with open(base_path) as f:
+        config_dict = yaml.safe_load(f) or {}
+
+    if scenario_path is not None:
+        scenario_path = Path(scenario_path)
+        if scenario_path.exists():
+            with open(scenario_path) as f:
+                scenario = yaml.safe_load(f) or {}
+            deep_merge(config_dict, scenario)
+
+    if climate_path is not None:
+        climate_path = Path(climate_path)
+        if climate_path.exists():
+            with open(climate_path) as f:
+                climate = yaml.safe_load(f) or {}
+            deep_merge(config_dict, climate)
+
+    if sweep_overrides is not None:
+        deep_merge(config_dict, sweep_overrides)
+
+    config = _yaml_to_config(config_dict)
+    validate_config(config)
+    return config
+
+
+def default_config() -> SimulationConfig:
+    """Return a SimulationConfig with all default values."""
+    config = SimulationConfig()
+    validate_config(config)
+    return config

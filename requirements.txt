@@ -1,0 +1,15 @@
+# Core dependencies
+numpy>=1.26,<2.0
+scipy>=1.12
+pyyaml>=6.0
+
+# Testing
+pytest>=8.0
+
+# Optional (for full simulation)
+# numba>=0.59
+# xarray>=2024.0
+# h5py>=3.10
+# matplotlib
+# cartopy
+# SALib>=1.4

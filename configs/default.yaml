@@ -1,0 +1,149 @@
+# ═══════════════════════════════════════════════════════════════════════
+# SSWD-EvoEpi: Default Configuration
+# ═══════════════════════════════════════════════════════════════════════
+#
+# All parameters from the specification documents.
+# Scenario-specific YAML files override selected fields via deep merge.
+#
+# Authoritative sources:
+#   - data-parameterization-plan.md §1 (parameter inventory)
+#   - integration-architecture-spec.md §5 (config structure)
+#   - population-dynamics-spec.md §9 (pop parameters)
+#   - disease-module-spec.md §10 (disease parameters)
+#   - genetics-evolution-spec.md §12 (genetics parameters)
+#   - spatial-connectivity-spec.md (spatial parameters)
+#   - conservation-module-spec.md (conservation parameters)
+#
+# Willem's decisions incorporated:
+#   - NO cost_of_resistance (CE-1)
+#   - Both etiological scenarios via disease.scenario (CE-2)
+#   - Exponential effect size distribution (CE-3)
+# ═══════════════════════════════════════════════════════════════════════
+
+# ─── Simulation Timing & Control ─────────────────────────────────────
+simulation:
+  start_year: 1910           # Spinup start (100 years before epidemic)
+  epidemic_year: 2013        # Year disease simulation activates
+  end_year: 2100             # End of projection
+  spinup_years: 100          # Disease-free equilibrium period
+  seed: 42                   # Master RNG seed
+  checkpoint_interval: 10    # Years between checkpoints
+
+# ─── Spatial Network & Connectivity ──────────────────────────────────
+spatial:
+  node_file: "data/nodes/node_definitions.csv"
+  forcing_dir: "data/forcing/"
+  C_matrix_file: "data/connectivity/C_matrix.npz"
+  D_matrix_file: "data/connectivity/D_matrix.npz"
+  D_L: 400.0                # Larval dispersal scale (km) [E20]
+  D_P: 15.0                 # Pathogen dispersal scale (km) [E21]
+  r_total: 0.02             # Total settlement success fraction [E22]
+
+# ─── Population Dynamics ─────────────────────────────────────────────
+population:
+  # Von Bertalanffy growth
+  L_inf: 1000.0             # Asymptotic size (mm) [E1]
+  k_growth: 0.08            # Growth rate (yr⁻¹) [U1] — SENSITIVITY CRITICAL
+  t0_growth: -0.5           # Age offset (yr)
+
+  # Fecundity (allometric)
+  F0: 1.0e7                 # Reference fecundity at L_ref (eggs) [U5]
+  fecundity_exp: 2.5        # Allometric exponent [U20]
+  L_ref: 500.0              # Reference size (mm)
+  L_min_repro: 400.0        # Minimum reproductive size (mm)
+
+  # Fertilization kinetics (Allee effect)
+  gamma_fert: 4.5           # Sperm contact parameter (m²) [U2] — SENSITIVITY CRITICAL
+
+  # Sweepstakes reproductive success
+  alpha_srs: 1.35           # Pareto SRS shape [E13] — SENSITIVITY CRITICAL
+  sigma_alpha: 0.10         # Annual SRS variation [E14]
+
+  # Survival
+  settler_survival: 0.03    # Annual settler survival (B-H s₀) [E3]
+  annual_survival:           # By stage [EGG_LARVA, SETTLER, JUVENILE, SUBADULT, ADULT]
+    - 0.001                  #   EGG_LARVA (placeholder)
+    - 0.03                   #   SETTLER (Sewell & Watson / Miner 2018)
+    - 0.90                   #   JUVENILE
+    - 0.95                   #   SUBADULT
+    - 0.98                   #   ADULT (Hodin 2021: 100% captive survival 24mo)
+
+  # Senescence
+  senescence_age: 50.0      # Years; above this, mortality increases
+  senescence_mortality: 0.10 # Additional annual mortality for senescent
+
+  # Predation submodel (optional)
+  urchin_submodel: false
+
+# ─── Disease Dynamics ────────────────────────────────────────────────
+disease:
+  # Etiological scenario: "ubiquitous" or "invasion" [CE-2]
+  scenario: "ubiquitous"
+
+  # Transmission
+  a_exposure: 0.75           # Exposure rate (d⁻¹) [E4]
+  K_half: 87000.0            # Half-infective dose (bact/mL) [E5]
+
+  # Shedding rates — FIELD-EFFECTIVE (ERRATA E2; ~3000× below lab)
+  sigma_1_eff: 5.0           # I₁ shedding (bact/mL/d/host) [U6]
+  sigma_2_eff: 50.0          # I₂ shedding (bact/mL/d/host) [U7]
+  sigma_D: 150.0             # Saprophytic burst (bact/mL/d/carcass) [ERRATA E14]
+  Ea_sigma: 5000.0           # Shedding activation energy E_a/R (K) [U21]
+
+  # Disease progression rates at T_ref = 20°C
+  mu_EI1_ref: 0.57           # E→I₁ (d⁻¹) [E8] — duration ~1.75d
+  mu_I1I2_ref: 0.40          # I₁→I₂ (d⁻¹) [E9] — duration ~2.5d
+  mu_I2D_ref: 0.173          # I₂→D (d⁻¹) [E6] — duration ~5.8d (ERRATA E1)
+
+  # Activation energies E_a/R (K) for Arrhenius scaling
+  Ea_EI1: 4000.0             # E→I₁
+  Ea_I1I2: 5000.0            # I₁→I₂
+  Ea_I2D: 2000.0             # I₂→D (ERRATA E1: corrected from 6000)
+
+  # Recovery
+  rho_rec: 0.05              # Base recovery rate (d⁻¹) [U9]
+  recovery_exponent: 2       # r_i^2 in recovery probability [U14]
+
+  # Environmental pathogen
+  P_env_max: 500.0           # Background Vibrio input (bact/mL/d) [U8]
+
+  # Temperature parameters
+  T_vbnc: 12.0               # VBNC midpoint (°C) [E12]
+  T_ref: 20.0                # V. pectenicida T_opt (°C) [K16]
+
+  # Salinity parameters
+  s_min: 10.0                # Salinity minimum for Vibrio (psu) [E16]
+  s_full: 28.0               # Full-marine salinity (psu) [E17]
+
+  # Invasion scenario extras (only used if scenario == "invasion")
+  invasion_year: null
+  invasion_nodes: null
+
+# ─── Genetics & Evolution ────────────────────────────────────────────
+genetics:
+  n_additive: 51             # Additive resistance loci [K28]
+  n_loci: 52                 # Total (51 additive + 1 EF1A overdominant)
+  s_het: 0.19                # EF1A heterozygote advantage [K18]
+  q_ef1a_init: 0.24          # Initial EF1A allele frequency [K19]
+  # NOTE: cost_resistance intentionally absent (Willem's decision, CE-1)
+  mu_per_locus: 1.0e-8       # Mutation rate per allele per generation [K24]
+  n_bank: 100                # Tier 2 genotype bank size
+  effect_size_seed: 12345    # Seed for reproducible effect sizes
+
+# ─── Conservation Interventions ──────────────────────────────────────
+conservation:
+  enabled: false
+  schedule_file: null
+  breeding_protocol: "standard"
+  n_broodstock: 130          # AZA SAFE broodstock [K29]
+  production_scaling: true
+  releases: []
+
+# ─── Output Control ──────────────────────────────────────────────────
+output:
+  directory: "results/"
+  weekly_state: true
+  daily_disease: true
+  annual_genetics: true
+  decadal_genotype_snapshots: true
+  netcdf_compression: 4
