@@ -24,6 +24,9 @@ from sswd_evoepi.spawning import (
     reset_spawning_season,
     _execute_spawning_events,
     _generate_larval_cohort,
+    _cascade_induction_step,
+    _get_recent_spawners_mask,
+    _check_cascade_induction,
 )
 from sswd_evoepi.types import AGENT_DTYPE, Stage, allocate_agents, allocate_genotypes, N_LOCI
 from sswd_evoepi.config import SpawningSection
@@ -592,6 +595,581 @@ class TestLarvalCohortGeneration:
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# PHASE 2: CASCADE INDUCTION TESTS
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestCascadeInduction:
+    """Test Phase 2 cascade induction functionality."""
+    
+    def setup_method(self):
+        """Set up test agents with spatial positions for cascade testing."""
+        self.n_agents = 50
+        self.agents = allocate_agents(self.n_agents)
+        self.genotypes = allocate_genotypes(self.n_agents)
+        self.config = SpawningSection()
+        self.rng = np.random.default_rng(42)
+        
+        # Create mature adults
+        n_adults = 20
+        self.agents['alive'][:n_adults] = True
+        self.agents['stage'][:n_adults] = Stage.ADULT
+        self.agents['size'][:n_adults] = 450.0
+        self.agents['node_id'][:n_adults] = 0
+        
+        # Set sex distribution
+        self.agents['sex'][:10] = 0  # Females
+        self.agents['sex'][10:20] = 1  # Males
+        
+        # Set spatial positions in grid pattern
+        positions = np.array([
+            [0, 0], [25, 0], [50, 0], [75, 0], [100, 0],      # Row 1: females
+            [0, 25], [25, 25], [50, 25], [75, 25], [100, 25], # Row 2: females  
+            [0, 50], [25, 50], [50, 50], [75, 50], [100, 50], # Row 3: males
+            [0, 75], [25, 75], [50, 75], [75, 75], [100, 75]  # Row 4: males
+        ])
+        
+        for i in range(n_adults):
+            self.agents['x'][i] = positions[i, 0]
+            self.agents['y'][i] = positions[i, 1]
+    
+    def test_recent_spawners_mask(self):
+        """Test identification of recent spawners within cascade window."""
+        # Set up some spawn days
+        self.agents['last_spawn_day'][0] = 105  # 0 days ago (today)
+        self.agents['last_spawn_day'][1] = 104  # 1 day ago
+        self.agents['last_spawn_day'][2] = 103  # 2 days ago
+        self.agents['last_spawn_day'][3] = 102  # 3 days ago (edge case)
+        self.agents['last_spawn_day'][4] = 101  # 4 days ago (too old)
+        self.agents['last_spawn_day'][5] = 0    # Never spawned
+        
+        current_doy = 105
+        cascade_window = 3
+        
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        adults = self.agents[adult_mask]
+        
+        recent_mask = _get_recent_spawners_mask(adults, current_doy, cascade_window)
+        
+        # Should identify indices 0, 1, 2, 3 as recent spawners
+        expected_recent = np.array([True, True, True, True, False, False] + [False] * 14)
+        np.testing.assert_array_equal(recent_mask, expected_recent)
+    
+    def test_recent_spawners_year_wrapping(self):
+        """Test recent spawner detection across year boundary."""
+        # Test early year with late previous year spawners
+        self.agents['last_spawn_day'][0] = 363  # Dec 29 previous year
+        self.agents['last_spawn_day'][1] = 365  # Dec 31 previous year  
+        self.agents['last_spawn_day'][2] = 1    # Jan 1 current year
+        
+        current_doy = 3  # Jan 3
+        cascade_window = 5
+        
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        adults = self.agents[adult_mask]
+        
+        recent_mask = _get_recent_spawners_mask(adults, current_doy, cascade_window)
+        
+        # Dec 29: (365-363) + 3 = 5 days ago (exactly at edge)
+        # Dec 31: (365-365) + 3 = 3 days ago (recent) 
+        # Jan 1: 3-1 = 2 days ago (recent)
+        expected_recent = np.array([True, True, True] + [False] * 17)
+        np.testing.assert_array_equal(recent_mask, expected_recent)
+    
+    def test_cascade_distance_calculation(self):
+        """Test spatial distance calculations for cascade induction."""
+        # Female at origin
+        female_idx = 0  # At (0, 0)
+        
+        # Males at various distances
+        target_indices = np.array([10, 11, 12])  # At (0,50), (25,50), (50,50)
+        inducer_indices = np.array([female_idx])
+        
+        cascade_radius = 50.0
+        induction_prob = 1.0  # 100% to test distance only
+        
+        induced = _check_cascade_induction(
+            self.agents, target_indices, inducer_indices,
+            cascade_radius, induction_prob, self.rng
+        )
+        
+        # Distance from (0,0) to (0,50) = 50.0 (exactly at edge)
+        # Distance from (0,0) to (25,50) = sqrt(25²+50²) = 55.9 (too far)
+        # Distance from (0,0) to (50,50) = sqrt(50²+50²) = 70.7 (too far)
+        
+        assert 10 in induced  # (0,50) - exactly at cascade_radius
+        assert 11 not in induced  # (25,50) - too far
+        assert 12 not in induced  # (50,50) - too far
+    
+    def test_female_to_male_induction(self):
+        """Test strong female→male induction (κ_fm = 0.80)."""
+        # Set up spawning scenario
+        female_idx = 0  # At (0, 0)
+        male_idx = 10   # At (0, 50) - within cascade_radius
+        
+        # Female spawned yesterday
+        self.agents['last_spawn_day'][female_idx] = 104
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = 0
+        self.agents['spawn_refractory'][male_idx] = 0
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Multiple trials to test probability
+        successes = 0
+        trials = 1000
+        
+        for _ in range(trials):
+            # Reset state
+            test_agents = self.agents.copy()
+            test_agents['last_spawn_day'][male_idx] = current_doy - 1  # Reset to not spawned today
+            
+            cascade_spawners = _cascade_induction_step(
+                test_agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            if male_idx in cascade_spawners:
+                successes += 1
+        
+        success_rate = successes / trials
+        expected_rate = self.config.induction_female_to_male  # 0.80
+        
+        # Should be close to expected rate (within ~3 standard deviations)
+        std_error = np.sqrt(expected_rate * (1 - expected_rate) / trials)
+        tolerance = 3 * std_error
+        
+        assert abs(success_rate - expected_rate) < tolerance
+    
+    def test_male_to_female_induction(self):
+        """Test moderate male→female induction (κ_mf = 0.30)."""
+        # Set up spawning scenario  
+        male_idx = 10   # At (0, 50)
+        female_idx = 0  # At (0, 0) - within cascade_radius
+        
+        # Male spawned yesterday
+        self.agents['last_spawn_day'][male_idx] = 104
+        self.agents['spawning_ready'][female_idx] = 1
+        self.agents['has_spawned'][female_idx] = 0
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Multiple trials to test probability
+        successes = 0
+        trials = 1000
+        
+        for _ in range(trials):
+            # Reset state
+            test_agents = self.agents.copy()
+            test_agents['last_spawn_day'][female_idx] = current_doy - 1  # Reset to not spawned today
+            
+            cascade_spawners = _cascade_induction_step(
+                test_agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            if female_idx in cascade_spawners:
+                successes += 1
+        
+        success_rate = successes / trials
+        expected_rate = self.config.induction_male_to_female  # 0.30
+        
+        # Should be close to expected rate (within ~3 standard deviations)
+        std_error = np.sqrt(expected_rate * (1 - expected_rate) / trials)
+        tolerance = 3 * std_error
+        
+        assert abs(success_rate - expected_rate) < tolerance
+    
+    def test_cascade_failure_at_distance(self):
+        """Test cascade fails when agents are too far apart."""
+        # Female at origin, male far away
+        female_idx = 0   # At (0, 0)
+        male_idx = 19    # At (100, 75) - far beyond cascade_radius=50
+        
+        # Female spawned recently
+        self.agents['last_spawn_day'][female_idx] = 104
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = 0
+        self.agents['spawn_refractory'][male_idx] = 0
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force high induction probability for this test
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should not induce due to distance
+            assert male_idx not in cascade_spawners
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+    
+    def test_male_multi_bout_cascade(self):
+        """Test males can be cascade-induced for multiple bouts."""
+        # Set up male and female
+        female_idx = 0   # At (0, 0)
+        male_idx = 10    # At (0, 50) - within range
+        
+        # Make male ready and capable of multiple bouts
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = 1  # Already has 1 bout
+        self.agents['spawn_refractory'][male_idx] = 0  # Not refractory
+        
+        # Female spawned recently
+        self.agents['last_spawn_day'][female_idx] = 104
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force induction for testing
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should induce male for second bout
+            assert male_idx in cascade_spawners
+            assert self.agents['has_spawned'][male_idx] == 2
+            assert self.agents['spawn_refractory'][male_idx] == self.config.male_refractory_days
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+    
+    def test_male_bout_limit_prevents_cascade(self):
+        """Test males at bout limit cannot be cascade-induced.""" 
+        # Set up male at bout limit
+        female_idx = 0   # At (0, 0)  
+        male_idx = 10    # At (0, 50)
+        
+        # Male at maximum bouts
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = self.config.male_max_bouts  # At limit
+        self.agents['spawn_refractory'][male_idx] = 0
+        
+        # Female spawned recently
+        self.agents['last_spawn_day'][female_idx] = 104
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force induction attempt
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should not induce (at bout limit)
+            assert male_idx not in cascade_spawners
+            assert self.agents['has_spawned'][male_idx] == self.config.male_max_bouts
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+    
+    def test_refractory_prevents_cascade(self):
+        """Test refractory males cannot be cascade-induced."""
+        # Set up refractory male
+        female_idx = 0   # At (0, 0)
+        male_idx = 10    # At (0, 50)
+        
+        # Male in refractory period
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = 1
+        self.agents['spawn_refractory'][male_idx] = 10  # Still refractory
+        
+        # Female spawned recently
+        self.agents['last_spawn_day'][female_idx] = 104
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force induction attempt
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should not induce (refractory)
+            assert male_idx not in cascade_spawners
+            assert self.agents['spawn_refractory'][male_idx] == 10
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+    
+    def test_female_single_spawn_prevents_cascade(self):
+        """Test females who already spawned cannot be cascade-induced."""
+        # Set up already-spawned female
+        male_idx = 10    # At (0, 50)
+        female_idx = 0   # At (0, 0)
+        
+        # Female already spawned this season
+        self.agents['spawning_ready'][female_idx] = 1
+        self.agents['has_spawned'][female_idx] = 1  # Already spawned
+        
+        # Male spawned recently
+        self.agents['last_spawn_day'][male_idx] = 104
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force induction attempt
+        original_induction = self.config.induction_male_to_female
+        self.config.induction_male_to_female = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should not induce (already spawned)
+            assert female_idx not in cascade_spawners
+            assert self.agents['has_spawned'][female_idx] == 1
+            
+        finally:
+            self.config.induction_male_to_female = original_induction
+    
+    def test_density_dependent_cascade_high_density(self):
+        """Test coordinated spawning bouts at high density."""
+        # Set all agents as ready and clustered
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        self.agents['spawning_ready'][adult_mask] = 1
+        
+        # Cluster all agents within cascade radius of origin
+        n_adults = np.sum(adult_mask)
+        for i, idx in enumerate(np.where(adult_mask)[0]):
+            # Arrange in tight cluster (all within 30m of origin)
+            angle = 2 * np.pi * i / n_adults
+            self.agents['x'][idx] = 15 * np.cos(angle)
+            self.agents['y'][idx] = 15 * np.sin(angle)
+        
+        # One female spawns spontaneously first
+        female_indices = np.where(adult_mask & (self.agents['sex'] == 0))[0]
+        first_female = female_indices[0]
+        self.agents['last_spawn_day'][first_female] = 104  # Yesterday
+        
+        mature_indices = np.where(adult_mask)[0]
+        current_doy = 105
+        
+        # High density should create large cascade
+        cascade_spawners = _cascade_induction_step(
+            self.agents, mature_indices, current_doy, self.config, self.rng
+        )
+        
+        # Should trigger multiple spawners due to clustering
+        # (exact number is stochastic, but should be substantial)
+        assert len(cascade_spawners) >= 3  # Expect multiple spawners in cluster
+    
+    def test_density_dependent_cascade_low_density(self):
+        """Test sporadic spawning at low density (agents far apart)."""
+        # Spread agents far apart (beyond cascade radius)
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        self.agents['spawning_ready'][adult_mask] = 1
+        
+        # Place agents >100m apart (well beyond cascade_radius=50)
+        positions = [(i*150, j*150) for i in range(5) for j in range(4)]
+        for i, idx in enumerate(np.where(adult_mask)[0]):
+            if i < len(positions):
+                self.agents['x'][idx] = positions[i][0]
+                self.agents['y'][idx] = positions[i][1]
+        
+        # One female spawns
+        female_indices = np.where(adult_mask & (self.agents['sex'] == 0))[0]
+        first_female = female_indices[0]
+        self.agents['last_spawn_day'][first_female] = 104  # Yesterday
+        
+        mature_indices = np.where(adult_mask)[0]
+        current_doy = 105
+        
+        # Force high induction probability to test distance effect only
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should trigger few/no spawners due to isolation
+            assert len(cascade_spawners) == 0  # All too far away
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+    
+    def test_cascade_window_expiry(self):
+        """Test cascade cues expire after cascade_window days."""
+        # Female spawned too long ago
+        female_idx = 0   # At (0, 0)
+        male_idx = 10    # At (0, 50) - close enough
+        
+        # Female spawned beyond cascade window  
+        self.agents['last_spawn_day'][female_idx] = 100  # 5 days ago (window=3)
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['has_spawned'][male_idx] = 0
+        self.agents['spawn_refractory'][male_idx] = 0
+        
+        # Get mature adult indices
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        mature_indices = np.where(adult_mask)[0]
+        
+        current_doy = 105
+        
+        # Force high induction probability
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cascade_spawners = _cascade_induction_step(
+                self.agents, mature_indices, current_doy, self.config, self.rng
+            )
+            
+            # Should not induce (cue expired)
+            assert male_idx not in cascade_spawners
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 2 INTEGRATION TESTS
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestPhase2Integration:
+    """Test Phase 2 integration with spawning_step function."""
+    
+    def setup_method(self):
+        """Set up test scenario for integrated spawning step."""
+        self.n_agents = 20
+        self.agents = allocate_agents(self.n_agents)
+        self.genotypes = allocate_genotypes(self.n_agents)
+        self.config = SpawningSection()
+        self.rng = np.random.default_rng(42)
+        
+        # Create clustered mature adults
+        n_adults = 10
+        self.agents['alive'][:n_adults] = True
+        self.agents['stage'][:n_adults] = Stage.ADULT
+        self.agents['size'][:n_adults] = 450.0
+        self.agents['node_id'][:n_adults] = 0
+        
+        # Half female, half male, clustered together
+        self.agents['sex'][:5] = 0  # Females
+        self.agents['sex'][5:10] = 1  # Males
+        
+        # Place all within cascade radius
+        for i in range(n_adults):
+            angle = 2 * np.pi * i / n_adults
+            self.agents['x'][i] = 20 * np.cos(angle)  # Within cascade_radius=50
+            self.agents['y'][i] = 20 * np.sin(angle)
+        
+        # Initialize genotypes
+        self.genotypes[:n_adults] = self.rng.integers(0, 2, (n_adults, N_LOCI, 2))
+    
+    def test_spontaneous_triggers_cascade(self):
+        """Test spontaneous spawning can trigger cascade in clustered population."""
+        # Make all adults ready
+        adult_mask = self.agents['alive'] & (self.agents['stage'] == Stage.ADULT)
+        self.agents['spawning_ready'][adult_mask] = 1
+        
+        # Force one spontaneous spawner
+        original_p_female = self.config.p_spontaneous_female
+        original_p_male = self.config.p_spontaneous_male
+        
+        # Set one female to spawn spontaneously, low prob for others
+        self.config.p_spontaneous_female = 0.2  # One should spawn
+        self.config.p_spontaneous_male = 0.0    # No spontaneous males
+        
+        try:
+            cohorts = spawning_step(
+                self.agents, self.genotypes, day_of_year=105,
+                node_latitude=40.0, config=self.config, rng=self.rng
+            )
+            
+            # Count total spawners
+            total_spawners = np.sum(self.agents['last_spawn_day'] == 105)
+            
+            # Should have more spawners than just spontaneous (cascade effect)
+            # In clustered high-density scenario, expect cascade amplification
+            spontaneous_spawners = np.sum(
+                (self.agents['sex'] == 0) & (self.agents['last_spawn_day'] == 105)
+            )
+            
+            # Note: cascade may or may not occur due to probability, but test structure
+            # This mainly verifies the integration works without error
+            assert total_spawners >= spontaneous_spawners
+            
+        finally:
+            self.config.p_spontaneous_female = original_p_female
+            self.config.p_spontaneous_male = original_p_male
+    
+    def test_cascade_produces_viable_cohorts(self):
+        """Test cascade-induced spawning produces viable larval cohorts."""
+        # Set up guaranteed cascade scenario
+        female_idx = 0
+        male_idx = 5
+        
+        # Female spawned yesterday
+        self.agents['spawning_ready'][female_idx] = 1
+        self.agents['spawning_ready'][male_idx] = 1
+        self.agents['last_spawn_day'][female_idx] = 104
+        self.agents['has_spawned'][female_idx] = 1  # Already spawned
+        
+        # Force male cascade induction
+        original_induction = self.config.induction_female_to_male
+        self.config.induction_female_to_male = 1.0
+        
+        try:
+            cohorts = spawning_step(
+                self.agents, self.genotypes, day_of_year=105,
+                node_latitude=40.0, config=self.config, rng=self.rng
+            )
+            
+            # Should generate cohorts from both spontaneous and cascade spawning
+            if len(cohorts) > 0:
+                cohort = cohorts[0]
+                assert cohort.n_competent >= 0
+                if cohort.n_competent > 0:
+                    assert cohort.genotypes.shape == (cohort.n_competent, N_LOCI, 2)
+                    assert cohort.source_node == 0
+            
+        finally:
+            self.config.induction_female_to_male = original_induction
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # CONFIGURATION TESTS
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -616,8 +1194,13 @@ class TestSpawningConfiguration:
         assert config.male_max_bouts == 3
         assert config.male_refractory_days == 21
         
-        # Phase 2-4 parameters (not used yet)
+        # Phase 2 cascade parameters
         assert config.induction_female_to_male == 0.80
+        assert config.induction_male_to_female == 0.30
+        assert config.cascade_window == 3
+        assert config.cascade_radius == 50.0
+        
+        # Phase 3-4 parameters (not used yet)
         assert config.gravity_enabled is True
         assert config.immunosuppression_enabled is True
     

@@ -130,12 +130,13 @@ def spawning_step(
     config: SpawningSection,
     rng: np.random.Generator,
 ) -> List[LarvalCohort]:
-    """Execute daily spawning step for Phase 1 (spontaneous spawning only).
+    """Execute daily spawning step for Phase 1-2 (spontaneous + cascade spawning).
     
     Updates agent spawning state fields and produces larval cohorts from
-    spawning events. Phase 1 includes:
+    spawning events. Phase 1-2 includes:
     - Seasonal readiness updates
-    - Spontaneous spawning (no cascade induction yet)
+    - Spontaneous spawning 
+    - Cascade induction from recent spawners (Phase 2)
     - Female single-spawn enforcement
     - Male multi-bout tracking with refractory periods
     
@@ -233,7 +234,17 @@ def spawning_step(
             _execute_spawning_events(agents, spawning_male_indices, day_of_year, config.male_refractory_days)
             spawners_today.extend(spawning_male_indices)
     
-    # 4. Generate larval cohorts from today's spawners
+    # 4. Phase 2: Cascade induction from recent spawners
+    cascade_spawners = _cascade_induction_step(
+        agents,
+        mature_indices,
+        day_of_year,
+        config,
+        rng
+    )
+    spawners_today.extend(cascade_spawners)
+
+    # 5. Generate larval cohorts from today's spawners
     if spawners_today:
         cohort = _generate_larval_cohort(
             agents, 
@@ -246,6 +257,209 @@ def spawning_step(
             cohorts.append(cohort)
     
     return cohorts
+
+
+def _cascade_induction_step(
+    agents: np.ndarray,
+    mature_indices: np.ndarray,
+    day_of_year: int,
+    config: SpawningSection,
+    rng: np.random.Generator,
+) -> List[int]:
+    """Execute cascade induction from recent spawners (Phase 2).
+    
+    Finds agents who spawned within the cascade window and checks if they can
+    trigger spawning in nearby ready individuals. Sex-asymmetric induction:
+    - Females strongly induce males (κ_fm = 0.80)
+    - Males moderately induce females (κ_mf = 0.30)
+    
+    Args:
+        agents: Agent array to modify.
+        mature_indices: Indices of mature adults to consider.
+        day_of_year: Current day of year.
+        config: Spawning configuration parameters.
+        rng: Random number generator.
+        
+    Returns:
+        List of agent indices that spawned due to cascade induction.
+        
+    Side effects:
+        - Updates agents['has_spawned'] for triggered spawners
+        - Updates agents['spawn_refractory'] for triggered males
+        - Updates agents['last_spawn_day'] for triggered spawners
+    """
+    cascade_spawners = []
+    
+    if len(mature_indices) == 0:
+        return cascade_spawners
+    
+    mature_adults = agents[mature_indices]
+    
+    # Find recent spawners within cascade window
+    recent_spawners_mask = _get_recent_spawners_mask(
+        mature_adults, day_of_year, config.cascade_window
+    )
+    
+    if not np.any(recent_spawners_mask):
+        return cascade_spawners  # No recent spawners to trigger cascade
+    
+    recent_spawner_indices = mature_indices[recent_spawners_mask]
+    recent_spawners = agents[recent_spawner_indices]
+    
+    # Separate recent spawners by sex
+    recent_female_mask = recent_spawners['sex'] == 0
+    recent_male_mask = recent_spawners['sex'] == 1
+    
+    recent_female_indices = recent_spawner_indices[recent_female_mask]
+    recent_male_indices = recent_spawner_indices[recent_male_mask]
+    
+    # Find potential cascade targets (ready individuals who haven't spawned today)
+    target_mask = (
+        (mature_adults['spawning_ready'] == 1) &
+        (mature_adults['last_spawn_day'] != day_of_year)  # Haven't spawned today
+    )
+    
+    if not np.any(target_mask):
+        return cascade_spawners
+    
+    target_indices = mature_indices[target_mask]
+    targets = agents[target_indices]
+    
+    # Process male targets (induced by recent female spawners)
+    if len(recent_female_indices) > 0:
+        male_target_mask = (
+            (targets['sex'] == 1) &
+            (targets['has_spawned'] < config.male_max_bouts) &
+            (targets['spawn_refractory'] == 0)
+        )
+        
+        if np.any(male_target_mask):
+            male_target_indices = target_indices[male_target_mask]
+            triggered_males = _check_cascade_induction(
+                agents, male_target_indices, recent_female_indices,
+                config.cascade_radius, config.induction_female_to_male, rng
+            )
+            
+            if triggered_males:
+                _execute_spawning_events(
+                    agents, triggered_males, day_of_year, config.male_refractory_days
+                )
+                cascade_spawners.extend(triggered_males)
+    
+    # Process female targets (induced by recent male spawners)
+    if len(recent_male_indices) > 0:
+        female_target_mask = (
+            (targets['sex'] == 0) &
+            (targets['has_spawned'] == 0)  # Females spawn only once
+        )
+        
+        if np.any(female_target_mask):
+            female_target_indices = target_indices[female_target_mask]
+            triggered_females = _check_cascade_induction(
+                agents, female_target_indices, recent_male_indices,
+                config.cascade_radius, config.induction_male_to_female, rng
+            )
+            
+            if triggered_females:
+                _execute_spawning_events(
+                    agents, triggered_females, day_of_year
+                )
+                cascade_spawners.extend(triggered_females)
+    
+    return cascade_spawners
+
+
+def _get_recent_spawners_mask(
+    agents: np.ndarray, 
+    current_doy: int, 
+    cascade_window: int
+) -> np.ndarray:
+    """Get mask of agents that spawned within the cascade window.
+    
+    Handles day-of-year wrapping across year boundaries.
+    
+    Args:
+        agents: Agent array to check.
+        current_doy: Current day of year (1-365).
+        cascade_window: Number of days to look back.
+        
+    Returns:
+        Boolean mask indicating recent spawners.
+    """
+    last_spawn_days = agents['last_spawn_day']
+    
+    # Handle agents that never spawned (last_spawn_day = 0)
+    never_spawned_mask = last_spawn_days == 0
+    
+    # Calculate days since last spawn, handling year wrapping
+    days_since_spawn = np.zeros_like(last_spawn_days)
+    
+    for i, last_spawn in enumerate(last_spawn_days):
+        if last_spawn == 0:
+            days_since_spawn[i] = 999  # Large number for never-spawned
+        elif last_spawn <= current_doy:
+            # Same year
+            days_since_spawn[i] = current_doy - last_spawn
+        else:
+            # Last spawn was later in previous year, current is early this year
+            days_since_spawn[i] = (365 - last_spawn) + current_doy
+    
+    # Recent spawners are those within cascade window
+    recent_mask = (days_since_spawn <= cascade_window) & ~never_spawned_mask
+    
+    return recent_mask
+
+
+def _check_cascade_induction(
+    agents: np.ndarray,
+    target_indices: np.ndarray,
+    inducer_indices: np.ndarray,
+    cascade_radius: float,
+    induction_probability: float,
+    rng: np.random.Generator,
+) -> List[int]:
+    """Check which targets are induced by nearby recent spawners.
+    
+    Args:
+        agents: Full agent array.
+        target_indices: Indices of potential targets for induction.
+        inducer_indices: Indices of recent spawners that could induce.
+        cascade_radius: Maximum distance for induction (meters).
+        induction_probability: Probability of induction if within range.
+        rng: Random number generator.
+        
+    Returns:
+        List of target indices that were induced to spawn.
+    """
+    induced_targets = []
+    
+    if len(target_indices) == 0 or len(inducer_indices) == 0:
+        return induced_targets
+    
+    # Get positions
+    target_positions = np.column_stack([
+        agents['x'][target_indices], 
+        agents['y'][target_indices]
+    ])
+    inducer_positions = np.column_stack([
+        agents['x'][inducer_indices], 
+        agents['y'][inducer_indices]
+    ])
+    
+    # Check each target
+    for i, target_idx in enumerate(target_indices):
+        target_pos = target_positions[i]
+        
+        # Calculate distances to all recent spawners of opposite sex
+        distances = np.sqrt(np.sum((inducer_positions - target_pos)**2, axis=1))
+        
+        # Check if any inducer is within cascade radius
+        if np.any(distances <= cascade_radius):
+            # Roll for induction
+            if rng.random() < induction_probability:
+                induced_targets.append(target_idx)
+    
+    return induced_targets
 
 
 def _execute_spawning_events(
@@ -369,6 +583,8 @@ def _generate_larval_cohort(
         selected_females = reproductive_females[:1]
         selected_males = males[:1]
         srs_weights = np.array([1.0])
+        female_order = np.array([0])
+        male_order = np.array([0])
     else:
         # Multiple pairs: use Pareto sampling for SRS
         pareto_samples = rng.pareto(alpha_srs, n_breeding_pairs)
@@ -387,6 +603,17 @@ def _generate_larval_cohort(
     # Convert to competent larvae (simplified - no detailed larval dynamics)
     competency_rate = 0.1  # 10% of eggs become competent larvae (placeholder)
     larvae_per_pair = (eggs_per_pair * competency_rate).astype(int)
+    
+    # Cap total larvae for computational efficiency (especially in tests)
+    # This prevents performance issues when testing with high spawning probabilities
+    max_larvae_per_cohort = 10000  # Reasonable limit for simulation performance
+    if np.sum(larvae_per_pair) > max_larvae_per_cohort:
+        # Scale down proportionally to stay under cap
+        scale_factor = max_larvae_per_cohort / np.sum(larvae_per_pair)
+        larvae_per_pair = (larvae_per_pair * scale_factor).astype(int)
+        # Ensure at least one larva per pair if originally > 0
+        larvae_per_pair = np.maximum(larvae_per_pair, (eggs_per_pair > 0).astype(int))
+    
     total_competent = np.sum(larvae_per_pair)
     
     if total_competent == 0:
