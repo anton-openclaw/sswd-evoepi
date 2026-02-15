@@ -196,11 +196,21 @@ def spawning_step(
         newly_ready = readiness_rolls < readiness_prob
         
         if np.any(newly_ready):
-            agents['spawning_ready'][not_ready_indices[newly_ready]] = 1
+            newly_ready_indices = not_ready_indices[newly_ready]
+            agents['spawning_ready'][newly_ready_indices] = 1
+            # Phase 3: Set spawning gravity timer when entering readiness
+            if config.gravity_enabled:
+                gravity_duration = config.pre_spawn_gravity_days + config.post_spawn_gravity_days
+                agents['spawn_gravity_timer'][newly_ready_indices] = gravity_duration
     
-    # 2. Decrement male refractory timers
+    # 2. Decrement timers
+    # 2a. Male refractory timers
     refractory_mask = agents['spawn_refractory'] > 0
     agents['spawn_refractory'][refractory_mask] -= 1
+    
+    # 2b. Spawning gravity timers (Phase 3)
+    gravity_mask = agents['spawn_gravity_timer'] > 0
+    agents['spawn_gravity_timer'][gravity_mask] -= 1
     
     # 3. Spontaneous spawning attempts
     spawners_today = []

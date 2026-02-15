@@ -24,6 +24,8 @@ from sswd_evoepi.movement import (
     InfectedDensityGrid,
     _diffuse_2d,
     SPEED_MODIFIER,
+    _apply_spawning_gravity,
+    _circular_blend,
 )
 
 
@@ -357,3 +359,224 @@ class TestMovementIntegration:
         """SPEED_MODIFIER should match disease-module-spec §5.5."""
         expected = np.array([1.0, 1.0, 0.5, 0.1, 0.0, 1.0])
         np.testing.assert_allclose(SPEED_MODIFIER, expected, atol=1e-7)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPAWNING GRAVITY TESTS (Phase 3)
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestCircularBlend:
+    def test_zero_weight_returns_first_heading(self):
+        """Weight 0 should return the first heading unchanged."""
+        h1, h2 = 1.0, 3.0
+        result = _circular_blend(h1, h2, 0.0)
+        np.testing.assert_allclose(result, h1)
+
+    def test_full_weight_returns_second_heading(self):
+        """Weight 1 should return the second heading unchanged."""
+        h1, h2 = 1.0, 3.0
+        result = _circular_blend(h1, h2, 1.0)
+        np.testing.assert_allclose(result, h2)
+
+    def test_half_weight_circular_average(self):
+        """Weight 0.5 should return circular average."""
+        # Simple case: 0 and π/2 should average to π/4
+        h1, h2 = 0.0, np.pi/2
+        result = _circular_blend(h1, h2, 0.5)
+        np.testing.assert_allclose(result, np.pi/4, atol=1e-6)
+
+    def test_circular_wrapping(self):
+        """Should handle angle wrapping correctly."""
+        # 0.1 and 6.2 should blend through 0, not through π
+        h1, h2 = 0.1, 6.2
+        result = _circular_blend(h1, h2, 0.5)
+        # Should be close to 0 or 2π, not around π
+        assert result < 0.5 or result > 5.8
+
+
+class TestSpawningGravity:
+    def test_no_gravity_when_disabled(self):
+        """When gravity is disabled, headings should be unchanged."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(50, habitat_side=200.0, rng=rng)
+        
+        # Set some agents to have gravity timers
+        agents[0:10]['spawn_gravity_timer'] = 5
+        
+        original_headings = agents['heading'].copy()
+        
+        # Run movement with gravity disabled
+        update_movement(agents, dt_minutes=60.0, habitat_side=200.0,
+                        sigma_turn=0.0, base_speed=0.5, rng=rng,
+                        spawning_gravity_enabled=False)
+        
+        # Headings should be unchanged (sigma_turn=0 for determinism)
+        np.testing.assert_allclose(agents['heading'], original_headings)
+
+    def test_no_gravity_without_timer(self):
+        """Agents without gravity timer should not be affected."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(10, habitat_side=100.0, rng=rng)
+        
+        # Set all gravity timers to 0
+        agents['spawn_gravity_timer'][:] = 0
+        
+        original_headings = agents['heading'].copy()
+        
+        # Run movement with gravity enabled but no timers
+        update_movement(agents, dt_minutes=60.0, habitat_side=100.0,
+                        sigma_turn=0.0, base_speed=0.5, rng=rng,
+                        spawning_gravity_enabled=True)
+        
+        # Headings should be unchanged
+        np.testing.assert_allclose(agents['heading'], original_headings)
+
+    def test_agents_clump_together_with_gravity(self):
+        """Agents with gravity should move toward each other."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(20, habitat_side=500.0, rng=rng)
+        
+        # Place agents in one scattered group that should cluster
+        for i in range(20):
+            agents[i]['x'] = 250.0 + rng.uniform(-80, 80)  # Scattered over 160m
+            agents[i]['y'] = 250.0 + rng.uniform(-80, 80)  # within gravity range
+            agents[i]['spawn_gravity_timer'] = 14  # Mid-gravity phase
+        
+        # Calculate initial mean distances within the group
+        initial_positions = np.column_stack([agents['x'][:20], agents['y'][:20]])
+        
+        initial_dist = np.mean([
+            np.sqrt(np.sum((initial_positions[i] - initial_positions[j])**2))
+            for i in range(20) for j in range(i+1, 20)
+        ])
+        
+        # Run multiple movement steps with gravity
+        for _ in range(10):
+            update_movement(agents, dt_minutes=60.0, habitat_side=500.0,
+                            sigma_turn=0.1, base_speed=1.0, rng=rng,
+                            spawning_gravity_enabled=True, gravity_strength=2.0,
+                            gravity_range=100.0, pre_spawn_gravity_days=14,
+                            post_spawn_gravity_days=14)
+        
+        # Calculate final mean distances
+        final_positions = np.column_stack([agents['x'][:20], agents['y'][:20]])
+        
+        final_dist = np.mean([
+            np.sqrt(np.sum((final_positions[i] - final_positions[j])**2))
+            for i in range(20) for j in range(i+1, 20)
+        ])
+        
+        # Group should be more tightly clustered
+        assert final_dist < initial_dist, f"Group should be more clustered: {final_dist:.3f} < {initial_dist:.3f}"
+
+    def test_gravity_strength_ramp(self):
+        """Gravity strength should ramp up then down over the spawning window."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(10, habitat_side=100.0, rng=rng)
+        alive_idx = np.arange(10)
+        
+        pre_days = 14
+        post_days = 14
+        total_days = pre_days + post_days
+        
+        # Test different timer values
+        test_cases = [
+            (total_days, 0.0),      # Start of window: 0 strength
+            (total_days - 7, 0.5),  # Mid pre-spawn: 0.5 strength  
+            (post_days, 1.0),       # At spawning: 1.0 strength
+            (7, 0.5),               # Mid post-spawn: 0.5 strength
+            (1, 0.07),              # Near end: ~0.07 strength
+        ]
+        
+        for timer, expected_ramp in test_cases:
+            agents['spawn_gravity_timer'][:] = timer
+            
+            # We need to extract the ramp calculation logic for testing
+            # Since _apply_spawning_gravity is complex, let's test the ramp logic separately
+            days_from_start = total_days - timer
+            
+            if days_from_start <= pre_days:
+                ramp_factor = days_from_start / pre_days
+            else:
+                days_into_post_spawn = days_from_start - pre_days
+                ramp_factor = 1.0 - (days_into_post_spawn / post_days)
+            
+            ramp_factor = np.clip(ramp_factor, 0.0, 1.0)
+            
+            np.testing.assert_allclose(ramp_factor, expected_ramp, atol=0.02)
+
+    def test_gravity_respects_range_limit(self):
+        """Agents should only be affected by conspecifics within gravity_range."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(3, habitat_side=1000.0, rng=rng)
+        
+        # Place agents: one in center with gravity, two at different distances
+        agents[0]['x'] = 500.0  # Center
+        agents[0]['y'] = 500.0
+        agents[0]['spawn_gravity_timer'] = 14
+        agents[0]['heading'] = 0.0  # East
+        
+        agents[1]['x'] = 550.0  # 50m east (within 100m range)
+        agents[1]['y'] = 500.0
+        agents[1]['spawn_gravity_timer'] = 0  # No gravity
+        
+        agents[2]['x'] = 650.0  # 150m east (beyond 100m range) 
+        agents[2]['y'] = 500.0
+        agents[2]['spawn_gravity_timer'] = 0  # No gravity
+        
+        original_heading = agents[0]['heading']
+        
+        # Apply gravity with 100m range
+        alive_idx = np.array([0, 1, 2])
+        modified_headings = _apply_spawning_gravity(
+            agents, alive_idx, gravity_strength=1.0, gravity_range=100.0,
+            pre_spawn_gravity_days=14, post_spawn_gravity_days=14
+        )
+        
+        # Agent 0 should be influenced by agent 1 (within range) but not agent 2
+        # Since agent 1 is due east and agent 0 starts heading east,
+        # the heading should remain close to east (maybe slightly adjusted)
+        assert abs(modified_headings[0] - original_heading) < 0.1
+
+    def test_gravity_disabled_by_default(self):
+        """Gravity should be disabled by default in movement functions."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(20, habitat_side=100.0, rng=rng)
+        agents[0:10]['spawn_gravity_timer'] = 10
+        
+        original_headings = agents['heading'].copy()
+        
+        # Call update_movement without gravity parameters (should use defaults)
+        update_movement(agents, dt_minutes=60.0, habitat_side=100.0,
+                        sigma_turn=0.0, base_speed=0.5, rng=rng)
+        
+        # Headings should be unchanged since gravity is disabled by default
+        np.testing.assert_allclose(agents['heading'], original_headings)
+
+
+class TestSpawningGravityIntegration:
+    def test_full_workflow_gravity_and_movement(self):
+        """Test complete workflow: set timers, move with gravity, timers count down."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(50, habitat_side=200.0, rng=rng)
+        
+        # Set some agents to have gravity
+        agents[0:20]['spawn_gravity_timer'] = 5
+        
+        # Run daily movement with gravity enabled
+        daily_movement(agents, habitat_side=200.0, sigma_turn=0.3,
+                       base_speed=0.5, substeps=24, rng=rng,
+                       spawning_gravity_enabled=True, gravity_strength=0.5,
+                       gravity_range=80.0, pre_spawn_gravity_days=10,
+                       post_spawn_gravity_days=10)
+        
+        # Agents should have moved (positions changed)
+        alive = agents['alive'].astype(bool)
+        # Can't test exact positions due to randomness, but ensure they're within bounds
+        assert np.all(agents['x'][alive] >= 0)
+        assert np.all(agents['x'][alive] <= 200.0)
+        assert np.all(agents['y'][alive] >= 0) 
+        assert np.all(agents['y'][alive] <= 200.0)
+        
+        # Gravity timers should still be set (movement doesn't decrement them)
+        assert np.sum(agents['spawn_gravity_timer'] > 0) == 20

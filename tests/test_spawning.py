@@ -1221,5 +1221,189 @@ class TestSpawningConfiguration:
         assert season_days > 250  # Long spawning season
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 3 TESTS: SPAWNING GRAVITY
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestSpawningGravityTimers:
+    """Test spawning gravity timer functionality (Phase 3)."""
+    
+    def test_gravity_timer_set_on_readiness(self):
+        """When agent becomes ready, gravity timer should be set if enabled."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(50)
+        genotypes = allocate_genotypes(50)
+        
+        # Set up mature adults
+        for i in range(50):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 0  # Not ready yet
+            agents[i]['spawn_gravity_timer'] = 0
+        
+        config = SpawningSection()
+        config.gravity_enabled = True
+        config.pre_spawn_gravity_days = 10
+        config.post_spawn_gravity_days = 8
+        
+        # High readiness probability to ensure some become ready
+        config.peak_doy = 105
+        config.peak_width_days = 45
+        config.p_spontaneous_female = 0.0  # No spawning this step
+        config.p_spontaneous_male = 0.0
+        
+        # Run spawning step during peak season
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     config=config, rng=rng)
+        
+        # Some agents should have become ready and gotten gravity timers
+        ready_agents = agents['spawning_ready'] == 1
+        if np.any(ready_agents):
+            expected_timer = config.pre_spawn_gravity_days + config.post_spawn_gravity_days - 1  # Decremented in same step
+            assert np.all(agents['spawn_gravity_timer'][ready_agents] == expected_timer)
+    
+    def test_gravity_timer_not_set_when_disabled(self):
+        """When gravity is disabled, timer should not be set."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(50)
+        genotypes = allocate_genotypes(50)
+        
+        # Set up mature adults
+        for i in range(50):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 0
+            agents[i]['spawn_gravity_timer'] = 0
+        
+        config = SpawningSection()
+        config.gravity_enabled = False  # Disabled
+        
+        # Run spawning step
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     config=config, rng=rng)
+        
+        # No gravity timers should be set
+        assert np.all(agents['spawn_gravity_timer'] == 0)
+    
+    def test_gravity_timer_countdown(self):
+        """Gravity timers should count down daily."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(20)
+        genotypes = allocate_genotypes(20)
+        
+        # Set up agents with various timer values
+        for i in range(20):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 1
+            agents[i]['spawn_gravity_timer'] = i + 1  # Timers from 1 to 20
+        
+        config = SpawningSection()
+        
+        # Run spawning step (should decrement timers)
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     config=config, rng=rng)
+        
+        # All timers should have decreased by 1
+        for i in range(20):
+            expected = max(0, i)  # Timer i+1 decremented by 1 = i, but min 0
+            assert agents[i]['spawn_gravity_timer'] == expected
+    
+    def test_gravity_timer_stops_at_zero(self):
+        """Gravity timers should not go below zero."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(10)
+        genotypes = allocate_genotypes(10)
+        
+        # Set up agents with timer = 0
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 1
+            agents[i]['spawn_gravity_timer'] = 0
+        
+        config = SpawningSection()
+        
+        # Run spawning step multiple times
+        for _ in range(5):
+            spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                         config=config, rng=rng)
+        
+        # All timers should remain at 0
+        assert np.all(agents['spawn_gravity_timer'] == 0)
+    
+    def test_gravity_timer_with_spawning_event(self):
+        """Test timer behavior when agents actually spawn."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(20)
+        genotypes = allocate_genotypes(20)
+        
+        # Set up ready females
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = 0  # Female
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 0
+            agents[i]['spawn_gravity_timer'] = 5
+        
+        # Set up ready males  
+        for i in range(10, 20):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = 1  # Male
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 0
+            agents[i]['spawn_refractory'] = 0
+            agents[i]['spawn_gravity_timer'] = 8
+        
+        config = SpawningSection()
+        config.p_spontaneous_female = 1.0  # Guarantee spawning
+        config.p_spontaneous_male = 1.0
+        
+        initial_timers = agents['spawn_gravity_timer'].copy()
+        
+        # Run spawning step
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     config=config, rng=rng)
+        
+        # Timers should have decremented regardless of spawning
+        expected_timers = np.maximum(0, initial_timers - 1)
+        np.testing.assert_array_equal(agents['spawn_gravity_timer'], expected_timers)
+        
+        # Some agents should have spawned (separate from timer logic)
+        assert np.sum(agents['has_spawned'] > 0) > 0
+    
+    def test_season_reset_preserves_gravity_timers(self):
+        """Season reset should not reset gravity timers (they extend beyond season)."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(10)
+        
+        # Set up agents with various timers
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 1
+            agents[i]['spawn_gravity_timer'] = i + 5  # Various timer values
+        
+        initial_timers = agents['spawn_gravity_timer'].copy()
+        
+        # Reset spawning season
+        reset_spawning_season(agents)
+        
+        # spawning_ready and has_spawned should be reset
+        assert np.all(agents['spawning_ready'] == 0)
+        assert np.all(agents['has_spawned'] == 0)
+        
+        # But gravity timers should be preserved
+        np.testing.assert_array_equal(agents['spawn_gravity_timer'], initial_timers)
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

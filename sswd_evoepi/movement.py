@@ -71,6 +71,11 @@ def update_movement(
     sigma_turn: float,
     base_speed: float,
     rng: np.random.Generator,
+    spawning_gravity_enabled: bool = False,
+    gravity_strength: float = 0.3,
+    gravity_range: float = 100.0,
+    pre_spawn_gravity_days: int = 14,
+    post_spawn_gravity_days: int = 14,
 ) -> None:
     """Move all alive agents one CRW sub-step (in-place).
 
@@ -82,6 +87,11 @@ def update_movement(
             0 = straight lines, π = uniform random turns.
         base_speed: Base undisturbed movement speed (m/min).
         rng: NumPy random generator.
+        spawning_gravity_enabled: Enable spawning gravity aggregation.
+        gravity_strength: Maximum speed bias toward conspecifics (m/min).
+        gravity_range: Sensory detection range for conspecifics (m).
+        pre_spawn_gravity_days: Days before spawning that gravity activates.
+        post_spawn_gravity_days: Days after spawning that gravity persists.
     """
     alive_mask = agents['alive'].astype(bool)
     n_alive = int(alive_mask.sum())
@@ -94,6 +104,13 @@ def update_movement(
     turn_angles = rng.normal(0.0, sigma_turn, size=n_alive).astype(np.float32)
     agents['heading'][alive_idx] += turn_angles
     agents['heading'][alive_idx] %= TWO_PI
+
+    # 1.5. Apply spawning gravity bias (Phase 3)
+    if spawning_gravity_enabled:
+        agents['heading'][alive_idx] = _apply_spawning_gravity(
+            agents, alive_idx, gravity_strength, gravity_range, 
+            pre_spawn_gravity_days, post_spawn_gravity_days
+        )
 
     # 2. Compute effective speed: base × disease modifier
     disease_states = agents['disease_state'][alive_idx]
@@ -121,6 +138,11 @@ def daily_movement(
     base_speed: float,
     substeps: int,
     rng: np.random.Generator,
+    spawning_gravity_enabled: bool = False,
+    gravity_strength: float = 0.3,
+    gravity_range: float = 100.0,
+    pre_spawn_gravity_days: int = 14,
+    post_spawn_gravity_days: int = 14,
 ) -> None:
     """Run one full day of CRW movement (multiple sub-steps).
 
@@ -131,11 +153,145 @@ def daily_movement(
         base_speed: Base movement speed (m/min).
         substeps: Number of sub-steps per day (24 = hourly).
         rng: NumPy random generator.
+        spawning_gravity_enabled: Enable spawning gravity aggregation.
+        gravity_strength: Maximum speed bias toward conspecifics (m/min).
+        gravity_range: Sensory detection range for conspecifics (m).
+        pre_spawn_gravity_days: Days before spawning that gravity activates.
+        post_spawn_gravity_days: Days after spawning that gravity persists.
     """
     dt_minutes = (24.0 * 60.0) / substeps  # minutes per sub-step
     for _ in range(substeps):
         update_movement(agents, dt_minutes, habitat_side, sigma_turn,
-                        base_speed, rng)
+                        base_speed, rng, spawning_gravity_enabled, 
+                        gravity_strength, gravity_range, 
+                        pre_spawn_gravity_days, post_spawn_gravity_days)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPAWNING GRAVITY (Phase 3)
+# ═══════════════════════════════════════════════════════════════════════
+
+def _apply_spawning_gravity(
+    agents: np.ndarray,
+    alive_idx: np.ndarray,
+    gravity_strength: float,
+    gravity_range: float,
+    pre_spawn_gravity_days: int,
+    post_spawn_gravity_days: int,
+) -> np.ndarray:
+    """Apply spawning gravity bias to agent headings.
+    
+    For agents with spawn_gravity_timer > 0, add a bias vector toward 
+    the center-of-mass of conspecifics within gravity_range.
+    Gravity strength ramps linearly over the spawning window.
+    
+    Args:
+        agents: Full agent array.
+        alive_idx: Indices of alive agents.
+        gravity_strength: Maximum speed bias toward conspecifics (m/min).
+        gravity_range: Sensory detection range for conspecifics (m).
+        pre_spawn_gravity_days: Days before spawning that gravity activates.
+        post_spawn_gravity_days: Days after spawning that gravity persists.
+        
+    Returns:
+        Modified headings array for alive agents.
+    """
+    headings = agents['heading'][alive_idx].copy()
+    
+    # Get agents with active gravity (spawn_gravity_timer > 0)
+    gravity_timers = agents['spawn_gravity_timer'][alive_idx]
+    gravity_mask = gravity_timers > 0
+    
+    if not np.any(gravity_mask):
+        return headings  # No agents with active gravity
+    
+    # Get positions of all alive agents and agents with gravity
+    all_positions = np.column_stack([agents['x'][alive_idx], agents['y'][alive_idx]])
+    gravity_indices_local = np.where(gravity_mask)[0]  # Indices within alive_idx
+    
+    total_gravity_days = pre_spawn_gravity_days + post_spawn_gravity_days
+    
+    # Process each agent with active gravity
+    for i in gravity_indices_local:
+        agent_pos = all_positions[i]
+        timer = gravity_timers[i]
+        
+        # Calculate gravity strength ramp (linear)
+        # Timer counts down: total_days → 0
+        # Days from start: 0 → total_days  
+        days_from_start = total_gravity_days - timer
+        
+        if days_from_start <= pre_spawn_gravity_days:
+            # Pre-spawn: ramp up from 0 to max
+            ramp_factor = days_from_start / pre_spawn_gravity_days
+        else:
+            # Post-spawn: ramp down from max to 0
+            days_into_post_spawn = days_from_start - pre_spawn_gravity_days
+            ramp_factor = 1.0 - (days_into_post_spawn / post_spawn_gravity_days)
+        
+        ramp_factor = np.clip(ramp_factor, 0.0, 1.0)
+        effective_gravity = gravity_strength * ramp_factor
+        
+        if effective_gravity <= 0:
+            continue
+        
+        # Find neighbors within gravity range
+        distances = np.sqrt(np.sum((all_positions - agent_pos)**2, axis=1))
+        neighbor_mask = (distances <= gravity_range) & (distances > 0)  # Exclude self
+        
+        if not np.any(neighbor_mask):
+            continue  # No neighbors within range
+        
+        # Calculate center of mass of neighbors
+        neighbor_positions = all_positions[neighbor_mask]
+        com = np.mean(neighbor_positions, axis=0)
+        
+        # Calculate angle to center of mass
+        dx = com[0] - agent_pos[0]
+        dy = com[1] - agent_pos[1]
+        
+        if dx == 0 and dy == 0:
+            continue  # Agent at center of mass
+            
+        angle_to_com = np.arctan2(dy, dx)
+        
+        # Blend gravity direction with current heading
+        current_heading = headings[i]
+        blended_heading = _circular_blend(current_heading, angle_to_com, effective_gravity)
+        headings[i] = blended_heading
+    
+    return headings
+
+
+def _circular_blend(heading1: float, heading2: float, weight: float) -> float:
+    """Blend two circular angles (headings) with given weight.
+    
+    Properly handles the circular nature of angles (e.g., blending 0.1 and 6.2 
+    should go through 0, not through π).
+    
+    Args:
+        heading1: First heading (radians).
+        heading2: Second heading (radians).
+        weight: Blend weight for heading2 [0, 1]. 0 = pure heading1, 1 = pure heading2.
+        
+    Returns:
+        Blended heading (radians).
+    """
+    # Convert to complex numbers on unit circle
+    z1 = np.exp(1j * heading1)
+    z2 = np.exp(1j * heading2)
+    
+    # Linear interpolation in complex plane
+    z_blend = (1 - weight) * z1 + weight * z2
+    
+    # Convert back to angle
+    blended = np.angle(z_blend)
+    
+    # Ensure positive angle [0, 2π)
+    if blended < 0:
+        blended += TWO_PI
+        
+    return blended
 
 
 # ═══════════════════════════════════════════════════════════════════════
