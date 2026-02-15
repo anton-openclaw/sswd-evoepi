@@ -124,13 +124,21 @@ AGENT_DTYPE = np.dtype([
     ('fecundity_mod',  np.float32),   #  4 B — fecundity modifier; always 1.0
                                       #         (CE-1: cost of resistance removed)
 
+    # --- Spawning (SPAWN writes) ---
+    ('spawning_ready',          np.int8),   #  1 B — 0=not ready, 1=ready to spawn this season
+    ('has_spawned',             np.int8),   #  1 B — females: 0/1, males: count of bouts (0-3)
+    ('spawn_refractory',        np.int16),  #  2 B — days remaining in male refractory (countdown)
+    ('spawn_gravity_timer',     np.int16),  #  2 B — days remaining in gravity phase (countdown)
+    ('immunosuppression_timer', np.int16),  #  2 B — days remaining in post-spawning immunosuppression
+    ('last_spawn_day',          np.int16),  #  2 B — day-of-year of last spawning event
+
     # --- Administrative ---
     ('node_id',        np.int16),     #  2 B — home node index
     ('alive',          np.bool_),     #  1 B — active flag (POP + DIS can set False)
     ('origin',         np.int8),      #  1 B — Origin enum (ERRATA E13)
                                       #         0=wild, 1=captive, 2=agf, 3=wild_source
 ])
-# Total: ~41 bytes per agent (padded to 44 or 48 by NumPy alignment)
+# Total: ~51 bytes per agent (was ~41, +10 bytes for spawning fields)
 
 
 def allocate_agents(max_n: int) -> np.ndarray:

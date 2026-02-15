@@ -74,6 +74,50 @@ class PopulationSection:
 
 
 @dataclass
+class SpawningSection:
+    """Spawning system parameters.
+    
+    Extended spawning season with cascading spawning bouts, spawning gravity,
+    and post-spawning immunosuppression. Replaces single-day pulse model.
+    
+    References:
+      - spawning-overhaul-spec.md (all parameters with confidence ratings)
+    """
+    # Spawning season parameters
+    season_start_doy: int = 305      # Season start (~Nov 1)
+    season_end_doy: int = 196        # Season end (~Jul 15) - wraps year boundary
+    peak_doy: int = 105              # Peak spawning activity (~Apr 15)
+    peak_width_days: float = 45.0    # Std dev of seasonal peak (Normal)
+    lat_shift_per_deg: float = 3.0   # Latitude shift of peak (days/°N)
+    
+    # Spontaneous spawning rates (base daily probabilities, modulated by season)
+    p_spontaneous_female: float = 0.005  # Daily probability ready female spawns spontaneously
+    p_spontaneous_male: float = 0.008    # Daily probability ready male initiates bout spontaneously
+    
+    # Cascade induction parameters (Phase 2 - not used in Phase 1)
+    induction_female_to_male: float = 0.80    # Probability male spawns when female nearby has spawned
+    induction_male_to_female: float = 0.30    # Probability female spawns when male nearby has spawned  
+    cascade_window: int = 3                   # Duration of chemical spawning cue persistence (days)
+    cascade_radius: float = 50.0              # Effective range of chemical spawning cue (m)
+    
+    # Male multi-bout parameters
+    male_max_bouts: int = 3                   # Maximum spawning bouts per male per season
+    male_refractory_days: int = 21            # Minimum days between male spawning bouts
+    
+    # Spawning gravity parameters (Phase 3 - not used in Phase 1)
+    gravity_enabled: bool = True              # Enable pre-spawning aggregation movement
+    gravity_strength: float = 0.3             # Maximum speed bias toward conspecifics (m/min)
+    gravity_range: float = 100.0              # Sensory detection range for conspecifics (m)
+    pre_spawn_gravity_days: int = 14          # Days before readiness that gravity activates
+    post_spawn_gravity_days: int = 14         # Days after spawning that gravity persists
+    
+    # Post-spawning immunosuppression (Phase 4 - not used in Phase 1)
+    immunosuppression_enabled: bool = True    # Enable post-spawning susceptibility increase
+    susceptibility_multiplier: float = 2.0   # Force-of-infection multiplier during immunosuppression
+    immunosuppression_duration: int = 28      # Duration of post-spawning immunosuppression (days)
+
+
+@dataclass
 class DiseaseSection:
     """Disease dynamics parameters.
 
@@ -189,6 +233,7 @@ class SimulationConfig:
     simulation: SimulationSection = field(default_factory=SimulationSection)
     spatial: SpatialSection = field(default_factory=SpatialSection)
     population: PopulationSection = field(default_factory=PopulationSection)
+    spawning: SpawningSection = field(default_factory=SpawningSection)
     disease: DiseaseSection = field(default_factory=DiseaseSection)
     genetics: GeneticsSection = field(default_factory=GeneticsSection)
     movement: MovementSection = field(default_factory=MovementSection)
@@ -241,6 +286,7 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
         'simulation': SimulationSection,
         'spatial': SpatialSection,
         'population': PopulationSection,
+        'spawning': SpawningSection,
         'disease': DiseaseSection,
         'genetics': GeneticsSection,
         'movement': MovementSection,

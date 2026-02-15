@@ -104,12 +104,14 @@ class TestConstants:
 
 class TestAgentDtype:
     def test_has_all_fields(self):
-        """AGENT_DTYPE has every field from the integration spec §4.1."""
+        """AGENT_DTYPE has every field from the integration spec §4.1 + spawning fields."""
         expected_fields = [
             'x', 'y', 'heading', 'speed',       # Spatial
             'size', 'age', 'stage', 'sex',       # Life history
             'disease_state', 'disease_timer',     # Disease
             'resistance', 'fecundity_mod',        # Genetics
+            'spawning_ready', 'has_spawned', 'spawn_refractory',  # Spawning (Phase 1)
+            'spawn_gravity_timer', 'immunosuppression_timer', 'last_spawn_day',  # Spawning (continued)
             'node_id', 'alive', 'origin',         # Administrative
         ]
         actual_fields = [name for name in AGENT_DTYPE.names]
