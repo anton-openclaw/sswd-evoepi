@@ -718,12 +718,15 @@ class TestBevertonHolt:
         assert R <= 1  # very few from small settler number
 
     def test_high_settlers_saturates(self):
-        """At very high settler numbers, recruitment approaches K × s0 = 15."""
+        """At very high settler numbers, recruitment approaches K.
+
+        Standard BH form: R = K × s0 × S / (K + s0 × S).
+        As S → ∞, R → K (carrying capacity is the asymptote).
+        """
         R = beverton_holt_recruitment(1_000_000, 500)
-        max_expected = 500 * 0.03  # = 15
-        # Should be close to but not exceed asymptote
-        assert R <= max_expected + 1
-        assert R >= max_expected - 1  # should be near the asymptote
+        # Should approach K=500 from below
+        assert R <= 500
+        assert R >= 490  # very close to K with 1M settlers
 
     def test_intermediate_values(self):
         """Intermediate settlers give intermediate recruitment."""

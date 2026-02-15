@@ -416,13 +416,15 @@ def annual_reproduction(
     cue_mod = settlement_cue_modifier(n_adults_present)
     effective_settlers = max(0, int(len(offspring_geno) * cue_mod))
 
-    # Beverton-Holt density-dependent recruitment
+    # Beverton-Holt density-dependent recruitment (use full K)
+    # Density regulation: BH asymptotes to K; slot availability further limits
     current_alive = int(np.sum(agents['alive']))
-    available_K = max(0, carrying_capacity - current_alive)
     n_recruits = beverton_holt_recruitment(
-        effective_settlers, available_K, pop_cfg.settler_survival,
+        effective_settlers, carrying_capacity, pop_cfg.settler_survival,
     )
-    n_recruits = min(n_recruits, effective_settlers, len(offspring_geno))
+    # Cap by available slots (dead agent array entries)
+    available_slots = max(0, carrying_capacity - current_alive)
+    n_recruits = min(n_recruits, available_slots, effective_settlers, len(offspring_geno))
 
     if n_recruits <= 0:
         return diag
@@ -832,6 +834,7 @@ class SpatialSimResult:
     n_nodes: int = 0
     node_names: Optional[List[str]] = None
     node_K: Optional[np.ndarray] = None
+    snapshot_recorder: Optional[object] = None  # SnapshotRecorder if enabled
     # Per-node, per-year: shape (n_nodes, n_years)
     yearly_pop: Optional[np.ndarray] = None
     yearly_adults: Optional[np.ndarray] = None
@@ -868,6 +871,7 @@ def run_spatial_simulation(
     seed: int = 42,
     config: Optional[SimulationConfig] = None,
     progress_callback=None,
+    snapshot_recorder=None,
 ) -> SpatialSimResult:
     """Run multi-node spatial simulation with full genetics tracking.
 
@@ -903,12 +907,16 @@ def run_spatial_simulation(
         pathogen_dispersal_step,
     )
     from sswd_evoepi.environment import sst_with_trend, seasonal_flushing
+    from sswd_evoepi.movement import daily_movement, InfectedDensityGrid
 
     if config is None:
         config = default_config()
 
     pop_cfg = config.population
     dis_cfg = config.disease
+    mov_cfg = config.movement
+    mov_enabled = mov_cfg.enabled
+    spatial_tx = mov_enabled and mov_cfg.spatial_transmission
 
     rng = np.random.default_rng(seed)
     N = network.n_nodes
@@ -989,6 +997,16 @@ def run_spatial_simulation(
             network.nodes[i].vibrio_concentration
         )
 
+    # ── Spatial transmission grids (one per node) ────────────────────
+    density_grids = [None] * N
+    if spatial_tx:
+        for i, node in enumerate(network.nodes):
+            hab_side = np.sqrt(max(node.definition.habitat_area, 1.0))
+            density_grids[i] = InfectedDensityGrid(
+                habitat_side=hab_side,
+                cell_size=mov_cfg.cell_size,
+            )
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
@@ -1015,7 +1033,29 @@ def run_spatial_simulation(
                 )
                 node.current_salinity = nd.salinity
 
-            # 2. Per-node disease step (if disease is active at that node)
+            # 2a. Movement (CRW sub-steps within the day)
+            if mov_enabled:
+                for i, node in enumerate(network.nodes):
+                    hab_side = np.sqrt(max(node.definition.habitat_area, 1.0))
+                    daily_movement(
+                        agents=node.agents,
+                        habitat_side=hab_side,
+                        sigma_turn=mov_cfg.sigma_turn,
+                        base_speed=mov_cfg.base_speed,
+                        substeps=mov_cfg.substeps_per_day,
+                        rng=rng,
+                    )
+
+            # 2b. Build spatial transmission grids (if enabled)
+            if spatial_tx:
+                for i, node in enumerate(network.nodes):
+                    if density_grids[i] is not None:
+                        density_grids[i].build(
+                            node.agents,
+                            diffusion_passes=mov_cfg.diffusion_passes,
+                        )
+
+            # 3. Per-node disease step (if disease is active at that node)
             for i, node in enumerate(network.nodes):
                 if not disease_active_flags[i]:
                     continue
@@ -1030,6 +1070,9 @@ def run_spatial_simulation(
                     day=year * DAYS_PER_YEAR + day,
                     cfg=dis_cfg,
                     rng=rng,
+                    infected_density_grid=(
+                        density_grids[i] if spatial_tx else None
+                    ),
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
@@ -1046,6 +1089,13 @@ def run_spatial_simulation(
                 node_disease_states[i].vibrio_concentration += dispersal_in[i]
                 network.nodes[i].vibrio_concentration = (
                     node_disease_states[i].vibrio_concentration
+                )
+
+            # Optional individual-level snapshot recording
+            if snapshot_recorder is not None:
+                sim_day = year * DAYS_PER_YEAR + day
+                snapshot_recorder.capture_all_nodes(
+                    sim_day, year, network.nodes
                 )
 
             # Track max vibrio and disease prevalence
@@ -1265,4 +1315,5 @@ def run_spatial_simulation(
         final_total_pop=int(yearly_total_pop[-1]),
         disease_year=disease_year,
         seed=seed,
+        snapshot_recorder=snapshot_recorder,
     )

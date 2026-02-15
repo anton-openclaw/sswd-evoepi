@@ -663,30 +663,30 @@ def beverton_holt_recruitment(
     K: int,
     s0: float = 0.03,
 ) -> int:
-    """Density-dependent settler-to-juvenile survival (Beverton-Holt).
+    """Density-dependent settler recruitment (standard Beverton-Holt).
 
-    R = S × s0 / (1 + S / K)
+    R = K × s0 × S / (K + s0 × S)
 
-    At low S: R ≈ S × s0 (supply-limited; each settler has s0 survival).
-    At high S: R → K × s0 (habitat-limited; asymptote).
+    At low S: R ≈ s0 × S (supply-limited; each settler has s0 chance).
+    At high S: R → K (habitat-limited; asymptotes to carrying capacity).
 
-    The asymptote K × s0 represents the maximum annual recruitment rate
-    at a node at full settlement pressure. For K=500, s0=0.03: max ~15
-    recruits/year, which balances the ~10 annual adult deaths (0.02 × 500).
+    The standard BH form ensures the asymptote equals K regardless of s0.
+    s0 controls the initial slope (density-independent survival per settler).
+    For broadcast spawners with millions of eggs, S >> K and R ≈ K,
+    meaning recruitment is habitat-limited and population self-regulates.
 
     Args:
-        n_settlers: Number of settlers arriving.
-        K: Available carrying capacity (slots).
-        s0: Maximum per-settler survival (density-independent).
+        n_settlers: Number of competent settlers arriving.
+        K: Carrying capacity (full K, not available slots).
+        s0: Density-independent per-settler survival rate.
 
     Returns:
-        Number of juveniles that survive first year.
+        Number of settlers that successfully recruit.
     """
     if n_settlers <= 0 or K <= 0:
         return 0
     S = float(n_settlers)
-    denominator = 1.0 + S / K
-    R = S * s0 / denominator
+    R = K * s0 * S / (K + s0 * S)
     return max(0, int(np.round(R)))
 
 
@@ -737,11 +737,11 @@ def settle_recruits(
     cue_mod = settlement_cue_modifier(n_adults_present)
     effective_settlers = max(0, int(n_arriving * cue_mod))
 
-    # Density-dependent recruitment
+    # Density-dependent recruitment (use full K; slot availability limits placement)
     current_alive = int(np.sum(agents['alive']))
-    available_K = max(0, carrying_capacity - current_alive)
-    n_recruits = beverton_holt_recruitment(effective_settlers, available_K, settler_survival)
-    n_recruits = min(n_recruits, effective_settlers, n_arriving)
+    n_recruits = beverton_holt_recruitment(effective_settlers, carrying_capacity, settler_survival)
+    available_slots = max(0, carrying_capacity - current_alive)
+    n_recruits = min(n_recruits, available_slots, effective_settlers, n_arriving)
 
     if n_recruits <= 0:
         return 0

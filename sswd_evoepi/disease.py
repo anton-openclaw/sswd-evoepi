@@ -495,6 +495,7 @@ def daily_disease_update(
     day: int,
     cfg: DiseaseSection,
     rng: np.random.Generator,
+    infected_density_grid=None,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -515,6 +516,10 @@ def daily_disease_update(
         day: Current simulation day.
         cfg: Disease configuration section.
         rng: NumPy random generator for this node.
+        infected_density_grid: Optional InfectedDensityGrid (from
+            movement module).  When provided, per-susceptible dose-
+            response is scaled by local infected density (spatial
+            transmission).  When None, mean-field (well-mixed) is used.
 
     Returns:
         Updated NodeDiseaseState.
@@ -549,7 +554,6 @@ def daily_disease_update(
 
     # Pre-compute shared values for efficiency
     if P_k > 0:
-        dose_resp = P_k / (cfg.K_half + P_k)
         sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
         mu_EI1 = arrhenius(cfg.mu_EI1_ref, cfg.Ea_EI1, T_celsius)
 
@@ -560,6 +564,20 @@ def daily_disease_update(
             # Vectorized force of infection
             r_mod = 1.0 - resistance[susc_indices]
             s_mod = np.exp(BETA_L * (size[susc_indices] - L_BAR) / SIGMA_L)
+
+            # Dose-response: spatial or mean-field
+            if infected_density_grid is not None:
+                # Spatial: scale P_k by local infected density factor
+                local_factors = infected_density_grid.lookup(
+                    agents['x'][susc_indices],
+                    agents['y'][susc_indices],
+                )
+                P_local = P_k * local_factors
+                dose_resp = P_local / (cfg.K_half + P_local)
+            else:
+                # Mean-field: uniform P_k for all susceptibles
+                dose_resp = P_k / (cfg.K_half + P_k)
+
             lambda_arr = cfg.a_exposure * dose_resp * r_mod * sal_mod * s_mod
             p_inf = 1.0 - np.exp(-lambda_arr)
 

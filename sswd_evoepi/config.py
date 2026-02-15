@@ -138,6 +138,27 @@ class GeneticsSection:
 
 
 @dataclass
+class MovementSection:
+    """Agent movement and spatial transmission parameters.
+
+    Movement: correlated random walk (CRW).
+    Spatial transmission: grid-based local Vibrio exposure — susceptibles
+    near infected agents get proportionally higher exposure.
+
+    References:
+      - modeling-approach.md §2.4 (hourly substeps)
+      - disease-module-spec §5.5 (speed modifiers by disease state)
+    """
+    enabled: bool = True           # Enable CRW movement
+    base_speed: float = 0.5        # m/min (Pycnopodia undisturbed; Kay & Emlet 2002)
+    sigma_turn: float = 0.6        # Turning angle std dev (radians)
+    substeps_per_day: int = 24     # Sub-steps per day (24 = hourly)
+    spatial_transmission: bool = True   # Use local Vibrio exposure grid
+    cell_size: float = 20.0        # Grid cell size for spatial transmission (m)
+    diffusion_passes: int = 2      # Smoothing passes (3×3 averaging)
+
+
+@dataclass
 class ConservationSection:
     """Conservation intervention parameters."""
     enabled: bool = False
@@ -170,6 +191,7 @@ class SimulationConfig:
     population: PopulationSection = field(default_factory=PopulationSection)
     disease: DiseaseSection = field(default_factory=DiseaseSection)
     genetics: GeneticsSection = field(default_factory=GeneticsSection)
+    movement: MovementSection = field(default_factory=MovementSection)
     conservation: ConservationSection = field(default_factory=ConservationSection)
     output: OutputSection = field(default_factory=OutputSection)
 
@@ -221,6 +243,7 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
         'population': PopulationSection,
         'disease': DiseaseSection,
         'genetics': GeneticsSection,
+        'movement': MovementSection,
         'conservation': ConservationSection,
         'output': OutputSection,
     }
