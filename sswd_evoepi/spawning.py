@@ -679,43 +679,42 @@ def _generate_larval_cohort(
     offspring_genotypes = np.zeros((total_competent, N_LOCI, 2), dtype=np.int8)
     parent_pairs = np.zeros((total_competent, 2), dtype=np.int32)
     
-    # Map selected individuals back to original indices
-    selected_female_indices = []
-    selected_male_indices = []
+    # Map selected individuals back to original indices (vectorized)
+    selected_female_indices = female_indices[female_order[:n_breeding_pairs]]
+    selected_male_indices = male_indices[male_order[:n_breeding_pairs]]
     
-    for i in range(n_breeding_pairs):
-        # Find the original indices for selected breeding pairs
-        # Use simple indexing since we selected by size order
-        female_original_idx = female_indices[female_order[i]] if i < len(female_indices) else female_indices[0]
-        male_original_idx = male_indices[male_order[i]] if i < len(male_indices) else male_indices[0]
-        
-        selected_female_indices.append(female_original_idx)
-        selected_male_indices.append(male_original_idx)
-    
+    loci_idx = np.arange(N_LOCI)
     larva_idx = 0
     for i in range(n_breeding_pairs):
-        n_offspring = larvae_per_pair[i]
-        if n_offspring == 0:
+        n_off = int(larvae_per_pair[i])
+        if n_off == 0:
             continue
-            
+        end_idx = larva_idx + n_off
+        if end_idx > total_competent:
+            n_off = total_competent - larva_idx
+            end_idx = total_competent
+        if n_off <= 0:
+            break
+        
         female_idx = selected_female_indices[i]
         male_idx = selected_male_indices[i]
         
-        # Generate offspring through Mendelian inheritance
-        for j in range(n_offspring):
-            if larva_idx >= total_competent:
-                break
-                
-            # Sexual reproduction: random allele from each parent at each locus
-            for locus in range(N_LOCI):
-                maternal_allele = genotypes[female_idx, locus, rng.integers(0, 2)]
-                paternal_allele = genotypes[male_idx, locus, rng.integers(0, 2)]
-                
-                offspring_genotypes[larva_idx, locus, 0] = maternal_allele
-                offspring_genotypes[larva_idx, locus, 1] = paternal_allele
-            
-            parent_pairs[larva_idx] = [female_idx, male_idx]
-            larva_idx += 1
+        # 2 batch RNG calls instead of n_off * N_LOCI * 2 individual calls
+        mat_choices = rng.integers(0, 2, size=(n_off, N_LOCI))
+        pat_choices = rng.integers(0, 2, size=(n_off, N_LOCI))
+        
+        # Vectorized Mendelian inheritance via fancy indexing
+        mat_geno = genotypes[female_idx]  # shape (N_LOCI, 2)
+        pat_geno = genotypes[male_idx]    # shape (N_LOCI, 2)
+        
+        # result[j, l] = mat_geno[l, mat_choices[j, l]]
+        offspring_genotypes[larva_idx:end_idx, :, 0] = mat_geno[loci_idx[np.newaxis, :], mat_choices]
+        offspring_genotypes[larva_idx:end_idx, :, 1] = pat_geno[loci_idx[np.newaxis, :], pat_choices]
+        
+        parent_pairs[larva_idx:end_idx, 0] = female_idx
+        parent_pairs[larva_idx:end_idx, 1] = male_idx
+        
+        larva_idx = end_idx
     
     return LarvalCohort(
         source_node=source_node,
