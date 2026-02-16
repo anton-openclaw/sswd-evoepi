@@ -793,7 +793,11 @@ class TestCascadeInduction:
         """Test cascade fails when agents are too far apart."""
         # Female at origin, male far away
         female_idx = 0   # At (0, 0)
-        male_idx = 19    # At (100, 75) - far beyond cascade_radius=50
+        male_idx = 19    # Place at distance > 200m to ensure cascade failure
+        
+        # Override male position to be beyond cascade_radius (200m)
+        self.agents['x'][male_idx] = 250.0  # 250m away
+        self.agents['y'][male_idx] = 0.0    # Distance = 250m > 200m cascade_radius
         
         # Female spawned recently
         self.agents['last_spawn_day'][female_idx] = 104
@@ -1189,21 +1193,21 @@ class TestSpawningConfiguration:
         assert config.season_start_doy == 305
         assert config.season_end_doy == 196
         assert config.peak_doy == 105
-        assert config.peak_width_days == 45.0
+        assert config.peak_width_days == 60.0  # Calibrated in Phase 1A2
         
-        # Spontaneous rates
-        assert config.p_spontaneous_female == 0.005
-        assert config.p_spontaneous_male == 0.008
+        # Spontaneous rates (calibrated in Phase 1A2)
+        assert abs(config.p_spontaneous_female - 0.004205) < 1e-5
+        assert abs(config.p_spontaneous_male - 0.006308) < 1e-5
         
         # Male bout parameters
         assert config.male_max_bouts == 3
         assert config.male_refractory_days == 21
         
-        # Phase 2 cascade parameters
+        # Phase 2 cascade parameters (cascade_radius calibrated in Phase 1A2)
         assert config.induction_female_to_male == 0.80
         assert config.induction_male_to_female == 0.30
         assert config.cascade_window == 3
-        assert config.cascade_radius == 50.0
+        assert config.cascade_radius == 200.0
         
         # Phase 3-4 parameters (not used yet)
         assert config.gravity_enabled is True

@@ -87,18 +87,18 @@ class SpawningSection:
     season_start_doy: int = 305      # Season start (~Nov 1)
     season_end_doy: int = 196        # Season end (~Jul 15) - wraps year boundary
     peak_doy: int = 105              # Peak spawning activity (~Apr 15)
-    peak_width_days: float = 45.0    # Std dev of seasonal peak (Normal)
+    peak_width_days: float = 60.0    # Std dev of seasonal peak (Normal) - calibrated in Phase 1A2
     lat_shift_per_deg: float = 3.0   # Latitude shift of peak (days/°N)
     
     # Spontaneous spawning rates (base daily probabilities, modulated by season)
-    p_spontaneous_female: float = 0.005  # Daily probability ready female spawns spontaneously
-    p_spontaneous_male: float = 0.008    # Daily probability ready male initiates bout spontaneously
+    p_spontaneous_female: float = 0.004205  # Daily probability ready female spawns spontaneously
+    p_spontaneous_male: float = 0.006308  # Daily probability ready male initiates bout spontaneously
     
     # Cascade induction parameters (Phase 2 - not used in Phase 1)
     induction_female_to_male: float = 0.80    # Probability male spawns when female nearby has spawned
     induction_male_to_female: float = 0.30    # Probability female spawns when male nearby has spawned  
     cascade_window: int = 3                   # Duration of chemical spawning cue persistence (days)
-    cascade_radius: float = 50.0              # Effective range of chemical spawning cue (m)
+    cascade_radius: float = 200.0  # Effective range of chemical spawning cue (m)
     
     # Male multi-bout parameters
     male_max_bouts: int = 3                   # Maximum spawning bouts per male per season
