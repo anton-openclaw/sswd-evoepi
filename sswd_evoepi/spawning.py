@@ -411,23 +411,17 @@ def _get_recent_spawners_mask(
     last_spawn_days = agents['last_spawn_day']
     
     # Handle agents that never spawned (last_spawn_day = 0)
-    never_spawned_mask = last_spawn_days == 0
+    never_spawned = last_spawn_days == 0
+    same_year = last_spawn_days <= current_doy
     
-    # Calculate days since last spawn, handling year wrapping
-    days_since_spawn = np.zeros_like(last_spawn_days)
-    
-    for i, last_spawn in enumerate(last_spawn_days):
-        if last_spawn == 0:
-            days_since_spawn[i] = 999  # Large number for never-spawned
-        elif last_spawn <= current_doy:
-            # Same year
-            days_since_spawn[i] = current_doy - last_spawn
-        else:
-            # Last spawn was later in previous year, current is early this year
-            days_since_spawn[i] = (365 - last_spawn) + current_doy
+    # Vectorized calculation of days since spawn with year wrapping
+    days_since_spawn = np.where(
+        never_spawned, 999,  # Large number for never-spawned
+        np.where(same_year, current_doy - last_spawn_days, (365 - last_spawn_days) + current_doy)
+    )
     
     # Recent spawners are those within cascade window
-    recent_mask = (days_since_spawn <= cascade_window) & ~never_spawned_mask
+    recent_mask = (days_since_spawn <= cascade_window) & ~never_spawned
     
     return recent_mask
 
@@ -453,10 +447,8 @@ def _check_cascade_induction(
     Returns:
         List of target indices that were induced to spawn.
     """
-    induced_targets = []
-    
     if len(target_indices) == 0 or len(inducer_indices) == 0:
-        return induced_targets
+        return []
     
     # Get positions
     target_positions = np.column_stack([
@@ -468,20 +460,46 @@ def _check_cascade_induction(
         agents['y'][inducer_indices]
     ])
     
-    # Check each target
-    for i, target_idx in enumerate(target_indices):
-        target_pos = target_positions[i]
+    # Memory guard: If T×I > 1,000,000, use chunked computation
+    if len(target_indices) * len(inducer_indices) > 1_000_000:
+        # Process in chunks of 1000 targets to avoid memory blowup
+        chunk_size = 1000
+        induced_targets = []
         
-        # Calculate distances to all recent spawners of opposite sex
-        distances = np.sqrt(np.sum((inducer_positions - target_pos)**2, axis=1))
+        for chunk_start in range(0, len(target_indices), chunk_size):
+            chunk_end = min(chunk_start + chunk_size, len(target_indices))
+            chunk_targets = target_indices[chunk_start:chunk_end]
+            chunk_positions = target_positions[chunk_start:chunk_end]
+            
+            # Compute distances for this chunk
+            # chunk_positions: (C, 2), inducer_positions: (I, 2)
+            # diff: (C, I, 2)
+            diff = chunk_positions[:, np.newaxis, :] - inducer_positions[np.newaxis, :, :]
+            dist_sq = np.sum(diff**2, axis=2)  # (C, I) - skip sqrt for speed
+            has_nearby_inducer = np.any(dist_sq <= cascade_radius**2, axis=1)  # (C,)
+            
+            # Roll for induction for all chunk targets at once
+            rolls = rng.random(len(chunk_targets))
+            induced_mask = has_nearby_inducer & (rolls < induction_probability)
+            induced_chunk = chunk_targets[induced_mask].tolist()
+            induced_targets.extend(induced_chunk)
+            
+        return induced_targets
+    else:
+        # Full vectorized computation for smaller problems
+        # Compute all pairwise distances at once using broadcasting
+        # target_positions: (T, 2), inducer_positions: (I, 2)
+        # diff: (T, I, 2)
+        diff = target_positions[:, np.newaxis, :] - inducer_positions[np.newaxis, :, :]
+        dist_sq = np.sum(diff**2, axis=2)  # (T, I) - skip sqrt for speed
+        has_nearby_inducer = np.any(dist_sq <= cascade_radius**2, axis=1)  # (T,)
         
-        # Check if any inducer is within cascade radius
-        if np.any(distances <= cascade_radius):
-            # Roll for induction
-            if rng.random() < induction_probability:
-                induced_targets.append(target_idx)
-    
-    return induced_targets
+        # Roll for induction for all targets at once
+        rolls = rng.random(len(target_indices))
+        induced_mask = has_nearby_inducer & (rolls < induction_probability)
+        induced_targets = target_indices[induced_mask].tolist()
+        
+        return induced_targets
 
 
 def _execute_spawning_events(
