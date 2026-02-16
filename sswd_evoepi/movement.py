@@ -400,8 +400,10 @@ def _diffuse_2d(grid: np.ndarray) -> np.ndarray:
     nx, ny = grid.shape
     # Pad with reflection
     padded = np.pad(grid, 1, mode='reflect')
-    result = np.zeros_like(grid)
-    for di in range(3):
-        for dj in range(3):
-            result += padded[di:di + nx, dj:dj + ny]
+    # Vectorized 3x3 neighborhood sum using slicing
+    result = (
+        padded[0:nx, 0:ny] + padded[0:nx, 1:ny+1] + padded[0:nx, 2:ny+2] +
+        padded[1:nx+1, 0:ny] + padded[1:nx+1, 1:ny+1] + padded[1:nx+1, 2:ny+2] +
+        padded[2:nx+2, 0:ny] + padded[2:nx+2, 1:ny+1] + padded[2:nx+2, 2:ny+2]
+    )
     return result / 9.0

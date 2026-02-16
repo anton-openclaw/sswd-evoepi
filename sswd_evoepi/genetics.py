@@ -328,13 +328,16 @@ def apply_mutations(
     # Random flat indices into the allele array
     mut_flat_idx = rng.choice(n_alleles, size=n_mutations, replace=False)
 
-    # Convert flat index to (individual, locus, copy) and flip
-    for idx in mut_flat_idx:
-        i = idx // (n_loci * ploidy)
-        remainder = idx % (n_loci * ploidy)
-        l = remainder // ploidy
-        a = remainder % ploidy
-        offspring_geno[i, l, a] = 1 - offspring_geno[i, l, a]
+    # Vectorized mutation application using unravel_index
+    if n_mutations > 0:
+        # Convert flat indices to 3D coordinates all at once
+        i_indices, l_indices, a_indices = np.unravel_index(
+            mut_flat_idx, (n_offspring, n_loci, ploidy)
+        )
+        # Vectorized bit flip using advanced indexing
+        offspring_geno[i_indices, l_indices, a_indices] = (
+            1 - offspring_geno[i_indices, l_indices, a_indices]
+        )
 
     return n_mutations
 

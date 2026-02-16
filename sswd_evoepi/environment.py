@@ -97,14 +97,15 @@ def make_sst_timeseries(n_years: int, start_year: int,
         1-D array of shape (n_years * 365,) with daily SST values.
     """
     total_days = n_years * 365
-    sst = np.empty(total_days, dtype=np.float64)
-    for yr_idx in range(n_years):
-        cal_year = start_year + yr_idx
-        for d in range(365):
-            sst[yr_idx * 365 + d] = sst_with_trend(
-                d, cal_year, mean_sst, amplitude, trend_per_year,
-                reference_year,
-            )
+    
+    # Vectorized SST generation - create all day and year arrays at once
+    day_array = np.tile(np.arange(365), n_years)  # [0,1,...,364,0,1,...,364,...]
+    year_array = np.repeat(np.arange(start_year, start_year + n_years), 365)  # [2020,2020,...,2021,2021,...]
+    
+    # Vectorized SST calculation for all days at once
+    sst = sst_with_trend(
+        day_array, year_array, mean_sst, amplitude, trend_per_year, reference_year
+    )
     return sst
 
 

@@ -347,16 +347,14 @@ def mendelian_inherit_batch(
     offspring = np.empty((n_offspring, N_LOCI, 2), dtype=np.int8)
     idx_range = np.arange(n_offspring)
 
-    for l in range(N_LOCI):
-        # Maternal alleles at locus l
-        mat_geno = genotypes[mother_idx, l, :]   # (n_offspring, 2)
-        mat_choice = choices[:, l, 0]             # (n_offspring,)
-        offspring[:, l, 0] = mat_geno[idx_range, mat_choice]
-
-        # Paternal alleles at locus l
-        pat_geno = genotypes[father_idx, l, :]
-        pat_choice = choices[:, l, 1]
-        offspring[:, l, 1] = pat_geno[idx_range, pat_choice]
+    # Vectorized Mendelian inheritance using np.take_along_axis
+    # Get parental genotypes for all offspring and loci
+    maternal_genotypes = genotypes[mother_idx]  # Shape: (n_offspring, N_LOCI, 2)
+    paternal_genotypes = genotypes[father_idx]  # Shape: (n_offspring, N_LOCI, 2)
+    
+    # Select alleles using np.take_along_axis
+    offspring[:, :, 0] = np.take_along_axis(maternal_genotypes, choices[:, :, 0:1], axis=2).squeeze(axis=2)
+    offspring[:, :, 1] = np.take_along_axis(paternal_genotypes, choices[:, :, 1:2], axis=2).squeeze(axis=2)
 
     return offspring
 
@@ -403,9 +401,8 @@ def compute_ne_ratio(parent_pairs: np.ndarray, n_parents: int) -> float:
     # Count offspring per unique parent
     all_parent_ids = parent_pairs.ravel()
     unique_parents = np.unique(all_parent_ids)
-    offspring_per_parent = np.zeros(n_parents, dtype=np.int64)
-    for pid in all_parent_ids:
-        offspring_per_parent[pid % n_parents] += 1
+    # Vectorized offspring counting with bincount
+    offspring_per_parent = np.bincount(all_parent_ids % n_parents, minlength=n_parents).astype(np.int64)
 
     Ne = compute_ne(offspring_per_parent)
     return Ne / n_parents
@@ -433,15 +430,13 @@ def compute_ne_from_pairs(
     if N_total < 2 or len(parent_pairs) == 0:
         return float(N_total), 1.0
 
-    # Offspring counts per female
-    female_counts = np.zeros(n_f, dtype=np.int64)
-    for i, f in enumerate(females):
-        female_counts[i] = np.sum(parent_pairs[:, 0] == f)
+    # Offspring counts per female (vectorized with bincount)
+    female_idx_in_pairs = np.searchsorted(females, parent_pairs[:, 0])
+    female_counts = np.bincount(female_idx_in_pairs, minlength=n_f).astype(np.int64)
 
-    # Offspring counts per male
-    male_counts = np.zeros(n_m, dtype=np.int64)
-    for i, m in enumerate(males):
-        male_counts[i] = np.sum(parent_pairs[:, 1] == m)
+    # Offspring counts per male (vectorized with bincount)
+    male_idx_in_pairs = np.searchsorted(males, parent_pairs[:, 1])
+    male_counts = np.bincount(male_idx_in_pairs, minlength=n_m).astype(np.int64)
 
     Ne_f = compute_ne(female_counts) if n_f >= 2 else float(n_f)
     Ne_m = compute_ne(male_counts) if n_m >= 2 else float(n_m)
@@ -759,29 +754,34 @@ def settle_recruits(
 
     hab_side = np.sqrt(max(habitat_area, 1.0))
 
-    for j in range(n_slots):
-        slot = dead_slots[j]
-        agents[slot]['alive'] = True
-        agents[slot]['x'] = rng.uniform(0, hab_side)
-        agents[slot]['y'] = rng.uniform(0, hab_side)
-        agents[slot]['heading'] = rng.uniform(0, 2 * np.pi)
-        agents[slot]['speed'] = 0.1
-        agents[slot]['size'] = 0.5  # mm at settlement
-        agents[slot]['age'] = 0.0
-        agents[slot]['stage'] = Stage.SETTLER
-        agents[slot]['sex'] = rng.integers(0, 2)
-        agents[slot]['disease_state'] = DiseaseState.S
-        agents[slot]['disease_timer'] = 0
-        agents[slot]['fecundity_mod'] = 1.0
-        agents[slot]['node_id'] = node_id
-        agents[slot]['origin'] = 0  # WILD
+    # Vectorized settler placement - batch assign all fields
+    slots = dead_slots[:n_slots]
+    
+    # Batch field assignments
+    agents[slots]['alive'] = True
+    agents[slots]['x'] = rng.uniform(0, hab_side, n_slots)
+    agents[slots]['y'] = rng.uniform(0, hab_side, n_slots)
+    agents[slots]['heading'] = rng.uniform(0, 2 * np.pi, n_slots)
+    agents[slots]['speed'] = 0.1
+    agents[slots]['size'] = 0.5  # mm at settlement
+    agents[slots]['age'] = 0.0
+    agents[slots]['stage'] = Stage.SETTLER
+    agents[slots]['sex'] = rng.integers(0, 2, n_slots)
+    agents[slots]['disease_state'] = DiseaseState.S
+    agents[slots]['disease_timer'] = 0
+    agents[slots]['fecundity_mod'] = 1.0
+    agents[slots]['node_id'] = node_id
+    agents[slots]['origin'] = 0  # WILD
 
-        genotypes[slot] = settler_genotypes[j]
+    # Batch genotype assignment
+    genotypes[slots] = settler_genotypes[:n_slots]
 
-        # Compute resistance score
-        agents[slot]['resistance'] = _compute_resistance(
-            settler_genotypes[j], effect_sizes, w_od
-        )
+    # Vectorized resistance score computation
+    resistance_scores = np.array([
+        _compute_resistance(settler_genotypes[j], effect_sizes, w_od)
+        for j in range(n_slots)
+    ])
+    agents[slots]['resistance'] = resistance_scores
 
     return n_slots
 
