@@ -41,6 +41,7 @@ from sswd_evoepi.config import (
     DiseaseSection,
     PopulationSection,
     SimulationConfig,
+    SpawningSection,
     default_config,
 )
 from sswd_evoepi.disease import (
@@ -70,6 +71,11 @@ from sswd_evoepi.reproduction import (
     settlement_cue_modifier,
     srs_reproductive_lottery,
     _compute_resistance,
+)
+from sswd_evoepi.spawning import (
+    spawning_step,
+    reset_spawning_season,
+    in_spawning_season,
 )
 from sswd_evoepi.types import (
     AGENT_DTYPE,
@@ -602,6 +608,16 @@ def run_coupled_simulation(
     disease_active = False
     cumulative_disease_deaths = 0
 
+    # ── Spawning system variables ────────────────────────────────────
+    spawning_enabled = config.spawning is not None
+    accumulated_cohorts = []  # List of LarvalCohort objects collected during season
+    previous_in_season = False  # Track season transitions
+    spawning_diagnostics = {
+        'n_spawning_events': 0,
+        'n_cohorts': 0,
+        'total_larvae': 0,
+    }
+
     # ── Allocate result arrays ────────────────────────────────────────
     total_days = n_years * DAYS_PER_YEAR
 
@@ -665,6 +681,40 @@ def run_coupled_simulation(
                 new_deaths = node_disease.cumulative_deaths - deaths_before
                 cumulative_disease_deaths += new_deaths
 
+            # ── Spawning step (if enabled) ────────────────────────────
+            if spawning_enabled:
+                day_of_year = (day + 1)  # Convert 0-based to 1-based day of year
+                currently_in_season = in_spawning_season(day_of_year, 
+                    config.spawning.season_start_doy, 
+                    config.spawning.season_end_doy)
+                
+                # Reset spawning season when transitioning out of season
+                if previous_in_season and not currently_in_season:
+                    reset_spawning_season(agents)
+                
+                # Daily spawning step during season
+                if currently_in_season:
+                    cohorts_today = spawning_step(
+                        agents=agents,
+                        genotypes=genotypes,
+                        day_of_year=day_of_year,
+                        node_latitude=48.0,  # Default latitude for single-node
+                        spawning_config=config.spawning,
+                        disease_config=config.disease,
+                        rng=rng,
+                    )
+                    if cohorts_today:
+                        accumulated_cohorts.extend(cohorts_today)
+                        spawning_diagnostics['n_spawning_events'] += len(cohorts_today)
+                        spawning_diagnostics['n_cohorts'] += len(cohorts_today)
+                        spawning_diagnostics['total_larvae'] += sum(c.n_competent for c in cohorts_today)
+                
+                # Tick down immunosuppression timers
+                immuno_mask = agents['immunosuppression_timer'] > 0
+                agents['immunosuppression_timer'][immuno_mask] -= 1
+                
+                previous_in_season = currently_in_season
+
             # Daily recording
             if record_daily:
                 alive_mask = agents['alive'].astype(bool)
@@ -687,8 +737,85 @@ def run_coupled_simulation(
         alive_mask = agents['alive'].astype(bool)
         pop_now = int(np.sum(alive_mask))
 
-        # B4. Reproduction (only if population > 0)
-        if pop_now > 0:
+        # B4. Reproduction
+        if spawning_enabled and accumulated_cohorts:
+            # Process accumulated larval cohorts from spawning system
+            total_competent_larvae = sum(cohort.n_competent for cohort in accumulated_cohorts)
+            
+            # Apply existing Beverton-Holt recruitment to accumulated larvae
+            current_alive = int(np.sum(agents['alive']))
+            n_recruits = beverton_holt_recruitment(
+                total_competent_larvae, carrying_capacity, pop_cfg.settler_survival,
+            )
+            # Cap by available slots
+            available_slots = max(0, carrying_capacity - current_alive)
+            n_recruits = min(n_recruits, available_slots, total_competent_larvae)
+            
+            # Settlement cue modifier for accumulated larvae
+            n_adults = current_alive
+            cue_mod = settlement_cue_modifier(n_adults)
+            n_recruits = max(0, int(n_recruits * cue_mod))
+            
+            # Settle recruits using genotypes from accumulated cohorts
+            if n_recruits > 0:
+                # Collect all genotypes from all cohorts
+                all_genotypes = []
+                for cohort in accumulated_cohorts:
+                    if cohort.n_competent > 0:
+                        all_genotypes.append(cohort.genotypes[:cohort.n_competent])
+                
+                if all_genotypes:
+                    combined_genotypes = np.vstack(all_genotypes)
+                    # Select which settlers survive
+                    if n_recruits < len(combined_genotypes):
+                        keep_idx = rng.choice(len(combined_genotypes), size=n_recruits, replace=False)
+                        settler_geno = combined_genotypes[keep_idx]
+                    else:
+                        settler_geno = combined_genotypes[:n_recruits]
+                    
+                    # Find dead/empty slots and place settlers
+                    dead_slots = np.where(~agents['alive'])[0]
+                    n_slots = min(n_recruits, len(dead_slots))
+                    hab_side = np.sqrt(max(habitat_area, 1.0))
+                    
+                    for j in range(n_slots):
+                        slot = dead_slots[j]
+                        agents[slot]['alive'] = True
+                        agents[slot]['x'] = rng.uniform(0, hab_side)
+                        agents[slot]['y'] = rng.uniform(0, hab_side)
+                        agents[slot]['heading'] = rng.uniform(0, 2 * np.pi)
+                        agents[slot]['speed'] = 0.1
+                        agents[slot]['size'] = 0.5  # mm at settlement
+                        agents[slot]['age'] = 0.0
+                        agents[slot]['stage'] = Stage.SETTLER
+                        agents[slot]['sex'] = rng.integers(0, 2)
+                        agents[slot]['disease_state'] = DiseaseState.S
+                        agents[slot]['disease_timer'] = 0
+                        agents[slot]['fecundity_mod'] = 1.0
+                        agents[slot]['node_id'] = 0
+                        agents[slot]['origin'] = 0
+
+                        genotypes[slot] = settler_geno[j]
+                        agents[slot]['resistance'] = _compute_resistance(
+                            settler_geno[j], effect_sizes, 0.160  # w_od
+                        )
+                    
+                    n_recruits = n_slots
+            
+            repro_diag = {
+                'n_spawning_females': spawning_diagnostics['n_spawning_events'],
+                'n_spawning_males': spawning_diagnostics['n_spawning_events'],
+                'fertilization_success': 1.0 if total_competent_larvae > 0 else 0.0,
+                'n_competent': total_competent_larvae,
+                'n_recruits': n_recruits,
+            }
+            
+            # Clear accumulated cohorts for next year
+            accumulated_cohorts = []
+            spawning_diagnostics = {'n_spawning_events': 0, 'n_cohorts': 0, 'total_larvae': 0}
+            
+        elif pop_now > 0:
+            # Fall back to annual reproduction (backward compatibility)
             repro_diag = annual_reproduction(
                 agents=agents,
                 genotypes=genotypes,
