@@ -16,7 +16,7 @@ import numpy as np
 from scipy.stats import norm
 
 from .types import AGENT_DTYPE, LarvalCohort, Stage, N_LOCI
-from .config import SpawningSection
+from .config import SpawningSection, DiseaseSection
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -127,16 +127,19 @@ def spawning_step(
     genotypes: np.ndarray,
     day_of_year: int,
     node_latitude: float,
-    config: SpawningSection,
+    spawning_config: SpawningSection,
+    disease_config: DiseaseSection,
     rng: np.random.Generator,
 ) -> List[LarvalCohort]:
-    """Execute daily spawning step for Phase 1-2 (spontaneous + cascade spawning).
+    """Execute daily spawning step for Phase 1-4 (complete spawning system).
     
     Updates agent spawning state fields and produces larval cohorts from
-    spawning events. Phase 1-2 includes:
+    spawning events. Includes:
     - Seasonal readiness updates
     - Spontaneous spawning 
     - Cascade induction from recent spawners (Phase 2)
+    - Spawning gravity timers (Phase 3)
+    - Post-spawning immunosuppression (Phase 4)
     - Female single-spawn enforcement
     - Male multi-bout tracking with refractory periods
     
@@ -145,7 +148,8 @@ def spawning_step(
         genotypes: Genotype array (parallel to agents).
         day_of_year: Current day of year (1-365).
         node_latitude: Node latitude for peak adjustment.
-        config: Spawning configuration parameters.
+        spawning_config: Spawning configuration parameters.
+        disease_config: Disease configuration parameters (for immunosuppression).
         rng: Random number generator.
         
     Returns:
@@ -155,12 +159,14 @@ def spawning_step(
         - Updates agents['spawning_ready'] (new ready individuals)
         - Updates agents['has_spawned'] (spawning counts/flags)
         - Updates agents['spawn_refractory'] (male refractory timers)
+        - Updates agents['spawn_gravity_timer'] (gravity phase timers)
+        - Updates agents['immunosuppression_timer'] (post-spawn immunosuppression)
         - Updates agents['last_spawn_day'] (tracking for future cascade)
     """
     cohorts = []
     
     # Only process during spawning season
-    if not in_spawning_season(day_of_year, config.season_start_doy, config.season_end_doy):
+    if not in_spawning_season(day_of_year, spawning_config.season_start_doy, spawning_config.season_end_doy):
         return cohorts
     
     # Get alive adult mask
@@ -180,14 +186,14 @@ def spawning_step(
     if np.any(not_ready_mask):
         # Calculate latitude-adjusted peak and readiness probability
         adjusted_peak = latitude_adjusted_peak(
-            config.peak_doy, 
+            spawning_config.peak_doy, 
             node_latitude, 
-            config.lat_shift_per_deg
+            spawning_config.lat_shift_per_deg
         )
         readiness_prob = seasonal_readiness_prob(
             day_of_year, 
             adjusted_peak, 
-            config.peak_width_days
+            spawning_config.peak_width_days
         )
         
         # Roll for readiness
@@ -199,8 +205,8 @@ def spawning_step(
             newly_ready_indices = not_ready_indices[newly_ready]
             agents['spawning_ready'][newly_ready_indices] = 1
             # Phase 3: Set spawning gravity timer when entering readiness
-            if config.gravity_enabled:
-                gravity_duration = config.pre_spawn_gravity_days + config.post_spawn_gravity_days
+            if spawning_config.gravity_enabled:
+                gravity_duration = spawning_config.pre_spawn_gravity_days + spawning_config.post_spawn_gravity_days
                 agents['spawn_gravity_timer'][newly_ready_indices] = gravity_duration
     
     # 2. Decrement timers
@@ -212,6 +218,10 @@ def spawning_step(
     gravity_mask = agents['spawn_gravity_timer'] > 0
     agents['spawn_gravity_timer'][gravity_mask] -= 1
     
+    # 2c. Post-spawning immunosuppression timers (Phase 4)
+    immuno_mask = agents['immunosuppression_timer'] > 0
+    agents['immunosuppression_timer'][immuno_mask] -= 1
+    
     # 3. Spontaneous spawning attempts
     spawners_today = []
     
@@ -220,28 +230,28 @@ def spawning_step(
     if np.any(female_mask):
         female_indices = mature_indices[female_mask]
         spawn_rolls = rng.random(len(female_indices))
-        spawning_females = spawn_rolls < config.p_spontaneous_female
+        spawning_females = spawn_rolls < spawning_config.p_spontaneous_female
         
         if np.any(spawning_females):
             spawning_female_indices = female_indices[spawning_females]
-            _execute_spawning_events(agents, spawning_female_indices, day_of_year)
+            _execute_spawning_events(agents, spawning_female_indices, day_of_year, spawning_config, disease_config)
             spawners_today.extend(spawning_female_indices)
     
     # 3b. Ready males who can spawn (not in refractory, under bout limit)
     male_mask = (
         (mature_adults['sex'] == 1) & 
         (mature_adults['spawning_ready'] == 1) & 
-        (mature_adults['has_spawned'] < config.male_max_bouts) &
+        (mature_adults['has_spawned'] < spawning_config.male_max_bouts) &
         (mature_adults['spawn_refractory'] == 0)
     )
     if np.any(male_mask):
         male_indices = mature_indices[male_mask]
         spawn_rolls = rng.random(len(male_indices))
-        spawning_males = spawn_rolls < config.p_spontaneous_male
+        spawning_males = spawn_rolls < spawning_config.p_spontaneous_male
         
         if np.any(spawning_males):
             spawning_male_indices = male_indices[spawning_males]
-            _execute_spawning_events(agents, spawning_male_indices, day_of_year, config.male_refractory_days)
+            _execute_spawning_events(agents, spawning_male_indices, day_of_year, spawning_config, disease_config, spawning_config.male_refractory_days)
             spawners_today.extend(spawning_male_indices)
     
     # 4. Phase 2: Cascade induction from recent spawners
@@ -249,7 +259,8 @@ def spawning_step(
         agents,
         mature_indices,
         day_of_year,
-        config,
+        spawning_config,
+        disease_config,
         rng
     )
     spawners_today.extend(cascade_spawners)
@@ -260,7 +271,7 @@ def spawning_step(
             agents, 
             genotypes, 
             spawners_today, 
-            config, 
+            spawning_config, 
             rng
         )
         if cohort.n_competent > 0:
@@ -273,7 +284,8 @@ def _cascade_induction_step(
     agents: np.ndarray,
     mature_indices: np.ndarray,
     day_of_year: int,
-    config: SpawningSection,
+    spawning_config: SpawningSection,
+    disease_config: DiseaseSection,
     rng: np.random.Generator,
 ) -> List[int]:
     """Execute cascade induction from recent spawners (Phase 2).
@@ -307,7 +319,7 @@ def _cascade_induction_step(
     
     # Find recent spawners within cascade window
     recent_spawners_mask = _get_recent_spawners_mask(
-        mature_adults, day_of_year, config.cascade_window
+        mature_adults, day_of_year, spawning_config.cascade_window
     )
     
     if not np.any(recent_spawners_mask):
@@ -339,7 +351,7 @@ def _cascade_induction_step(
     if len(recent_female_indices) > 0:
         male_target_mask = (
             (targets['sex'] == 1) &
-            (targets['has_spawned'] < config.male_max_bouts) &
+            (targets['has_spawned'] < spawning_config.male_max_bouts) &
             (targets['spawn_refractory'] == 0)
         )
         
@@ -347,12 +359,12 @@ def _cascade_induction_step(
             male_target_indices = target_indices[male_target_mask]
             triggered_males = _check_cascade_induction(
                 agents, male_target_indices, recent_female_indices,
-                config.cascade_radius, config.induction_female_to_male, rng
+                spawning_config.cascade_radius, spawning_config.induction_female_to_male, rng
             )
             
             if triggered_males:
                 _execute_spawning_events(
-                    agents, triggered_males, day_of_year, config.male_refractory_days
+                    agents, triggered_males, day_of_year, spawning_config, disease_config, spawning_config.male_refractory_days
                 )
                 cascade_spawners.extend(triggered_males)
     
@@ -367,12 +379,12 @@ def _cascade_induction_step(
             female_target_indices = target_indices[female_target_mask]
             triggered_females = _check_cascade_induction(
                 agents, female_target_indices, recent_male_indices,
-                config.cascade_radius, config.induction_male_to_female, rng
+                spawning_config.cascade_radius, spawning_config.induction_male_to_female, rng
             )
             
             if triggered_females:
                 _execute_spawning_events(
-                    agents, triggered_females, day_of_year
+                    agents, triggered_females, day_of_year, spawning_config, disease_config
                 )
                 cascade_spawners.extend(triggered_females)
     
@@ -476,17 +488,22 @@ def _execute_spawning_events(
     agents: np.ndarray, 
     spawner_indices: np.ndarray, 
     day_of_year: int,
+    spawning_config: SpawningSection,
+    disease_config: DiseaseSection,
     refractory_days: Optional[int] = None
 ) -> None:
     """Execute spawning events for specified agents.
     
     Updates spawning status fields. For females, sets has_spawned=1 (single spawn).
     For males, increments has_spawned bout count and sets refractory period.
+    Phase 4: Sets post-spawning immunosuppression timers.
     
     Args:
         agents: Agent array to modify.
         spawner_indices: Indices of spawning agents.
         day_of_year: Current day of year.
+        spawning_config: Spawning configuration parameters.
+        disease_config: Disease configuration parameters (for immunosuppression).
         refractory_days: Refractory period for males (None for females).
     """
     # Record spawning day for all spawners
@@ -500,6 +517,11 @@ def _execute_spawning_events(
         # Males: increment bout count and set refractory
         agents['has_spawned'][spawner_indices] += 1
         agents['spawn_refractory'][spawner_indices] = refractory_days
+    
+    # Phase 4: Set post-spawning immunosuppression timer
+    if disease_config.immunosuppression_enabled:
+        # For males spawning multiple bouts, timer resets each time
+        agents['immunosuppression_timer'][spawner_indices] = disease_config.immunosuppression_duration
 
 
 def _generate_larval_cohort(

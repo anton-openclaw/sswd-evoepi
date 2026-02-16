@@ -561,8 +561,22 @@ def daily_disease_update(
         susc_indices = np.where(susceptible)[0]
 
         if len(susc_indices) > 0:
-            # Vectorized force of infection
-            r_mod = 1.0 - resistance[susc_indices]
+            # Vectorized force of infection with Phase 4 immunosuppression
+            # r_eff = r_i / psi_spawn if immunosuppression_timer > 0, else r_i
+            r_raw = resistance[susc_indices]
+            immuno_timers = agents['immunosuppression_timer'][susc_indices]
+            
+            # Apply immunosuppression: divide resistance by susceptibility multiplier
+            if cfg.immunosuppression_enabled:
+                immuno_mask = immuno_timers > 0
+                r_eff = r_raw.copy()
+                r_eff[immuno_mask] = r_raw[immuno_mask] / cfg.susceptibility_multiplier
+                # Clamp effective resistance to [0, 1] 
+                r_eff = np.clip(r_eff, 0.0, 1.0)
+            else:
+                r_eff = r_raw
+            
+            r_mod = 1.0 - r_eff
             s_mod = np.exp(BETA_L * (size[susc_indices] - L_BAR) / SIGMA_L)
 
             # Dose-response: spatial or mean-field

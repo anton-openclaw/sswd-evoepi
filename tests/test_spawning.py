@@ -29,7 +29,7 @@ from sswd_evoepi.spawning import (
     _check_cascade_induction,
 )
 from sswd_evoepi.types import AGENT_DTYPE, Stage, allocate_agents, allocate_genotypes, N_LOCI
-from sswd_evoepi.config import SpawningSection
+from sswd_evoepi.config import SpawningSection, DiseaseSection
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -214,7 +214,8 @@ class TestSpawningStep:
         self.n_agents = 100
         self.agents = allocate_agents(self.n_agents)
         self.genotypes = allocate_genotypes(self.n_agents)
-        self.config = SpawningSection()
+        self.spawning_config = SpawningSection()
+        self.disease_config = DiseaseSection()
         self.rng = np.random.default_rng(42)
         
         # Create some mature adults
@@ -233,7 +234,8 @@ class TestSpawningStep:
         # Day 250 = September, out of season
         cohorts = spawning_step(
             self.agents, self.genotypes, day_of_year=250,
-            node_latitude=45.0, config=self.config, rng=self.rng
+            node_latitude=45.0, spawning_config=self.spawning_config, 
+            disease_config=self.disease_config, rng=self.rng
         )
         
         assert len(cohorts) == 0
@@ -247,7 +249,8 @@ class TestSpawningStep:
         
         cohorts = spawning_step(
             self.agents, self.genotypes, day_of_year=105,
-            node_latitude=40.0, config=self.config, rng=self.rng
+            node_latitude=40.0, spawning_config=self.spawning_config,
+            disease_config=self.disease_config, rng=self.rng
         )
         
         final_ready = np.sum(self.agents['spawning_ready'])
@@ -267,14 +270,14 @@ class TestSpawningStep:
         self.agents['spawning_ready'][ready_females] = 1
         
         # Force high spawning probability by mocking
-        original_p_female = self.config.p_spontaneous_female
-        self.config.p_spontaneous_female = 1.0  # 100% spawn rate
+        original_p_female = self.spawning_config.p_spontaneous_female
+        self.spawning_config.p_spontaneous_female = 1.0  # 100% spawn rate
         
         try:
             # First day - should spawn
             cohorts1 = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             spawned_females = np.sum(
@@ -285,7 +288,7 @@ class TestSpawningStep:
             # Second day - should not spawn again (already has_spawned=1)
             cohorts2 = spawning_step(
                 self.agents, self.genotypes, day_of_year=106,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Same females should still have has_spawned=1, no additional spawning
@@ -297,7 +300,7 @@ class TestSpawningStep:
             assert spawned_females_day2 == spawned_females  # No additional spawning
             
         finally:
-            self.config.p_spontaneous_female = original_p_female
+            self.spawning_config.p_spontaneous_female = original_p_female
     
     def test_male_multi_bout_with_refractory(self):
         """Test male multi-bout spawning with refractory periods."""
@@ -309,14 +312,14 @@ class TestSpawningStep:
         self.agents['spawning_ready'][ready_males] = 1
         
         # Force high male spawning probability
-        original_p_male = self.config.p_spontaneous_male
-        self.config.p_spontaneous_male = 1.0
+        original_p_male = self.spawning_config.p_spontaneous_male
+        self.spawning_config.p_spontaneous_male = 1.0
         
         try:
             # Day 1: First bout
             cohorts1 = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             spawned_males = (self.agents['sex'] == 1) & (self.agents['has_spawned'] > 0)
@@ -326,12 +329,12 @@ class TestSpawningStep:
             # Check spawning occurred and refractory is set
             assert np.any(spawned_males)
             assert np.all(bout_counts_day1 == 1)
-            assert np.all(refractory_timers == self.config.male_refractory_days)
+            assert np.all(refractory_timers == self.spawning_config.male_refractory_days)
             
             # Day 2: Should not spawn (refractory)
             cohorts2 = spawning_step(
                 self.agents, self.genotypes, day_of_year=106,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             bout_counts_day2 = self.agents['has_spawned'][spawned_males]
@@ -343,14 +346,14 @@ class TestSpawningStep:
             # Day 22: Should spawn again (second bout)
             cohorts3 = spawning_step(
                 self.agents, self.genotypes, day_of_year=127,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             bout_counts_day22 = self.agents['has_spawned'][spawned_males]
             assert np.any(bout_counts_day22 == 2)  # Some second bouts
             
         finally:
-            self.config.p_spontaneous_male = original_p_male
+            self.spawning_config.p_spontaneous_male = original_p_male
     
     def test_male_bout_limit_enforcement(self):
         """Test males cannot exceed maximum bout limit."""
@@ -360,24 +363,24 @@ class TestSpawningStep:
         test_male_idx = np.where(adult_mask & male_mask)[0][0]
         
         self.agents['spawning_ready'][test_male_idx] = 1
-        self.agents['has_spawned'][test_male_idx] = self.config.male_max_bouts  # At limit
+        self.agents['has_spawned'][test_male_idx] = self.spawning_config.male_max_bouts  # At limit
         self.agents['spawn_refractory'][test_male_idx] = 0  # Not refractory
         
         # Force high spawning probability
-        original_p_male = self.config.p_spontaneous_male
-        self.config.p_spontaneous_male = 1.0
+        original_p_male = self.spawning_config.p_spontaneous_male
+        self.spawning_config.p_spontaneous_male = 1.0
         
         try:
             cohorts = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Male should not spawn (already at limit)
-            assert self.agents['has_spawned'][test_male_idx] == self.config.male_max_bouts
+            assert self.agents['has_spawned'][test_male_idx] == self.spawning_config.male_max_bouts
             
         finally:
-            self.config.p_spontaneous_male = original_p_male
+            self.spawning_config.p_spontaneous_male = original_p_male
     
     def test_refractory_timer_countdown(self):
         """Test refractory timers count down properly."""
@@ -392,7 +395,7 @@ class TestSpawningStep:
             
             cohorts = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Check timers decremented
@@ -414,15 +417,15 @@ class TestSpawningStep:
             self.agents['sex'][adult_indices[1]] = 1  # Male
         
         # Force spawning
-        original_p_female = self.config.p_spontaneous_female
-        original_p_male = self.config.p_spontaneous_male
-        self.config.p_spontaneous_female = 1.0
-        self.config.p_spontaneous_male = 1.0
+        original_p_female = self.spawning_config.p_spontaneous_female
+        original_p_male = self.spawning_config.p_spontaneous_male
+        self.spawning_config.p_spontaneous_female = 1.0
+        self.spawning_config.p_spontaneous_male = 1.0
         
         try:
             cohorts = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Should generate cohort if both sexes present
@@ -434,8 +437,8 @@ class TestSpawningStep:
                 assert cohorts[0].genotypes.shape[2] == 2  # Diploid
             
         finally:
-            self.config.p_spontaneous_female = original_p_female
-            self.config.p_spontaneous_male = original_p_male
+            self.spawning_config.p_spontaneous_female = original_p_female
+            self.spawning_config.p_spontaneous_male = original_p_male
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -452,7 +455,7 @@ class TestUtilityFunctions:
         agents['sex'][:3] = 0  # Females
         
         female_indices = np.array([0, 1, 2])
-        _execute_spawning_events(agents, female_indices, day_of_year=105)
+        _execute_spawning_events(agents, female_indices, day_of_year=105, spawning_config=SpawningSection(), disease_config=DiseaseSection())
         
         # Females should have has_spawned=1, no refractory
         assert np.all(agents['has_spawned'][female_indices] == 1)
@@ -466,7 +469,7 @@ class TestUtilityFunctions:
         agents['sex'][:3] = 1  # Males
         
         male_indices = np.array([0, 1, 2])
-        _execute_spawning_events(agents, male_indices, day_of_year=105, refractory_days=21)
+        _execute_spawning_events(agents, male_indices, day_of_year=105, spawning_config=SpawningSection(), disease_config=DiseaseSection(), refractory_days=21)
         
         # Males should increment bout count and get refractory
         assert np.all(agents['has_spawned'][male_indices] == 1)
@@ -507,7 +510,7 @@ class TestLarvalCohortGeneration:
         """Set up test data for larval generation."""
         self.agents = allocate_agents(20)
         self.genotypes = allocate_genotypes(20)
-        self.config = SpawningSection()
+        self.spawning_config = SpawningSection()
         self.rng = np.random.default_rng(42)
         
         # Set up adults
@@ -529,14 +532,14 @@ class TestLarvalCohortGeneration:
         # Only females spawn
         female_indices = [0, 1, 2]
         cohort = _generate_larval_cohort(
-            self.agents, self.genotypes, female_indices, self.config, self.rng
+            self.agents, self.genotypes, female_indices, self.spawning_config, self.rng
         )
         assert cohort.n_competent == 0
         
         # Only males spawn  
         male_indices = [5, 6, 7]
         cohort = _generate_larval_cohort(
-            self.agents, self.genotypes, male_indices, self.config, self.rng
+            self.agents, self.genotypes, male_indices, self.spawning_config, self.rng
         )
         assert cohort.n_competent == 0
     
@@ -545,7 +548,7 @@ class TestLarvalCohortGeneration:
         spawner_indices = [0, 1, 5, 6]  # 2 females, 2 males
         
         cohort = _generate_larval_cohort(
-            self.agents, self.genotypes, spawner_indices, self.config, self.rng
+            self.agents, self.genotypes, spawner_indices, self.spawning_config, self.rng
         )
         
         if cohort.n_competent > 0:
@@ -566,7 +569,7 @@ class TestLarvalCohortGeneration:
         self.genotypes[5] = np.ones((N_LOCI, 2), dtype=np.int8)
         
         cohort = _generate_larval_cohort(
-            self.agents, self.genotypes, spawner_indices, self.config, self.rng
+            self.agents, self.genotypes, spawner_indices, self.spawning_config, self.rng
         )
         
         if cohort.n_competent > 0:
@@ -581,7 +584,7 @@ class TestLarvalCohortGeneration:
         spawner_indices = [1, 2, 6, 7]  # 2 females, 2 males
         
         cohort = _generate_larval_cohort(
-            self.agents, self.genotypes, spawner_indices, self.config, self.rng
+            self.agents, self.genotypes, spawner_indices, self.spawning_config, self.rng
         )
         
         if cohort.n_competent > 0:
@@ -606,7 +609,8 @@ class TestCascadeInduction:
         self.n_agents = 50
         self.agents = allocate_agents(self.n_agents)
         self.genotypes = allocate_genotypes(self.n_agents)
-        self.config = SpawningSection()
+        self.spawning_config = SpawningSection()
+        self.disease_config = DiseaseSection()
         self.rng = np.random.default_rng(42)
         
         # Create mature adults
@@ -728,14 +732,14 @@ class TestCascadeInduction:
             test_agents['last_spawn_day'][male_idx] = current_doy - 1  # Reset to not spawned today
             
             cascade_spawners = _cascade_induction_step(
-                test_agents, mature_indices, current_doy, self.config, self.rng
+                test_agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             if male_idx in cascade_spawners:
                 successes += 1
         
         success_rate = successes / trials
-        expected_rate = self.config.induction_female_to_male  # 0.80
+        expected_rate = self.spawning_config.induction_female_to_male  # 0.80
         
         # Should be close to expected rate (within ~3 standard deviations)
         std_error = np.sqrt(expected_rate * (1 - expected_rate) / trials)
@@ -770,14 +774,14 @@ class TestCascadeInduction:
             test_agents['last_spawn_day'][female_idx] = current_doy - 1  # Reset to not spawned today
             
             cascade_spawners = _cascade_induction_step(
-                test_agents, mature_indices, current_doy, self.config, self.rng
+                test_agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             if female_idx in cascade_spawners:
                 successes += 1
         
         success_rate = successes / trials
-        expected_rate = self.config.induction_male_to_female  # 0.30
+        expected_rate = self.spawning_config.induction_male_to_female  # 0.30
         
         # Should be close to expected rate (within ~3 standard deviations)
         std_error = np.sqrt(expected_rate * (1 - expected_rate) / trials)
@@ -804,19 +808,19 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force high induction probability for this test
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should not induce due to distance
             assert male_idx not in cascade_spawners
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
     
     def test_male_multi_bout_cascade(self):
         """Test males can be cascade-induced for multiple bouts."""
@@ -839,21 +843,21 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force induction for testing
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should induce male for second bout
             assert male_idx in cascade_spawners
             assert self.agents['has_spawned'][male_idx] == 2
-            assert self.agents['spawn_refractory'][male_idx] == self.config.male_refractory_days
+            assert self.agents['spawn_refractory'][male_idx] == self.spawning_config.male_refractory_days
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
     
     def test_male_bout_limit_prevents_cascade(self):
         """Test males at bout limit cannot be cascade-induced.""" 
@@ -863,7 +867,7 @@ class TestCascadeInduction:
         
         # Male at maximum bouts
         self.agents['spawning_ready'][male_idx] = 1
-        self.agents['has_spawned'][male_idx] = self.config.male_max_bouts  # At limit
+        self.agents['has_spawned'][male_idx] = self.spawning_config.male_max_bouts  # At limit
         self.agents['spawn_refractory'][male_idx] = 0
         
         # Female spawned recently
@@ -876,20 +880,20 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force induction attempt
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should not induce (at bout limit)
             assert male_idx not in cascade_spawners
-            assert self.agents['has_spawned'][male_idx] == self.config.male_max_bouts
+            assert self.agents['has_spawned'][male_idx] == self.spawning_config.male_max_bouts
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
     
     def test_refractory_prevents_cascade(self):
         """Test refractory males cannot be cascade-induced."""
@@ -912,12 +916,12 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force induction attempt
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should not induce (refractory)
@@ -925,7 +929,7 @@ class TestCascadeInduction:
             assert self.agents['spawn_refractory'][male_idx] == 10
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
     
     def test_female_single_spawn_prevents_cascade(self):
         """Test females who already spawned cannot be cascade-induced."""
@@ -947,12 +951,12 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force induction attempt
-        original_induction = self.config.induction_male_to_female
-        self.config.induction_male_to_female = 1.0
+        original_induction = self.spawning_config.induction_male_to_female
+        self.spawning_config.induction_male_to_female = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should not induce (already spawned)
@@ -960,7 +964,7 @@ class TestCascadeInduction:
             assert self.agents['has_spawned'][female_idx] == 1
             
         finally:
-            self.config.induction_male_to_female = original_induction
+            self.spawning_config.induction_male_to_female = original_induction
     
     def test_density_dependent_cascade_high_density(self):
         """Test coordinated spawning bouts at high density."""
@@ -986,7 +990,7 @@ class TestCascadeInduction:
         
         # High density should create large cascade
         cascade_spawners = _cascade_induction_step(
-            self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
         )
         
         # Should trigger multiple spawners due to clustering
@@ -1015,19 +1019,19 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force high induction probability to test distance effect only
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should trigger few/no spawners due to isolation
             assert len(cascade_spawners) == 0  # All too far away
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
     
     def test_cascade_window_expiry(self):
         """Test cascade cues expire after cascade_window days."""
@@ -1048,19 +1052,19 @@ class TestCascadeInduction:
         current_doy = 105
         
         # Force high induction probability
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cascade_spawners = _cascade_induction_step(
-                self.agents, mature_indices, current_doy, self.config, self.rng
+                self.agents, mature_indices, current_doy, self.spawning_config, DiseaseSection(), self.rng
             )
             
             # Should not induce (cue expired)
             assert male_idx not in cascade_spawners
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1075,7 +1079,8 @@ class TestPhase2Integration:
         self.n_agents = 20
         self.agents = allocate_agents(self.n_agents)
         self.genotypes = allocate_genotypes(self.n_agents)
-        self.config = SpawningSection()
+        self.spawning_config = SpawningSection()
+        self.disease_config = DiseaseSection()
         self.rng = np.random.default_rng(42)
         
         # Create clustered mature adults
@@ -1105,17 +1110,17 @@ class TestPhase2Integration:
         self.agents['spawning_ready'][adult_mask] = 1
         
         # Force one spontaneous spawner
-        original_p_female = self.config.p_spontaneous_female
-        original_p_male = self.config.p_spontaneous_male
+        original_p_female = self.spawning_config.p_spontaneous_female
+        original_p_male = self.spawning_config.p_spontaneous_male
         
         # Set one female to spawn spontaneously, low prob for others
-        self.config.p_spontaneous_female = 0.2  # One should spawn
-        self.config.p_spontaneous_male = 0.0    # No spontaneous males
+        self.spawning_config.p_spontaneous_female = 0.2  # One should spawn
+        self.spawning_config.p_spontaneous_male = 0.0    # No spontaneous males
         
         try:
             cohorts = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Count total spawners
@@ -1132,8 +1137,8 @@ class TestPhase2Integration:
             assert total_spawners >= spontaneous_spawners
             
         finally:
-            self.config.p_spontaneous_female = original_p_female
-            self.config.p_spontaneous_male = original_p_male
+            self.spawning_config.p_spontaneous_female = original_p_female
+            self.spawning_config.p_spontaneous_male = original_p_male
     
     def test_cascade_produces_viable_cohorts(self):
         """Test cascade-induced spawning produces viable larval cohorts."""
@@ -1148,13 +1153,13 @@ class TestPhase2Integration:
         self.agents['has_spawned'][female_idx] = 1  # Already spawned
         
         # Force male cascade induction
-        original_induction = self.config.induction_female_to_male
-        self.config.induction_female_to_male = 1.0
+        original_induction = self.spawning_config.induction_female_to_male
+        self.spawning_config.induction_female_to_male = 1.0
         
         try:
             cohorts = spawning_step(
                 self.agents, self.genotypes, day_of_year=105,
-                node_latitude=40.0, config=self.config, rng=self.rng
+                node_latitude=40.0, spawning_config=self.spawning_config, disease_config=self.disease_config, rng=self.rng
             )
             
             # Should generate cohorts from both spontaneous and cascade spawning
@@ -1166,7 +1171,7 @@ class TestPhase2Integration:
                     assert cohort.source_node == 0
             
         finally:
-            self.config.induction_female_to_male = original_induction
+            self.spawning_config.induction_female_to_male = original_induction
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1202,7 +1207,7 @@ class TestSpawningConfiguration:
         
         # Phase 3-4 parameters (not used yet)
         assert config.gravity_enabled is True
-        assert config.immunosuppression_enabled is True
+        assert DiseaseSection().immunosuppression_enabled is True
     
     def test_season_duration(self):
         """Test spawning season duration calculation.""" 
@@ -1255,7 +1260,7 @@ class TestSpawningGravityTimers:
         
         # Run spawning step during peak season
         spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
-                     config=config, rng=rng)
+                     spawning_config=config, disease_config=DiseaseSection(), rng=rng)
         
         # Some agents should have become ready and gotten gravity timers
         ready_agents = agents['spawning_ready'] == 1
@@ -1282,7 +1287,7 @@ class TestSpawningGravityTimers:
         
         # Run spawning step
         spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
-                     config=config, rng=rng)
+                     spawning_config=config, disease_config=DiseaseSection(), rng=rng)
         
         # No gravity timers should be set
         assert np.all(agents['spawn_gravity_timer'] == 0)
@@ -1305,7 +1310,7 @@ class TestSpawningGravityTimers:
         
         # Run spawning step (should decrement timers)
         spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
-                     config=config, rng=rng)
+                     spawning_config=config, disease_config=DiseaseSection(), rng=rng)
         
         # All timers should have decreased by 1
         for i in range(20):
@@ -1331,7 +1336,7 @@ class TestSpawningGravityTimers:
         # Run spawning step multiple times
         for _ in range(5):
             spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
-                         config=config, rng=rng)
+                         spawning_config=config, disease_config=DiseaseSection(), rng=rng)
         
         # All timers should remain at 0
         assert np.all(agents['spawn_gravity_timer'] == 0)
@@ -1371,7 +1376,7 @@ class TestSpawningGravityTimers:
         
         # Run spawning step
         spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
-                     config=config, rng=rng)
+                     spawning_config=config, disease_config=DiseaseSection(), rng=rng)
         
         # Timers should have decremented regardless of spawning
         expected_timers = np.maximum(0, initial_timers - 1)
@@ -1403,6 +1408,276 @@ class TestSpawningGravityTimers:
         
         # But gravity timers should be preserved
         np.testing.assert_array_equal(agents['spawn_gravity_timer'], initial_timers)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 4 TESTS: POST-SPAWNING IMMUNOSUPPRESSION
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestImmounosuppressionTimers:
+    """Test post-spawning immunosuppression timer functionality (Phase 4)."""
+    
+    def test_immunosuppression_timer_set_on_spawning(self):
+        """When agent spawns, immunosuppression timer should be set if enabled."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(20)
+        genotypes = allocate_genotypes(20)
+        
+        # Set up ready females and males
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = 0  # Female
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 0
+            agents[i]['immunosuppression_timer'] = 0
+        
+        for i in range(10, 20):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = 1  # Male
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 0
+            agents[i]['spawn_refractory'] = 0
+            agents[i]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        spawning_config.p_spontaneous_female = 1.0  # Guarantee spawning
+        spawning_config.p_spontaneous_male = 1.0
+        
+        disease_config = DiseaseSection()
+        disease_config.immunosuppression_enabled = True
+        disease_config.immunosuppression_duration = 28
+        
+        # Run spawning step
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        # All agents should have spawned and gotten immunosuppression timers
+        spawned_mask = agents['has_spawned'] > 0
+        assert np.sum(spawned_mask) > 0  # Some should have spawned
+        
+        # All spawned agents should have immunosuppression timer set
+        # Timer is set after countdown, so it should be the full duration
+        expected_timer = disease_config.immunosuppression_duration
+        spawned_indices = np.where(spawned_mask)[0]
+        assert np.all(agents['immunosuppression_timer'][spawned_indices] == expected_timer)
+    
+    def test_immunosuppression_timer_not_set_when_disabled(self):
+        """When immunosuppression is disabled, timer should not be set."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(10)
+        genotypes = allocate_genotypes(10)
+        
+        # Set up ready females
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = 0  # Female
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 0
+            agents[i]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        spawning_config.p_spontaneous_female = 1.0  # Guarantee spawning
+        
+        disease_config = DiseaseSection()
+        disease_config.immunosuppression_enabled = False  # Disabled
+        
+        # Run spawning step
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        # No immunosuppression timers should be set
+        assert np.all(agents['immunosuppression_timer'] == 0)
+    
+    def test_immunosuppression_timer_resets_for_male_multiple_bouts(self):
+        """Male timer should reset on each spawning bout."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(5)
+        genotypes = allocate_genotypes(5)
+        
+        # Set up ready male
+        agents[0]['alive'] = True
+        agents[0]['stage'] = Stage.ADULT
+        agents[0]['size'] = 450.0
+        agents[0]['sex'] = 1  # Male
+        agents[0]['spawning_ready'] = 1
+        agents[0]['has_spawned'] = 0
+        agents[0]['spawn_refractory'] = 0
+        agents[0]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        spawning_config.p_spontaneous_male = 1.0  # Guarantee spawning
+        spawning_config.male_max_bouts = 3
+        spawning_config.male_refractory_days = 21
+        
+        disease_config = DiseaseSection()
+        disease_config.immunosuppression_enabled = True
+        disease_config.immunosuppression_duration = 28
+        
+        # First spawning
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        assert agents[0]['has_spawned'] == 1
+        first_timer = agents[0]['immunosuppression_timer'] 
+        assert first_timer == disease_config.immunosuppression_duration  # Set after countdown
+        
+        # Simulate timer countdown and refractory period expiry
+        agents[0]['immunosuppression_timer'] = 10  # Partially decremented
+        agents[0]['spawn_refractory'] = 0  # Ready to spawn again
+        
+        # Second spawning
+        spawning_step(agents, genotypes, day_of_year=130, node_latitude=40.0,
+                     spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        assert agents[0]['has_spawned'] == 2
+        # Timer should reset to full duration
+        second_timer = agents[0]['immunosuppression_timer']
+        assert second_timer == disease_config.immunosuppression_duration
+    
+    def test_immunosuppression_timer_countdown(self):
+        """Immunosuppression timers should count down daily."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(20)
+        genotypes = allocate_genotypes(20)
+        
+        # Set up agents with various timer values
+        for i in range(20):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 1
+            agents[i]['immunosuppression_timer'] = i + 1  # Timers from 1 to 20
+        
+        spawning_config = SpawningSection()
+        disease_config = DiseaseSection()
+        
+        # Run spawning step (should decrement timers)
+        spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                     spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        # All timers should have decreased by 1
+        for i in range(20):
+            expected = max(0, i)  # Timer i+1 decremented by 1 = i, but min 0
+            assert agents[i]['immunosuppression_timer'] == expected
+    
+    def test_immunosuppression_timer_stops_at_zero(self):
+        """Immunosuppression timers should not go below zero."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(10)
+        genotypes = allocate_genotypes(10)
+        
+        # Set up agents with timer = 0
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['spawning_ready'] = 1
+            agents[i]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        disease_config = DiseaseSection()
+        
+        # Run spawning step multiple times
+        for _ in range(5):
+            spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
+                         spawning_config=spawning_config, disease_config=disease_config, rng=rng)
+        
+        # All timers should remain at 0
+        assert np.all(agents['immunosuppression_timer'] == 0)
+    
+    def test_season_reset_preserves_immunosuppression_timers(self):
+        """Season reset should not reset immunosuppression timers (they extend beyond season)."""
+        rng = np.random.default_rng(42)
+        agents = allocate_agents(10)
+        
+        # Set up agents with various timers
+        for i in range(10):
+            agents[i]['alive'] = True
+            agents[i]['spawning_ready'] = 1
+            agents[i]['has_spawned'] = 1
+            agents[i]['immunosuppression_timer'] = i + 5  # Various timer values
+        
+        initial_timers = agents['immunosuppression_timer'].copy()
+        
+        # Reset spawning season
+        reset_spawning_season(agents)
+        
+        # spawning_ready and has_spawned should be reset
+        assert np.all(agents['spawning_ready'] == 0)
+        assert np.all(agents['has_spawned'] == 0)
+        
+        # But immunosuppression timers should be preserved
+        np.testing.assert_array_equal(agents['immunosuppression_timer'], initial_timers)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 4 INTEGRATION TESTS
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestImmounosuppressionIntegration:
+    """Test integration between spawning and disease modules for immunosuppression."""
+    
+    def test_execute_spawning_events_with_both_configs(self):
+        """Test that _execute_spawning_events works with both spawning and disease configs."""
+        agents = allocate_agents(5)
+        
+        # Set up agents
+        for i in range(5):
+            agents[i]['alive'] = True
+            agents[i]['stage'] = Stage.ADULT
+            agents[i]['size'] = 450.0
+            agents[i]['sex'] = i % 2  # Mix of male/female
+            agents[i]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        disease_config = DiseaseSection()
+        disease_config.immunosuppression_enabled = True
+        disease_config.immunosuppression_duration = 28
+        
+        # Execute spawning events
+        spawner_indices = np.array([0, 1, 2])
+        _execute_spawning_events(
+            agents, spawner_indices, day_of_year=105, 
+            spawning_config=spawning_config, disease_config=disease_config
+        )
+        
+        # All spawners should have immunosuppression timer set
+        assert agents[0]['immunosuppression_timer'] == disease_config.immunosuppression_duration
+        assert agents[1]['immunosuppression_timer'] == disease_config.immunosuppression_duration
+        assert agents[2]['immunosuppression_timer'] == disease_config.immunosuppression_duration
+        
+        # Non-spawners should have timer = 0
+        assert agents[3]['immunosuppression_timer'] == 0
+        assert agents[4]['immunosuppression_timer'] == 0
+    
+    def test_immunosuppression_disabled_in_execute_spawning_events(self):
+        """Test that immunosuppression timers are not set when disabled."""
+        agents = allocate_agents(3)
+        
+        # Set up agents
+        for i in range(3):
+            agents[i]['alive'] = True
+            agents[i]['immunosuppression_timer'] = 0
+        
+        spawning_config = SpawningSection()
+        disease_config = DiseaseSection()
+        disease_config.immunosuppression_enabled = False  # Disabled
+        
+        # Execute spawning events
+        spawner_indices = np.array([0, 1])
+        _execute_spawning_events(
+            agents, spawner_indices, day_of_year=105,
+            spawning_config=spawning_config, disease_config=disease_config
+        )
+        
+        # No timers should be set
+        assert np.all(agents['immunosuppression_timer'] == 0)
 
 
 if __name__ == "__main__":

@@ -110,11 +110,6 @@ class SpawningSection:
     gravity_range: float = 100.0              # Sensory detection range for conspecifics (m)
     pre_spawn_gravity_days: int = 14          # Days before readiness that gravity activates
     post_spawn_gravity_days: int = 14         # Days after spawning that gravity persists
-    
-    # Post-spawning immunosuppression (Phase 4 - not used in Phase 1)
-    immunosuppression_enabled: bool = True    # Enable post-spawning susceptibility increase
-    susceptibility_multiplier: float = 2.0   # Force-of-infection multiplier during immunosuppression
-    immunosuppression_duration: int = 28      # Duration of post-spawning immunosuppression (days)
 
 
 @dataclass
@@ -160,6 +155,11 @@ class DiseaseSection:
     # Salinity
     s_min: float = 10.0           # Salinity minimum for Vibrio (psu)
     s_full: float = 28.0          # Full-marine salinity (psu)
+
+    # Post-spawning immunosuppression (Phase 4)
+    immunosuppression_enabled: bool = True    # Enable post-spawning susceptibility increase
+    susceptibility_multiplier: float = 2.0   # Force-of-infection multiplier during immunosuppression
+    immunosuppression_duration: int = 28      # Duration of post-spawning immunosuppression (days)
 
     # Invasion scenario extras
     invasion_year: Optional[int] = None
