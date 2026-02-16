@@ -91,8 +91,8 @@ class SpawningSection:
     lat_shift_per_deg: float = 3.0   # Latitude shift of peak (days/°N)
     
     # Spontaneous spawning rates (base daily probabilities, modulated by season)
-    p_spontaneous_female: float = 0.004205  # Daily probability ready female spawns spontaneously
-    p_spontaneous_male: float = 0.006308  # Daily probability ready male initiates bout spontaneously
+    p_spontaneous_female: float = 0.012   # Daily probability ready female spawns spontaneously - calibrated for 80%+ participation  
+    p_spontaneous_male: float = 0.0125    # Daily probability ready male initiates bout spontaneously - calibrated for 2.2 mean bouts
     
     # Cascade induction parameters (Phase 2 - not used in Phase 1)
     induction_female_to_male: float = 0.80    # Probability male spawns when female nearby has spawned
