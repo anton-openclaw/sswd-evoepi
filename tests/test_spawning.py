@@ -1193,11 +1193,11 @@ class TestSpawningConfiguration:
         assert config.season_start_doy == 305
         assert config.season_end_doy == 196
         assert config.peak_doy == 105
-        assert config.peak_width_days == 60.0  # Calibrated in Phase 1A2
+        assert config.peak_width_days == 60.0  # From Phase 1A2, verified in 1A3
         
-        # Spontaneous rates (calibrated in Phase 1A2)
-        assert abs(config.p_spontaneous_female - 0.004205) < 1e-5
-        assert abs(config.p_spontaneous_male - 0.006308) < 1e-5
+        # Spontaneous rates (calibrated in Phase 1A3)
+        assert abs(config.p_spontaneous_female - 0.012) < 1e-5
+        assert abs(config.p_spontaneous_male - 0.0125) < 1e-5
         
         # Male bout parameters
         assert config.male_max_bouts == 3
