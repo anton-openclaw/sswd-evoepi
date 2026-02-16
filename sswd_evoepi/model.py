@@ -72,6 +72,7 @@ from sswd_evoepi.reproduction import (
     srs_reproductive_lottery,
     _compute_resistance,
 )
+from sswd_evoepi.perf import PerfMonitor
 from sswd_evoepi.spawning import (
     spawning_step,
     reset_spawning_season,
@@ -531,6 +532,7 @@ def run_coupled_simulation(
     record_daily: bool = False,
     config: Optional[SimulationConfig] = None,
     sst_by_day: Optional[np.ndarray] = None,
+    perf: Optional['PerfMonitor'] = None,
 ) -> CoupledSimResult:
     """Run a coupled disease ↔ population simulation on a single node.
 
@@ -571,6 +573,9 @@ def run_coupled_simulation(
     """
     if config is None:
         config = default_config()
+    if perf is None:
+        perf = PerfMonitor(enabled=False)
+    perf.start()
 
     pop_cfg = config.population
     dis_cfg = config.disease
@@ -666,20 +671,21 @@ def run_coupled_simulation(
 
             # Disease step (only when active)
             if disease_active:
-                deaths_before = node_disease.cumulative_deaths
-                node_disease = daily_disease_update(
-                    agents=agents,
-                    node_state=node_disease,
-                    T_celsius=today_T,
-                    salinity=salinity,
-                    phi_k=phi_k,
-                    dispersal_input=0.0,
-                    day=global_day,
-                    cfg=dis_cfg,
-                    rng=rng,
-                )
-                new_deaths = node_disease.cumulative_deaths - deaths_before
-                cumulative_disease_deaths += new_deaths
+                with perf.track("disease"):
+                    deaths_before = node_disease.cumulative_deaths
+                    node_disease = daily_disease_update(
+                        agents=agents,
+                        node_state=node_disease,
+                        T_celsius=today_T,
+                        salinity=salinity,
+                        phi_k=phi_k,
+                        dispersal_input=0.0,
+                        day=global_day,
+                        cfg=dis_cfg,
+                        rng=rng,
+                    )
+                    new_deaths = node_disease.cumulative_deaths - deaths_before
+                    cumulative_disease_deaths += new_deaths
 
             # ── Spawning step (if enabled) ────────────────────────────
             if spawning_enabled:
@@ -694,15 +700,16 @@ def run_coupled_simulation(
                 
                 # Daily spawning step during season
                 if currently_in_season:
-                    cohorts_today = spawning_step(
-                        agents=agents,
-                        genotypes=genotypes,
-                        day_of_year=day_of_year,
-                        node_latitude=48.0,  # Default latitude for single-node
-                        spawning_config=config.spawning,
-                        disease_config=config.disease,
-                        rng=rng,
-                    )
+                    with perf.track("spawning"):
+                        cohorts_today = spawning_step(
+                            agents=agents,
+                            genotypes=genotypes,
+                            day_of_year=day_of_year,
+                            node_latitude=48.0,  # Default latitude for single-node
+                            spawning_config=config.spawning,
+                            disease_config=config.disease,
+                            rng=rng,
+                        )
                     if cohorts_today:
                         accumulated_cohorts.extend(cohorts_today)
                         spawning_diagnostics['n_spawning_events'] += len(cohorts_today)
@@ -710,8 +717,9 @@ def run_coupled_simulation(
                         spawning_diagnostics['total_larvae'] += sum(c.n_competent for c in cohorts_today)
                 
                 # Tick down immunosuppression timers
-                immuno_mask = agents['immunosuppression_timer'] > 0
-                agents['immunosuppression_timer'][immuno_mask] -= 1
+                with perf.track("immunosuppression_tick"):
+                    immuno_mask = agents['immunosuppression_timer'] > 0
+                    agents['immunosuppression_timer'][immuno_mask] -= 1
                 
                 previous_in_season = currently_in_season
 
@@ -728,10 +736,12 @@ def run_coupled_simulation(
         # ── PHASE B: ANNUAL DEMOGRAPHIC UPDATE ───────────────────────
 
         # B1. Natural mortality
-        n_nat_dead = annual_natural_mortality(agents, pop_cfg, rng)
+        with perf.track("mortality"):
+            n_nat_dead = annual_natural_mortality(agents, pop_cfg, rng)
 
         # B2. Growth, aging, stage transitions
-        annual_growth_and_aging(agents, pop_cfg, rng)
+        with perf.track("growth"):
+            annual_growth_and_aging(agents, pop_cfg, rng)
 
         # B3. Record pre-reproduction population
         alive_mask = agents['alive'].astype(bool)
@@ -739,6 +749,7 @@ def run_coupled_simulation(
 
         # B4. Reproduction
         if spawning_enabled and accumulated_cohorts:
+          with perf.track("recruitment"):
             # Process accumulated larval cohorts from spawning system
             total_competent_larvae = sum(cohort.n_competent for cohort in accumulated_cohorts)
             
@@ -816,16 +827,17 @@ def run_coupled_simulation(
             
         elif pop_now > 0:
             # Fall back to annual reproduction (backward compatibility)
-            repro_diag = annual_reproduction(
-                agents=agents,
-                genotypes=genotypes,
-                effect_sizes=effect_sizes,
-                habitat_area=habitat_area,
-                sst=T_celsius,
-                carrying_capacity=carrying_capacity,
-                pop_cfg=pop_cfg,
-                rng=rng,
-            )
+            with perf.track("recruitment"):
+                repro_diag = annual_reproduction(
+                    agents=agents,
+                    genotypes=genotypes,
+                    effect_sizes=effect_sizes,
+                    habitat_area=habitat_area,
+                    sst=T_celsius,
+                    carrying_capacity=carrying_capacity,
+                    pop_cfg=pop_cfg,
+                    rng=rng,
+                )
         else:
             repro_diag = {
                 'n_spawning_females': 0,
@@ -918,6 +930,8 @@ def run_coupled_simulation(
     # ── Compile result ────────────────────────────────────────────────
     final_pop = int(np.sum(agents['alive']))
     recovered = final_pop > n_individuals * 0.5
+
+    perf.stop()
 
     result = CoupledSimResult(
         n_years=n_years,
