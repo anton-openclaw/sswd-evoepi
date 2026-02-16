@@ -38,6 +38,7 @@ from sswd_evoepi.spatial import (
     MetapopulationNetwork,
     haversine_km,
     compute_distance_matrix,
+    load_overwater_distances,
     construct_larval_connectivity,
     construct_pathogen_dispersal,
     pathogen_dispersal_step,
@@ -497,6 +498,142 @@ class TestPathogenSpread:
         # D[1,0] = fjord export to coast (low φ)
         assert D[1, 0] < D[0, 1] or D[1, 0] == 0, \
             "Fjord should export less than coast"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# OVERWATER DISTANCES
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestOverwaterDistances:
+    @pytest.fixture
+    def five_nodes(self):
+        return get_5node_definitions()
+
+    def test_load_overwater_distances_nonexistent_file(self, five_nodes):
+        """Nonexistent file should fallback to Haversine."""
+        result = load_overwater_distances(
+            five_nodes, npz_path='nonexistent.npz'
+        )
+        assert result.shape == (5, 5)
+        assert np.all(result >= 0)
+        assert np.all(np.diag(result) == 0)
+
+    def test_load_overwater_distances_real_file(self, five_nodes):
+        """Loading from real overwater matrix should succeed."""
+        result = load_overwater_distances(
+            five_nodes, 
+            npz_path='results/overwater/distance_matrix_489.npz',
+            max_match_km=50.0
+        )
+        assert result.shape == (5, 5)
+        assert np.all(result >= 0)
+        assert np.all(np.diag(result) == 0)
+        assert np.all(np.isfinite(result))  # No inf values
+
+    def test_overwater_vs_haversine_distances(self, five_nodes):
+        """Overwater distances should be different from Haversine×1.5 (more accurate)."""
+        # Skip if file doesn't exist
+        import os
+        if not os.path.exists('results/overwater/distance_matrix_489.npz'):
+            pytest.skip("Overwater distance matrix not available")
+            
+        overwater = load_overwater_distances(
+            five_nodes, 
+            npz_path='results/overwater/distance_matrix_489.npz'
+        )
+        
+        lats = np.array([nd.lat for nd in five_nodes])
+        lons = np.array([nd.lon for nd in five_nodes])
+        haversine = compute_distance_matrix(lats, lons, tortuosity=1.5)
+        
+        # Overwater should be different from Haversine (more realistic routing)
+        off_diag_mask = ~np.eye(5, dtype=bool)
+        overwater_flat = overwater[off_diag_mask]
+        haversine_flat = haversine[off_diag_mask]
+        
+        # They should not be identical (at least some pairs should differ by >5%)
+        relative_diffs = np.abs(overwater_flat - haversine_flat) / haversine_flat
+        significant_diffs = np.sum(relative_diffs > 0.05)
+        assert significant_diffs >= 5, f"Only {significant_diffs}/20 pairs differ significantly"
+        
+        # All overwater distances should be > 0 and realistic (< 10,000 km)
+        assert np.all(overwater_flat > 0)
+        assert np.all(overwater_flat < 10000)
+
+    def test_build_network_with_overwater(self, five_nodes):
+        """Building network with overwater_npz should produce different C/D matrices."""
+        # Skip if file doesn't exist
+        import os
+        if not os.path.exists('results/overwater/distance_matrix_489.npz'):
+            pytest.skip("Overwater distance matrix not available")
+            
+        net_haversine = build_network(five_nodes, seed=42)
+        net_overwater = build_network(
+            five_nodes, seed=42, 
+            overwater_npz='results/overwater/distance_matrix_489.npz'
+        )
+        
+        # Distance matrices should be different
+        assert not np.allclose(net_haversine.distances, net_overwater.distances)
+        
+        # C matrices should be different (different distances → different connectivity)
+        assert not np.allclose(net_haversine.C, net_overwater.C)
+
+    def test_make_5node_network_overwater(self):
+        """make_5node_network with use_overwater=True should work."""
+        import os
+        if not os.path.exists('results/overwater/distance_matrix_489.npz'):
+            pytest.skip("Overwater distance matrix not available")
+            
+        net_default = make_5node_network(seed=42, use_overwater=False)
+        net_overwater = make_5node_network(seed=42, use_overwater=True)
+        
+        # Both should have 5 nodes
+        assert net_default.n_nodes == 5
+        assert net_overwater.n_nodes == 5
+        
+        # Distance matrices should be different
+        assert not np.allclose(net_default.distances, net_overwater.distances)
+
+    def test_disconnected_pairs_handled(self, five_nodes):
+        """Disconnected pairs (inf) should be set to large finite distance."""
+        import tempfile
+        import numpy as np
+        
+        # Create a mock distance matrix with some inf values
+        mock_distances = np.array([
+            [0.0, 100.0, np.inf],
+            [100.0, 0.0, 200.0],
+            [np.inf, 200.0, 0.0]
+        ], dtype=np.float32)
+        
+        mock_coords = np.array([
+            [50.0, -120.0],  # Close to our test nodes
+            [51.0, -121.0],
+            [52.0, -122.0]
+        ])
+        
+        mock_names = np.array(['Site_A', 'Site_B', 'Site_C'])
+        
+        with tempfile.NamedTemporaryFile(suffix='.npz', delete=False) as f:
+            np.savez(f, distances=mock_distances, coordinates=mock_coords, 
+                    names=mock_names, regions=['R1', 'R2', 'R3'])
+            mock_path = f.name
+        
+        try:
+            # Use first 3 nodes only
+            result = load_overwater_distances(
+                five_nodes[:3], npz_path=mock_path, max_match_km=200.0
+            )
+            
+            # All distances should be finite
+            assert np.all(np.isfinite(result))
+            
+            # Disconnected pairs should have large distance
+            assert result[0, 2] > 1000.0  # was inf, now large finite
+            
+        finally:
+            os.unlink(mock_path)
 
 
 # ═══════════════════════════════════════════════════════════════════════

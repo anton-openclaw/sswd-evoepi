@@ -113,6 +113,99 @@ def compute_distance_matrix(lats: np.ndarray,
     return dist
 
 
+def load_overwater_distances(
+    node_defs: List[NodeDefinition],
+    npz_path: str = 'results/overwater/distance_matrix_489.npz',
+    max_match_km: float = 50.0,
+) -> np.ndarray:
+    """Load precomputed overwater distances for the given nodes.
+
+    Matches node_defs to the 489-site matrix by nearest lat/lon.
+    If a node is >max_match_km from any site, falls back to Haversine×1.5.
+    Handles inf (disconnected) pairs by setting a large but finite distance.
+
+    Args:
+        node_defs: List of NodeDefinition to match.
+        npz_path: Path to precomputed distance matrix.
+        max_match_km: Maximum distance for matching nodes (km).
+
+    Returns:
+        (N, N) distance matrix in km.
+    """
+    from pathlib import Path
+    
+    if not Path(npz_path).exists():
+        print(f"Warning: {npz_path} not found, falling back to Haversine×1.5")
+        lats = np.array([nd.lat for nd in node_defs])
+        lons = np.array([nd.lon for nd in node_defs])
+        return compute_distance_matrix(lats, lons, tortuosity=1.5)
+    
+    # Load the 489×489 matrix
+    data = np.load(npz_path)
+    matrix_coords = data['coordinates']  # (489, 2) [lat, lon]
+    matrix_distances = data['distances']  # (489, 489)
+    matrix_names = data['names']  # (489,) for logging
+    
+    N = len(node_defs)
+    result = np.zeros((N, N), dtype=np.float64)
+    matched_indices = []
+    
+    # Match each node to nearest site in the 489-site matrix
+    for i, node in enumerate(node_defs):
+        node_coord = np.array([node.lat, node.lon])
+        
+        # Find nearest site by haversine distance
+        distances_to_sites = np.array([
+            haversine_km(node.lat, node.lon, coord[0], coord[1])
+            for coord in matrix_coords
+        ])
+        
+        nearest_idx = np.argmin(distances_to_sites)
+        nearest_dist = distances_to_sites[nearest_idx]
+        
+        if nearest_dist <= max_match_km:
+            matched_indices.append(nearest_idx)
+            print(f"Matched {node.name} → {matrix_names[nearest_idx]} ({nearest_dist:.1f} km)")
+        else:
+            matched_indices.append(None)
+            print(f"Warning: {node.name} >50 km from any site, using Haversine fallback")
+    
+    # Build the distance matrix
+    fallback_pairs = []
+    for i in range(N):
+        for j in range(i + 1, N):
+            idx_i = matched_indices[i]
+            idx_j = matched_indices[j]
+            
+            if idx_i is not None and idx_j is not None:
+                # Both nodes matched — use overwater distance
+                overwater_dist = matrix_distances[idx_i, idx_j]
+                
+                if np.isinf(overwater_dist):
+                    # Disconnected pair — set to large finite distance
+                    # Use 10x the maximum finite distance in the matrix
+                    max_finite = np.max(matrix_distances[np.isfinite(matrix_distances)])
+                    overwater_dist = max_finite + 1000.0
+                    print(f"Warning: {node_defs[i].name} ↔ {node_defs[j].name} disconnected, set to {overwater_dist:.0f} km")
+                
+                result[i, j] = overwater_dist
+                result[j, i] = overwater_dist
+            else:
+                # At least one node unmatched — use Haversine fallback
+                haversine_dist = haversine_km(
+                    node_defs[i].lat, node_defs[i].lon,
+                    node_defs[j].lat, node_defs[j].lon
+                ) * 1.5  # apply standard tortuosity
+                result[i, j] = haversine_dist
+                result[j, i] = haversine_dist
+                fallback_pairs.append((node_defs[i].name, node_defs[j].name))
+    
+    if fallback_pairs:
+        print(f"Used Haversine fallback for {len(fallback_pairs)} pairs")
+    
+    return result
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # NODE DEFINITION
 # ═══════════════════════════════════════════════════════════════════════
@@ -480,6 +573,7 @@ def build_network(
     barriers: Optional[Dict[Tuple[int, int], float]] = None,
     tortuosity: float = 1.5,
     seed: int = 42,
+    overwater_npz: Optional[str] = None,
 ) -> MetapopulationNetwork:
     """Build a MetapopulationNetwork from node definitions.
 
@@ -495,14 +589,19 @@ def build_network(
         barriers: Barrier attenuation dict for C matrix.
         tortuosity: Coastline tortuosity multiplier.
         seed: RNG seed.
+        overwater_npz: Optional path to precomputed overwater distances.
+            If provided, uses load_overwater_distances instead of Haversine×tortuosity.
 
     Returns:
         Assembled MetapopulationNetwork.
     """
-    lats = np.array([nd.lat for nd in node_defs])
-    lons = np.array([nd.lon for nd in node_defs])
-
-    distances = compute_distance_matrix(lats, lons, tortuosity=tortuosity)
+    # Choose distance computation method
+    if overwater_npz is not None:
+        distances = load_overwater_distances(node_defs, overwater_npz)
+    else:
+        lats = np.array([nd.lat for nd in node_defs])
+        lons = np.array([nd.lon for nd in node_defs])
+        distances = compute_distance_matrix(lats, lons, tortuosity=tortuosity)
 
     C = construct_larval_connectivity(
         node_defs, distances, D_L=D_L, barriers=barriers, r_total=r_total,
@@ -532,7 +631,7 @@ def build_network(
 # 5-NODE TEST NETWORK
 # ═══════════════════════════════════════════════════════════════════════
 
-def make_5node_network(seed: int = 42) -> MetapopulationNetwork:
+def make_5node_network(seed: int = 42, use_overwater: bool = False) -> MetapopulationNetwork:
     """Create the canonical 5-node test network.
 
     Nodes:
@@ -542,11 +641,17 @@ def make_5node_network(seed: int = 42) -> MetapopulationNetwork:
       3: Newport, OR — open coast, moderate
       4: Monterey, CA — warm, near functional extinction
 
+    Args:
+        seed: Random seed for network construction.
+        use_overwater: If True, use precomputed overwater distances.
+            If False, use Haversine×1.5 (default for backward compatibility).
+
     Returns:
         MetapopulationNetwork ready for simulation.
     """
     node_defs = get_5node_definitions()
-    return build_network(node_defs, seed=seed)
+    overwater_npz = 'results/overwater/distance_matrix_489.npz' if use_overwater else None
+    return build_network(node_defs, seed=seed, overwater_npz=overwater_npz)
 
 
 def get_5node_definitions() -> List[NodeDefinition]:
