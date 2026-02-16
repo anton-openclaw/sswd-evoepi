@@ -757,21 +757,21 @@ def settle_recruits(
     # Vectorized settler placement - batch assign all fields
     slots = dead_slots[:n_slots]
     
-    # Batch field assignments
-    agents[slots]['alive'] = True
-    agents[slots]['x'] = rng.uniform(0, hab_side, n_slots)
-    agents[slots]['y'] = rng.uniform(0, hab_side, n_slots)
-    agents[slots]['heading'] = rng.uniform(0, 2 * np.pi, n_slots)
-    agents[slots]['speed'] = 0.1
-    agents[slots]['size'] = 0.5  # mm at settlement
-    agents[slots]['age'] = 0.0
-    agents[slots]['stage'] = Stage.SETTLER
-    agents[slots]['sex'] = rng.integers(0, 2, n_slots)
-    agents[slots]['disease_state'] = DiseaseState.S
-    agents[slots]['disease_timer'] = 0
-    agents[slots]['fecundity_mod'] = 1.0
-    agents[slots]['node_id'] = node_id
-    agents[slots]['origin'] = 0  # WILD
+    # Batch field assignments - FIXED: use agents['field'][slots] not agents[slots]['field']
+    agents['alive'][slots] = True
+    agents['x'][slots] = rng.uniform(0, hab_side, n_slots)
+    agents['y'][slots] = rng.uniform(0, hab_side, n_slots)
+    agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n_slots)
+    agents['speed'][slots] = 0.1
+    agents['size'][slots] = 0.5  # mm at settlement
+    agents['age'][slots] = 0.0
+    agents['stage'][slots] = Stage.SETTLER
+    agents['sex'][slots] = rng.integers(0, 2, n_slots)
+    agents['disease_state'][slots] = DiseaseState.S
+    agents['disease_timer'][slots] = 0
+    agents['fecundity_mod'][slots] = 1.0
+    agents['node_id'][slots] = node_id
+    agents['origin'][slots] = 0  # WILD
 
     # Batch genotype assignment
     genotypes[slots] = settler_genotypes[:n_slots]
@@ -781,7 +781,7 @@ def settle_recruits(
         _compute_resistance(settler_genotypes[j], effect_sizes, w_od)
         for j in range(n_slots)
     ])
-    agents[slots]['resistance'] = resistance_scores
+    agents['resistance'][slots] = resistance_scores
 
     return n_slots
 
