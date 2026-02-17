@@ -246,10 +246,12 @@ def run_single_spatial(args):
         overrides = sample_to_config_overrides(sample_row, param_names)
         apply_overrides_to_config(config, overrides)
         
-        # Disable movement for SA (not testing movement params;
-        # movement adds ~20× overhead from hourly substeps)
-        config.movement.enabled = False
-        config.movement.spatial_transmission = False
+        # Enable movement with 1 substep/day for SA
+        # Full 24 substeps too expensive (20× overhead); 1 substep captures
+        # spatial mixing and aggregation effects without hourly granularity
+        config.movement.enabled = True
+        config.movement.spatial_transmission = True
+        config.movement.substeps_per_day = 1
         
         # Validate
         validate_config(config)
