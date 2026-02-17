@@ -1,0 +1,66 @@
+[
+  {
+    "n": 50,
+    "no_spawn_s": 0.7988,
+    "spawn_s": 0.6568,
+    "overhead": 0.82,
+    "mem_no_spawn": 96.7,
+    "mem_spawn": 92.6
+  },
+  {
+    "n": 100,
+    "no_spawn_s": 0.8118,
+    "spawn_s": 1.3305,
+    "overhead": 1.64,
+    "mem_no_spawn": 96.8,
+    "mem_spawn": 169.7
+  },
+  {
+    "n": 200,
+    "no_spawn_s": 0.7542,
+    "spawn_s": 2.4372,
+    "overhead": 3.23,
+    "mem_no_spawn": 169.7,
+    "mem_spawn": 197.0
+  },
+  {
+    "n": 500,
+    "no_spawn_s": 0.817,
+    "spawn_s": 4.0951,
+    "overhead": 5.01,
+    "mem_no_spawn": 197.0,
+    "mem_spawn": 160.6
+  },
+  {
+    "n": 1000,
+    "no_spawn_s": 0.9034,
+    "spawn_s": 5.126,
+    "overhead": 5.67,
+    "mem_no_spawn": 171.4,
+    "mem_spawn": 185.5
+  },
+  {
+    "n": 2000,
+    "no_spawn_s": 1.0661,
+    "spawn_s": 6.3499,
+    "overhead": 5.96,
+    "mem_no_spawn": 185.5,
+    "mem_spawn": 276.5
+  },
+  {
+    "n": 5000,
+    "no_spawn_s": 1.5236,
+    "spawn_s": 9.6173,
+    "overhead": 6.31,
+    "mem_no_spawn": 276.5,
+    "mem_spawn": 292.4
+  },
+  {
+    "n": 10000,
+    "no_spawn_s": 2.2632,
+    "spawn_s": 15.6963,
+    "overhead": 6.94,
+    "mem_no_spawn": 292.4,
+    "mem_spawn": 297.8
+  }
+]
