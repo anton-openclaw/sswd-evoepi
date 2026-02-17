@@ -183,6 +183,57 @@ def natural_mortality_prob(stage: int, age: float,
 # POPULATION INITIALIZATION
 # ═══════════════════════════════════════════════════════════════════════
 
+def _make_per_locus_q(
+    n_additive: int,
+    effect_sizes: np.ndarray,
+    target_mean_r: float,
+    mode: str,
+    rng: np.random.Generator,
+    beta_a: float = 2.0,
+    beta_b: float = 8.0,
+    q_ef1a: float = 0.24,
+    w_od: float = 0.160,
+) -> np.ndarray:
+    """Compute per-locus allele frequencies for additive resistance loci.
+
+    Args:
+        n_additive: Number of additive loci.
+        effect_sizes: (N_ADDITIVE,) effect size vector.
+        target_mean_r: Target population-mean resistance.
+        mode: "uniform" or "beta".
+        rng: Random generator.
+        beta_a, beta_b: Beta distribution shape parameters.
+        q_ef1a: EF1A allele frequency (for computing its contribution).
+        w_od: Overdominant weight for EF1A.
+
+    Returns:
+        (N_ADDITIVE,) float64 per-locus allele frequencies.
+    """
+    # Subtract EF1A's expected contribution to mean r_i
+    ef1a_het_contrib = 2.0 * q_ef1a * (1.0 - q_ef1a) * w_od
+    target_additive = max(0.0, target_mean_r - ef1a_het_contrib)
+
+    if mode == "beta":
+        # Draw independent per-locus frequencies from Beta(a, b)
+        raw_q = rng.beta(beta_a, beta_b, size=n_additive)
+        # Scale so E[r_additive] = target_additive
+        # E[r_additive] = Σ e_l × q_l (each allele contributes e_l × q_l
+        # to mean resistance, factor of 2 for diploid is already in effect_sizes)
+        current_additive = np.dot(effect_sizes, raw_q)
+        if current_additive > 0:
+            scale = target_additive / current_additive
+            q_vals = np.clip(raw_q * scale, 0.001, 0.999)
+        else:
+            q_vals = np.full(n_additive, 0.01)
+    else:
+        # Uniform q across all loci
+        q_uniform = target_additive / effect_sizes.sum() if effect_sizes.sum() > 0 else 0.01
+        q_uniform = np.clip(q_uniform, 0.001, 0.999)
+        q_vals = np.full(n_additive, q_uniform)
+
+    return q_vals
+
+
 def initialize_population(
     n_individuals: int,
     max_agents: int,
@@ -193,12 +244,18 @@ def initialize_population(
     q_init: float = 0.05,
     q_ef1a: float = 0.24,
     w_od: float = 0.160,
+    genetics_cfg: Optional['GeneticsSection'] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Initialize a population at demographic equilibrium.
 
     Creates individuals with age/size drawn from an approximate
     stable age distribution, random genotypes with given allele
     frequencies, and computed resistance scores.
+
+    If ``genetics_cfg`` is provided, uses its ``q_init_mode``,
+    ``target_mean_r``, and Beta parameters to set per-locus allele
+    frequencies (independent across loci). Otherwise falls back to
+    the uniform ``q_init`` for backward compatibility.
 
     Args:
         n_individuals: Target number of live individuals.
@@ -207,9 +264,11 @@ def initialize_population(
         effect_sizes: (N_ADDITIVE,) effect size vector.
         pop_cfg: Population configuration.
         rng: Random generator.
-        q_init: Initial resistant allele frequency at additive loci.
+        q_init: Initial resistant allele frequency at additive loci
+            (only used if genetics_cfg is None — legacy fallback).
         q_ef1a: Initial EF1A allele frequency.
         w_od: Overdominant weight for EF1A.
+        genetics_cfg: GeneticsSection with initialization config.
 
     Returns:
         (agents, genotypes) tuple.
@@ -217,56 +276,81 @@ def initialize_population(
     agents = allocate_agents(max_agents)
     genotypes = allocate_genotypes(max_agents)
 
+    # Compute per-locus allele frequencies
+    if genetics_cfg is not None:
+        q_per_locus = _make_per_locus_q(
+            n_additive=N_ADDITIVE,
+            effect_sizes=effect_sizes,
+            target_mean_r=genetics_cfg.target_mean_r,
+            mode=genetics_cfg.q_init_mode,
+            rng=rng,
+            beta_a=genetics_cfg.q_init_beta_a,
+            beta_b=genetics_cfg.q_init_beta_b,
+            q_ef1a=q_ef1a,
+            w_od=w_od,
+        )
+    else:
+        # Legacy: uniform q across all loci
+        q_per_locus = np.full(N_ADDITIVE, q_init)
+
     hab_side = np.sqrt(max(habitat_area, 1.0))
 
+    # --- Vectorized demographic initialization ---
+    # Sample ages from approximate stable age distribution
+    u_ages = rng.random(n_individuals)
+    ages = np.empty(n_individuals)
+    ages[u_ages < 0.05] = rng.uniform(0.0, 1.0, size=(u_ages < 0.05).sum())
+    mask_juv = (u_ages >= 0.05) & (u_ages < 0.20)
+    ages[mask_juv] = rng.uniform(1.0, 3.0, size=mask_juv.sum())
+    mask_sub = (u_ages >= 0.20) & (u_ages < 0.35)
+    ages[mask_sub] = rng.uniform(3.0, 7.0, size=mask_sub.sum())
+    mask_adult = u_ages >= 0.35
+    ages[mask_adult] = rng.uniform(7.0, 30.0, size=mask_adult.sum())
+
+    sizes = von_bertalanffy(ages, pop_cfg.L_inf, pop_cfg.k_growth,
+                            pop_cfg.t0_growth)
+    sizes *= rng.lognormal(0.0, 0.10, size=n_individuals)
+    sizes = np.maximum(sizes, 0.5)
+
+    # Assign stages (STAGE_SIZE_THRESHOLDS: {Stage: max_size})
+    # Iterate largest threshold first so smaller stages overwrite correctly
+    stages = np.full(n_individuals, Stage.ADULT, dtype=np.int8)
+    for stage, threshold_size in sorted(
+        STAGE_SIZE_THRESHOLDS.items(), key=lambda x: -x[1]
+    ):
+        stages[sizes < threshold_size] = stage
+
+    # Vectorized genotype initialization (all loci at once)
+    for l_idx in range(N_ADDITIVE):
+        genotypes[:n_individuals, l_idx, 0] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+        genotypes[:n_individuals, l_idx, 1] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+    # EF1A
+    genotypes[:n_individuals, IDX_EF1A, 0] = (rng.random(n_individuals) < q_ef1a).astype(np.int8)
+    genotypes[:n_individuals, IDX_EF1A, 1] = (rng.random(n_individuals) < q_ef1a).astype(np.int8)
+    # Fix lethal homozygotes
+    ef1a_sum = genotypes[:n_individuals, IDX_EF1A, :].sum(axis=1)
+    lethal = ef1a_sum == 2
+    genotypes[:n_individuals, IDX_EF1A, 1][lethal] = 0
+
+    # Fill agent fields
+    sl = slice(0, n_individuals)
+    agents['alive'][sl] = True
+    agents['x'][sl] = rng.uniform(0, hab_side, size=n_individuals)
+    agents['y'][sl] = rng.uniform(0, hab_side, size=n_individuals)
+    agents['heading'][sl] = rng.uniform(0, 2 * np.pi, size=n_individuals)
+    agents['speed'][sl] = 0.1
+    agents['size'][sl] = sizes
+    agents['age'][sl] = ages
+    agents['stage'][sl] = stages
+    agents['sex'][sl] = rng.integers(0, 2, size=n_individuals)
+    agents['disease_state'][sl] = DiseaseState.S
+    agents['disease_timer'][sl] = 0
+    agents['fecundity_mod'][sl] = 1.0
+    agents['node_id'][sl] = 0
+    agents['origin'][sl] = 0  # WILD
+
+    # Compute resistance scores
     for i in range(n_individuals):
-        # Sample age from approximate stable age distribution
-        # Most individuals are young (high juvenile mortality)
-        # but adults are long-lived
-        u = rng.random()
-        if u < 0.05:
-            age = rng.uniform(0.0, 1.0)     # settlers
-        elif u < 0.20:
-            age = rng.uniform(1.0, 3.0)     # juveniles
-        elif u < 0.35:
-            age = rng.uniform(3.0, 7.0)     # subadults
-        else:
-            age = rng.uniform(7.0, 30.0)    # adults
-        
-        size = von_bertalanffy(age, pop_cfg.L_inf, pop_cfg.k_growth,
-                               pop_cfg.t0_growth)
-        # Add individual variation (±15%)
-        size *= rng.lognormal(0.0, 0.10)
-        size = max(0.5, size)
-
-        stage = assign_stage(size, Stage.SETTLER)
-
-        agents[i]['alive'] = True
-        agents[i]['x'] = rng.uniform(0, hab_side)
-        agents[i]['y'] = rng.uniform(0, hab_side)
-        agents[i]['heading'] = rng.uniform(0, 2 * np.pi)
-        agents[i]['speed'] = 0.1
-        agents[i]['size'] = size
-        agents[i]['age'] = age
-        agents[i]['stage'] = stage
-        agents[i]['sex'] = rng.integers(0, 2)
-        agents[i]['disease_state'] = DiseaseState.S
-        agents[i]['disease_timer'] = 0
-        agents[i]['fecundity_mod'] = 1.0
-        agents[i]['node_id'] = 0
-        agents[i]['origin'] = 0  # WILD
-
-        # Random genotypes
-        for l in range(N_ADDITIVE):
-            genotypes[i, l, 0] = 1 if rng.random() < q_init else 0
-            genotypes[i, l, 1] = 1 if rng.random() < q_init else 0
-        # EF1A
-        genotypes[i, IDX_EF1A, 0] = 1 if rng.random() < q_ef1a else 0
-        genotypes[i, IDX_EF1A, 1] = 1 if rng.random() < q_ef1a else 0
-        # Fix lethal homozygotes
-        if genotypes[i, IDX_EF1A, :].sum() == 2:
-            genotypes[i, IDX_EF1A, 1] = 0
-
         agents[i]['resistance'] = _compute_resistance(
             genotypes[i], effect_sizes, w_od
         )
@@ -282,14 +366,16 @@ def annual_natural_mortality(
     agents: np.ndarray,
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
-) -> int:
+) -> Tuple[int, int]:
     """Apply annual natural mortality to all alive individuals.
 
-    Returns number killed.
+    Returns (n_killed, n_senescence) — total natural deaths and
+    the subset that died from senescence (age > senescence_age).
     """
     alive_mask = agents['alive'].astype(bool)
     alive_idx = np.where(alive_mask)[0]
     n_killed = 0
+    n_senescence = 0
 
     annual_surv = np.array(pop_cfg.annual_survival, dtype=np.float64)
 
@@ -302,9 +388,15 @@ def annual_natural_mortality(
         )
         if rng.random() < p_death:
             agents['alive'][idx] = False
+            # Distinguish senescence from stage-specific natural mortality
+            if age > pop_cfg.senescence_age:
+                agents['cause_of_death'][idx] = 3  # DeathCause.SENESCENCE
+                n_senescence += 1
+            else:
+                agents['cause_of_death'][idx] = 2  # DeathCause.NATURAL
             n_killed += 1
 
-    return n_killed
+    return n_killed, n_senescence
 
 
 def annual_growth_and_aging(
@@ -465,6 +557,7 @@ def annual_reproduction(
         agents[slot]['fecundity_mod'] = 1.0
         agents[slot]['node_id'] = 0
         agents[slot]['origin'] = 0
+        agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
 
         genotypes[slot] = settler_geno[j]
         agents[slot]['resistance'] = _compute_resistance(
@@ -504,12 +597,17 @@ class CoupledSimResult:
     daily_infected: Optional[np.ndarray] = None
     daily_vibrio: Optional[np.ndarray] = None
 
+    # Death accounting by cause (annual timeseries)
+    yearly_senescence_deaths: Optional[np.ndarray] = None
+
     # Summary
     initial_pop: int = 0
     final_pop: int = 0
     min_pop: int = 0
     min_pop_year: int = 0
     total_disease_deaths: int = 0
+    total_natural_deaths: int = 0
+    total_senescence_deaths: int = 0
     peak_mortality_fraction: float = 0.0
     recovered: bool = False
 
@@ -596,6 +694,7 @@ def run_coupled_simulation(
         rng=rng,
         q_init=0.05,
         q_ef1a=config.genetics.q_ef1a_init,
+        genetics_cfg=config.genetics,
     )
 
     # Disease state
@@ -631,6 +730,7 @@ def run_coupled_simulation(
     yearly_recruits = np.zeros(n_years, dtype=np.int32)
     yearly_natural_deaths = np.zeros(n_years, dtype=np.int32)
     yearly_disease_deaths = np.zeros(n_years, dtype=np.int32)
+    yearly_senescence_deaths = np.zeros(n_years, dtype=np.int32)
     yearly_mean_resistance = np.zeros(n_years, dtype=np.float64)
     yearly_fert_success = np.zeros(n_years, dtype=np.float64)
 
@@ -737,7 +837,7 @@ def run_coupled_simulation(
 
         # B1. Natural mortality
         with perf.track("mortality"):
-            n_nat_dead = annual_natural_mortality(agents, pop_cfg, rng)
+            n_nat_dead, n_senes_dead = annual_natural_mortality(agents, pop_cfg, rng)
 
         # B2. Growth, aging, stage transitions
         with perf.track("growth"):
@@ -805,6 +905,7 @@ def run_coupled_simulation(
                         agents[slot]['fecundity_mod'] = 1.0
                         agents[slot]['node_id'] = 0
                         agents[slot]['origin'] = 0
+                        agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
 
                         genotypes[slot] = settler_geno[j]
                         agents[slot]['resistance'] = _compute_resistance(
@@ -893,6 +994,7 @@ def run_coupled_simulation(
         yearly_adults[year] = n_adults
         yearly_recruits[year] = repro_diag.get('n_recruits', 0)
         yearly_natural_deaths[year] = n_nat_dead
+        yearly_senescence_deaths[year] = n_senes_dead
         yearly_disease_deaths[year] = (
             cumulative_disease_deaths - year_disease_deaths_before
         )
@@ -940,6 +1042,7 @@ def run_coupled_simulation(
         yearly_recruits=yearly_recruits,
         yearly_natural_deaths=yearly_natural_deaths,
         yearly_disease_deaths=yearly_disease_deaths,
+        yearly_senescence_deaths=yearly_senescence_deaths,
         yearly_mean_resistance=yearly_mean_resistance,
         yearly_fert_success=yearly_fert_success,
         # Genetics (Phase 7)
@@ -958,6 +1061,8 @@ def run_coupled_simulation(
         min_pop=min_pop,
         min_pop_year=min_pop_year,
         total_disease_deaths=cumulative_disease_deaths,
+        total_natural_deaths=int(np.sum(yearly_natural_deaths)),
+        total_senescence_deaths=int(np.sum(yearly_senescence_deaths)),
         peak_mortality_fraction=peak_mort_frac,
         recovered=recovered,
     )
@@ -982,6 +1087,7 @@ class SpatialSimResult:
     yearly_recruits: Optional[np.ndarray] = None
     yearly_natural_deaths: Optional[np.ndarray] = None
     yearly_disease_deaths: Optional[np.ndarray] = None
+    yearly_senescence_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
     yearly_vibrio_max: Optional[np.ndarray] = None
     # Per-node genetics: shape (n_nodes, n_years)
@@ -1078,6 +1184,7 @@ def run_spatial_simulation(
             rng=rng,
             q_init=0.05,
             q_ef1a=config.genetics.q_ef1a_init,
+            genetics_cfg=config.genetics,
         )
         # Stamp node_id on all agents
         agents['node_id'][:K] = nd.node_id
@@ -1101,6 +1208,7 @@ def run_spatial_simulation(
     yearly_recruits = np.zeros((N, n_years), dtype=np.int32)
     yearly_nat_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_dis_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_senes_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_mean_r = np.zeros((N, n_years), dtype=np.float64)
     yearly_vibrio_max = np.zeros((N, n_years), dtype=np.float64)
     yearly_total_pop = np.zeros(n_years, dtype=np.int32)
@@ -1266,10 +1374,12 @@ def run_spatial_simulation(
 
         # 1. Natural mortality + growth at each node
         node_nat_deaths = np.zeros(N, dtype=np.int32)
+        node_senes_deaths = np.zeros(N, dtype=np.int32)
         for i, node in enumerate(network.nodes):
             nd = node.agents
-            n_killed = annual_natural_mortality(nd, pop_cfg, rng)
+            n_killed, n_senes = annual_natural_mortality(nd, pop_cfg, rng)
             node_nat_deaths[i] = n_killed
+            node_senes_deaths[i] = n_senes
             annual_growth_and_aging(nd, pop_cfg, rng)
 
         # 2. Reproduction at each node → produce larval cohorts
@@ -1354,6 +1464,7 @@ def run_spatial_simulation(
                         node.agents[slot]['fecundity_mod'] = 1.0
                         node.agents[slot]['node_id'] = k
                         node.agents[slot]['origin'] = 0
+                        node.agents[slot]['cause_of_death'] = 0  # ALIVE
                         node.genotypes[slot] = geno_batch[j]
                         node.agents[slot]['resistance'] = _compute_resistance(
                             geno_batch[j], effect_sizes, 0.160,
@@ -1410,6 +1521,7 @@ def run_spatial_simulation(
             yearly_adults[i, year] = int(np.sum(adult_mask))
             yearly_recruits[i, year] = node_repro_diags[i].get('n_recruits', 0)
             yearly_nat_deaths[i, year] = node_nat_deaths[i]
+            yearly_senes_deaths[i, year] = node_senes_deaths[i]
             yearly_dis_deaths[i, year] = (
                 cumulative_dis_deaths[i] - year_dd_before[i]
             )
@@ -1441,6 +1553,7 @@ def run_spatial_simulation(
         yearly_recruits=yearly_recruits,
         yearly_natural_deaths=yearly_nat_deaths,
         yearly_disease_deaths=yearly_dis_deaths,
+        yearly_senescence_deaths=yearly_senes_deaths,
         yearly_mean_resistance=yearly_mean_r,
         yearly_vibrio_max=yearly_vibrio_max,
         yearly_ef1a_freq=yearly_ef1a_freq,

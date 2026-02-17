@@ -78,7 +78,8 @@ def main():
     
     # Generate full Saltelli sample matrix
     # Total samples = N * (2k + 2)
-    X = saltelli.sample(problem, N=args.N, seed=args.seed)
+    np.random.seed(args.seed)
+    X = saltelli.sample(problem, N=args.N)
     n_total = len(X)
     
     print(f"Sobol analysis: {n_params} parameters, N={args.N}")

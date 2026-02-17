@@ -49,6 +49,8 @@ class SpatialSection:
     D_L: float = 400.0           # Larval dispersal scale (km)
     D_P: float = 15.0            # Pathogen dispersal scale (km)
     r_total: float = 0.02        # Total settlement success fraction
+    alpha_self_fjord: float = 0.30   # Larval self-recruitment fraction for fjord nodes
+    alpha_self_open: float = 0.10    # Larval self-recruitment fraction for open coast
 
 
 @dataclass
@@ -171,6 +173,13 @@ class GeneticsSection:
     """Genetics and evolution parameters.
 
     NOTE: cost_resistance is intentionally absent (Willem's decision, CE-1).
+
+    Allele frequency initialization:
+      - q_init_mode="uniform": all additive loci start at q_init (old behavior)
+      - q_init_mode="beta": per-locus frequencies drawn from Beta(q_init_beta_a,
+        q_init_beta_b), then scaled so population-mean r_i ≈ target_mean_r.
+        This produces realistic among-locus variation (some loci common, some rare),
+        consistent with independent evolutionary histories of immune genes.
     """
     n_additive: int = 51
     n_loci: int = 52
@@ -179,6 +188,10 @@ class GeneticsSection:
     mu_per_locus: float = 1.0e-8  # Mutation rate (per allele per generation)
     n_bank: int = 100             # Tier 2 genotype bank size
     effect_size_seed: int = 12345 # Seed for reproducible effect sizes
+    target_mean_r: float = 0.15   # Target population-mean resistance at t=0
+    q_init_mode: str = "beta"     # "uniform" or "beta"
+    q_init_beta_a: float = 2.0    # Beta shape a (only used if mode="beta")
+    q_init_beta_b: float = 8.0    # Beta shape b (only used if mode="beta")
 
 
 @dataclass

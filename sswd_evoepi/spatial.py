@@ -574,6 +574,8 @@ def build_network(
     tortuosity: float = 1.5,
     seed: int = 42,
     overwater_npz: Optional[str] = None,
+    alpha_self_fjord: float = 0.30,
+    alpha_self_open: float = 0.10,
 ) -> MetapopulationNetwork:
     """Build a MetapopulationNetwork from node definitions.
 
@@ -603,8 +605,14 @@ def build_network(
         lons = np.array([nd.lon for nd in node_defs])
         distances = compute_distance_matrix(lats, lons, tortuosity=tortuosity)
 
+    # Per-node self-recruitment fractions
+    alpha_self = np.array(
+        [alpha_self_fjord if n.is_fjord else alpha_self_open for n in node_defs],
+        dtype=np.float64,
+    )
     C = construct_larval_connectivity(
-        node_defs, distances, D_L=D_L, barriers=barriers, r_total=r_total,
+        node_defs, distances, D_L=D_L, alpha_self=alpha_self,
+        barriers=barriers, r_total=r_total,
     )
     D = construct_pathogen_dispersal(
         node_defs, distances, D_P=D_P, f_out=f_out,

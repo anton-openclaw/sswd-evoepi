@@ -61,6 +61,15 @@ class DiseaseState(IntEnum):
     R  = 5   # Recovered (immune)
 
 
+class DeathCause(IntEnum):
+    """Cause of death tracking for demographic analysis."""
+    ALIVE           = 0   # Not dead (default)
+    DISEASE         = 1   # Killed by SSWD (I2 → D transition)
+    NATURAL         = 2   # Stage-specific annual mortality
+    SENESCENCE      = 3   # Age > senescence_age
+    STARVATION      = 4   # Density-dependent (future use)
+
+
 class Origin(IntEnum):
     """Origin tracking for conservation analysis (ERRATA E13)."""
     WILD            = 0   # Wild-born
@@ -137,6 +146,8 @@ AGENT_DTYPE = np.dtype([
     ('alive',          np.bool_),     #  1 B — active flag (POP + DIS can set False)
     ('origin',         np.int8),      #  1 B — Origin enum (ERRATA E13)
                                       #         0=wild, 1=captive, 2=agf, 3=wild_source
+    ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
+                                      #         2=natural, 3=senescence)
 ])
 # Total: ~51 bytes per agent (was ~41, +10 bytes for spawning fields)
 

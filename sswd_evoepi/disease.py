@@ -631,6 +631,7 @@ def daily_disease_update(
                 # Timer expired in I₂ → death
                 ds[idx] = DiseaseState.D
                 agents['alive'][idx] = False
+                agents['cause_of_death'][idx] = 1  # DeathCause.DISEASE
                 new_deaths += 1
         else:
             # Timer not expired — check for recovery
