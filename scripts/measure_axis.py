@@ -24,6 +24,12 @@ from sswd_evoepi.perf import PerfMonitor
 os.makedirs('results/performance', exist_ok=True)
 
 
+def _parallel_worker(args):
+    """Worker function for parallel measurements (module-level for pickling)."""
+    n, years, seed = args
+    return single_run(n, years, spawning=True, seed=seed)
+
+
 def get_memory_mb():
     try:
         with open('/proc/self/status') as f:
@@ -77,8 +83,9 @@ def spatial_run(n_nodes, K_per_node, years, disease_year=None, seed=42):
     for i in range(n_nodes):
         nodes_def.append(NodeDefinition(
             node_id=i, name=f"N{i}",
-            latitude=48.0 + i * (10.0 / max(n_nodes, 1)),
-            longitude=-123.0 - i * (5.0 / max(n_nodes, 1)),
+            lat=48.0 + i * (10.0 / max(n_nodes, 1)),
+            lon=-123.0 - i * (5.0 / max(n_nodes, 1)),
+            subregion=f"TEST-{i}",
             carrying_capacity=K_per_node,
             habitat_area=max(10000, K_per_node * 200),
             mean_sst=12.0 + (i / max(n_nodes - 1, 1)) * 4.0,
@@ -86,7 +93,7 @@ def spatial_run(n_nodes, K_per_node, years, disease_year=None, seed=42):
             flushing_rate=0.02, is_fjord=(i == 1),
         ))
 
-    positions = np.array([(nd.latitude, nd.longitude) for nd in nodes_def])
+    positions = np.array([(nd.lat, nd.lon) for nd in nodes_def])
     dists = cdist(positions, positions) * 111.0  # approx km
 
     scale_c = 500.0
@@ -99,7 +106,7 @@ def spatial_run(n_nodes, K_per_node, years, disease_year=None, seed=42):
     D = np.exp(-dists / 100.0) * 0.01
     np.fill_diagonal(D, 0)
 
-    network = MetapopulationNetwork(nodes=[], C=C, D=D, n_nodes=n_nodes)
+    network = MetapopulationNetwork(nodes=[], C=C, D=D, distances=dists)
     for nd in nodes_def:
         network.nodes.append(SpatialNode(definition=nd))
 
@@ -270,17 +277,13 @@ def axis_parallel():
     """Parallel replicate throughput."""
     import multiprocessing as mp
 
-    def _worker(args):
-        n, years, seed = args
-        return single_run(n, years, spawning=True, seed=seed)
-
     print("=== AXIS: Parallel Replicates (200 agents, 10yr) ===")
     print(f"{'Procs':>8} {'Runs':>8} {'Wall':>10} {'Throughput':>12} {'Efficiency':>12}")
     results = []
 
     # Measure single-run baseline
     t0 = time.perf_counter()
-    _worker((200, 10, 0))
+    _parallel_worker((200, 10, 0))
     single_time = time.perf_counter() - t0
 
     for n_proc in [1, 2, 4, 8, 16]:
@@ -288,7 +291,7 @@ def axis_parallel():
         args = [(200, 10, seed) for seed in range(n_runs)]
         t0 = time.perf_counter()
         with mp.Pool(n_proc) as pool:
-            pool.map(_worker, args)
+            pool.map(_parallel_worker, args)
         wall = time.perf_counter() - t0
         throughput = n_runs / wall
         ideal_throughput = n_proc / single_time
