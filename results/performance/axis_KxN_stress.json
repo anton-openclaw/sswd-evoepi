@@ -1,0 +1,222 @@
+[
+  {
+    "k": 5,
+    "n_per_node": 100,
+    "total": 500,
+    "wall_s": 2.0731,
+    "final_pop": 500,
+    "total_agents": 500,
+    "mem_delta_mb": 2.5,
+    "mem_total_mb": 94.8,
+    "ok": true
+  },
+  {
+    "k": 5,
+    "n_per_node": 200,
+    "total": 1000,
+    "wall_s": 2.1362,
+    "final_pop": 1000,
+    "total_agents": 1000,
+    "mem_delta_mb": 0.2,
+    "mem_total_mb": 95.0,
+    "ok": true
+  },
+  {
+    "k": 5,
+    "n_per_node": 500,
+    "total": 2500,
+    "wall_s": 2.3437,
+    "final_pop": 2500,
+    "total_agents": 2500,
+    "mem_delta_mb": 4.7,
+    "mem_total_mb": 99.7,
+    "ok": true
+  },
+  {
+    "k": 5,
+    "n_per_node": 1000,
+    "total": 5000,
+    "wall_s": 2.6354,
+    "final_pop": 5000,
+    "total_agents": 5000,
+    "mem_delta_mb": -3.2,
+    "mem_total_mb": 96.5,
+    "ok": true
+  },
+  {
+    "k": 10,
+    "n_per_node": 100,
+    "total": 1000,
+    "wall_s": 4.1373,
+    "final_pop": 1000,
+    "total_agents": 1000,
+    "mem_delta_mb": 0.4,
+    "mem_total_mb": 96.9,
+    "ok": true
+  },
+  {
+    "k": 10,
+    "n_per_node": 200,
+    "total": 2000,
+    "wall_s": 4.2756,
+    "final_pop": 2000,
+    "total_agents": 2000,
+    "mem_delta_mb": 0.2,
+    "mem_total_mb": 97.2,
+    "ok": true
+  },
+  {
+    "k": 10,
+    "n_per_node": 500,
+    "total": 5000,
+    "wall_s": 4.6725,
+    "final_pop": 5000,
+    "total_agents": 5000,
+    "mem_delta_mb": 0.8,
+    "mem_total_mb": 98.0,
+    "ok": true
+  },
+  {
+    "k": 10,
+    "n_per_node": 1000,
+    "total": 10000,
+    "wall_s": 5.2396,
+    "final_pop": 10000,
+    "total_agents": 10000,
+    "mem_delta_mb": 6.1,
+    "mem_total_mb": 104.1,
+    "ok": true
+  },
+  {
+    "k": 20,
+    "n_per_node": 100,
+    "total": 2000,
+    "wall_s": 8.2757,
+    "final_pop": 2000,
+    "total_agents": 2000,
+    "mem_delta_mb": -3.1,
+    "mem_total_mb": 101.0,
+    "ok": true
+  },
+  {
+    "k": 20,
+    "n_per_node": 200,
+    "total": 4000,
+    "wall_s": 8.5302,
+    "final_pop": 4000,
+    "total_agents": 4000,
+    "mem_delta_mb": 0.3,
+    "mem_total_mb": 101.4,
+    "ok": true
+  },
+  {
+    "k": 20,
+    "n_per_node": 500,
+    "total": 10000,
+    "wall_s": 9.3835,
+    "final_pop": 10000,
+    "total_agents": 10000,
+    "mem_delta_mb": 1.7,
+    "mem_total_mb": 103.1,
+    "ok": true
+  },
+  {
+    "k": 50,
+    "n_per_node": 100,
+    "total": 5000,
+    "wall_s": 20.6712,
+    "final_pop": 5000,
+    "total_agents": 5000,
+    "mem_delta_mb": 10.6,
+    "mem_total_mb": 113.7,
+    "ok": true
+  },
+  {
+    "k": 50,
+    "n_per_node": 200,
+    "total": 10000,
+    "wall_s": 21.5317,
+    "final_pop": 10000,
+    "total_agents": 10000,
+    "mem_delta_mb": 0.8,
+    "mem_total_mb": 114.5,
+    "ok": true
+  },
+  {
+    "k": 50,
+    "n_per_node": 500,
+    "total": 25000,
+    "wall_s": 23.4198,
+    "final_pop": 25000,
+    "total_agents": 25000,
+    "mem_delta_mb": 4.1,
+    "mem_total_mb": 118.6,
+    "ok": true
+  },
+  {
+    "k": 100,
+    "n_per_node": 100,
+    "total": 10000,
+    "wall_s": 42.3107,
+    "final_pop": 10000,
+    "total_agents": 10000,
+    "mem_delta_mb": 18.8,
+    "mem_total_mb": 137.3,
+    "ok": true
+  },
+  {
+    "k": 100,
+    "n_per_node": 200,
+    "total": 20000,
+    "wall_s": 43.7922,
+    "final_pop": 20000,
+    "total_agents": 20000,
+    "mem_delta_mb": 1.5,
+    "mem_total_mb": 138.8,
+    "ok": true
+  },
+  {
+    "k": 100,
+    "n_per_node": 500,
+    "total": 50000,
+    "wall_s": 48.0011,
+    "final_pop": 50000,
+    "total_agents": 50000,
+    "mem_delta_mb": 8.2,
+    "mem_total_mb": 147.0,
+    "ok": true
+  },
+  {
+    "k": 150,
+    "n_per_node": 100,
+    "total": 15000,
+    "wall_s": 63.8557,
+    "final_pop": 15000,
+    "total_agents": 15000,
+    "mem_delta_mb": 16.0,
+    "mem_total_mb": 163.0,
+    "ok": true
+  },
+  {
+    "k": 150,
+    "n_per_node": 200,
+    "total": 30000,
+    "wall_s": 66.0384,
+    "final_pop": 30000,
+    "total_agents": 30000,
+    "mem_delta_mb": 2.2,
+    "mem_total_mb": 165.2,
+    "ok": true
+  },
+  {
+    "k": 150,
+    "n_per_node": 500,
+    "total": 75000,
+    "wall_s": 72.3917,
+    "final_pop": 75000,
+    "total_agents": 75000,
+    "mem_delta_mb": 12.2,
+    "mem_total_mb": 177.5,
+    "ok": true
+  }
+]
