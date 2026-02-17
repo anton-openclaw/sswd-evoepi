@@ -148,6 +148,7 @@ AGENT_DTYPE = np.dtype([
                                       #         0=wild, 1=captive, 2=agf, 3=wild_source
     ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
                                       #         2=natural, 3=senescence)
+    ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S or R)
 ])
 # Total: ~51 bytes per agent (was ~41, +10 bytes for spawning fields)
 

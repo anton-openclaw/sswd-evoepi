@@ -30,7 +30,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from sswd_evoepi.config import DiseaseSection, SimulationConfig
+from sswd_evoepi.config import DiseaseSection, PathogenEvolutionSection, SimulationConfig
 from sswd_evoepi.types import DiseaseState, AGENT_DTYPE
 
 
@@ -361,6 +361,8 @@ def compute_R0(
     cfg: DiseaseSection,
     salinity: float = 30.0,
     mean_resistance: float = 0.08,
+    v: "float | None" = None,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
 ) -> float:
     """Compute basic reproduction number at a node.
 
@@ -369,6 +371,9 @@ def compute_R0(
 
     Includes carcass saprophytic shedding contribution (CE-6).
 
+    When *v* and *pe_cfg* are provided and pathogen evolution is enabled,
+    uses virulence-adjusted rates for the given strain.
+
     Args:
         T_celsius: Temperature (°C).
         S_0: Number of susceptible individuals.
@@ -376,6 +381,8 @@ def compute_R0(
         cfg: Disease configuration.
         salinity: Local salinity (psu).
         mean_resistance: Population mean resistance score.
+        v: Optional pathogen virulence phenotype for strain-specific R₀.
+        pe_cfg: Optional PathogenEvolutionSection config.
 
     Returns:
         R₀ estimate.
@@ -386,18 +393,101 @@ def compute_R0(
     xi = vibrio_decay_rate(T_celsius)
     total_removal = xi + phi_k
 
-    sigma1 = arrhenius(cfg.sigma_1_eff, cfg.Ea_sigma, T_celsius)
-    sigma2 = arrhenius(cfg.sigma_2_eff, cfg.Ea_sigma, T_celsius)
-    mu_I1I2 = arrhenius(cfg.mu_I1I2_ref, cfg.Ea_I1I2, T_celsius)
-    mu_I2D = arrhenius(cfg.mu_I2D_ref, cfg.Ea_I2D, T_celsius)
+    if v is not None and pe_cfg is not None and pe_cfg.enabled:
+        sigma1 = sigma_1_strain(v, T_celsius, cfg, pe_cfg)
+        sigma2 = sigma_2_strain(v, T_celsius, cfg, pe_cfg)
+        mu_i1i2 = mu_I1I2_strain(v, T_celsius, cfg, pe_cfg)
+        mu_i2d = mu_I2D_strain(v, T_celsius, cfg, pe_cfg)
+    else:
+        sigma1 = arrhenius(cfg.sigma_1_eff, cfg.Ea_sigma, T_celsius)
+        sigma2 = arrhenius(cfg.sigma_2_eff, cfg.Ea_sigma, T_celsius)
+        mu_i1i2 = arrhenius(cfg.mu_I1I2_ref, cfg.Ea_I1I2, T_celsius)
+        mu_i2d = arrhenius(cfg.mu_I2D_ref, cfg.Ea_I2D, T_celsius)
 
     # Total pathogen shed per infection event: live stages + carcass burst
-    shedding_integral = (sigma1 / mu_I1I2
-                         + sigma2 / mu_I2D
+    shedding_integral = (sigma1 / mu_i1i2
+                         + sigma2 / mu_i2d
                          + cfg.sigma_D * CARCASS_SHED_DAYS)
 
     R0 = (cfg.a_exposure * S_0 * suscept) / (cfg.K_half * total_removal) * shedding_integral
     return R0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PATHOGEN VIRULENCE TRADEOFF FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════
+
+def sigma_1_strain(
+    v: "float | np.ndarray",
+    T_celsius: float,
+    disease_cfg: DiseaseSection,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
+) -> "float | np.ndarray":
+    """Early (I₁) shedding rate for pathogen strain with virulence *v*.
+
+    At v = v_anchor the result equals the base Arrhenius rate exactly.
+    When pathogen evolution is disabled (pe_cfg is None or not enabled),
+    returns the base rate regardless of *v*.
+
+    Accepts both scalar and ndarray *v* for vectorized per-individual
+    computation.
+    """
+    base = arrhenius(disease_cfg.sigma_1_eff, disease_cfg.Ea_sigma, T_celsius)
+    if pe_cfg is None or not pe_cfg.enabled:
+        return base
+    dv = v - pe_cfg.v_anchor
+    return base * np.exp(pe_cfg.alpha_shed * dv * pe_cfg.gamma_early)
+
+
+def sigma_2_strain(
+    v: "float | np.ndarray",
+    T_celsius: float,
+    disease_cfg: DiseaseSection,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
+) -> "float | np.ndarray":
+    """Late (I₂) shedding rate for pathogen strain with virulence *v*.
+
+    At v = v_anchor the result equals the base Arrhenius rate exactly.
+    """
+    base = arrhenius(disease_cfg.sigma_2_eff, disease_cfg.Ea_sigma, T_celsius)
+    if pe_cfg is None or not pe_cfg.enabled:
+        return base
+    dv = v - pe_cfg.v_anchor
+    return base * np.exp(pe_cfg.alpha_shed * dv)
+
+
+def mu_I2D_strain(
+    v: "float | np.ndarray",
+    T_celsius: float,
+    disease_cfg: DiseaseSection,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
+) -> "float | np.ndarray":
+    """I₂→D death rate for pathogen strain with virulence *v*.
+
+    At v = v_anchor the result equals the base Arrhenius rate exactly.
+    """
+    base = arrhenius(disease_cfg.mu_I2D_ref, disease_cfg.Ea_I2D, T_celsius)
+    if pe_cfg is None or not pe_cfg.enabled:
+        return base
+    dv = v - pe_cfg.v_anchor
+    return base * np.exp(pe_cfg.alpha_kill * dv)
+
+
+def mu_I1I2_strain(
+    v: "float | np.ndarray",
+    T_celsius: float,
+    disease_cfg: DiseaseSection,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
+) -> "float | np.ndarray":
+    """I₁→I₂ progression rate for pathogen strain with virulence *v*.
+
+    At v = v_anchor the result equals the base Arrhenius rate exactly.
+    """
+    base = arrhenius(disease_cfg.mu_I1I2_ref, disease_cfg.Ea_I1I2, T_celsius)
+    if pe_cfg is None or not pe_cfg.enabled:
+        return base
+    dv = v - pe_cfg.v_anchor
+    return base * np.exp(pe_cfg.alpha_prog * dv)
 
 
 # ═══════════════════════════════════════════════════════════════════════

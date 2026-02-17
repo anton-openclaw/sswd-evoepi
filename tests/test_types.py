@@ -113,6 +113,7 @@ class TestAgentDtype:
             'spawning_ready', 'has_spawned', 'spawn_refractory',  # Spawning (Phase 1)
             'spawn_gravity_timer', 'immunosuppression_timer', 'last_spawn_day',  # Spawning (continued)
             'node_id', 'alive', 'origin', 'cause_of_death',  # Administrative
+            'pathogen_virulence',  # Pathogen evolution
         ]
         actual_fields = [name for name in AGENT_DTYPE.names]
         assert actual_fields == expected_fields

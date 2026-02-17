@@ -227,6 +227,42 @@ class ConservationSection:
 
 
 @dataclass
+class PathogenEvolutionSection:
+    """Pathogen co-evolution parameters.
+
+    When enabled, V. pectenicida evolves virulence along a mechanistic
+    tradeoff curve. Host-pathogen coevolution emerges from the interaction
+    of host resistance evolution (genetics module) with pathogen virulence
+    evolution (this module).
+
+    References:
+      - pathogen-evolution-spec.md §5.1
+    """
+    enabled: bool = False          # Off by default (backward compatible)
+
+    # Initial conditions
+    v_init: float = 0.5            # Initial virulence of all strains
+    v_env: float = 0.5             # Virulence of environmental reservoir (ubiquitous)
+
+    # Bounds
+    v_min: float = 0.0             # Minimum virulence
+    v_max: float = 1.0             # Maximum virulence
+
+    # Mutation
+    sigma_v_mutation: float = 0.02 # Mutation step size (normal std dev)
+
+    # Tradeoff curve
+    v_anchor: float = 0.5          # Ancestral virulence (identity point for curve)
+    alpha_kill: float = 2.0        # Death rate scaling exponent
+    alpha_prog: float = 1.0        # I1→I2 progression scaling exponent
+    alpha_shed: float = 1.5        # Shedding rate scaling exponent
+    gamma_early: float = 0.3       # Early shedding attenuation (0=no change, 1=full)
+
+    # Output
+    track_strain_history: bool = False  # Record per-transmission strain lineages
+
+
+@dataclass
 class OutputSection:
     """Output control."""
     directory: str = "results/"
@@ -249,6 +285,7 @@ class SimulationConfig:
     spawning: SpawningSection = field(default_factory=SpawningSection)
     disease: DiseaseSection = field(default_factory=DiseaseSection)
     genetics: GeneticsSection = field(default_factory=GeneticsSection)
+    pathogen_evolution: PathogenEvolutionSection = field(default_factory=PathogenEvolutionSection)
     movement: MovementSection = field(default_factory=MovementSection)
     conservation: ConservationSection = field(default_factory=ConservationSection)
     output: OutputSection = field(default_factory=OutputSection)
@@ -302,6 +339,7 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
         'spawning': SpawningSection,
         'disease': DiseaseSection,
         'genetics': GeneticsSection,
+        'pathogen_evolution': PathogenEvolutionSection,
         'movement': MovementSection,
         'conservation': ConservationSection,
         'output': OutputSection,
@@ -362,6 +400,28 @@ def validate_config(config: SimulationConfig) -> None:
         raise ValueError(
             f"population.annual_survival must have 5 elements (one per stage), "
             f"got {len(config.population.annual_survival)}"
+        )
+
+    # Pathogen evolution
+    pe = config.pathogen_evolution
+    if pe.alpha_kill <= 0:
+        raise ValueError(
+            f"pathogen_evolution.alpha_kill must be > 0, got {pe.alpha_kill}"
+        )
+    if pe.sigma_v_mutation < 0:
+        raise ValueError(
+            f"pathogen_evolution.sigma_v_mutation must be >= 0, "
+            f"got {pe.sigma_v_mutation}"
+        )
+    if pe.v_min >= pe.v_max:
+        raise ValueError(
+            f"pathogen_evolution.v_min ({pe.v_min}) must be < "
+            f"v_max ({pe.v_max})"
+        )
+    if not (pe.v_min <= pe.v_init <= pe.v_max):
+        raise ValueError(
+            f"pathogen_evolution.v_init ({pe.v_init}) must be in "
+            f"[v_min={pe.v_min}, v_max={pe.v_max}]"
         )
 
     # Positive parameters

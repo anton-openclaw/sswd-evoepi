@@ -14,7 +14,7 @@ Acceptance criteria (Phase 4):
 import numpy as np
 import pytest
 
-from sswd_evoepi.config import DiseaseSection
+from sswd_evoepi.config import DiseaseSection, PathogenEvolutionSection
 from sswd_evoepi.types import AGENT_DTYPE, DiseaseState, allocate_agents
 from sswd_evoepi.disease import (
     BETA_L,
@@ -36,6 +36,8 @@ from sswd_evoepi.disease import (
     force_of_infection,
     infection_probability,
     initialize_pathogen_ubiquitous,
+    mu_I1I2_strain,
+    mu_I2D_strain,
     recovery_probability_I1,
     recovery_probability_I2,
     run_single_node_epidemic,
@@ -43,6 +45,8 @@ from sswd_evoepi.disease import (
     sample_stage_duration,
     shedding_rate_I1,
     shedding_rate_I2,
+    sigma_1_strain,
+    sigma_2_strain,
     size_susceptibility,
     thermal_performance,
     update_vibrio_concentration,
@@ -1172,3 +1176,120 @@ class TestImmunosuppressionInDisease:
             
             # Verify that cumulative infections >= our count (may include progressed agents)
             assert updated_node_state.cumulative_infections >= total_infected
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PATHOGEN VIRULENCE TRADEOFF FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestStrainFunctions:
+    """Tests for pathogen virulence tradeoff functions (Phase 2)."""
+
+    @pytest.fixture
+    def disease_cfg(self):
+        return DiseaseSection()
+
+    @pytest.fixture
+    def pe_cfg(self):
+        return PathogenEvolutionSection(enabled=True)
+
+    def test_strain_functions_identity(self, disease_cfg, pe_cfg):
+        """At v = v_anchor (0.5), all 4 functions return base rate exactly."""
+        T = 15.0
+        v_anchor = pe_cfg.v_anchor  # 0.5
+
+        base_s1 = arrhenius(disease_cfg.sigma_1_eff, disease_cfg.Ea_sigma, T)
+        base_s2 = arrhenius(disease_cfg.sigma_2_eff, disease_cfg.Ea_sigma, T)
+        base_mu_I2D = arrhenius(disease_cfg.mu_I2D_ref, disease_cfg.Ea_I2D, T)
+        base_mu_I1I2 = arrhenius(disease_cfg.mu_I1I2_ref, disease_cfg.Ea_I1I2, T)
+
+        assert sigma_1_strain(v_anchor, T, disease_cfg, pe_cfg) == pytest.approx(base_s1, rel=1e-10)
+        assert sigma_2_strain(v_anchor, T, disease_cfg, pe_cfg) == pytest.approx(base_s2, rel=1e-10)
+        assert mu_I2D_strain(v_anchor, T, disease_cfg, pe_cfg) == pytest.approx(base_mu_I2D, rel=1e-10)
+        assert mu_I1I2_strain(v_anchor, T, disease_cfg, pe_cfg) == pytest.approx(base_mu_I1I2, rel=1e-10)
+
+    def test_strain_functions_monotonic(self, disease_cfg, pe_cfg):
+        """Higher virulence gives higher rates for all 4 functions."""
+        T = 15.0
+        v_low = 0.2
+        v_high = 0.8
+
+        assert sigma_1_strain(v_high, T, disease_cfg, pe_cfg) > sigma_1_strain(v_low, T, disease_cfg, pe_cfg)
+        assert sigma_2_strain(v_high, T, disease_cfg, pe_cfg) > sigma_2_strain(v_low, T, disease_cfg, pe_cfg)
+        assert mu_I2D_strain(v_high, T, disease_cfg, pe_cfg) > mu_I2D_strain(v_low, T, disease_cfg, pe_cfg)
+        assert mu_I1I2_strain(v_high, T, disease_cfg, pe_cfg) > mu_I1I2_strain(v_low, T, disease_cfg, pe_cfg)
+
+    def test_strain_functions_vectorized(self, disease_cfg, pe_cfg):
+        """Pass np.array([0.1, 0.5, 0.9]) — should return array of same shape."""
+        T = 15.0
+        v_arr = np.array([0.1, 0.5, 0.9])
+
+        result_s1 = sigma_1_strain(v_arr, T, disease_cfg, pe_cfg)
+        result_s2 = sigma_2_strain(v_arr, T, disease_cfg, pe_cfg)
+        result_mu_I2D = mu_I2D_strain(v_arr, T, disease_cfg, pe_cfg)
+        result_mu_I1I2 = mu_I1I2_strain(v_arr, T, disease_cfg, pe_cfg)
+
+        assert isinstance(result_s1, np.ndarray) and result_s1.shape == (3,)
+        assert isinstance(result_s2, np.ndarray) and result_s2.shape == (3,)
+        assert isinstance(result_mu_I2D, np.ndarray) and result_mu_I2D.shape == (3,)
+        assert isinstance(result_mu_I1I2, np.ndarray) and result_mu_I1I2.shape == (3,)
+
+        # Middle element (v=0.5 = anchor) should equal base rate
+        base_s2 = arrhenius(disease_cfg.sigma_2_eff, disease_cfg.Ea_sigma, T)
+        assert result_s2[1] == pytest.approx(base_s2, rel=1e-10)
+
+        # Monotonicity within the array
+        assert result_s2[0] < result_s2[1] < result_s2[2]
+
+    def test_strain_tlo_constraint(self, disease_cfg, pe_cfg):
+        """TLO (sigma_2/mu_I2D) varies < 2x across v=[0,1] at default params.
+
+        This is the key tradeoff constraint: total lifetime pathogen output
+        is mechanistically limited because alpha_kill > alpha_shed.
+        """
+        T = 15.0
+        v_values = np.linspace(0.0, 1.0, 50)
+
+        tlo = sigma_2_strain(v_values, T, disease_cfg, pe_cfg) / mu_I2D_strain(v_values, T, disease_cfg, pe_cfg)
+        ratio = tlo.max() / tlo.min()
+
+        assert ratio < 2.0, (
+            f"TLO ratio {ratio:.2f} exceeds 2x constraint. "
+            f"alpha_kill={pe_cfg.alpha_kill}, alpha_shed={pe_cfg.alpha_shed}"
+        )
+
+    def test_strain_disabled(self, disease_cfg):
+        """When pe_cfg is None, returns base rate regardless of v."""
+        T = 15.0
+        v = 0.9  # Extreme virulence
+
+        base_s1 = arrhenius(disease_cfg.sigma_1_eff, disease_cfg.Ea_sigma, T)
+        base_s2 = arrhenius(disease_cfg.sigma_2_eff, disease_cfg.Ea_sigma, T)
+        base_mu_I2D = arrhenius(disease_cfg.mu_I2D_ref, disease_cfg.Ea_I2D, T)
+        base_mu_I1I2 = arrhenius(disease_cfg.mu_I1I2_ref, disease_cfg.Ea_I1I2, T)
+
+        # pe_cfg=None
+        assert sigma_1_strain(v, T, disease_cfg) == pytest.approx(base_s1)
+        assert sigma_2_strain(v, T, disease_cfg) == pytest.approx(base_s2)
+        assert mu_I2D_strain(v, T, disease_cfg) == pytest.approx(base_mu_I2D)
+        assert mu_I1I2_strain(v, T, disease_cfg) == pytest.approx(base_mu_I1I2)
+
+        # pe_cfg with enabled=False
+        pe_off = PathogenEvolutionSection(enabled=False)
+        assert sigma_1_strain(v, T, disease_cfg, pe_off) == pytest.approx(base_s1)
+        assert sigma_2_strain(v, T, disease_cfg, pe_off) == pytest.approx(base_s2)
+        assert mu_I2D_strain(v, T, disease_cfg, pe_off) == pytest.approx(base_mu_I2D)
+        assert mu_I1I2_strain(v, T, disease_cfg, pe_off) == pytest.approx(base_mu_I1I2)
+
+    def test_R0_with_virulence(self, disease_cfg):
+        """compute_R0 with v=0.5 (anchor) equals R0 without v parameter."""
+        T = 15.0
+        S_0 = 500
+        phi_k = 0.1
+
+        pe_on = PathogenEvolutionSection(enabled=True)
+
+        R0_base = compute_R0(T, S_0, phi_k, disease_cfg)
+        R0_strain = compute_R0(T, S_0, phi_k, disease_cfg, v=0.5, pe_cfg=pe_on)
+
+        assert R0_strain == pytest.approx(R0_base, rel=1e-10)
