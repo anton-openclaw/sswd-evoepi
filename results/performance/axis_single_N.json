@@ -1,0 +1,371 @@
+[
+  {
+    "n": 25,
+    "wall_s": 0.2471,
+    "final_pop": 24,
+    "mem_delta_mb": 3.4,
+    "mem_total_mb": 95.6,
+    "components": {
+      "spawning": {
+        "total_s": 0.2286,
+        "calls": 1285,
+        "mean_ms": 0.178,
+        "pct": 92.5
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.0077,
+        "calls": 1825,
+        "mean_ms": 0.004,
+        "pct": 3.1
+      },
+      "growth": {
+        "total_s": 0.0006,
+        "calls": 5,
+        "mean_ms": 0.124,
+        "pct": 0.3
+      },
+      "recruitment": {
+        "total_s": 0.0002,
+        "calls": 5,
+        "mean_ms": 0.039,
+        "pct": 0.1
+      },
+      "mortality": {
+        "total_s": 0.0002,
+        "calls": 5,
+        "mean_ms": 0.038,
+        "pct": 0.1
+      },
+      "_total_s": 0.2471
+    },
+    "ok": true
+  },
+  {
+    "n": 50,
+    "wall_s": 0.3478,
+    "final_pop": 49,
+    "mem_delta_mb": 0.6,
+    "mem_total_mb": 96.2,
+    "components": {
+      "spawning": {
+        "total_s": 0.3182,
+        "calls": 1285,
+        "mean_ms": 0.248,
+        "pct": 92.0
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.0082,
+        "calls": 1825,
+        "mean_ms": 0.004,
+        "pct": 2.4
+      },
+      "recruitment": {
+        "total_s": 0.0063,
+        "calls": 5,
+        "mean_ms": 1.253,
+        "pct": 1.8
+      },
+      "growth": {
+        "total_s": 0.001,
+        "calls": 5,
+        "mean_ms": 0.197,
+        "pct": 0.3
+      },
+      "mortality": {
+        "total_s": 0.0003,
+        "calls": 5,
+        "mean_ms": 0.061,
+        "pct": 0.1
+      },
+      "_total_s": 0.3457
+    },
+    "ok": true
+  },
+  {
+    "n": 100,
+    "wall_s": 0.6003,
+    "final_pop": 99,
+    "mem_delta_mb": -3.7,
+    "mem_total_mb": 92.4,
+    "components": {
+      "spawning": {
+        "total_s": 0.5556,
+        "calls": 1285,
+        "mean_ms": 0.432,
+        "pct": 93.2
+      },
+      "recruitment": {
+        "total_s": 0.0128,
+        "calls": 5,
+        "mean_ms": 2.557,
+        "pct": 2.1
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.0091,
+        "calls": 1825,
+        "mean_ms": 0.005,
+        "pct": 1.5
+      },
+      "growth": {
+        "total_s": 0.002,
+        "calls": 5,
+        "mean_ms": 0.397,
+        "pct": 0.3
+      },
+      "mortality": {
+        "total_s": 0.0006,
+        "calls": 5,
+        "mean_ms": 0.114,
+        "pct": 0.1
+      },
+      "_total_s": 0.5959
+    },
+    "ok": true
+  },
+  {
+    "n": 200,
+    "wall_s": 1.2558,
+    "final_pop": 199,
+    "mem_delta_mb": 21.4,
+    "mem_total_mb": 113.8,
+    "components": {
+      "spawning": {
+        "total_s": 1.1771,
+        "calls": 1285,
+        "mean_ms": 0.916,
+        "pct": 94.2
+      },
+      "recruitment": {
+        "total_s": 0.0319,
+        "calls": 5,
+        "mean_ms": 6.382,
+        "pct": 2.6
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.012,
+        "calls": 1825,
+        "mean_ms": 0.007,
+        "pct": 1.0
+      },
+      "growth": {
+        "total_s": 0.0038,
+        "calls": 5,
+        "mean_ms": 0.758,
+        "pct": 0.3
+      },
+      "mortality": {
+        "total_s": 0.0011,
+        "calls": 5,
+        "mean_ms": 0.212,
+        "pct": 0.1
+      },
+      "_total_s": 1.25
+    },
+    "ok": true
+  },
+  {
+    "n": 500,
+    "wall_s": 2.1384,
+    "final_pop": 499,
+    "mem_delta_mb": 142.2,
+    "mem_total_mb": 256.0,
+    "components": {
+      "spawning": {
+        "total_s": 2.0099,
+        "calls": 1285,
+        "mean_ms": 1.564,
+        "pct": 94.0
+      },
+      "recruitment": {
+        "total_s": 0.0545,
+        "calls": 5,
+        "mean_ms": 10.893,
+        "pct": 2.5
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.015,
+        "calls": 1825,
+        "mean_ms": 0.008,
+        "pct": 0.7
+      },
+      "growth": {
+        "total_s": 0.0092,
+        "calls": 5,
+        "mean_ms": 1.835,
+        "pct": 0.4
+      },
+      "mortality": {
+        "total_s": 0.0025,
+        "calls": 5,
+        "mean_ms": 0.506,
+        "pct": 0.1
+      },
+      "_total_s": 2.138
+    },
+    "ok": true
+  },
+  {
+    "n": 1000,
+    "wall_s": 2.5341,
+    "final_pop": 999,
+    "mem_delta_mb": 14.8,
+    "mem_total_mb": 270.8,
+    "components": {
+      "spawning": {
+        "total_s": 2.3508,
+        "calls": 1285,
+        "mean_ms": 1.829,
+        "pct": 92.8
+      },
+      "recruitment": {
+        "total_s": 0.0588,
+        "calls": 5,
+        "mean_ms": 11.757,
+        "pct": 2.3
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.019,
+        "calls": 1825,
+        "mean_ms": 0.01,
+        "pct": 0.7
+      },
+      "growth": {
+        "total_s": 0.0182,
+        "calls": 5,
+        "mean_ms": 3.645,
+        "pct": 0.7
+      },
+      "mortality": {
+        "total_s": 0.0049,
+        "calls": 5,
+        "mean_ms": 0.975,
+        "pct": 0.2
+      },
+      "_total_s": 2.5337
+    },
+    "ok": true
+  },
+  {
+    "n": 2000,
+    "wall_s": 3.155,
+    "final_pop": 1999,
+    "mem_delta_mb": 11.1,
+    "mem_total_mb": 281.9,
+    "components": {
+      "spawning": {
+        "total_s": 2.8576,
+        "calls": 1285,
+        "mean_ms": 2.224,
+        "pct": 90.6
+      },
+      "recruitment": {
+        "total_s": 0.0713,
+        "calls": 5,
+        "mean_ms": 14.269,
+        "pct": 2.3
+      },
+      "growth": {
+        "total_s": 0.0361,
+        "calls": 5,
+        "mean_ms": 7.227,
+        "pct": 1.1
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.027,
+        "calls": 1825,
+        "mean_ms": 0.015,
+        "pct": 0.9
+      },
+      "mortality": {
+        "total_s": 0.0098,
+        "calls": 5,
+        "mean_ms": 1.95,
+        "pct": 0.3
+      },
+      "_total_s": 3.1546
+    },
+    "ok": true
+  },
+  {
+    "n": 5000,
+    "wall_s": 4.8817,
+    "final_pop": 4999,
+    "mem_delta_mb": 4.8,
+    "mem_total_mb": 286.7,
+    "components": {
+      "spawning": {
+        "total_s": 4.2498,
+        "calls": 1285,
+        "mean_ms": 3.307,
+        "pct": 87.1
+      },
+      "recruitment": {
+        "total_s": 0.1004,
+        "calls": 5,
+        "mean_ms": 20.082,
+        "pct": 2.1
+      },
+      "growth": {
+        "total_s": 0.0909,
+        "calls": 5,
+        "mean_ms": 18.187,
+        "pct": 1.9
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.051,
+        "calls": 1825,
+        "mean_ms": 0.028,
+        "pct": 1.0
+      },
+      "mortality": {
+        "total_s": 0.0242,
+        "calls": 5,
+        "mean_ms": 4.846,
+        "pct": 0.5
+      },
+      "_total_s": 4.8813
+    },
+    "ok": true
+  },
+  {
+    "n": 10000,
+    "wall_s": 8.0725,
+    "final_pop": 9999,
+    "mem_delta_mb": 10.6,
+    "mem_total_mb": 297.4,
+    "components": {
+      "spawning": {
+        "total_s": 6.8888,
+        "calls": 1285,
+        "mean_ms": 5.361,
+        "pct": 85.3
+      },
+      "growth": {
+        "total_s": 0.1821,
+        "calls": 5,
+        "mean_ms": 36.428,
+        "pct": 2.3
+      },
+      "recruitment": {
+        "total_s": 0.1402,
+        "calls": 5,
+        "mean_ms": 28.046,
+        "pct": 1.7
+      },
+      "immunosuppression_tick": {
+        "total_s": 0.0899,
+        "calls": 1825,
+        "mean_ms": 0.049,
+        "pct": 1.1
+      },
+      "mortality": {
+        "total_s": 0.0482,
+        "calls": 5,
+        "mean_ms": 9.647,
+        "pct": 0.6
+      },
+      "_total_s": 8.0721
+    },
+    "ok": true
+  }
+]
