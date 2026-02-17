@@ -1,0 +1,27 @@
+{
+  "screened_params": [
+    "disease.K_half",
+    "disease.P_env_max",
+    "disease.T_ref",
+    "disease.T_vbnc",
+    "disease.a_exposure",
+    "disease.mu_EI1_ref",
+    "disease.mu_I2D_ref",
+    "disease.rho_rec",
+    "disease.s_min",
+    "disease.sigma_1_eff",
+    "disease.sigma_2_eff",
+    "disease.sigma_D",
+    "disease.susceptibility_multiplier",
+    "genetics.n_additive",
+    "population.F0",
+    "population.L_min_repro",
+    "population.alpha_srs",
+    "population.gamma_fert",
+    "population.k_growth",
+    "population.senescence_age",
+    "population.settler_survival",
+    "spawning.induction_female_to_male",
+    "spawning.p_spontaneous_female"
+  ]
+}
