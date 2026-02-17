@@ -1,0 +1,112 @@
+[
+  {
+    "k": 2,
+    "K_per_node": 200,
+    "total": 400,
+    "wall_s": 0.864,
+    "final_pop": 400,
+    "total_agents": 400,
+    "mem_delta_mb": 1.4,
+    "mem_total_mb": 93.9,
+    "ok": true
+  },
+  {
+    "k": 3,
+    "K_per_node": 200,
+    "total": 600,
+    "wall_s": 1.297,
+    "final_pop": 600,
+    "total_agents": 600,
+    "mem_delta_mb": 0.5,
+    "mem_total_mb": 94.4,
+    "ok": true
+  },
+  {
+    "k": 5,
+    "K_per_node": 200,
+    "total": 1000,
+    "wall_s": 2.1396,
+    "final_pop": 1000,
+    "total_agents": 1000,
+    "mem_delta_mb": 0.8,
+    "mem_total_mb": 95.2,
+    "ok": true
+  },
+  {
+    "k": 10,
+    "K_per_node": 200,
+    "total": 2000,
+    "wall_s": 4.2756,
+    "final_pop": 2000,
+    "total_agents": 2000,
+    "mem_delta_mb": 6.2,
+    "mem_total_mb": 101.5,
+    "ok": true
+  },
+  {
+    "k": 20,
+    "K_per_node": 200,
+    "total": 4000,
+    "wall_s": 8.5616,
+    "final_pop": 4000,
+    "total_agents": 4000,
+    "mem_delta_mb": 0.1,
+    "mem_total_mb": 101.6,
+    "ok": true
+  },
+  {
+    "k": 30,
+    "K_per_node": 200,
+    "total": 6000,
+    "wall_s": 12.8435,
+    "final_pop": 6000,
+    "total_agents": 6000,
+    "mem_delta_mb": 4.3,
+    "mem_total_mb": 105.8,
+    "ok": true
+  },
+  {
+    "k": 50,
+    "K_per_node": 200,
+    "total": 10000,
+    "wall_s": 21.5381,
+    "final_pop": 10000,
+    "total_agents": 10000,
+    "mem_delta_mb": 8.7,
+    "mem_total_mb": 114.6,
+    "ok": true
+  },
+  {
+    "k": 75,
+    "K_per_node": 200,
+    "total": 15000,
+    "wall_s": 32.5652,
+    "final_pop": 15000,
+    "total_agents": 15000,
+    "mem_delta_mb": 11.6,
+    "mem_total_mb": 126.2,
+    "ok": true
+  },
+  {
+    "k": 100,
+    "K_per_node": 200,
+    "total": 20000,
+    "wall_s": 43.8979,
+    "final_pop": 20000,
+    "total_agents": 20000,
+    "mem_delta_mb": 12.6,
+    "mem_total_mb": 138.8,
+    "ok": true
+  },
+  {
+    "k": 150,
+    "K_per_node": 200,
+    "total": 30000,
+    "wall_s": 66.1383,
+    "final_pop": 30000,
+    "total_agents": 30000,
+    "mem_delta_mb": 26.4,
+    "mem_total_mb": 165.2,
+    "ok": true
+  }
+]
