@@ -258,6 +258,7 @@ def update_vibrio_concentration(
     dispersal_input: float,
     cfg: DiseaseSection,
     dt: float = 1.0,
+    override_shedding: "float | None" = None,
 ) -> float:
     """Euler-step update of Vibrio concentration at one node.
 
@@ -274,14 +275,21 @@ def update_vibrio_concentration(
         dispersal_input: Σ d_jk × P_j from neighbor nodes.
         cfg: Disease configuration.
         dt: Timestep (days).
+        override_shedding: If provided, use this value as total shedding
+            instead of computing from n_I1/n_I2/n_D_fresh counts.  Used
+            by pathogen evolution to inject per-individual strain-weighted
+            shedding.
 
     Returns:
         Updated P_k (non-negative).
     """
     # Shedding from infectious hosts
-    shed = (shedding_rate_I1(T_celsius, cfg) * n_I1
-            + shedding_rate_I2(T_celsius, cfg) * n_I2
-            + cfg.sigma_D * n_D_fresh)
+    if override_shedding is not None:
+        shed = override_shedding
+    else:
+        shed = (shedding_rate_I1(T_celsius, cfg) * n_I1
+                + shedding_rate_I2(T_celsius, cfg) * n_I2
+                + cfg.sigma_D * n_D_fresh)
 
     # Decay (faster at cold T)
     decay = vibrio_decay_rate(T_celsius) * P_k
@@ -633,11 +641,34 @@ def daily_disease_update(
     n_I2 = int(np.sum(alive_mask & (ds == DiseaseState.I2)))
     n_D_fresh = node_state.carcass_tracker.n_fresh
 
+    # Per-individual strain-weighted shedding when pathogen evolution active
+    pe_active = pe_cfg is not None and pe_cfg.enabled
+    override_shed = None
+    if pe_active:
+        I1_mask = alive_mask & (ds == DiseaseState.I1)
+        I2_mask = alive_mask & (ds == DiseaseState.I2)
+        I1_indices = np.where(I1_mask)[0]
+        I2_indices = np.where(I2_mask)[0]
+
+        shed_I1 = 0.0
+        if len(I1_indices) > 0:
+            v_I1 = agents['pathogen_virulence'][I1_indices]
+            shed_I1 = float(np.sum(sigma_1_strain(v_I1, T_celsius, cfg, pe_cfg)))
+
+        shed_I2 = 0.0
+        if len(I2_indices) > 0:
+            v_I2 = agents['pathogen_virulence'][I2_indices]
+            shed_I2 = float(np.sum(sigma_2_strain(v_I2, T_celsius, cfg, pe_cfg)))
+
+        shed_D = cfg.sigma_D * n_D_fresh  # carcass shedding unchanged
+        override_shed = shed_I1 + shed_I2 + shed_D
+
     P_k = update_vibrio_concentration(
         node_state.vibrio_concentration,
         n_I1, n_I2, n_D_fresh,
         T_celsius, salinity, phi_k, dispersal_input,
         cfg,
+        override_shedding=override_shed,
     )
     node_state.vibrio_concentration = P_k
 
@@ -691,7 +722,6 @@ def daily_disease_update(
             infected_mask = draws < p_inf
 
             # ── Pre-compute strain inheritance data (once) ───────
-            pe_active = pe_cfg is not None and pe_cfg.enabled
             if pe_active:
                 alive_I1_mask = alive_mask & (ds == DiseaseState.I1)
                 alive_I2_mask = alive_mask & (ds == DiseaseState.I2)
@@ -740,7 +770,7 @@ def daily_disease_update(
 
     # ── STEP 3: Disease progression ──────────────────────────────────
 
-    # Pre-compute temperature-dependent rates
+    # Pre-compute temperature-dependent base rates
     mu_I1I2 = arrhenius(cfg.mu_I1I2_ref, cfg.Ea_I1I2, T_celsius)
     mu_I2D = arrhenius(cfg.mu_I2D_ref, cfg.Ea_I2D, T_celsius)
     mu_EI1_prog = arrhenius(cfg.mu_EI1_ref, cfg.Ea_EI1, T_celsius)
@@ -756,11 +786,24 @@ def daily_disease_update(
         if dt_rem[idx] <= 0:
             # Timer expired → transition to next state
             if state == DiseaseState.E:
+                # E→I1: incubation NOT virulence-dependent (pathogen replicating silently)
                 ds[idx] = DiseaseState.I1
-                dt_rem[idx] = sample_stage_duration(mu_I1I2, K_SHAPE_I1, rng)
+                # I1→I2 timer: virulence-dependent when pe active
+                if pe_active:
+                    v_i = float(agents['pathogen_virulence'][idx])
+                    rate_I1I2 = float(mu_I1I2_strain(v_i, T_celsius, cfg, pe_cfg))
+                else:
+                    rate_I1I2 = mu_I1I2
+                dt_rem[idx] = sample_stage_duration(rate_I1I2, K_SHAPE_I1, rng)
             elif state == DiseaseState.I1:
                 ds[idx] = DiseaseState.I2
-                dt_rem[idx] = sample_stage_duration(mu_I2D, K_SHAPE_I2, rng)
+                # I2→D timer: virulence-dependent when pe active
+                if pe_active:
+                    v_i = float(agents['pathogen_virulence'][idx])
+                    rate_I2D = float(mu_I2D_strain(v_i, T_celsius, cfg, pe_cfg))
+                else:
+                    rate_I2D = mu_I2D
+                dt_rem[idx] = sample_stage_duration(rate_I2D, K_SHAPE_I2, rng)
             elif state == DiseaseState.I2:
                 # Timer expired in I₂ → death
                 ds[idx] = DiseaseState.D

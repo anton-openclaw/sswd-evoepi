@@ -1481,3 +1481,227 @@ class TestStrainInheritance:
             f"With pe_cfg=None, virulence should stay 0.0, "
             f"got non-zero at indices {np.where(agents['pathogen_virulence'] != 0.0)[0]}"
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 4 — VIRULENCE-DEPENDENT DYNAMICS
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestVirulenceDependentDynamics:
+    """Tests for Phase 4: virulence-dependent shedding and stage durations."""
+
+    @pytest.fixture
+    def disease_cfg(self):
+        return DiseaseSection()
+
+    @pytest.fixture
+    def pe_cfg(self):
+        return PathogenEvolutionSection(enabled=True, sigma_v_mutation=0.0)
+
+    def _make_agents(self, n):
+        """Allocate agents with defaults."""
+        agents = np.zeros(n, dtype=AGENT_DTYPE)
+        agents['alive'] = True
+        agents['disease_state'] = DiseaseState.S
+        agents['disease_timer'] = 0
+        agents['resistance'] = 0.0  # no resistance → easy infection
+        agents['size'] = 300.0  # reference size
+        agents['fecundity_mod'] = 1.0
+        agents['pathogen_virulence'] = 0.0
+        return agents
+
+    def test_high_virulence_faster_death(self, disease_cfg, pe_cfg):
+        """High-virulence strains (v=0.9) kill faster than low (v=0.1).
+
+        Seed I1 agents with no susceptibles (all resistant) to isolate
+        the cohort death timing. High-v should produce more deaths by
+        an early checkpoint because I1→I2 and I2→D progress faster.
+        """
+        T = 15.0
+        sal = 30.0
+        n_agents = 50
+        n_seed = 30
+        checkpoint_day = 20  # early enough that low-v haven't all died yet
+
+        deaths_at_checkpoint = {}
+        for label, v_val in [("high", 0.9), ("low", 0.1)]:
+            rng = np.random.default_rng(42)
+            agents = self._make_agents(n_agents)
+
+            # Make all non-seeded agents fully resistant → no secondary infections
+            agents['resistance'] = 1.0
+
+            # Seed I1 infections
+            for i in range(n_seed):
+                agents['disease_state'][i] = DiseaseState.I1
+                agents['pathogen_virulence'][i] = v_val
+                agents['resistance'][i] = 0.0
+                rate = mu_I1I2_strain(v_val, T, disease_cfg, pe_cfg)
+                agents['disease_timer'][i] = sample_stage_duration(
+                    float(rate), K_SHAPE_I1, rng
+                )
+
+            node_state = NodeDiseaseState(
+                node_id=0, vibrio_concentration=0.0
+            )
+
+            for day in range(checkpoint_day):
+                daily_disease_update(
+                    agents, node_state, T_celsius=T, salinity=sal,
+                    phi_k=0.1, dispersal_input=0.0, day=day,
+                    cfg=disease_cfg, rng=rng, pe_cfg=pe_cfg,
+                )
+
+            deaths_at_checkpoint[label] = node_state.cumulative_deaths
+
+        # High-v should have MORE deaths by the checkpoint (faster kill)
+        assert deaths_at_checkpoint["high"] > deaths_at_checkpoint["low"], (
+            f"High-v should kill faster: high={deaths_at_checkpoint['high']} "
+            f"deaths by day {checkpoint_day}, low={deaths_at_checkpoint['low']}"
+        )
+
+    def test_virulence_shedding_per_individual(self, disease_cfg, pe_cfg):
+        """Two I2 agents at different virulence produce different total shedding
+        than two agents at uniform virulence."""
+        T = 15.0
+
+        # Scenario A: 2 agents, both at v=0.5 (anchor)
+        agents_a = self._make_agents(2)
+        for i in range(2):
+            agents_a['disease_state'][i] = DiseaseState.I2
+            agents_a['disease_timer'][i] = 10
+            agents_a['pathogen_virulence'][i] = 0.5
+
+        node_a = NodeDiseaseState(node_id=0, vibrio_concentration=0.0)
+        rng_a = np.random.default_rng(99)
+        daily_disease_update(
+            agents_a, node_a, T_celsius=T, salinity=30.0,
+            phi_k=0.1, dispersal_input=0.0, day=0,
+            cfg=disease_cfg, rng=rng_a, pe_cfg=pe_cfg,
+        )
+        P_uniform = node_a.vibrio_concentration
+
+        # Scenario B: 2 agents, one at v=0.1, one at v=0.9
+        agents_b = self._make_agents(2)
+        for i in range(2):
+            agents_b['disease_state'][i] = DiseaseState.I2
+            agents_b['disease_timer'][i] = 10
+        agents_b['pathogen_virulence'][0] = 0.1
+        agents_b['pathogen_virulence'][1] = 0.9
+
+        node_b = NodeDiseaseState(node_id=0, vibrio_concentration=0.0)
+        rng_b = np.random.default_rng(99)
+        daily_disease_update(
+            agents_b, node_b, T_celsius=T, salinity=30.0,
+            phi_k=0.1, dispersal_input=0.0, day=0,
+            cfg=disease_cfg, rng=rng_b, pe_cfg=pe_cfg,
+        )
+        P_mixed = node_b.vibrio_concentration
+
+        # Due to convexity of exp(), sum of exp(a) and exp(-a) > 2*exp(0),
+        # so mixed-virulence pair should produce MORE total shedding
+        assert P_mixed != P_uniform, (
+            f"Mixed virulence should produce different shedding "
+            f"(uniform={P_uniform}, mixed={P_mixed})"
+        )
+        # Jensen's inequality: E[exp(x)] > exp(E[x]) for non-degenerate x
+        assert P_mixed > P_uniform, (
+            f"Jensen's inequality: mixed ({P_mixed}) > uniform ({P_uniform})"
+        )
+
+    def test_virulence_disabled_identical(self, disease_cfg):
+        """pe_cfg=None vs pe_cfg.enabled=False produce identical results."""
+        T = 15.0
+        n_agents = 100
+        n_days = 60
+
+        results = {}
+        for label, pe in [("none", None),
+                          ("disabled", PathogenEvolutionSection(enabled=False))]:
+            rng = np.random.default_rng(42)
+            agents = self._make_agents(n_agents)
+
+            # Seed infections
+            for i in range(10):
+                agents['disease_state'][i] = DiseaseState.I2
+                agents['disease_timer'][i] = 5
+
+            node_state = NodeDiseaseState(
+                node_id=0, vibrio_concentration=50.0
+            )
+
+            for day in range(n_days):
+                daily_disease_update(
+                    agents, node_state, T_celsius=T, salinity=30.0,
+                    phi_k=0.1, dispersal_input=0.0, day=day,
+                    cfg=disease_cfg, rng=rng, pe_cfg=pe,
+                )
+
+            results[label] = (
+                node_state.cumulative_deaths,
+                node_state.cumulative_infections,
+                node_state.cumulative_recoveries,
+                node_state.vibrio_concentration,
+            )
+
+        assert results["none"] == results["disabled"], (
+            f"pe_cfg=None and pe_cfg.enabled=False should be identical: "
+            f"None={results['none']}, disabled={results['disabled']}"
+        )
+
+    def test_virulence_anchor_identical(self, disease_cfg):
+        """With pe_cfg.enabled=True and all agents at v=v_anchor(0.5),
+        results should match the disabled case (same seed).
+
+        Since sigma_v_mutation=0, no mutation occurs and all strains stay
+        at the anchor virulence, which produces base rates.
+        """
+        T = 15.0
+        n_agents = 100
+        n_days = 60
+
+        # Use invasion scenario → no env reservoir complication
+        inv_cfg = DiseaseSection(
+            scenario="invasion", invasion_year=2013, invasion_nodes=[0]
+        )
+
+        results = {}
+        for label, pe in [
+            ("disabled", None),
+            ("anchor", PathogenEvolutionSection(
+                enabled=True, sigma_v_mutation=0.0, v_init=0.5
+            )),
+        ]:
+            rng = np.random.default_rng(42)
+            agents = self._make_agents(n_agents)
+
+            # Seed infections at v_anchor for the enabled case
+            for i in range(10):
+                agents['disease_state'][i] = DiseaseState.I2
+                agents['disease_timer'][i] = 5
+                if pe is not None and pe.enabled:
+                    agents['pathogen_virulence'][i] = pe.v_anchor
+
+            node_state = NodeDiseaseState(
+                node_id=0, vibrio_concentration=50.0
+            )
+
+            for day in range(n_days):
+                daily_disease_update(
+                    agents, node_state, T_celsius=T, salinity=30.0,
+                    phi_k=0.1, dispersal_input=0.0, day=day,
+                    cfg=inv_cfg, rng=rng, pe_cfg=pe,
+                )
+
+            results[label] = (
+                node_state.cumulative_deaths,
+                node_state.cumulative_infections,
+                node_state.cumulative_recoveries,
+                round(node_state.vibrio_concentration, 6),
+            )
+
+        assert results["disabled"] == results["anchor"], (
+            f"At v=v_anchor with σ_mut=0, results should match disabled: "
+            f"disabled={results['disabled']}, anchor={results['anchor']}"
+        )
