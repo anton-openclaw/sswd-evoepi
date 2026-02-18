@@ -115,6 +115,10 @@ METRIC_NAMES = [
     "n_extinct_nodes",
     "north_south_mortality_gradient",
     "fjord_protection_effect",
+    # SA Round 2: pathogen evolution + cause-of-death metrics
+    "mean_final_virulence",
+    "virulence_shift",
+    "disease_death_fraction",
 ]
 
 
@@ -224,6 +228,39 @@ def extract_spatial_metrics(result):
         metrics["north_south_mortality_gradient"] = 0.0
         metrics["fjord_protection_effect"] = 0.0
     
+    # ── SA Round 2: Pathogen evolution metrics ──────────────────────
+    mv = getattr(result, 'yearly_mean_virulence', None)
+    if mv is not None and mv.shape[-1] > 0:
+        # mean_final_virulence: average across nodes at final year
+        if mv.ndim == 2:  # (n_nodes, n_years)
+            final_v = mv[:, -1]
+            # Filter nodes that still have infected agents (v > 0)
+            valid = final_v[final_v > 0]
+            metrics["mean_final_virulence"] = float(np.mean(valid)) if len(valid) > 0 else 0.0
+            # virulence_shift: change from initial
+            init_v = mv[:, SIM_DISEASE_YEAR] if mv.shape[1] > SIM_DISEASE_YEAR else mv[:, 0]
+            valid_init = init_v[init_v > 0]
+            v_init_mean = float(np.mean(valid_init)) if len(valid_init) > 0 else 0.5
+            v_final_mean = metrics["mean_final_virulence"]
+            metrics["virulence_shift"] = v_final_mean - v_init_mean
+        elif mv.ndim == 1:  # (n_years,)
+            metrics["mean_final_virulence"] = float(mv[-1]) if mv[-1] > 0 else 0.0
+            v_init_val = float(mv[SIM_DISEASE_YEAR]) if len(mv) > SIM_DISEASE_YEAR and mv[SIM_DISEASE_YEAR] > 0 else 0.5
+            metrics["virulence_shift"] = metrics["mean_final_virulence"] - v_init_val
+        else:
+            metrics["mean_final_virulence"] = 0.0
+            metrics["virulence_shift"] = 0.0
+    else:
+        metrics["mean_final_virulence"] = 0.0
+        metrics["virulence_shift"] = 0.0
+    
+    # disease_death_fraction: fraction of all deaths caused by disease
+    total_dd = metrics.get("total_disease_deaths", 0.0)
+    total_natural = getattr(result, 'total_natural_deaths', 0)
+    total_senescence = getattr(result, 'total_senescence_deaths', 0)
+    all_deaths = total_dd + total_natural + total_senescence
+    metrics["disease_death_fraction"] = total_dd / all_deaths if all_deaths > 0 else 0.0
+    
     return metrics
 
 
@@ -252,6 +289,9 @@ def run_single_spatial(args):
         config.movement.enabled = True
         config.movement.spatial_transmission = True
         config.movement.substeps_per_day = 1
+        
+        # Enable pathogen evolution for SA Round 2
+        config.pathogen_evolution.enabled = True
         
         # Validate
         validate_config(config)

@@ -116,6 +116,73 @@ PARAM_SPEC = OrderedDict([
         "low": 5.0, "high": 15.0, "dist": "uniform",
         "desc": "Salinity minimum for Vibrio (psu)", "confidence": "★★☆",
     }),
+    # ── NEW PARAMS (SA Round 2) ──────────────────────────────────────
+    # Disease — missing middle transition + immunosuppression duration
+    ("disease.mu_I1I2_ref", {
+        "low": 0.15, "high": 0.80, "dist": "uniform",
+        "desc": "I1→I2 progression rate at T_ref", "confidence": "★★☆",
+    }),
+    ("disease.immunosuppression_duration", {
+        "low": 7, "high": 56, "dist": "uniform",
+        "desc": "Post-spawning immunosuppression duration (days)", "confidence": "★★☆",
+    }),
+    # Spawning — reverse induction
+    ("spawning.induction_male_to_female", {
+        "low": 0.10, "high": 0.60, "dist": "uniform",
+        "desc": "Male→female cascade induction", "confidence": "★★☆",
+    }),
+    # Spatial — dispersal kernel
+    ("spatial.D_L", {
+        "low": 100.0, "high": 1000.0, "dist": "loguniform",
+        "desc": "Larval dispersal scale (km)", "confidence": "★☆☆",
+    }),
+    # Genetics initialization
+    ("genetics.target_mean_r", {
+        "low": 0.05, "high": 0.30, "dist": "uniform",
+        "desc": "Target mean resistance at t=0", "confidence": "★☆☆",
+    }),
+    ("genetics.q_init_beta_a", {
+        "low": 1.0, "high": 5.0, "dist": "uniform",
+        "desc": "Beta shape a for per-locus allele freq", "confidence": "★☆☆",
+    }),
+    ("genetics.q_init_beta_b", {
+        "low": 3.0, "high": 15.0, "dist": "uniform",
+        "desc": "Beta shape b for per-locus allele freq", "confidence": "★☆☆",
+    }),
+    # Larval retention
+    ("spatial.alpha_self_fjord", {
+        "low": 0.10, "high": 0.50, "dist": "uniform",
+        "desc": "Larval self-recruitment fraction (fjord)", "confidence": "★☆☆",
+    }),
+    ("spatial.alpha_self_open", {
+        "low": 0.02, "high": 0.20, "dist": "uniform",
+        "desc": "Larval self-recruitment fraction (open coast)", "confidence": "★☆☆",
+    }),
+    # Pathogen evolution (6)
+    ("pathogen_evolution.alpha_kill", {
+        "low": 1.0, "high": 4.0, "dist": "uniform",
+        "desc": "Death rate scaling exponent", "confidence": "★☆☆",
+    }),
+    ("pathogen_evolution.alpha_shed", {
+        "low": 0.5, "high": 3.0, "dist": "uniform",
+        "desc": "Shedding rate scaling exponent", "confidence": "★☆☆",
+    }),
+    ("pathogen_evolution.alpha_prog", {
+        "low": 0.5, "high": 2.0, "dist": "uniform",
+        "desc": "I1→I2 progression scaling exponent", "confidence": "★☆☆",
+    }),
+    ("pathogen_evolution.gamma_early", {
+        "low": 0.0, "high": 1.0, "dist": "uniform",
+        "desc": "Early shedding attenuation factor", "confidence": "★☆☆",
+    }),
+    ("pathogen_evolution.sigma_v_mutation", {
+        "low": 0.005, "high": 0.10, "dist": "loguniform",
+        "desc": "Mutation step size (std dev)", "confidence": "★☆☆",
+    }),
+    ("pathogen_evolution.v_init", {
+        "low": 0.2, "high": 0.8, "dist": "uniform",
+        "desc": "Initial pathogen virulence", "confidence": "★☆☆",
+    }),
 ])
 
 
@@ -199,6 +266,14 @@ def sample_to_config_overrides(sample_row, param_names=None):
     # Enforce constraint: n_loci = n_additive + 1
     if "genetics" in overrides and "n_additive" in overrides["genetics"]:
         overrides["genetics"]["n_loci"] = overrides["genetics"]["n_additive"] + 1
+    
+    # Integer coercion for fields that must be int
+    int_fields = {
+        ("disease", "immunosuppression_duration"),
+    }
+    for (sec, fld) in int_fields:
+        if sec in overrides and fld in overrides[sec]:
+            overrides[sec][fld] = int(round(overrides[sec][fld]))
     
     return overrides
 
