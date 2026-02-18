@@ -7,6 +7,7 @@ Modules:
   - genetics: Host genetics & evolution (12 plots)
   - coevolution: Pathogen co-evolution & arms race (8 plots)
   - spatial: Spatial metapopulation & geography (8 plots)
+  - dashboards: Dashboards & composite views (10 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -92,4 +93,18 @@ from sswd_evoepi.viz.spatial import (  # noqa: F401
     plot_larval_flow_diagram,
     plot_spatial_epidemic_timeline,
     plot_node_fate_matrix,
+)
+
+from sswd_evoepi.viz.dashboards import (  # noqa: F401
+    SA_CATEGORY_COLORS,
+    plot_simulation_dashboard,
+    plot_spatial_dashboard,
+    plot_scenario_comparison,
+    plot_sensitivity_tornado,
+    plot_sensitivity_heatmap,
+    plot_parameter_interaction_web,
+    plot_evolutionary_rescue_assessment,
+    plot_conservation_scenario_matrix,
+    plot_model_validation_panel,
+    plot_parameter_space_exploration,
 )
