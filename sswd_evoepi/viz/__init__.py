@@ -4,6 +4,7 @@ Modules:
   - style: Dark theme colours and helpers
   - population: Population dynamics & demographics (10 plots)
   - disease: Disease & epidemiology (12 plots)
+  - genetics: Host genetics & evolution (12 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -47,4 +48,22 @@ from sswd_evoepi.viz.disease import (  # noqa: F401
     plot_immunosuppression_overlap,
     plot_recovery_vs_resistance,
     plot_cfr_over_time,
+)
+
+from sswd_evoepi.viz.genetics import (  # noqa: F401
+    RESISTANCE_LOW,
+    RESISTANCE_MID,
+    RESISTANCE_HIGH,
+    plot_resistance_trajectory,
+    plot_resistance_distribution,
+    plot_allele_frequency_spaghetti,
+    plot_additive_variance_over_time,
+    plot_ef1a_dynamics,
+    plot_selection_differential,
+    plot_heritability_over_time,
+    plot_genotype_phenotype_map,
+    plot_locus_effect_size_distribution,
+    plot_resistance_by_node_violin,
+    plot_genetic_drift_null,
+    plot_beta_init_visualization,
 )
