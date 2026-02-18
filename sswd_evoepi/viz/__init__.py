@@ -3,6 +3,7 @@
 Modules:
   - style: Dark theme colours and helpers
   - population: Population dynamics & demographics (10 plots)
+  - disease: Disease & epidemiology (12 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -30,4 +31,20 @@ from sswd_evoepi.viz.population import (  # noqa: F401
     plot_sex_ratio_over_time,
     plot_density_dependence,
     plot_node_comparison_bars,
+)
+
+from sswd_evoepi.viz.disease import (  # noqa: F401
+    COMPARTMENT_COLORS,
+    plot_epidemic_curve,
+    plot_vibrio_concentration,
+    plot_force_of_infection_distribution,
+    plot_R0_over_time,
+    plot_disease_mortality_by_node,
+    plot_epidemic_wave_timing,
+    plot_compartment_flow_sankey,
+    plot_shedding_timeseries,
+    plot_disease_state_heatmap,
+    plot_immunosuppression_overlap,
+    plot_recovery_vs_resistance,
+    plot_cfr_over_time,
 )
