@@ -565,6 +565,12 @@ class NodeDiseaseState:
     # R₀ estimate
     R0_estimate: float = 0.0
 
+    # Virulence tracking accumulators (for pathogen evolution output)
+    virulence_sum_new_infections: float = 0.0
+    virulence_count_new_infections: int = 0
+    virulence_sum_deaths: float = 0.0
+    virulence_count_deaths: int = 0
+
     # Carcass tracker
     carcass_tracker: CarcassTracker = field(default_factory=CarcassTracker)
 
@@ -767,6 +773,8 @@ def daily_disease_update(
                     v_new = v_parent + rng.normal(0, pe_cfg.sigma_v_mutation)
                     v_new = np.clip(v_new, pe_cfg.v_min, pe_cfg.v_max)
                     agents['pathogen_virulence'][idx] = v_new
+                    node_state.virulence_sum_new_infections += float(v_new)
+                    node_state.virulence_count_new_infections += 1
 
     # ── STEP 3: Disease progression ──────────────────────────────────
 
@@ -806,6 +814,9 @@ def daily_disease_update(
                 dt_rem[idx] = sample_stage_duration(rate_I2D, K_SHAPE_I2, rng)
             elif state == DiseaseState.I2:
                 # Timer expired in I₂ → death
+                if pe_active:
+                    node_state.virulence_sum_deaths += float(agents['pathogen_virulence'][idx])
+                    node_state.virulence_count_deaths += 1
                 ds[idx] = DiseaseState.D
                 agents['alive'][idx] = False
                 agents['cause_of_death'][idx] = 1  # DeathCause.DISEASE
@@ -900,6 +911,7 @@ def run_single_node_epidemic(
     seed: int = 42,
     record_daily: bool = False,
     initial_vibrio: Optional[float] = None,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
 ) -> EpidemicResult:
     """Run a standalone single-node epidemic simulation.
 
@@ -952,11 +964,14 @@ def run_single_node_epidemic(
         infect_idx = rng.choice(n_individuals, size=min(initial_infected, n_individuals),
                                 replace=False)
         mu_EI1 = arrhenius(cfg.mu_EI1_ref, cfg.Ea_EI1, T_celsius)
+        pe_active = pe_cfg is not None and pe_cfg.enabled
         for idx in infect_idx:
             agents['disease_state'][idx] = DiseaseState.E
             agents['disease_timer'][idx] = sample_stage_duration(
                 mu_EI1, K_SHAPE_E, rng
             )
+            if pe_active:
+                agents['pathogen_virulence'][idx] = pe_cfg.v_init
 
     # Initialize Vibrio
     if initial_vibrio is not None:
@@ -984,6 +999,7 @@ def run_single_node_epidemic(
             T_celsius, salinity, phi_k,
             dispersal_input=0.0,
             day=day, cfg=cfg, rng=rng,
+            pe_cfg=pe_cfg,
         )
 
         if record_daily:

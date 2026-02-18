@@ -600,6 +600,11 @@ class CoupledSimResult:
     # Death accounting by cause (annual timeseries)
     yearly_senescence_deaths: Optional[np.ndarray] = None
 
+    # Pathogen evolution (annual timeseries)
+    yearly_mean_virulence: Optional[np.ndarray] = None          # (n_years,)
+    yearly_virulence_new_infections: Optional[np.ndarray] = None  # (n_years,)
+    yearly_virulence_of_deaths: Optional[np.ndarray] = None     # (n_years,)
+
     # Summary
     initial_pop: int = 0
     final_pop: int = 0
@@ -677,6 +682,10 @@ def run_coupled_simulation(
 
     pop_cfg = config.population
     dis_cfg = config.disease
+    pe_cfg = (config.pathogen_evolution
+              if hasattr(config, 'pathogen_evolution')
+              and config.pathogen_evolution.enabled
+              else None)
 
     rng = np.random.default_rng(seed)
 
@@ -742,6 +751,18 @@ def run_coupled_simulation(
     post_epidemic_allele_freq = None
     epidemic_started_year = None  # track when epidemic begins for snapshot timing
 
+    # Pathogen evolution virulence tracking
+    if pe_cfg is not None:
+        yearly_mean_v = np.zeros(n_years, dtype=np.float64)
+        yearly_v_new_inf = np.zeros(n_years, dtype=np.float64)
+        yearly_v_deaths = np.zeros(n_years, dtype=np.float64)
+        year_new_inf_v_accum = []   # list of v values for new infections this year
+        year_death_v_accum = []     # list of v values for disease deaths this year
+    else:
+        yearly_mean_v = None
+        yearly_v_new_inf = None
+        yearly_v_deaths = None
+
     if record_daily:
         daily_pop = np.zeros(total_days, dtype=np.int32)
         daily_infected = np.zeros(total_days, dtype=np.int32)
@@ -783,6 +804,7 @@ def run_coupled_simulation(
                         day=global_day,
                         cfg=dis_cfg,
                         rng=rng,
+                        pe_cfg=pe_cfg,
                     )
                     new_deaths = node_disease.cumulative_deaths - deaths_before
                     cumulative_disease_deaths += new_deaths
@@ -972,6 +994,8 @@ def run_coupled_simulation(
                     agents['disease_timer'][idx] = sample_stage_duration(
                         mu_EI1, K_SHAPE_E, rng
                     )
+                    if pe_cfg is not None:
+                        agents['pathogen_virulence'][idx] = pe_cfg.v_init
 
         # ── Post-epidemic allele frequency snapshot (Phase 7) ────────
         # Take snapshot 2 years after epidemic start (when initial wave is over)
@@ -1007,6 +1031,40 @@ def run_coupled_simulation(
             )
         else:
             yearly_mean_resistance[year] = 0.0
+
+        # ── Pathogen evolution virulence tracking ─────────────────────
+        if pe_cfg is not None:
+            # Mean virulence of currently infected agents (E + I1 + I2)
+            infected_mask = alive_mask & (
+                (agents['disease_state'] == DiseaseState.E) |
+                (agents['disease_state'] == DiseaseState.I1) |
+                (agents['disease_state'] == DiseaseState.I2)
+            )
+            n_infected = int(np.sum(infected_mask))
+            if n_infected > 0:
+                yearly_mean_v[year] = float(
+                    np.mean(agents['pathogen_virulence'][infected_mask])
+                )
+
+            # Mean virulence of new infections this year (from accumulator)
+            if node_disease.virulence_count_new_infections > 0:
+                yearly_v_new_inf[year] = (
+                    node_disease.virulence_sum_new_infections
+                    / node_disease.virulence_count_new_infections
+                )
+
+            # Mean virulence of disease deaths this year (from accumulator)
+            if node_disease.virulence_count_deaths > 0:
+                yearly_v_deaths[year] = (
+                    node_disease.virulence_sum_deaths
+                    / node_disease.virulence_count_deaths
+                )
+
+            # Reset accumulators for next year
+            node_disease.virulence_sum_new_infections = 0.0
+            node_disease.virulence_count_new_infections = 0
+            node_disease.virulence_sum_deaths = 0.0
+            node_disease.virulence_count_deaths = 0
 
         # ── Genetics tracking (Phase 7) ──────────────────────────────
         if pop_after > 0:
@@ -1051,6 +1109,10 @@ def run_coupled_simulation(
         yearly_va=yearly_va,
         pre_epidemic_allele_freq=pre_epidemic_allele_freq,
         post_epidemic_allele_freq=post_epidemic_allele_freq,
+        # Pathogen evolution
+        yearly_mean_virulence=yearly_mean_v,
+        yearly_virulence_new_infections=yearly_v_new_inf,
+        yearly_virulence_of_deaths=yearly_v_deaths,
         # Daily
         daily_pop=daily_pop,
         daily_infected=daily_infected,
@@ -1103,6 +1165,8 @@ class SpatialSimResult:
     yearly_total_larvae_dispersed: Optional[np.ndarray] = None
     # Peak disease prevalence per node (fraction infected at peak)
     peak_disease_prevalence: Optional[np.ndarray] = None
+    # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
+    yearly_mean_virulence: Optional[np.ndarray] = None
     # Summary
     initial_total_pop: int = 0
     final_total_pop: int = 0
@@ -1161,6 +1225,10 @@ def run_spatial_simulation(
 
     pop_cfg = config.population
     dis_cfg = config.disease
+    pe_cfg = (config.pathogen_evolution
+              if hasattr(config, 'pathogen_evolution')
+              and config.pathogen_evolution.enabled
+              else None)
     mov_cfg = config.movement
     mov_enabled = mov_cfg.enabled
     spatial_tx = mov_enabled and mov_cfg.spatial_transmission
@@ -1230,6 +1298,12 @@ def run_spatial_simulation(
 
     # Peak disease prevalence tracker per node
     peak_disease_prev = np.zeros(N, dtype=np.float64)
+
+    # Pathogen evolution per-node virulence tracking
+    if pe_cfg is not None:
+        yearly_mean_v_spatial = np.zeros((N, n_years), dtype=np.float64)
+    else:
+        yearly_mean_v_spatial = None
 
     initial_total = network.total_population()
     node_names = [n.definition.name for n in network.nodes]
@@ -1322,6 +1396,7 @@ def run_spatial_simulation(
                     infected_density_grid=(
                         density_grids[i] if spatial_tx else None
                     ),
+                    pe_cfg=pe_cfg,
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
@@ -1499,6 +1574,8 @@ def run_spatial_simulation(
                         node.agents['disease_timer'][idx] = (
                             sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
                         )
+                        if pe_cfg is not None:
+                            node.agents['pathogen_virulence'][idx] = pe_cfg.v_init
 
         # 7. Post-epidemic allele frequency snapshot (2 years after)
         if (epidemic_started_year is not None
@@ -1536,6 +1613,24 @@ def run_spatial_simulation(
                 yearly_ef1a_freq[i, year] = float(af[IDX_EF1A])
                 yearly_va[i, year] = compute_additive_variance(af, effect_sizes)
 
+            # Per-node virulence tracking
+            if pe_cfg is not None:
+                inf_mask = alive_mask & (
+                    (node.agents['disease_state'] == DiseaseState.E) |
+                    (node.agents['disease_state'] == DiseaseState.I1) |
+                    (node.agents['disease_state'] == DiseaseState.I2)
+                )
+                n_inf = int(np.sum(inf_mask))
+                if n_inf > 0:
+                    yearly_mean_v_spatial[i, year] = float(
+                        np.mean(node.agents['pathogen_virulence'][inf_mask])
+                    )
+                # Reset accumulators for next year
+                node_disease_states[i].virulence_sum_new_infections = 0.0
+                node_disease_states[i].virulence_count_new_infections = 0
+                node_disease_states[i].virulence_sum_deaths = 0.0
+                node_disease_states[i].virulence_count_deaths = 0
+
         yearly_total_pop[year] = int(yearly_pop[:, year].sum())
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
 
@@ -1565,6 +1660,7 @@ def run_spatial_simulation(
         yearly_total_pop=yearly_total_pop,
         yearly_total_larvae_dispersed=yearly_total_larvae,
         peak_disease_prevalence=peak_disease_prev,
+        yearly_mean_virulence=yearly_mean_v_spatial,
         initial_total_pop=initial_total,
         final_total_pop=int(yearly_total_pop[-1]),
         disease_year=disease_year,

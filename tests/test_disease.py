@@ -1705,3 +1705,127 @@ class TestVirulenceDependentDynamics:
             f"At v=v_anchor with σ_mut=0, results should match disabled: "
             f"disabled={results['disabled']}, anchor={results['anchor']}"
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PHASE 5: OUTPUT RECORDING & PE_CFG WIRING
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestVirulenceTracking:
+    """Tests for pathogen evolution output recording (Phase 5)."""
+
+    def test_virulence_tracking_disabled(self):
+        """With pe_cfg disabled, yearly_mean_virulence should be None."""
+        from sswd_evoepi.config import SimulationConfig, default_config
+        from sswd_evoepi.model import run_coupled_simulation
+
+        cfg = default_config()
+        # Ensure pathogen evolution is disabled (default)
+        assert not cfg.pathogen_evolution.enabled
+
+        result = run_coupled_simulation(
+            n_individuals=50,
+            carrying_capacity=50,
+            n_years=3,
+            disease_year=1,
+            seed=42,
+            config=cfg,
+        )
+
+        assert result.yearly_mean_virulence is None
+        assert result.yearly_virulence_new_infections is None
+        assert result.yearly_virulence_of_deaths is None
+
+    def test_virulence_tracking_enabled(self):
+        """With pe_cfg enabled, yearly_mean_virulence should be populated."""
+        from sswd_evoepi.config import SimulationConfig, default_config
+        from sswd_evoepi.model import run_coupled_simulation
+
+        cfg = default_config()
+        cfg.pathogen_evolution.enabled = True
+        cfg.pathogen_evolution.v_init = 0.5
+        cfg.pathogen_evolution.sigma_v_mutation = 0.02
+
+        result = run_coupled_simulation(
+            n_individuals=100,
+            carrying_capacity=100,
+            n_years=5,
+            disease_year=1,
+            initial_infected=10,
+            seed=42,
+            config=cfg,
+        )
+
+        # Should be numpy arrays with correct shape
+        assert result.yearly_mean_virulence is not None
+        assert result.yearly_mean_virulence.shape == (5,)
+        assert result.yearly_virulence_new_infections is not None
+        assert result.yearly_virulence_new_infections.shape == (5,)
+        assert result.yearly_virulence_of_deaths is not None
+        assert result.yearly_virulence_of_deaths.shape == (5,)
+
+        # Pre-disease years should have 0.0 virulence
+        assert result.yearly_mean_virulence[0] == 0.0
+
+        # Post-disease years should have non-zero virulence
+        # (at least some infected agents should exist in year 1+)
+        post_disease = result.yearly_mean_virulence[1:]
+        assert np.any(post_disease > 0), (
+            "Expected non-zero mean virulence after disease introduction"
+        )
+
+    def test_pe_cfg_wired_through_coupled(self):
+        """Verify run_coupled_simulation passes pe_cfg without error."""
+        from sswd_evoepi.config import default_config
+        from sswd_evoepi.model import run_coupled_simulation
+
+        cfg = default_config()
+        cfg.pathogen_evolution.enabled = True
+        cfg.pathogen_evolution.v_init = 0.5
+
+        # Should not raise
+        result = run_coupled_simulation(
+            n_individuals=30,
+            carrying_capacity=30,
+            n_years=3,
+            disease_year=1,
+            initial_infected=5,
+            seed=99,
+            config=cfg,
+        )
+        assert result.n_years == 3
+
+    def test_virulence_accumulators_in_node_state(self):
+        """NodeDiseaseState virulence accumulators work correctly."""
+        ns = NodeDiseaseState(node_id=0)
+        assert ns.virulence_sum_new_infections == 0.0
+        assert ns.virulence_count_new_infections == 0
+        assert ns.virulence_sum_deaths == 0.0
+        assert ns.virulence_count_deaths == 0
+
+        # Simulate accumulation
+        ns.virulence_sum_new_infections += 0.5
+        ns.virulence_count_new_infections += 1
+        ns.virulence_sum_new_infections += 0.6
+        ns.virulence_count_new_infections += 1
+
+        mean_v = ns.virulence_sum_new_infections / ns.virulence_count_new_infections
+        assert abs(mean_v - 0.55) < 1e-10
+
+    def test_single_node_epidemic_pe_cfg(self):
+        """run_single_node_epidemic accepts pe_cfg without error."""
+        cfg = DiseaseSection()
+        pe = PathogenEvolutionSection(enabled=True, v_init=0.5)
+
+        result = run_single_node_epidemic(
+            n_individuals=50,
+            T_celsius=15.0,
+            salinity=30.0,
+            phi_k=0.02,
+            cfg=cfg,
+            n_days=30,
+            initial_infected=5,
+            seed=42,
+            pe_cfg=pe,
+        )
+        assert result.initial_pop == 50
