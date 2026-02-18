@@ -1,0 +1,310 @@
+Morris screening: 38 parameters, 20 trajectories
+Total runs: 780
+Generated 780 sample points in 0.0s
+Running 780 spatial simulations on 8 cores (~11 min)...
+Completed 780 runs in 2796.5s (3.59s/run)
+
+======================================================================
+MORRIS SCREENING RESULTS
+======================================================================
+
+────────────────────────────────────────────────────────────
+Metric: pop_crash_pct
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                            36.025   29.861
+  2     population.settler_survival                32.572   24.297
+  3     genetics.target_mean_r                     13.903   14.299
+  4     disease.mu_I2D_ref                         10.728   11.048
+  5     disease.sigma_2_eff                         9.950   19.013
+  6     population.k_growth                         9.200   20.698
+  7     pathogen_evolution.v_init                   8.751   14.232
+  8     population.F0                               8.495   14.899
+  9     population.gamma_fert                       6.542   15.544
+  10    disease.P_env_max                           5.767   19.443
+
+────────────────────────────────────────────────────────────
+Metric: final_pop_frac
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.383    0.307
+  2     population.settler_survival                 0.352    0.243
+  3     genetics.target_mean_r                      0.132    0.111
+  4     disease.mu_I2D_ref                          0.115    0.110
+  5     population.F0                               0.096    0.160
+  6     pathogen_evolution.v_init                   0.086    0.146
+  7     disease.sigma_2_eff                         0.085    0.183
+  8     population.k_growth                         0.077    0.180
+  9     population.gamma_fert                       0.065    0.148
+  10    disease.P_env_max                           0.059    0.193
+
+────────────────────────────────────────────────────────────
+Metric: recovery
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     population.settler_survival                 0.450    0.705
+  2     disease.rho_rec                             0.300    0.616
+  3     disease.mu_I2D_ref                          0.150    0.462
+  4     disease.K_half                              0.150    0.487
+  5     pathogen_evolution.v_init                   0.150    0.462
+  6     pathogen_evolution.alpha_kill               0.075    0.335
+  7     population.gamma_fert                       0.075    0.335
+  8     population.F0                               0.075    0.335
+  9     population.k_growth                         0.075    0.335
+  10    disease.sigma_1_eff                         0.075    0.335
+
+────────────────────────────────────────────────────────────
+Metric: extinction
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.675    0.766
+  2     disease.K_half                              0.150    0.462
+  3     disease.sigma_D                             0.150    0.487
+  4     disease.sigma_2_eff                         0.150    0.462
+  5     pathogen_evolution.v_init                   0.075    0.335
+  6     pathogen_evolution.gamma_early              0.075    0.335
+  7     disease.mu_EI1_ref                          0.075    0.335
+  8     disease.a_exposure                          0.075    0.335
+  9     disease.mu_I2D_ref                          0.075    0.335
+  10    pathogen_evolution.alpha_shed               0.075    0.335
+
+────────────────────────────────────────────────────────────
+Metric: peak_mortality
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.096    0.109
+  2     disease.mu_I2D_ref                          0.070    0.126
+  3     genetics.target_mean_r                      0.070    0.070
+  4     disease.sigma_2_eff                         0.068    0.187
+  5     disease.K_half                              0.052    0.152
+  6     disease.a_exposure                          0.042    0.066
+  7     disease.P_env_max                           0.041    0.148
+  8     pathogen_evolution.sigma_v_mutation         0.015    0.029
+  9     disease.sigma_D                             0.013    0.031
+  10    pathogen_evolution.v_init                   0.012    0.025
+
+────────────────────────────────────────────────────────────
+Metric: time_to_nadir
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                            12.450   14.861
+  2     population.k_growth                         6.975   10.745
+  3     disease.mu_I2D_ref                          5.700    9.203
+  4     genetics.target_mean_r                      5.325    8.627
+  5     disease.K_half                              4.875    7.275
+  6     pathogen_evolution.v_init                   4.650    7.883
+  7     spawning.induction_female_to_male           4.650    7.608
+  8     spatial.D_L                                 4.575    7.640
+  9     disease.sigma_2_eff                         4.500    5.738
+  10    disease.sigma_D                             4.350    7.171
+
+────────────────────────────────────────────────────────────
+Metric: total_disease_deaths
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     population.settler_survival              64442.400 48613.712
+  2     disease.rho_rec                          46039.350 45228.516
+  3     population.k_growth                      18753.525 43395.922
+  4     population.F0                            17046.000 29588.707
+  5     pathogen_evolution.v_init                14933.625 33047.719
+  6     population.gamma_fert                    13683.450 32708.263
+  7     disease.sigma_2_eff                      13252.350 23582.967
+  8     disease.mu_I2D_ref                       12823.050 20219.354
+  9     genetics.target_mean_r                   12312.375 17646.498
+  10    disease.P_env_max                        6403.125 11009.209
+
+────────────────────────────────────────────────────────────
+Metric: resistance_shift_mean
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.187    0.203
+  2     disease.sigma_2_eff                         0.061    0.134
+  3     genetics.target_mean_r                      0.058    0.082
+  4     disease.K_half                              0.052    0.129
+  5     spatial.alpha_self_open                     0.038    0.085
+  6     pathogen_evolution.alpha_shed               0.035    0.087
+  7     disease.a_exposure                          0.032    0.074
+  8     disease.mu_I2D_ref                          0.031    0.061
+  9     disease.P_env_max                           0.030    0.073
+  10    disease.T_vbnc                              0.029    0.057
+
+────────────────────────────────────────────────────────────
+Metric: resistance_shift_max
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.200    0.224
+  2     disease.sigma_2_eff                         0.059    0.148
+  3     disease.K_half                              0.057    0.147
+  4     genetics.target_mean_r                      0.055    0.085
+  5     spatial.alpha_self_open                     0.051    0.137
+  6     disease.mu_I2D_ref                          0.049    0.133
+  7     disease.a_exposure                          0.045    0.119
+  8     disease.P_env_max                           0.042    0.156
+  9     population.L_min_repro                      0.038    0.110
+  10    pathogen_evolution.alpha_shed               0.038    0.101
+
+────────────────────────────────────────────────────────────
+Metric: va_retention_mean
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     population.k_growth                         1.016    2.300
+  2     disease.rho_rec                             0.954    1.011
+  3     pathogen_evolution.alpha_shed               0.910    1.681
+  4     population.gamma_fert                       0.743    1.931
+  5     disease.P_env_max                           0.667    1.783
+  6     pathogen_evolution.alpha_prog               0.650    1.474
+  7     pathogen_evolution.alpha_kill               0.611    1.212
+  8     spawning.p_spontaneous_female               0.595    1.520
+  9     spawning.induction_female_to_male           0.566    1.210
+  10    spatial.D_L                                 0.554    1.326
+
+────────────────────────────────────────────────────────────
+Metric: ef1a_shift_mean
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.116    0.100
+  2     genetics.target_mean_r                      0.095    0.068
+  3     disease.a_exposure                          0.055    0.092
+  4     population.k_growth                         0.033    0.042
+  5     pathogen_evolution.v_init                   0.031    0.045
+  6     population.settler_survival                 0.031    0.036
+  7     population.gamma_fert                       0.030    0.041
+  8     population.F0                               0.030    0.039
+  9     disease.sigma_2_eff                         0.029    0.041
+  10    disease.T_ref                               0.029    0.054
+
+────────────────────────────────────────────────────────────
+Metric: n_extinct_nodes
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             2.250    2.203
+  2     disease.sigma_2_eff                         0.600    1.492
+  3     disease.K_half                              0.450    1.202
+  4     spatial.alpha_self_open                     0.225    0.591
+  5     pathogen_evolution.alpha_shed               0.225    0.734
+  6     disease.P_env_max                           0.225    0.734
+  7     disease.T_vbnc                              0.225    0.550
+  8     disease.a_exposure                          0.150    0.671
+  9     disease.immunosuppression_duration          0.150    0.462
+  10    disease.mu_I2D_ref                          0.150    0.462
+
+────────────────────────────────────────────────────────────
+Metric: north_south_mortality_gradient
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             1.290    2.262
+  2     disease.sigma_2_eff                         1.182    2.015
+  3     population.settler_survival                 0.995    1.525
+  4     disease.mu_I2D_ref                          0.988    1.928
+  5     population.gamma_fert                       0.644    1.326
+  6     spatial.alpha_self_open                     0.561    1.285
+  7     pathogen_evolution.alpha_shed               0.552    1.314
+  8     genetics.target_mean_r                      0.499    1.068
+  9     disease.T_vbnc                              0.476    1.082
+  10    disease.mu_I1I2_ref                         0.454    1.303
+
+────────────────────────────────────────────────────────────
+Metric: fjord_protection_effect
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.sigma_2_eff                         0.092    0.198
+  2     disease.rho_rec                             0.087    0.160
+  3     population.settler_survival                 0.058    0.108
+  4     pathogen_evolution.v_init                   0.056    0.098
+  5     disease.a_exposure                          0.046    0.062
+  6     disease.mu_I2D_ref                          0.045    0.072
+  7     genetics.target_mean_r                      0.035    0.058
+  8     pathogen_evolution.sigma_v_mutation         0.034    0.071
+  9     population.senescence_age                   0.034    0.070
+  10    population.k_growth                         0.033    0.076
+
+────────────────────────────────────────────────────────────
+Metric: mean_final_virulence
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     disease.rho_rec                             0.148    0.301
+  2     disease.mu_EI1_ref                          0.148    0.341
+  3     disease.a_exposure                          0.148    0.329
+  4     disease.P_env_max                           0.145    0.305
+  5     disease.mu_I2D_ref                          0.123    0.324
+  6     disease.K_half                              0.121    0.320
+  7     disease.T_ref                               0.118    0.291
+  8     pathogen_evolution.gamma_early              0.106    0.276
+  9     spawning.induction_male_to_female           0.102    0.261
+  10    disease.susceptibility_multiplier           0.093    0.237
+
+────────────────────────────────────────────────────────────
+Metric: virulence_shift
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     pathogen_evolution.v_init                   0.610    0.262
+  2     disease.rho_rec                             0.148    0.301
+  3     disease.mu_EI1_ref                          0.148    0.341
+  4     disease.a_exposure                          0.148    0.329
+  5     disease.P_env_max                           0.145    0.305
+  6     disease.mu_I2D_ref                          0.123    0.324
+  7     disease.K_half                              0.121    0.320
+  8     disease.T_ref                               0.118    0.291
+  9     pathogen_evolution.gamma_early              0.106    0.276
+  10    spawning.induction_male_to_female           0.102    0.261
+
+────────────────────────────────────────────────────────────
+Metric: disease_death_fraction
+────────────────────────────────────────────────────────────
+  Rank  Parameter                                      μ*        σ
+  1     pathogen_evolution.v_init                   0.000    0.000
+  2     pathogen_evolution.sigma_v_mutation         0.000    0.000
+  3     pathogen_evolution.gamma_early              0.000    0.000
+  4     pathogen_evolution.alpha_prog               0.000    0.000
+  5     pathogen_evolution.alpha_shed               0.000    0.000
+  6     pathogen_evolution.alpha_kill               0.000    0.000
+  7     spatial.alpha_self_open                     0.000    0.000
+  8     spatial.alpha_self_fjord                    0.000    0.000
+  9     genetics.q_init_beta_b                      0.000    0.000
+  10    genetics.q_init_beta_a                      0.000    0.000
+
+======================================================================
+SCREENING SUMMARY
+======================================================================
+Important parameters (38/38):
+  ✓ disease.K_half
+  ✓ disease.P_env_max
+  ✓ disease.T_ref
+  ✓ disease.T_vbnc
+  ✓ disease.a_exposure
+  ✓ disease.immunosuppression_duration
+  ✓ disease.mu_EI1_ref
+  ✓ disease.mu_I1I2_ref
+  ✓ disease.mu_I2D_ref
+  ✓ disease.rho_rec
+  ✓ disease.s_min
+  ✓ disease.sigma_1_eff
+  ✓ disease.sigma_2_eff
+  ✓ disease.sigma_D
+  ✓ disease.susceptibility_multiplier
+  ✓ genetics.n_additive
+  ✓ genetics.q_init_beta_a
+  ✓ genetics.q_init_beta_b
+  ✓ genetics.target_mean_r
+  ✓ pathogen_evolution.alpha_kill
+  ✓ pathogen_evolution.alpha_prog
+  ✓ pathogen_evolution.alpha_shed
+  ✓ pathogen_evolution.gamma_early
+  ✓ pathogen_evolution.sigma_v_mutation
+  ✓ pathogen_evolution.v_init
+  ✓ population.F0
+  ✓ population.L_min_repro
+  ✓ population.alpha_srs
+  ✓ population.gamma_fert
+  ✓ population.k_growth
+  ✓ population.senescence_age
+  ✓ population.settler_survival
+  ✓ spatial.D_L
+  ✓ spatial.alpha_self_fjord
+  ✓ spatial.alpha_self_open
+  ✓ spawning.induction_female_to_male
+  ✓ spawning.induction_male_to_female
+  ✓ spawning.p_spontaneous_female
+
+Results saved: results/sensitivity_r2/morris_screening.json
+Screened params saved: results/sensitivity_r2/screened_params.json
