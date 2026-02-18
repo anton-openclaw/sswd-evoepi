@@ -5,6 +5,8 @@ Modules:
   - population: Population dynamics & demographics (10 plots)
   - disease: Disease & epidemiology (12 plots)
   - genetics: Host genetics & evolution (12 plots)
+  - coevolution: Pathogen co-evolution & arms race (8 plots)
+  - spatial: Spatial metapopulation & geography (8 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -66,4 +68,28 @@ from sswd_evoepi.viz.genetics import (  # noqa: F401
     plot_resistance_by_node_violin,
     plot_genetic_drift_null,
     plot_beta_init_visualization,
+)
+
+from sswd_evoepi.viz.coevolution import (  # noqa: F401
+    VIRULENCE_LOW,
+    VIRULENCE_HIGH,
+    plot_virulence_trajectory,
+    plot_coevolution_phase_portrait,
+    plot_virulence_distribution_over_time,
+    plot_tradeoff_curve,
+    plot_R0_by_virulence,
+    plot_virulence_vs_host_density,
+    plot_strain_competition,
+    plot_coevolution_multi_seed,
+)
+
+from sswd_evoepi.viz.spatial import (  # noqa: F401
+    plot_network_map,
+    plot_connectivity_heatmap,
+    plot_north_south_gradient,
+    plot_fjord_vs_open,
+    plot_metapopulation_timeseries,
+    plot_larval_flow_diagram,
+    plot_spatial_epidemic_timeline,
+    plot_node_fate_matrix,
 )
