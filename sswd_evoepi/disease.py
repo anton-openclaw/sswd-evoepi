@@ -586,6 +586,7 @@ def daily_disease_update(
     cfg: DiseaseSection,
     rng: np.random.Generator,
     infected_density_grid=None,
+    pe_cfg: "PathogenEvolutionSection | None" = None,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -689,10 +690,53 @@ def daily_disease_update(
             draws = rng.random(len(susc_indices))
             infected_mask = draws < p_inf
 
+            # ── Pre-compute strain inheritance data (once) ───────
+            pe_active = pe_cfg is not None and pe_cfg.enabled
+            if pe_active:
+                alive_I1_mask = alive_mask & (ds == DiseaseState.I1)
+                alive_I2_mask = alive_mask & (ds == DiseaseState.I2)
+
+                # Total shedding from local hosts vs environment
+                P_shed_total = (shedding_rate_I1(T_celsius, cfg) * int(np.sum(alive_I1_mask))
+                                + shedding_rate_I2(T_celsius, cfg) * int(np.sum(alive_I2_mask)))
+                P_env_total = environmental_vibrio(T_celsius, salinity, cfg)
+                P_total = P_shed_total + P_env_total
+
+                # Pre-compute shedder sampling distribution
+                shedder_mask = alive_I1_mask | alive_I2_mask
+                shedder_indices = np.where(shedder_mask)[0]
+                if len(shedder_indices) > 0 and P_total > 0:
+                    p_from_shedder = P_shed_total / P_total
+                    shedder_v = agents['pathogen_virulence'][shedder_indices]
+                    weights = np.where(
+                        ds[shedder_indices] == DiseaseState.I2,
+                        sigma_2_strain(shedder_v, T_celsius, cfg, pe_cfg),
+                        sigma_1_strain(shedder_v, T_celsius, cfg, pe_cfg),
+                    )
+                    w_sum = weights.sum()
+                    if w_sum > 0:
+                        weights = weights / w_sum
+                    else:
+                        weights = np.ones(len(shedder_indices)) / len(shedder_indices)
+                else:
+                    p_from_shedder = 0.0
+
             for idx in susc_indices[infected_mask]:
                 ds[idx] = DiseaseState.E
                 dt_rem[idx] = sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
                 new_infections += 1
+
+                # Strain inheritance
+                if pe_active:
+                    if P_total > 0 and len(shedder_indices) > 0 and rng.random() < p_from_shedder:
+                        source_idx = rng.choice(shedder_indices, p=weights)
+                        v_parent = agents['pathogen_virulence'][source_idx]
+                    else:
+                        v_parent = pe_cfg.v_env
+
+                    v_new = v_parent + rng.normal(0, pe_cfg.sigma_v_mutation)
+                    v_new = np.clip(v_new, pe_cfg.v_min, pe_cfg.v_max)
+                    agents['pathogen_virulence'][idx] = v_new
 
     # ── STEP 3: Disease progression ──────────────────────────────────
 
@@ -731,12 +775,14 @@ def daily_disease_update(
                 if rng.random() < p_rec:
                     ds[idx] = DiseaseState.R
                     dt_rem[idx] = 0
+                    agents['pathogen_virulence'][idx] = 0.0
                     new_recoveries += 1
             elif state == DiseaseState.I1:
                 p_early = recovery_probability_I1(r_i, cfg.rho_rec)
                 if rng.random() < p_early:
                     ds[idx] = DiseaseState.R
                     dt_rem[idx] = 0
+                    agents['pathogen_virulence'][idx] = 0.0
                     new_recoveries += 1
 
     # ── STEP 4: Carcass tracking ─────────────────────────────────────

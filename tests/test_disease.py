@@ -1293,3 +1293,191 @@ class TestStrainFunctions:
         R0_strain = compute_R0(T, S_0, phi_k, disease_cfg, v=0.5, pe_cfg=pe_on)
 
         assert R0_strain == pytest.approx(R0_base, rel=1e-10)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# STRAIN INHERITANCE (Phase 3)
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestStrainInheritance:
+    """Tests for pathogen strain inheritance at transmission (Phase 3)."""
+
+    @pytest.fixture
+    def pe_cfg(self):
+        return PathogenEvolutionSection(enabled=True, sigma_v_mutation=0.02)
+
+    @pytest.fixture
+    def disease_cfg(self):
+        return DiseaseSection()
+
+    def _make_agents(self, n):
+        """Allocate agents with defaults."""
+        agents = np.zeros(n, dtype=AGENT_DTYPE)
+        agents['alive'] = True
+        agents['disease_state'] = DiseaseState.S
+        agents['disease_timer'] = 0
+        agents['resistance'] = 0.0  # no resistance → easy infection
+        agents['size'] = 300.0  # reference size
+        agents['fecundity_mod'] = 1.0
+        agents['pathogen_virulence'] = 0.0
+        return agents
+
+    def test_strain_inheritance_from_shedder(self, pe_cfg):
+        """Newly infected agents inherit virulence from I2 shedders (± mutation)."""
+        rng = np.random.default_rng(42)
+        agents = self._make_agents(50)
+
+        # Use invasion scenario → no environmental Vibrio, all transmission from shedders
+        inv_cfg = DiseaseSection(scenario="invasion", invasion_year=2013, invasion_nodes=[0])
+
+        # Set up 10 I2 shedders with known virulence and long timers
+        source_v = 0.8
+        for i in range(10):
+            agents['disease_state'][i] = DiseaseState.I2
+            agents['disease_timer'][i] = 200  # persist entire run
+            agents['pathogen_virulence'][i] = source_v
+
+        node_state = NodeDiseaseState(node_id=0, vibrio_concentration=1000.0)
+
+        # Track which agents we've already recorded
+        seen = set()
+        inherited_v = []
+        for day in range(100):
+            daily_disease_update(
+                agents, node_state, T_celsius=15.0, salinity=30.0,
+                phi_k=0.1, dispersal_input=0.0, day=day,
+                cfg=inv_cfg, rng=rng, pe_cfg=pe_cfg,
+            )
+            for j in range(10, 50):
+                if j not in seen and agents['pathogen_virulence'][j] > 0:
+                    inherited_v.append(float(agents['pathogen_virulence'][j]))
+                    seen.add(j)
+
+        assert len(inherited_v) > 0, "No infections occurred"
+        # All inherited values should be close to source_v (within a few mutation steps)
+        for v in inherited_v:
+            assert abs(v - source_v) < 0.2, f"v={v} too far from source {source_v}"
+
+    def test_strain_inheritance_from_environment(self, disease_cfg, pe_cfg):
+        """With no shedders, new infections get v_env ± mutation."""
+        rng = np.random.default_rng(123)
+        agents = self._make_agents(100)
+
+        # No infected agents — only environmental reservoir
+        # Use ubiquitous scenario (default) for environmental Vibrio
+        node_state = NodeDiseaseState(node_id=0, vibrio_concentration=500.0)
+
+        inherited_v = []
+        for day in range(200):
+            daily_disease_update(
+                agents, node_state, T_celsius=15.0, salinity=30.0,
+                phi_k=0.05, dispersal_input=0.0, day=day,
+                cfg=disease_cfg, rng=rng, pe_cfg=pe_cfg,
+            )
+            for j in range(100):
+                v_j = agents['pathogen_virulence'][j]
+                ds_j = agents['disease_state'][j]
+                if ds_j == DiseaseState.E and v_j > 0 and j not in getattr(self, '_seen', set()):
+                    inherited_v.append(float(v_j))
+                    if not hasattr(self, '_seen'):
+                        self._seen = set()
+                    self._seen.add(j)
+
+        assert len(inherited_v) > 0, "No infections occurred"
+        # All inherited values should be near v_env (0.5) within mutation range
+        for v in inherited_v:
+            assert abs(v - pe_cfg.v_env) < 0.15, f"v={v} too far from v_env={pe_cfg.v_env}"
+
+    def test_strain_mutation_bounded(self, disease_cfg, pe_cfg):
+        """After many transmissions, v stays within [v_min, v_max]."""
+        rng = np.random.default_rng(77)
+        # Use large mutation to stress bounds
+        pe_cfg_wide = PathogenEvolutionSection(
+            enabled=True, sigma_v_mutation=0.5, v_min=0.0, v_max=1.0,
+        )
+        agents = self._make_agents(200)
+
+        # Seed some I2 with extreme virulence
+        for i in range(10):
+            agents['disease_state'][i] = DiseaseState.I2
+            agents['disease_timer'][i] = 20
+            agents['pathogen_virulence'][i] = 0.95  # near max
+
+        node_state = NodeDiseaseState(node_id=0, vibrio_concentration=200.0)
+
+        for day in range(100):
+            daily_disease_update(
+                agents, node_state, T_celsius=15.0, salinity=30.0,
+                phi_k=0.1, dispersal_input=0.0, day=day,
+                cfg=disease_cfg, rng=rng, pe_cfg=pe_cfg_wide,
+            )
+
+        # Check ALL agents: virulence must be in [0, 1]
+        all_v = agents['pathogen_virulence']
+        assert np.all(all_v >= pe_cfg_wide.v_min), f"Found v < v_min: {all_v.min()}"
+        assert np.all(all_v <= pe_cfg_wide.v_max), f"Found v > v_max: {all_v.max()}"
+
+    def test_strain_reset_on_recovery(self, disease_cfg):
+        """After recovery, pathogen_virulence resets to 0.0."""
+        rng = np.random.default_rng(99)
+        pe_cfg = PathogenEvolutionSection(enabled=True)
+        agents = self._make_agents(20)
+
+        # Set up agents in I1 and I2 with high resistance (for recovery)
+        # and known pathogen virulence
+        for i in range(10):
+            agents['disease_state'][i] = DiseaseState.I1
+            agents['disease_timer'][i] = 5
+            agents['resistance'][i] = 0.95  # very high → recovery likely
+            agents['pathogen_virulence'][i] = 0.7
+        for i in range(10, 20):
+            agents['disease_state'][i] = DiseaseState.I2
+            agents['disease_timer'][i] = 5
+            agents['resistance'][i] = 0.95
+            agents['pathogen_virulence'][i] = 0.7
+
+        # Use high recovery rate to ensure recoveries happen
+        disease_cfg_hi = DiseaseSection(rho_rec=0.9)
+        node_state = NodeDiseaseState(node_id=0, vibrio_concentration=0.0)
+
+        # Run several days
+        for day in range(30):
+            daily_disease_update(
+                agents, node_state, T_celsius=15.0, salinity=30.0,
+                phi_k=0.1, dispersal_input=0.0, day=day,
+                cfg=disease_cfg_hi, rng=rng, pe_cfg=pe_cfg,
+            )
+
+        # Check that recovered agents have virulence = 0.0
+        recovered = agents['disease_state'] == DiseaseState.R
+        assert np.sum(recovered) > 0, "No recoveries occurred"
+        recovered_v = agents['pathogen_virulence'][recovered]
+        assert np.all(recovered_v == 0.0), (
+            f"Recovered agents should have v=0.0, got {recovered_v}"
+        )
+
+    def test_strain_disabled_no_virulence(self, disease_cfg):
+        """With pe_cfg=None, pathogen_virulence stays 0.0 for all agents."""
+        rng = np.random.default_rng(55)
+        agents = self._make_agents(50)
+
+        # Seed some infections
+        for i in range(5):
+            agents['disease_state'][i] = DiseaseState.I2
+            agents['disease_timer'][i] = 10
+
+        node_state = NodeDiseaseState(node_id=0, vibrio_concentration=100.0)
+
+        for day in range(50):
+            daily_disease_update(
+                agents, node_state, T_celsius=15.0, salinity=30.0,
+                phi_k=0.1, dispersal_input=0.0, day=day,
+                cfg=disease_cfg, rng=rng,
+                pe_cfg=None,  # disabled
+            )
+
+        # ALL pathogen_virulence should remain 0.0
+        assert np.all(agents['pathogen_virulence'] == 0.0), (
+            f"With pe_cfg=None, virulence should stay 0.0, "
+            f"got non-zero at indices {np.where(agents['pathogen_virulence'] != 0.0)[0]}"
+        )
