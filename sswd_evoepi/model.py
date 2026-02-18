@@ -1034,16 +1034,11 @@ def run_coupled_simulation(
 
         # ── Pathogen evolution virulence tracking ─────────────────────
         if pe_cfg is not None:
-            # Mean virulence of currently infected agents (E + I1 + I2)
-            infected_mask = alive_mask & (
-                (agents['disease_state'] == DiseaseState.E) |
-                (agents['disease_state'] == DiseaseState.I1) |
-                (agents['disease_state'] == DiseaseState.I2)
-            )
-            n_infected = int(np.sum(infected_mask))
-            if n_infected > 0:
-                yearly_mean_v[year] = float(
-                    np.mean(agents['pathogen_virulence'][infected_mask])
+            # Time-weighted mean virulence across all infected agent-days
+            if node_disease.virulence_count_daily > 0:
+                yearly_mean_v[year] = (
+                    node_disease.virulence_sum_daily
+                    / node_disease.virulence_count_daily
                 )
 
             # Mean virulence of new infections this year (from accumulator)
@@ -1065,6 +1060,8 @@ def run_coupled_simulation(
             node_disease.virulence_count_new_infections = 0
             node_disease.virulence_sum_deaths = 0.0
             node_disease.virulence_count_deaths = 0
+            node_disease.virulence_sum_daily = 0.0
+            node_disease.virulence_count_daily = 0
 
         # ── Genetics tracking (Phase 7) ──────────────────────────────
         if pop_after > 0:
@@ -1177,7 +1174,7 @@ class SpatialSimResult:
 def run_spatial_simulation(
     network: 'MetapopulationNetwork',
     n_years: int = 10,
-    disease_year: Optional[int] = None,
+    disease_year: int = 3,
     initial_infected_per_node: int = 5,
     seed: int = 42,
     config: Optional[SimulationConfig] = None,
@@ -1202,7 +1199,7 @@ def run_spatial_simulation(
     Args:
         network: MetapopulationNetwork (from spatial.build_network).
         n_years: Number of years to simulate.
-        disease_year: Year to introduce disease (None = no disease).
+        disease_year: Year to introduce disease (default 3; None = no disease).
         initial_infected_per_node: Infections per node at disease_year.
         seed: RNG seed.
         config: SimulationConfig; uses default if None.
@@ -1613,23 +1610,20 @@ def run_spatial_simulation(
                 yearly_ef1a_freq[i, year] = float(af[IDX_EF1A])
                 yearly_va[i, year] = compute_additive_variance(af, effect_sizes)
 
-            # Per-node virulence tracking
+            # Per-node virulence tracking (time-weighted daily mean)
             if pe_cfg is not None:
-                inf_mask = alive_mask & (
-                    (node.agents['disease_state'] == DiseaseState.E) |
-                    (node.agents['disease_state'] == DiseaseState.I1) |
-                    (node.agents['disease_state'] == DiseaseState.I2)
-                )
-                n_inf = int(np.sum(inf_mask))
-                if n_inf > 0:
-                    yearly_mean_v_spatial[i, year] = float(
-                        np.mean(node.agents['pathogen_virulence'][inf_mask])
+                nds = node_disease_states[i]
+                if nds.virulence_count_daily > 0:
+                    yearly_mean_v_spatial[i, year] = (
+                        nds.virulence_sum_daily / nds.virulence_count_daily
                     )
                 # Reset accumulators for next year
-                node_disease_states[i].virulence_sum_new_infections = 0.0
-                node_disease_states[i].virulence_count_new_infections = 0
-                node_disease_states[i].virulence_sum_deaths = 0.0
-                node_disease_states[i].virulence_count_deaths = 0
+                nds.virulence_sum_new_infections = 0.0
+                nds.virulence_count_new_infections = 0
+                nds.virulence_sum_deaths = 0.0
+                nds.virulence_count_deaths = 0
+                nds.virulence_sum_daily = 0.0
+                nds.virulence_count_daily = 0
 
         yearly_total_pop[year] = int(yearly_pop[:, year].sum())
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0

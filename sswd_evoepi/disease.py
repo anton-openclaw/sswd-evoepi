@@ -571,6 +571,10 @@ class NodeDiseaseState:
     virulence_sum_deaths: float = 0.0
     virulence_count_deaths: int = 0
 
+    # Daily running mean of all infected agents' virulence (time-weighted)
+    virulence_sum_daily: float = 0.0
+    virulence_count_daily: int = 0
+
     # Carcass tracker
     carcass_tracker: CarcassTracker = field(default_factory=CarcassTracker)
 
@@ -856,6 +860,18 @@ def daily_disease_update(
     node_state.cumulative_infections += new_infections
     node_state.cumulative_deaths += new_deaths
     node_state.cumulative_recoveries += new_recoveries
+
+    # Accumulate daily virulence of all infected agents (time-weighted mean)
+    n_inf_total = node_state.n_E + node_state.n_I1 + node_state.n_I2
+    if n_inf_total > 0 and pe_cfg is not None:
+        inf_mask = alive_mask & (
+            (ds == DiseaseState.E) | (ds == DiseaseState.I1) |
+            (ds == DiseaseState.I2)
+        )
+        node_state.virulence_sum_daily += float(
+            np.sum(agents['pathogen_virulence'][inf_mask])
+        )
+        node_state.virulence_count_daily += n_inf_total
 
     n_alive = int(np.sum(alive_mask))
     if n_alive > 0:
