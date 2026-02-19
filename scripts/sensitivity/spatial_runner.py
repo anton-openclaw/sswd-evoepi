@@ -119,6 +119,10 @@ METRIC_NAMES = [
     "mean_final_virulence",
     "virulence_shift",
     "disease_death_fraction",
+    # SA Round 3: spawning + composite metrics
+    "spawning_participation",
+    "mean_recruitment_rate",
+    "evolutionary_rescue_index",
 ]
 
 
@@ -261,6 +265,37 @@ def extract_spatial_metrics(result):
     all_deaths = total_dd + total_natural + total_senescence
     metrics["disease_death_fraction"] = total_dd / all_deaths if all_deaths > 0 else 0.0
     
+    # ── SA Round 3: spawning + composite metrics ───────────────────
+    recruits = result.yearly_recruits  # (n_nodes, n_years)
+    node_K = result.node_K if result.node_K is not None else np.ones(n_nodes) * 5000
+    
+    # mean_recruitment_rate: mean annual recruits/K over pre-disease years
+    if recruits is not None and SIM_DISEASE_YEAR > 0:
+        if recruits.ndim == 2:  # (n_nodes, n_years)
+            pre_disease_recruits = recruits[:, :SIM_DISEASE_YEAR]
+            annual_rate = np.sum(pre_disease_recruits, axis=0) / np.sum(node_K)
+        else:  # (n_years,)
+            pre_disease_recruits = recruits[:SIM_DISEASE_YEAR]
+            annual_rate = pre_disease_recruits / np.sum(node_K)
+        metrics["mean_recruitment_rate"] = float(np.mean(annual_rate)) if len(annual_rate) > 0 else 0.0
+    else:
+        metrics["mean_recruitment_rate"] = 0.0
+    
+    # spawning_participation: proxy — fraction of pre-disease years with any recruits
+    if recruits is not None and SIM_DISEASE_YEAR > 0:
+        if recruits.ndim == 2:
+            yearly_total_recruits = np.sum(recruits[:, :SIM_DISEASE_YEAR], axis=0)
+        else:
+            yearly_total_recruits = recruits[:SIM_DISEASE_YEAR]
+        metrics["spawning_participation"] = float(np.mean(yearly_total_recruits > 0))
+    else:
+        metrics["spawning_participation"] = 0.0
+    
+    # evolutionary_rescue_index: final_pop_frac × resistance_shift_mean
+    metrics["evolutionary_rescue_index"] = (
+        metrics.get("final_pop_frac", 0.0) * metrics.get("resistance_shift_mean", 0.0)
+    )
+    
     return metrics
 
 
@@ -274,6 +309,8 @@ def run_single_spatial(args):
         dict with run_index, metrics, runtime, error
     """
     run_index, sample_row, param_names, base_seed = args
+    run_index = int(run_index)
+    base_seed = int(base_seed)
     
     t0 = time.time()
     
@@ -292,6 +329,9 @@ def run_single_spatial(args):
         
         # Enable pathogen evolution for SA Round 2
         config.pathogen_evolution.enabled = True
+        
+        # Enable Beta genetics init
+        config.genetics.q_init_mode = "beta"
         
         # Validate
         validate_config(config)

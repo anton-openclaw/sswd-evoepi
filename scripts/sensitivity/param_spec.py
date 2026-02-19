@@ -189,6 +189,24 @@ PARAM_SPEC = OrderedDict([
         "low": 0, "high": 180, "dist": "uniform",
         "desc": "Days post-settlement before susceptible to infection", "confidence": "★☆☆",
     }),
+    # ── NEW PARAMS (SA Round 3 — spawning overhaul) ──────────────────
+    ("spawning.p_spontaneous_male", {
+        "low": 0.005, "high": 0.025, "dist": "uniform",
+        "desc": "Daily spontaneous male spawning prob", "confidence": "★★☆",
+    }),
+    ("spawning.peak_width_days", {
+        "low": 30.0, "high": 90.0, "dist": "uniform",
+        "desc": "Spawning season peak width (std dev days)", "confidence": "★★☆",
+    }),
+    ("spawning.readiness_induction_prob", {
+        "low": 0.1, "high": 0.8, "dist": "uniform",
+        "desc": "Social spawning readiness induction probability", "confidence": "★☆☆",
+    }),
+    ("spawning.female_max_bouts", {
+        "low": 1, "high": 3, "dist": "discrete",
+        "values": [1, 2, 3],
+        "desc": "Maximum spawning bouts per female per season", "confidence": "★★☆",
+    }),
 ])
 
 
@@ -277,6 +295,7 @@ def sample_to_config_overrides(sample_row, param_names=None):
     int_fields = {
         ("disease", "immunosuppression_duration"),
         ("disease", "min_susceptible_age_days"),
+        ("spawning", "female_max_bouts"),
     }
     for (sec, fld) in int_fields:
         if sec in overrides and fld in overrides[sec]:
