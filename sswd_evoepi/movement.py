@@ -146,6 +146,11 @@ def daily_movement(
 ) -> None:
     """Run one full day of CRW movement (multiple sub-steps).
 
+    Batched implementation: computes alive mask and speed modifiers once,
+    generates all turning angles in a single RNG call, then loops over
+    substeps with a tight inner loop.  This eliminates ~(substeps-1)
+    redundant alive-mask scans, speed lookups, and RNG dispatch overhead.
+
     Args:
         agents: Structured array with AGENT_DTYPE fields.
         habitat_side: Side length of square habitat (m).
@@ -159,12 +164,54 @@ def daily_movement(
         pre_spawn_gravity_days: Days before spawning that gravity activates.
         post_spawn_gravity_days: Days after spawning that gravity persists.
     """
-    dt_minutes = (24.0 * 60.0) / substeps  # minutes per sub-step
-    for _ in range(substeps):
-        update_movement(agents, dt_minutes, habitat_side, sigma_turn,
-                        base_speed, rng, spawning_gravity_enabled, 
-                        gravity_strength, gravity_range, 
-                        pre_spawn_gravity_days, post_spawn_gravity_days)
+    # If gravity is active, fall back to per-substep calls (rare path)
+    if spawning_gravity_enabled:
+        dt_minutes = (24.0 * 60.0) / substeps
+        for _ in range(substeps):
+            update_movement(agents, dt_minutes, habitat_side, sigma_turn,
+                            base_speed, rng, spawning_gravity_enabled,
+                            gravity_strength, gravity_range,
+                            pre_spawn_gravity_days, post_spawn_gravity_days)
+        return
+
+    # ── Fast path: batched substeps (no gravity) ─────────────────
+    alive_mask = agents['alive'].astype(bool)
+    n_alive = int(alive_mask.sum())
+    if n_alive == 0:
+        return
+
+    alive_idx = np.where(alive_mask)[0]
+    dt_minutes = (24.0 * 60.0) / substeps
+
+    # Compute speed modifiers ONCE (disease state doesn't change within a day's movement)
+    disease_states = agents['disease_state'][alive_idx]
+    speed_mods = SPEED_MODIFIER[disease_states]
+    effective_speed = base_speed * speed_mods
+
+    # Generate ALL turning angles at once: shape (substeps, n_alive)
+    all_turns = rng.normal(0.0, sigma_turn, size=(substeps, n_alive)).astype(np.float32)
+
+    # Extract working copies of position/heading
+    headings = agents['heading'][alive_idx].copy()
+    x = agents['x'][alive_idx].astype(np.float64)
+    y = agents['y'][alive_idx].astype(np.float64)
+
+    # Precompute speed × dt for displacement
+    speed_dt = effective_speed * dt_minutes
+
+    # Tight inner loop over substeps
+    for s in range(substeps):
+        headings = (headings + all_turns[s]) % TWO_PI
+        dx = speed_dt * np.cos(headings)
+        dy = speed_dt * np.sin(headings)
+        x = _reflect(x + dx, habitat_side)
+        y = _reflect(y + dy, habitat_side)
+
+    # Write back final state
+    agents['heading'][alive_idx] = headings
+    agents['x'][alive_idx] = x
+    agents['y'][alive_idx] = y
+    agents['speed'][alive_idx] = effective_speed
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -443,6 +443,7 @@ def daily_natural_mortality(
     agents: np.ndarray,
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
+    alive_idx: np.ndarray = None,
 ) -> Tuple[int, int]:
     """Apply daily natural mortality to all alive individuals (vectorized).
 
@@ -455,12 +456,13 @@ def daily_natural_mortality(
         pop_cfg: Population configuration with annual_survival,
             senescence_age, senescence_mortality.
         rng: NumPy random generator.
+        alive_idx: Pre-computed alive indices (optional; computed if None).
 
     Returns:
         (n_killed, n_senescence) — total natural deaths this day and
         the subset that died from senescence.
     """
-    alive = np.where(agents['alive'])[0]
+    alive = alive_idx if alive_idx is not None else np.where(agents['alive'])[0]
     if len(alive) == 0:
         return 0, 0
 
@@ -509,6 +511,7 @@ def daily_growth_and_aging(
     agents: np.ndarray,
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
+    alive_idx: np.ndarray = None,
 ) -> None:
     """Advance age by 1/365 year, grow via VB, update stages (vectorized).
 
@@ -525,8 +528,9 @@ def daily_growth_and_aging(
         agents: Structured agent array (modified in place).
         pop_cfg: Population configuration with L_inf, k_growth.
         rng: NumPy random generator.
+        alive_idx: Pre-computed alive indices (optional; computed if None).
     """
-    alive = np.where(agents['alive'])[0]
+    alive = alive_idx if alive_idx is not None else np.where(agents['alive'])[0]
     if len(alive) == 0:
         return
 
@@ -1212,13 +1216,17 @@ def run_coupled_simulation(
                 previous_in_season = currently_in_season
 
             # Daily demographics (continuous mortality + growth)
+            # Compute alive_idx once, share across both calls
+            _alive_idx_demo = np.where(agents['alive'])[0]
             with perf.track('daily_mortality'):
-                n_mort, n_senes = daily_natural_mortality(agents, pop_cfg, rng)
+                n_mort, n_senes = daily_natural_mortality(agents, pop_cfg, rng, alive_idx=_alive_idx_demo)
                 daily_nat_deaths_accum += n_mort
                 daily_senes_deaths_accum += n_senes
 
             with perf.track('daily_growth'):
-                daily_growth_and_aging(agents, pop_cfg, rng)
+                if n_mort > 0:
+                    _alive_idx_demo = np.where(agents['alive'])[0]
+                daily_growth_and_aging(agents, pop_cfg, rng, alive_idx=_alive_idx_demo)
 
             # Daily recording
             if record_daily:
@@ -1833,12 +1841,17 @@ def run_spatial_simulation(
                     previous_in_season[i] = currently_in_season
 
             # 6. Daily demographics (continuous mortality + growth)
+            #    Compute alive_idx ONCE per node, share across both calls
             for i, node in enumerate(network.nodes):
                 nd = node.agents
-                n_mort, n_senes = daily_natural_mortality(nd, pop_cfg, rng)
+                _alive_idx = np.where(nd['alive'])[0]
+                n_mort, n_senes = daily_natural_mortality(nd, pop_cfg, rng, alive_idx=_alive_idx)
                 node_daily_nat_deaths[i] += n_mort
                 node_daily_senes_deaths[i] += n_senes
-                daily_growth_and_aging(nd, pop_cfg, rng)
+                # Recompute alive_idx after mortality (some agents may have died)
+                if n_mort > 0:
+                    _alive_idx = np.where(nd['alive'])[0]
+                daily_growth_and_aging(nd, pop_cfg, rng, alive_idx=_alive_idx)
 
             # Optional individual-level snapshot recording
             if snapshot_recorder is not None:

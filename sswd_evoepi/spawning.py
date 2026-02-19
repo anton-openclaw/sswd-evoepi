@@ -449,7 +449,16 @@ def _check_cascade_induction(
     rng: np.random.Generator,
 ) -> List[int]:
     """Check which targets are induced by nearby recent spawners.
-    
+
+    Uses grid-based spatial indexing to avoid O(T×I) pairwise distance
+    computation.  Inducers are binned into grid cells of side
+    ``cascade_radius``.  For each target, only the 9 neighboring cells
+    (including its own) are checked for nearby inducers.  This reduces
+    complexity to O(T × avg_inducers_per_neighborhood).
+
+    Falls back to brute-force pairwise for very small problems (T×I < 500)
+    where the grid overhead exceeds the savings.
+
     Args:
         agents: Full agent array.
         target_indices: Indices of potential targets for induction.
@@ -457,63 +466,98 @@ def _check_cascade_induction(
         cascade_radius: Maximum distance for induction (meters).
         induction_probability: Probability of induction if within range.
         rng: Random number generator.
-        
+
     Returns:
         List of target indices that were induced to spawn.
     """
-    if len(target_indices) == 0 or len(inducer_indices) == 0:
+    n_targets = len(target_indices)
+    n_inducers = len(inducer_indices)
+    if n_targets == 0 or n_inducers == 0:
         return []
-    
+
     # Get positions
-    target_positions = np.column_stack([
-        agents['x'][target_indices], 
-        agents['y'][target_indices]
-    ])
-    inducer_positions = np.column_stack([
-        agents['x'][inducer_indices], 
-        agents['y'][inducer_indices]
-    ])
-    
-    # Memory guard: If T×I > 1,000,000, use chunked computation
-    if len(target_indices) * len(inducer_indices) > 1_000_000:
-        # Process in chunks of 1000 targets to avoid memory blowup
-        chunk_size = 1000
-        induced_targets = []
-        
-        for chunk_start in range(0, len(target_indices), chunk_size):
-            chunk_end = min(chunk_start + chunk_size, len(target_indices))
-            chunk_targets = target_indices[chunk_start:chunk_end]
-            chunk_positions = target_positions[chunk_start:chunk_end]
-            
-            # Compute distances for this chunk
-            # chunk_positions: (C, 2), inducer_positions: (I, 2)
-            # diff: (C, I, 2)
-            diff = chunk_positions[:, np.newaxis, :] - inducer_positions[np.newaxis, :, :]
-            dist_sq = np.sum(diff**2, axis=2)  # (C, I) - skip sqrt for speed
-            has_nearby_inducer = np.any(dist_sq <= cascade_radius**2, axis=1)  # (C,)
-            
-            # Roll for induction for all chunk targets at once
-            rolls = rng.random(len(chunk_targets))
-            induced_mask = has_nearby_inducer & (rolls < induction_probability)
-            induced_chunk = chunk_targets[induced_mask].tolist()
-            induced_targets.extend(induced_chunk)
-            
-        return induced_targets
-    else:
-        # Full vectorized computation for smaller problems
-        # Compute all pairwise distances at once using broadcasting
-        # target_positions: (T, 2), inducer_positions: (I, 2)
-        # diff: (T, I, 2)
+    target_x = agents['x'][target_indices]
+    target_y = agents['y'][target_indices]
+    inducer_x = agents['x'][inducer_indices]
+    inducer_y = agents['y'][inducer_indices]
+
+    radius_sq = cascade_radius ** 2
+
+    # Small-problem fast path (brute-force is cheaper than grid setup)
+    if n_targets * n_inducers < 500:
+        target_positions = np.column_stack([target_x, target_y])
+        inducer_positions = np.column_stack([inducer_x, inducer_y])
         diff = target_positions[:, np.newaxis, :] - inducer_positions[np.newaxis, :, :]
-        dist_sq = np.sum(diff**2, axis=2)  # (T, I) - skip sqrt for speed
-        has_nearby_inducer = np.any(dist_sq <= cascade_radius**2, axis=1)  # (T,)
-        
-        # Roll for induction for all targets at once
-        rolls = rng.random(len(target_indices))
-        induced_mask = has_nearby_inducer & (rolls < induction_probability)
-        induced_targets = target_indices[induced_mask].tolist()
-        
-        return induced_targets
+        dist_sq = np.sum(diff ** 2, axis=2)
+        has_nearby = np.any(dist_sq <= radius_sq, axis=1)
+        rolls = rng.random(n_targets)
+        induced_mask = has_nearby & (rolls < induction_probability)
+        return target_indices[induced_mask].tolist()
+
+    # ── Grid-based spatial indexing ──────────────────────────────
+    cell_size = cascade_radius  # one cell = one radius
+    if cell_size <= 0:
+        return []
+
+    # Bin inducers into grid cells
+    ind_cx = (inducer_x / cell_size).astype(np.int32)
+    ind_cy = (inducer_y / cell_size).astype(np.int32)
+
+    # Build cell → inducer-index mapping using a dict of lists
+    # Key: (cx, cy) → list of local inducer indices (0..n_inducers-1)
+    from collections import defaultdict
+    cell_to_inducers = defaultdict(list)
+    for k in range(n_inducers):
+        cell_to_inducers[(int(ind_cx[k]), int(ind_cy[k]))].append(k)
+
+    # Pre-roll all induction probabilities at once
+    rolls = rng.random(n_targets)
+
+    # For each target, check 9 neighboring cells
+    tgt_cx = (target_x / cell_size).astype(np.int32)
+    tgt_cy = (target_y / cell_size).astype(np.int32)
+
+    has_nearby = np.zeros(n_targets, dtype=bool)
+
+    # Batch by target cell to reduce dict lookups
+    # Group targets by their cell
+    target_cells = {}  # (cx, cy) → list of local target indices
+    for t in range(n_targets):
+        key = (int(tgt_cx[t]), int(tgt_cy[t]))
+        if key not in target_cells:
+            target_cells[key] = []
+        target_cells[key].append(t)
+
+    for (cx, cy), tgt_local_indices in target_cells.items():
+        # Collect all inducer positions from 9 neighboring cells
+        neighbor_inducer_indices = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                neighbor_inducer_indices.extend(
+                    cell_to_inducers.get((cx + dx, cy + dy), [])
+                )
+
+        if not neighbor_inducer_indices:
+            continue  # No inducers nearby for any target in this cell
+
+        # Vectorized distance check for all targets in this cell
+        # against all inducers in neighboring cells
+        tgt_arr = np.array(tgt_local_indices)
+        n_tgt = len(tgt_arr)
+        n_ind_local = len(neighbor_inducer_indices)
+
+        tgt_pos = np.column_stack([target_x[tgt_arr], target_y[tgt_arr]])  # (n_tgt, 2)
+        ind_pos = np.column_stack([
+            inducer_x[neighbor_inducer_indices],
+            inducer_y[neighbor_inducer_indices],
+        ])  # (n_ind_local, 2)
+
+        diff = tgt_pos[:, np.newaxis, :] - ind_pos[np.newaxis, :, :]  # (n_tgt, n_ind_local, 2)
+        dist_sq = np.sum(diff ** 2, axis=2)
+        has_nearby[tgt_arr] = np.any(dist_sq <= radius_sq, axis=1)
+
+    induced_mask = has_nearby & (rolls < induction_probability)
+    return target_indices[induced_mask].tolist()
 
 
 def _execute_spawning_events(

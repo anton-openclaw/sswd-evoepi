@@ -645,10 +645,16 @@ def daily_disease_update(
 
     # ── STEP 1: Update Vibrio concentration ──────────────────────────
 
-    # Count current shedding individuals
+    # Count current shedding individuals using bincount (single pass)
     alive_mask = alive.astype(bool)
-    n_I1 = int(np.sum(alive_mask & (ds == DiseaseState.I1)))
-    n_I2 = int(np.sum(alive_mask & (ds == DiseaseState.I2)))
+    alive_ds = ds[alive_mask]
+    if len(alive_ds) > 0:
+        _counts_init = np.bincount(alive_ds, minlength=6)
+        n_I1 = int(_counts_init[DiseaseState.I1])
+        n_I2 = int(_counts_init[DiseaseState.I2])
+    else:
+        n_I1 = 0
+        n_I2 = 0
     n_D_fresh = node_state.carcass_tracker.n_fresh
 
     # Per-individual strain-weighted shedding when pathogen evolution active
@@ -857,11 +863,21 @@ def daily_disease_update(
     # ── STEP 5: Update compartment counts & diagnostics ──────────────
 
     alive_mask = agents['alive'].astype(bool)  # refresh after deaths
-    node_state.n_S = int(np.sum(alive_mask & (ds == DiseaseState.S)))
-    node_state.n_E = int(np.sum(alive_mask & (ds == DiseaseState.E)))
-    node_state.n_I1 = int(np.sum(alive_mask & (ds == DiseaseState.I1)))
-    node_state.n_I2 = int(np.sum(alive_mask & (ds == DiseaseState.I2)))
-    node_state.n_R = int(np.sum(alive_mask & (ds == DiseaseState.R)))
+    # Use bincount for single-pass compartment counting (replaces 5 separate scans)
+    alive_ds = ds[alive_mask]
+    if len(alive_ds) > 0:
+        counts = np.bincount(alive_ds, minlength=6)
+        node_state.n_S = int(counts[DiseaseState.S])
+        node_state.n_E = int(counts[DiseaseState.E])
+        node_state.n_I1 = int(counts[DiseaseState.I1])
+        node_state.n_I2 = int(counts[DiseaseState.I2])
+        node_state.n_R = int(counts[DiseaseState.R])
+    else:
+        node_state.n_S = 0
+        node_state.n_E = 0
+        node_state.n_I1 = 0
+        node_state.n_I2 = 0
+        node_state.n_R = 0
     node_state.n_D_fresh = node_state.carcass_tracker.n_fresh
 
     node_state.cumulative_infections += new_infections
