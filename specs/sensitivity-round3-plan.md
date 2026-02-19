@@ -126,36 +126,53 @@ SA Round 2 was killed twice (virulence recording bug, then continuous settlement
 - Threshold: μ* < 5% of max μ* for ANY metric → eliminated
 - Output: `results/sensitivity_r3/morris_screening.json`
 
-### Phase 3: Sobol variance decomposition (~30 hours compute, 1 cron job)
+### Phase 3: Morris analysis + email (30min, 1 cron job) → DECISION POINT
 
-Based on Morris results, two scenarios:
+1. Which params survived, which eliminated
+2. Morris rankings per metric category (population, evolution, spatial, PE)
+3. Comparison with Round 1 Morris (what changed?)
+4. Flag surprises (new params ranking high, old top-5 dropping)
+5. Recommend final param list + any range adjustments for Sobol
+6. Email full results to Willem
+7. **WAIT for Willem's go/no-go before launching Sobol**
 
-**If Morris eliminates ≥10 params (≤33 survive):**
-- N=256: 2 × 33 × 257 = 16,962 runs
-- 8 cores, ~77s/run → **45 hours** (not ideal)
-- **Recommendation: N=256, accept 2-day runtime** — Round 1 taught us N=256 is minimum for reliable interactions
+### Phase 4: Sobol N=512 (3-5 days compute, 1 cron job)
 
-**If Morris eliminates <10 params (>33 survive):**
-- N=256: 2 × 38 × 257 = 19,532 runs → 52 hours
-- **Recommendation: N=192 compromise** — 2 × 38 × 193 = 14,668 runs → 39 hours
-- Or N=128 as lower bound: 2 × 38 × 129 = 9,804 runs → 26 hours (but reduced confidence on interactions)
+Based on Morris results:
+
+| If Morris cuts to... | Runs | Wall time (8 cores) |
+|---------------------|------|---------------------|
+| 30 params | 31,744 | 84h (3.5 days) |
+| 35 params | 36,864 | 98h (4 days) |
+| 40 params | 41,984 | 112h (4.7 days) |
+
+**N=512** for tighter Sobol indices and reliable interaction estimates.
+**Bootstrap CIs** (1000 resamples) on all indices.
 
 **Execution:**
-- Run overnight with checkpoint every 500 runs
+- Run with checkpoint every 500 runs
 - `setsid` + `disown` for process persistence (lesson from Round 1)
 - Monitor progress via file-based checkpoints
 
-### Phase 4: Analysis + comparison (~1 hour, 1 cron job)
+### Phase 5: Sobol analysis (~1 hour, 1 cron job)
 
-1. Compute Sobol S1, ST for all surviving params × 20 metrics
-2. Generate figures:
-   - Parameter ranking (bar chart, mean ST)
+1. Compute Sobol S1, ST with 95% bootstrap CIs for all surviving params × 20 metrics
+2. Round 1 vs Round 3 comparison (how did new features change the landscape?)
+3. Identify top drivers per metric category
+4. Flag interaction structure changes
+5. Do PE params, spawning params, juvenile immunity matter?
+
+### Phase 6: Report + visualizations (~1 hour, 1 cron job)
+
+1. Full visualization library figures:
+   - Parameter ranking bars (mean ST)
    - S1 vs ST heatmap (interaction detection)
-   - Round 1 vs Round 3 comparison (how did new features change the landscape?)
-   - New-param-specific: do PE params, spawning params, juvenile immunity matter?
-3. Write report: `results/sensitivity_r3/report/SA_ROUND3_REPORT.md`
-4. Email report to Willem
-5. WhatsApp summary
+   - Round 1 vs Round 3 comparison panels
+   - Metric-specific driver plots
+   - New-param-specific breakdowns
+2. Comprehensive report: `results/sensitivity_r3/report/SA_ROUND3_REPORT.md`
+3. Email report to Willem
+4. WhatsApp summary
 
 ---
 
@@ -174,15 +191,18 @@ Based on Morris results, two scenarios:
 
 | Phase | Start | Duration | Dependencies |
 |-------|-------|----------|-------------|
-| **1: Infrastructure** | Tonight | 2h | None |
+| **1: Infrastructure** | Now | 2h | None |
 | **2: Morris** | After Phase 1 | 3h | Phase 1 |
-| **3: Sobol** | After Phase 2 | 30-52h | Phase 2 (for param list) |
-| **4: Analysis** | After Phase 3 | 1h | Phase 3 |
+| **3: Morris analysis + email** | After Phase 2 | 30min | Phase 2 |
+| ⏸️ | **Wait for Willem's approval** | — | Phase 3 |
+| **4: Sobol N=512** | After approval | 84-112h | Phase 3 + approval |
+| **5: Sobol analysis** | After Phase 4 | 1h | Phase 4 |
+| **6: Report + viz** | After Phase 5 | 1h | Phase 5 |
 
-**Total: ~36-58 hours** depending on Morris screening effectiveness.
+**Total: ~90-118 hours compute** depending on Morris screening effectiveness.
 
-**Earliest completion:** Saturday Feb 21 morning (if Morris eliminates ≥10 params and we use N=256).
-**Latest completion:** Sunday Feb 22 (if no params eliminated and N=256).
+**Earliest completion:** Monday Feb 23 evening (if Morris eliminates ≥10 params).
+**Latest completion:** Wednesday Feb 25 (if minimal elimination).
 
 ---
 
@@ -213,4 +233,5 @@ Based on Morris results, two scenarios:
 | Juvenile immunity | None | Configurable refractory period |
 | Movement substeps | 1/day | 1/day (same) |
 | Per-run time | ~24s | ~77s |
-| Sobol N | 256 | 256 (target) |
+| Sobol N | 256 | **512** |
+| Bootstrap CIs | None | 1000 resamples |
