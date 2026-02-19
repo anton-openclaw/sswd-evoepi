@@ -193,6 +193,8 @@ class LarvalCohort:
     genotypes: np.ndarray          # (n_competent, N_LOCI, 2) int8
     parent_pairs: np.ndarray       # (n_competent, 2) int32 — mother, father indices
     pld_days: float
+    spawn_day: int = 0             # absolute simulation day when spawned
+    sst_at_spawn: float = 10.5    # SST at spawning (determines PLD)
 
 
 @dataclass

@@ -221,6 +221,23 @@ class TestLarvalCohort:
         assert cohort.n_competent == 100
         assert cohort.genotypes.shape == (100, N_LOCI, 2)
         assert cohort.pld_days == 63.0
+        # Default values for new fields
+        assert cohort.spawn_day == 0
+        assert cohort.sst_at_spawn == 10.5
+
+    def test_creation_with_spawn_day(self):
+        cohort = LarvalCohort(
+            source_node=3,
+            n_competent=50,
+            genotypes=np.zeros((50, N_LOCI, 2), dtype=np.int8),
+            parent_pairs=np.zeros((50, 2), dtype=np.int32),
+            pld_days=53.0,
+            spawn_day=120,
+            sst_at_spawn=14.0,
+        )
+        assert cohort.spawn_day == 120
+        assert cohort.sst_at_spawn == 14.0
+        assert cohort.pld_days == 53.0
 
 
 class TestSettlerPacket:

@@ -68,6 +68,7 @@ from sswd_evoepi.reproduction import (
     larval_survival,
     mendelian_inherit_batch,
     pelagic_larval_duration,
+    settle_recruits,
     settlement_cue_modifier,
     srs_reproductive_lottery,
     _compute_resistance,
@@ -82,6 +83,7 @@ from sswd_evoepi.types import (
     AGENT_DTYPE,
     ANNUAL_SURVIVAL,
     IDX_EF1A,
+    LarvalCohort,
     N_ADDITIVE,
     N_LOCI,
     STAGE_SIZE_THRESHOLDS,
@@ -566,6 +568,131 @@ def annual_reproduction(
 
     diag['n_recruits'] = n_slots
     return diag
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTINUOUS SETTLEMENT (daily cohort settlement)
+# ═══════════════════════════════════════════════════════════════════════
+
+def settle_daily_cohorts(
+    cohorts: List[LarvalCohort],
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    carrying_capacity: int,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    effect_sizes: np.ndarray = None,
+    w_od: float = 0.160,
+    node_id: int = 0,
+    habitat_area: float = 1e6,
+) -> int:
+    """Settle competent larval cohorts into the population.
+
+    Called daily in the simulation loop for cohorts whose PLD has elapsed.
+    Applies Beverton-Holt density-dependent recruitment per cohort,
+    modulated by settlement cue (adult biofilm Allee effect).
+
+    Uses the same slot-finding and agent initialization logic as
+    ``settle_recruits`` and ``annual_reproduction``.
+
+    Args:
+        cohorts: List of LarvalCohort objects ready to settle (PLD elapsed).
+        agents: Agent structured array (modified in place).
+        genotypes: Genotype array (modified in place).
+        carrying_capacity: K for this node.
+        pop_cfg: Population dynamics configuration (for settler_survival).
+        rng: Random number generator.
+        effect_sizes: (N_ADDITIVE,) float64 effect sizes for resistance.
+            If None, uses ``make_effect_sizes()`` default.
+        w_od: Overdominant weight for EF1A locus.
+        node_id: Node index for placed agents.
+        habitat_area: Habitat area in m² (for spatial placement of settlers).
+
+    Returns:
+        Total number of recruits successfully settled across all cohorts.
+    """
+    if not cohorts:
+        return 0
+
+    if effect_sizes is None:
+        effect_sizes = make_effect_sizes()
+
+    total_settled = 0
+
+    for cohort in cohorts:
+        if cohort.n_competent <= 0:
+            continue
+
+        current_alive = int(np.sum(agents['alive']))
+        available_slots = max(0, carrying_capacity - current_alive)
+        if available_slots == 0:
+            break
+
+        # Count adults for settlement cue modifier (Allee effect)
+        n_adults = int(np.sum(
+            agents['alive'] & (agents['stage'] == Stage.ADULT)
+        ))
+        cue_mod = settlement_cue_modifier(n_adults)
+        effective_settlers = max(0, int(cohort.n_competent * cue_mod))
+
+        if effective_settlers <= 0:
+            continue
+
+        # Beverton-Holt density-dependent recruitment (full K)
+        n_recruits = beverton_holt_recruitment(
+            effective_settlers, carrying_capacity, pop_cfg.settler_survival,
+        )
+        n_recruits = min(n_recruits, available_slots, effective_settlers, cohort.n_competent)
+
+        if n_recruits <= 0:
+            continue
+
+        # Select which settlers survive (random subsample if needed)
+        if n_recruits < cohort.n_competent:
+            keep_idx = rng.choice(cohort.n_competent, size=n_recruits, replace=False)
+            settler_geno = cohort.genotypes[keep_idx]
+        else:
+            settler_geno = cohort.genotypes[:n_recruits]
+
+        # Find dead/empty slots in agent array
+        dead_slots = np.where(~agents['alive'])[0]
+        n_slots = min(n_recruits, len(dead_slots))
+        if n_slots <= 0:
+            continue
+
+        hab_side = np.sqrt(max(habitat_area, 1.0))
+        slots = dead_slots[:n_slots]
+
+        # Batch field assignments (vectorized — same pattern as settle_recruits)
+        agents['alive'][slots] = True
+        agents['x'][slots] = rng.uniform(0, hab_side, n_slots)
+        agents['y'][slots] = rng.uniform(0, hab_side, n_slots)
+        agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n_slots)
+        agents['speed'][slots] = 0.1
+        agents['size'][slots] = 0.5  # mm at settlement
+        agents['age'][slots] = 0.0
+        agents['stage'][slots] = Stage.SETTLER
+        agents['sex'][slots] = rng.integers(0, 2, n_slots)
+        agents['disease_state'][slots] = DiseaseState.S
+        agents['disease_timer'][slots] = 0
+        agents['fecundity_mod'][slots] = 1.0
+        agents['node_id'][slots] = node_id
+        agents['origin'][slots] = 0  # WILD
+        agents['cause_of_death'][slots] = 0  # DeathCause.ALIVE
+
+        # Batch genotype assignment
+        genotypes[slots] = settler_geno[:n_slots]
+
+        # Vectorized resistance score computation
+        resistance_scores = np.array([
+            _compute_resistance(settler_geno[j], effect_sizes, w_od)
+            for j in range(n_slots)
+        ])
+        agents['resistance'][slots] = resistance_scores
+
+        total_settled += n_slots
+
+    return total_settled
 
 
 # ═══════════════════════════════════════════════════════════════════════

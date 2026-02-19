@@ -508,6 +508,7 @@ def produce_larval_cohort(
     fecundity_exp: float = 2.5,
     L_min_repro: float = 400.0,
     rng: Optional[np.random.Generator] = None,
+    current_sim_day: int = 0,
 ) -> Tuple[Optional[LarvalCohort], dict]:
     """Full spawning pipeline: identify spawners → eggs → fertilization → larvae → SRS.
 
@@ -626,6 +627,8 @@ def produce_larval_cohort(
         genotypes=offspring_geno,
         parent_pairs=parent_pairs,
         pld_days=pld,
+        spawn_day=current_sim_day,
+        sst_at_spawn=sst,
     )
 
     return cohort, diag

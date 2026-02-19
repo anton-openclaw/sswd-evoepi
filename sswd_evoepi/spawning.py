@@ -130,6 +130,8 @@ def spawning_step(
     spawning_config: SpawningSection,
     disease_config: DiseaseSection,
     rng: np.random.Generator,
+    current_sim_day: int = 0,
+    current_sst: float = 10.5,
 ) -> List[LarvalCohort]:
     """Execute daily spawning step for Phase 1-4 (complete spawning system).
     
@@ -272,7 +274,9 @@ def spawning_step(
             genotypes, 
             spawners_today, 
             spawning_config, 
-            rng
+            rng,
+            current_sim_day=current_sim_day,
+            current_sst=current_sst,
         )
         if cohort.n_competent > 0:
             cohorts.append(cohort)
@@ -548,6 +552,8 @@ def _generate_larval_cohort(
     spawner_indices: List[int],
     config: SpawningSection,
     rng: np.random.Generator,
+    current_sim_day: int = 0,
+    current_sst: float = 10.5,
 ) -> LarvalCohort:
     """Generate larval cohort from spawning agents using SRS lottery.
     
@@ -561,6 +567,8 @@ def _generate_larval_cohort(
         spawner_indices: Indices of agents that spawned today.
         config: Spawning configuration (contains SRS parameters from population config).
         rng: Random number generator.
+        current_sim_day: Absolute simulation day (for continuous settlement tracking).
+        current_sst: Sea surface temperature at spawning (°C).
         
     Returns:
         LarvalCohort with competent larvae and parent tracking.
@@ -569,13 +577,19 @@ def _generate_larval_cohort(
         This function will need to access population config parameters
         for fecundity and SRS calculations. For now using placeholder values.
     """
+    # Compute PLD from SST (import here to avoid circular dependency)
+    from .reproduction import pelagic_larval_duration
+    pld = pelagic_larval_duration(current_sst)
+
     if not spawner_indices:
         return LarvalCohort(
             source_node=agents['node_id'][spawner_indices[0]] if spawner_indices else 0,
             n_competent=0,
             genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
             parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
-            pld_days=120.0  # Default PLD
+            pld_days=pld,
+            spawn_day=current_sim_day,
+            sst_at_spawn=current_sst,
         )
     
     spawners = agents[spawner_indices]
@@ -598,7 +612,9 @@ def _generate_larval_cohort(
             n_competent=0,
             genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
             parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
-            pld_days=120.0
+            pld_days=pld,
+            spawn_day=current_sim_day,
+            sst_at_spawn=current_sst,
         )
     
     # Calculate total fecundity from females
@@ -616,7 +632,9 @@ def _generate_larval_cohort(
             n_competent=0,
             genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
             parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
-            pld_days=120.0
+            pld_days=pld,
+            spawn_day=current_sim_day,
+            sst_at_spawn=current_sst,
         )
     
     female_fecundities = F0 * (reproductive_females['size'] / L_ref) ** fecundity_exp
@@ -672,7 +690,9 @@ def _generate_larval_cohort(
             n_competent=0,
             genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
             parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
-            pld_days=120.0
+            pld_days=pld,
+            spawn_day=current_sim_day,
+            sst_at_spawn=current_sst,
         )
     
     # Generate offspring genotypes through sexual reproduction
@@ -721,7 +741,9 @@ def _generate_larval_cohort(
         n_competent=int(total_competent),
         genotypes=offspring_genotypes,
         parent_pairs=parent_pairs,
-        pld_days=120.0  # Placeholder PLD
+        pld_days=pld,
+        spawn_day=current_sim_day,
+        sst_at_spawn=current_sst,
     )
 
 
