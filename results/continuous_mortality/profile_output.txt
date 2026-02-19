@@ -1,0 +1,170 @@
+========================================================================
+ SSWD-EvoEpi Spatial Simulation Profiling
+ 2026-02-19 10:32:12
+========================================================================
+
+Configuration:
+  Nodes: 3 (Sitka 8.5°C / Howe Sound 10°C fjord / Monterey 13°C)
+  K per node: 5000
+  Years: 20 (7300 days)
+  Disease year: 3
+  Pathogen evolution: True
+  Seed: 42
+
+Building 3-node network...
+  Nodes: ['Sitka', 'Howe Sound', 'Monterey']
+  C matrix shape: (3, 3)
+  D matrix shape: (3, 3)
+
+Applying instrumentation patches...
+
+────────────────────────────────────────────────────────────────────────
+ RUN 1: Instrumented run (monkey-patched timers)
+────────────────────────────────────────────────────────────────────────
+
+Total wall-clock time: 97.67s
+Final total pop: 280
+Peak disease prevalence: ['0.934', '0.964', '0.955']
+
+========================================================================
+ Component Breakdown (monkey-patched timers)
+========================================================================
+Component                     Total (s)  Per-day (ms) % of total    Calls
+──────────────────────────── ────────── ───────────── ────────── ────────
+movement                         55.522         7.606      56.8%    21900
+daily_growth                      1.793         0.246       1.8%    21900
+daily_mortality                   1.616         0.221       1.7%    21900
+settlement                        0.183         0.025       0.2%     1472
+environment                       0.050         0.007       0.1%    43800
+pathogen_dispersal                0.041         0.006       0.0%     7300
+larval_dispersal                  0.004         0.001       0.0%       20
+──────────────────────────── ────────── ───────────── ────────── ────────
+TRACKED TOTAL                    59.208         8.111      60.6%
+UNTRACKED (overhead)             38.462         5.269      39.4%
+WALL CLOCK TOTAL                 97.670
+========================================================================
+
+────────────────────────────────────────────────────────────────────────
+ RUN 2: cProfile (top 50 cumulative)
+────────────────────────────────────────────────────────────────────────
+         40842200 function calls in 110.510 seconds
+
+   Ordered by: cumulative time
+   List reduced from 168 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    6.104    6.104  110.510  110.510 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:1503(run_spatial_simulation)
+   118292    0.207    0.000   64.258    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/scripts/profile_spatial.py:102(wrapper)
+    21900    0.437    0.000   59.768    0.003 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:134(daily_movement)
+   525600   31.391    0.000   59.331    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:67(update_movement)
+    15420    2.897    0.000   22.772    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:125(spawning_step)
+  1051200   18.733    0.000   18.832    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:49(_reflect)
+    17520    7.700    0.000   11.900    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:596(daily_disease_update)
+  1166444    9.214    0.000    9.214    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     2311    7.874    0.003    8.519    0.004 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:616(_generate_larval_cohort)
+    15420    2.939    0.000    8.365    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:297(_cascade_induction_step)
+     6068    2.972    0.000    6.849    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:443(_check_cascade_induction)
+  1216196    6.473    0.000    6.473    0.000 {method 'astype' of 'numpy.ndarray' objects}
+   421330    0.503    0.000    6.120    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:66(_wrapreduction)
+   302988    0.314    0.000    6.087    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2304(sum)
+   605516    0.261    0.000    3.876    0.000 {method 'sum' of 'numpy.ndarray' objects}
+   605516    0.180    0.000    3.615    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/_methods.py:47(_sum)
+     2311    0.823    0.000    2.668    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:555(_readiness_induction_step)
+    21900    0.931    0.000    2.597    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:333(build)
+    21900    1.900    0.000    1.959    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:508(daily_growth_and_aging)
+    21900    1.311    0.000    1.945    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:442(daily_natural_mortality)
+ 26103956    1.902    0.000    1.902    0.000 {method 'append' of 'list' objects}
+   218174    0.159    0.000    1.148    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:48(_wrapfunc)
+    13436    0.326    0.000    0.987    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:395(_diffuse_2d)
+   118304    0.141    0.000    0.933    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2207(clip)
+    13436    0.141    0.000    0.660    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:546(pad)
+   118304    0.444    0.000    0.618    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/_methods.py:96(_clip)
+    83689    0.231    0.000    0.603    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:314(sample_stage_duration)
+    90203    0.048    0.000    0.600    0.000 {method 'clip' of 'numpy.ndarray' objects}
+   132820    0.089    0.000    0.525    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2436(any)
+   118342    0.066    0.000    0.479    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3287(prod)
+    17516    0.148    0.000    0.463    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:379(lookup)
+   132820    0.150    0.000    0.435    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:86(_wrapreduction_any_all)
+    98310    0.044    0.000    0.391    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3582(round)
+    15420    0.263    0.000    0.266    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:408(_get_recent_spawners_mask)
+    87190    0.097    0.000    0.240    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:38(_wrapit)
+    26872    0.157    0.000    0.210    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:297(_set_reflect_both)
+     1472    0.103    0.000    0.201    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:768(settle_daily_cohorts)
+   220009    0.180    0.000    0.180    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:81(arrhenius)
+    78328    0.176    0.000    0.176    0.000 {built-in method numpy.array}
+  1762335    0.173    0.000    0.173    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/multiarray.py:403(where)
+    13436    0.063    0.000    0.145    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:471(_as_pairs)
+   140736    0.137    0.000    0.137    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/getlimits.py:412(__init__)
+    17520    0.029    0.000    0.134    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:250(update_vibrio_concentration)
+    35039    0.078    0.000    0.124    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:214(environmental_vibrio)
+    13436    0.082    0.000    0.122    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:87(_pad_simple)
+   423706    0.113    0.000    0.113    0.000 {built-in method builtins.getattr}
+    35040    0.021    0.000    0.111    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:524(n_fresh)
+        3    0.020    0.007    0.104    0.035 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:240(initialize_population)
+    98310    0.101    0.000    0.101    0.000 {method 'round' of 'numpy.ndarray' objects}
+    28101    0.028    0.000    0.093    0.000 {method 'clip' of 'numpy.generic' objects}
+
+
+
+
+────────────────────────────────────────────────────────────────────────
+ cProfile (top 50 by tottime — self time)
+────────────────────────────────────────────────────────────────────────
+         40842200 function calls in 110.510 seconds
+
+   Ordered by: internal time
+   List reduced from 168 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   525600   31.391    0.000   59.331    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:67(update_movement)
+  1051200   18.733    0.000   18.832    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:49(_reflect)
+  1166444    9.214    0.000    9.214    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     2311    7.874    0.003    8.519    0.004 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:616(_generate_larval_cohort)
+    17520    7.700    0.000   11.900    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:596(daily_disease_update)
+  1216196    6.473    0.000    6.473    0.000 {method 'astype' of 'numpy.ndarray' objects}
+        1    6.104    6.104  110.510  110.510 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:1503(run_spatial_simulation)
+     6068    2.972    0.000    6.849    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:443(_check_cascade_induction)
+    15420    2.939    0.000    8.365    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:297(_cascade_induction_step)
+    15420    2.897    0.000   22.772    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:125(spawning_step)
+ 26103956    1.902    0.000    1.902    0.000 {method 'append' of 'list' objects}
+    21900    1.900    0.000    1.959    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:508(daily_growth_and_aging)
+    21900    1.311    0.000    1.945    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:442(daily_natural_mortality)
+    21900    0.931    0.000    2.597    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:333(build)
+     2311    0.823    0.000    2.668    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:555(_readiness_induction_step)
+   421330    0.503    0.000    6.120    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:66(_wrapreduction)
+   118304    0.444    0.000    0.618    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/_methods.py:96(_clip)
+    21900    0.437    0.000   59.768    0.003 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:134(daily_movement)
+    13436    0.326    0.000    0.987    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:395(_diffuse_2d)
+   302988    0.314    0.000    6.087    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2304(sum)
+    15420    0.263    0.000    0.266    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/spawning.py:408(_get_recent_spawners_mask)
+   605516    0.261    0.000    3.876    0.000 {method 'sum' of 'numpy.ndarray' objects}
+    83689    0.231    0.000    0.603    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:314(sample_stage_duration)
+   118292    0.207    0.000   64.258    0.001 /home/starbot/.openclaw/workspace/sswd-evoepi/scripts/profile_spatial.py:102(wrapper)
+   605516    0.180    0.000    3.615    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/_methods.py:47(_sum)
+   220009    0.180    0.000    0.180    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:81(arrhenius)
+    78328    0.176    0.000    0.176    0.000 {built-in method numpy.array}
+  1762335    0.173    0.000    0.173    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/multiarray.py:403(where)
+   218174    0.159    0.000    1.148    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:48(_wrapfunc)
+    26872    0.157    0.000    0.210    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:297(_set_reflect_both)
+   132820    0.150    0.000    0.435    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:86(_wrapreduction_any_all)
+    17516    0.148    0.000    0.463    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/movement.py:379(lookup)
+   118304    0.141    0.000    0.933    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2207(clip)
+    13436    0.141    0.000    0.660    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:546(pad)
+   140736    0.137    0.000    0.137    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/getlimits.py:412(__init__)
+   423706    0.113    0.000    0.113    0.000 {built-in method builtins.getattr}
+     1472    0.103    0.000    0.201    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/model.py:768(settle_daily_cohorts)
+    98310    0.101    0.000    0.101    0.000 {method 'round' of 'numpy.ndarray' objects}
+    87190    0.097    0.000    0.240    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:38(_wrapit)
+   132820    0.089    0.000    0.525    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:2436(any)
+   554286    0.083    0.000    0.083    0.000 {method 'items' of 'dict' objects}
+    13436    0.082    0.000    0.122    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:87(_pad_simple)
+    35039    0.078    0.000    0.124    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:214(environmental_vibrio)
+     3766    0.073    0.000    0.073    0.000 {built-in method numpy.zeros}
+   323335    0.072    0.000    0.072    0.000 {built-in method builtins.isinstance}
+    11702    0.068    0.000    0.080    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:428(sigma_1_strain)
+   118342    0.066    0.000    0.479    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3287(prod)
+    12589    0.064    0.000    0.077    0.000 /home/starbot/.openclaw/workspace/sswd-evoepi/sswd_evoepi/disease.py:450(sigma_2_strain)
+    13436    0.063    0.000    0.145    0.000 /home/starbot/.local/lib/python3.12/site-packages/numpy/lib/_arraypad_impl.py:471(_as_pairs)
+   162922    0.061    0.000    0.061    0.000 {built-in method builtins.max}
+
+
