@@ -1422,12 +1422,27 @@ def run_spatial_simulation(
                 cell_size=mov_cfg.cell_size,
             )
 
+    # ── Continuous settlement: per-node pending cohort lists ────────
+    # Each node accumulates LarvalCohort objects from daily spawning.
+    # At year-end, unsettled cohorts are collected for C matrix dispersal.
+    # Dispersed cohorts land in pending_cohorts[dest] and settle daily
+    # when PLD elapses.
+    pending_cohorts: List[List[LarvalCohort]] = [[] for _ in range(N)]
+    spawning_enabled = config.spawning is not None
+
+    # Per-node spawning season tracking
+    previous_in_season = [False] * N
+    yearly_recruits_accum = [0] * N  # track daily settlement per node per year
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
     for year in range(n_years):
         cal_year = start_year + year
         year_dd_before = list(cumulative_dis_deaths)
+
+        # Reset per-year accumulators
+        yearly_recruits_accum = [0] * N
 
         # Track max vibrio per node this year
         max_vibrio_year = np.zeros(N, dtype=np.float64)
@@ -1507,9 +1522,64 @@ def run_spatial_simulation(
                     node_disease_states[i].vibrio_concentration
                 )
 
+            # 4. Continuous settlement: settle cohorts whose PLD has elapsed
+            sim_day = year * DAYS_PER_YEAR + day
+            if spawning_enabled:
+                for i, node in enumerate(network.nodes):
+                    if not pending_cohorts[i]:
+                        continue
+                    ready = [c for c in pending_cohorts[i]
+                             if (sim_day - c.spawn_day) >= c.pld_days]
+                    pending_cohorts[i] = [c for c in pending_cohorts[i]
+                                          if (sim_day - c.spawn_day) < c.pld_days]
+                    if ready:
+                        nd = node.definition
+                        n_settled = settle_daily_cohorts(
+                            ready, node.agents, node.genotypes,
+                            nd.carrying_capacity, pop_cfg, rng,
+                            effect_sizes, node_id=nd.node_id,
+                            habitat_area=nd.habitat_area,
+                        )
+                        yearly_recruits_accum[i] += n_settled
+
+            # 5. Daily spawning step (if enabled)
+            if spawning_enabled:
+                day_of_year = (day + 1)  # Convert 0-based to 1-based
+                for i, node in enumerate(network.nodes):
+                    nd = node.definition
+                    currently_in_season = in_spawning_season(
+                        day_of_year,
+                        config.spawning.season_start_doy,
+                        config.spawning.season_end_doy,
+                    )
+                    # Reset spawning season when transitioning out
+                    if previous_in_season[i] and not currently_in_season:
+                        reset_spawning_season(node.agents)
+                    # Daily spawning during season
+                    if currently_in_season:
+                        cohorts_today = spawning_step(
+                            agents=node.agents,
+                            genotypes=node.genotypes,
+                            day_of_year=day_of_year,
+                            node_latitude=nd.lat,
+                            spawning_config=config.spawning,
+                            disease_config=config.disease,
+                            rng=rng,
+                            current_sim_day=sim_day,
+                            current_sst=node.current_sst,
+                        )
+                        if cohorts_today:
+                            # Tag cohorts with source node
+                            for c in cohorts_today:
+                                c.source_node = nd.node_id
+                            pending_cohorts[i].extend(cohorts_today)
+                    # Tick down immunosuppression timers
+                    immuno_mask = node.agents['immunosuppression_timer'] > 0
+                    node.agents['immunosuppression_timer'][immuno_mask] -= 1
+                    previous_in_season[i] = currently_in_season
+
             # Optional individual-level snapshot recording
             if snapshot_recorder is not None:
-                sim_day = year * DAYS_PER_YEAR + day
                 snapshot_recorder.capture_all_nodes(
                     sim_day, year, network.nodes
                 )
@@ -1549,44 +1619,51 @@ def run_spatial_simulation(
             node_senes_deaths[i] = n_senes
             annual_growth_and_aging(nd, pop_cfg, rng)
 
-        # 2. Reproduction at each node → produce larval cohorts
+        # 2. Larval dispersal via C matrix (annual)
+        #    Collect unsettled cohorts from each source node, disperse via C,
+        #    place into dest pending_cohorts. Cohorts with PLD elapsed settle
+        #    immediately; others settle in next year's daily loop.
         source_ids = []
         source_n = []
         source_geno = []
-        node_repro_diags = []
+        source_cohort_meta = []  # (spawn_day, pld_days, sst_at_spawn) per source batch
 
-        for i, node in enumerate(network.nodes):
-            pop_now = node.n_alive
-            if pop_now == 0:
-                node_repro_diags.append({'n_recruits': 0})
+        for i in range(N):
+            # Merge all pending cohorts at this node into one batch for C matrix
+            node_cohorts = pending_cohorts[i]
+            if not node_cohorts:
                 continue
-            repro_diag = annual_reproduction(
-                agents=node.agents,
-                genotypes=node.genotypes,
-                effect_sizes=effect_sizes,
-                habitat_area=node.definition.habitat_area,
-                sst=node.current_sst,
-                carrying_capacity=node.definition.carrying_capacity,
-                pop_cfg=pop_cfg,
-                rng=rng,
+            all_geno = []
+            all_spawn_days = []
+            all_pld_days = []
+            all_sst = []
+            for c in node_cohorts:
+                if c.n_competent > 0 and c.genotypes is not None:
+                    for j in range(min(c.n_competent, len(c.genotypes))):
+                        all_geno.append(c.genotypes[j])
+                        all_spawn_days.append(c.spawn_day)
+                        all_pld_days.append(c.pld_days)
+                        all_sst.append(c.sst_at_spawn)
+            pending_cohorts[i] = []  # clear source pending
+
+            if not all_geno:
+                continue
+            n_larvae = len(all_geno)
+            # Cap per node to avoid memory issues
+            if n_larvae > 5000:
+                idx = rng.choice(n_larvae, size=5000, replace=False)
+                all_geno = [all_geno[j] for j in idx]
+                all_spawn_days = [all_spawn_days[j] for j in idx]
+                all_pld_days = [all_pld_days[j] for j in idx]
+                all_sst = [all_sst[j] for j in idx]
+                n_larvae = 5000
+            source_ids.append(i)
+            source_n.append(n_larvae)
+            source_geno.append(np.array(all_geno))
+            source_cohort_meta.append(
+                (all_spawn_days, all_pld_days, all_sst)
             )
-            node_repro_diags.append(repro_diag)
 
-            # Collect larvae for dispersal
-            n_comp = repro_diag.get('n_competent', 0)
-            if n_comp > 0:
-                # Get genotypes of alive individuals for sampling
-                alive_mask = node.agents['alive'].astype(bool)
-                alive_geno = node.genotypes[alive_mask]
-                # Sample n_comp genotypes (representing competent larvae)
-                if len(alive_geno) > 0:
-                    idx = rng.choice(len(alive_geno), size=min(n_comp, 1000),
-                                     replace=True)
-                    source_ids.append(i)
-                    source_n.append(min(n_comp, 1000))
-                    source_geno.append(alive_geno[idx])
-
-        # 3. Larval dispersal via C matrix
         total_larvae = sum(source_n)
         if total_larvae > 0:
             settler_map = distribute_larvae(
@@ -1594,48 +1671,72 @@ def run_spatial_simulation(
                 network.C, rng,
             )
 
-            # 4. Settle larvae at destination nodes
+            # Build a lookup: source_idx -> meta arrays for reassignment
+            source_meta_by_id = {}
+            for idx, sid in enumerate(source_ids):
+                source_meta_by_id[sid] = source_cohort_meta[idx]
+
+            # Place dispersed cohorts into dest pending_cohorts
+            end_of_year_day = (year + 1) * DAYS_PER_YEAR
             for k in range(N):
                 if not settler_map[k]:
                     continue
-                node = network.nodes[k]
-                nd = node.definition
                 for geno_batch, src in settler_map[k]:
-                    n_settlers = len(geno_batch)
-                    # Find empty slots
-                    dead_slots = np.where(~node.agents['alive'])[0]
-                    n_to_place = min(n_settlers, len(dead_slots))
-                    if n_to_place == 0:
+                    n_batch = len(geno_batch)
+                    if n_batch == 0:
                         continue
-                    # B-H density check
-                    current_alive = node.n_alive
-                    available = max(0, nd.carrying_capacity - current_alive)
-                    n_to_place = min(n_to_place, available)
-                    if n_to_place <= 0:
-                        continue
-
-                    hab_side = np.sqrt(max(nd.habitat_area, 1.0))
-                    for j in range(n_to_place):
-                        slot = dead_slots[j]
-                        node.agents[slot]['alive'] = True
-                        node.agents[slot]['x'] = rng.uniform(0, hab_side)
-                        node.agents[slot]['y'] = rng.uniform(0, hab_side)
-                        node.agents[slot]['heading'] = rng.uniform(0, 2*np.pi)
-                        node.agents[slot]['speed'] = 0.1
-                        node.agents[slot]['size'] = 0.5
-                        node.agents[slot]['age'] = 0.0
-                        node.agents[slot]['stage'] = Stage.SETTLER
-                        node.agents[slot]['sex'] = rng.integers(0, 2)
-                        node.agents[slot]['disease_state'] = DiseaseState.S
-                        node.agents[slot]['disease_timer'] = 0
-                        node.agents[slot]['fecundity_mod'] = 1.0
-                        node.agents[slot]['node_id'] = k
-                        node.agents[slot]['origin'] = 0
-                        node.agents[slot]['cause_of_death'] = 0  # ALIVE
-                        node.genotypes[slot] = geno_batch[j]
-                        node.agents[slot]['resistance'] = _compute_resistance(
-                            geno_batch[j], effect_sizes, 0.160,
+                    # Get meta from source (spawn_day, pld_days, sst)
+                    meta = source_meta_by_id.get(src)
+                    if meta is None:
+                        # Fallback: use default PLD from dest node SST
+                        fallback_pld = pelagic_larval_duration(
+                            network.nodes[k].current_sst
                         )
+                        spawn_days_batch = [end_of_year_day - int(fallback_pld)] * n_batch
+                        pld_days_batch = [fallback_pld] * n_batch
+                        sst_batch = [network.nodes[k].current_sst] * n_batch
+                    else:
+                        all_sd, all_pld, all_sst_m = meta
+                        n_meta = len(all_sd)
+                        # Sample meta for each settler (dispersed larvae
+                        # are random draws from source genotypes)
+                        meta_idx = rng.choice(n_meta, size=n_batch, replace=True)
+                        spawn_days_batch = [all_sd[j] for j in meta_idx]
+                        pld_days_batch = [all_pld[j] for j in meta_idx]
+                        sst_batch = [all_sst_m[j] for j in meta_idx]
+
+                    # Create individual LarvalCohort objects per settler
+                    # Group by (spawn_day, pld_days) for efficiency
+                    from collections import defaultdict
+                    groups = defaultdict(list)
+                    for j in range(n_batch):
+                        key = (spawn_days_batch[j], pld_days_batch[j])
+                        groups[key].append(j)
+
+                    for (sd, pld), indices in groups.items():
+                        cohort_geno = geno_batch[indices]
+                        cohort = LarvalCohort(
+                            source_node=src,
+                            n_competent=len(indices),
+                            genotypes=cohort_geno,
+                            parent_pairs=np.zeros((len(indices), 2), dtype=np.int32),
+                            pld_days=pld,
+                            spawn_day=sd,
+                            sst_at_spawn=sst_batch[indices[0]],
+                        )
+                        # If PLD already elapsed, settle immediately
+                        if (end_of_year_day - sd) >= pld:
+                            nd = network.nodes[k].definition
+                            n_settled = settle_daily_cohorts(
+                                [cohort], network.nodes[k].agents,
+                                network.nodes[k].genotypes,
+                                nd.carrying_capacity, pop_cfg, rng,
+                                effect_sizes, node_id=nd.node_id,
+                                habitat_area=nd.habitat_area,
+                            )
+                            yearly_recruits_accum[k] += n_settled
+                        else:
+                            pending_cohorts[k].append(cohort)
 
         # 5. Pre-epidemic allele frequency snapshot
         if (disease_year is not None and year == disease_year
@@ -1688,7 +1789,7 @@ def run_spatial_simulation(
             adult_mask = alive_mask & (node.agents['stage'] == Stage.ADULT)
             yearly_pop[i, year] = pop_now
             yearly_adults[i, year] = int(np.sum(adult_mask))
-            yearly_recruits[i, year] = node_repro_diags[i].get('n_recruits', 0)
+            yearly_recruits[i, year] = yearly_recruits_accum[i]
             yearly_nat_deaths[i, year] = node_nat_deaths[i]
             yearly_senes_deaths[i, year] = node_senes_deaths[i]
             yearly_dis_deaths[i, year] = (
