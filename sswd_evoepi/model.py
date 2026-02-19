@@ -32,6 +32,7 @@ Build target: Phase 5 (single-node) + Phase 7 (genetics) + Phase 9 (spatial).
 
 from __future__ import annotations
 
+import bisect
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -574,6 +575,46 @@ def annual_reproduction(
 # CONTINUOUS SETTLEMENT (daily cohort settlement)
 # ═══════════════════════════════════════════════════════════════════════
 
+
+def _cohort_settlement_day(c: LarvalCohort) -> int:
+    """Key function for sorted insertion by settlement day."""
+    return c.spawn_day + int(c.pld_days)
+
+
+def _insort_cohort(pending: List[LarvalCohort], cohort: LarvalCohort) -> None:
+    """Insert cohort into sorted pending list (by settlement_day, ascending)."""
+    key = _cohort_settlement_day(cohort)
+    # bisect on the key — find insertion point
+    lo, hi = 0, len(pending)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if _cohort_settlement_day(pending[mid]) < key:
+            lo = mid + 1
+        else:
+            hi = mid
+    pending.insert(lo, cohort)
+
+
+def _pop_ready_cohorts(
+    pending: List[LarvalCohort], sim_day: int
+) -> List[LarvalCohort]:
+    """Pop all cohorts with settlement_day <= sim_day from sorted list.
+
+    O(k) where k = number of ready cohorts (typically 0-3 per day).
+    The pending list remains sorted after popping.
+    """
+    if not pending or _cohort_settlement_day(pending[0]) > sim_day:
+        return []
+    # Find cutoff index using bisect
+    # All cohorts with settlement_day <= sim_day are at the front
+    cut = 0
+    while cut < len(pending) and _cohort_settlement_day(pending[cut]) <= sim_day:
+        cut += 1
+    ready = pending[:cut]
+    del pending[:cut]
+    return ready
+
+
 def settle_daily_cohorts(
     cohorts: List[LarvalCohort],
     agents: np.ndarray,
@@ -683,12 +724,16 @@ def settle_daily_cohorts(
         # Batch genotype assignment
         genotypes[slots] = settler_geno[:n_slots]
 
-        # Vectorized resistance score computation
-        resistance_scores = np.array([
-            _compute_resistance(settler_geno[j], effect_sizes, w_od)
-            for j in range(n_slots)
-        ])
-        agents['resistance'][slots] = resistance_scores
+        # Truly vectorized batch resistance computation (Phase 7)
+        # Additive: mean allele dosage × effect sizes, summed across loci
+        allele_means = (
+            settler_geno[:n_slots, :N_ADDITIVE, :].sum(axis=2).astype(np.float64) * 0.5
+        )  # shape (n_slots, N_ADDITIVE)
+        additive = allele_means @ effect_sizes  # shape (n_slots,)
+        # Overdominant: EF1A heterozygote bonus
+        ef1a_sum = settler_geno[:n_slots, IDX_EF1A, :].sum(axis=1)
+        od_bonus = np.where(ef1a_sum == 1, w_od, 0.0)
+        agents['resistance'][slots] = additive + od_bonus
 
         total_settled += n_slots
 
@@ -1427,6 +1472,10 @@ def run_spatial_simulation(
     # At year-end, unsettled cohorts are collected for C matrix dispersal.
     # Dispersed cohorts land in pending_cohorts[dest] and settle daily
     # when PLD elapses.
+    #
+    # OPTIMIZATION (Phase 7): Lists are kept sorted by settlement_day
+    # (ascending). Daily check pops from front while settlement_day <=
+    # sim_day — O(1) amortized instead of O(n) filter per day.
     pending_cohorts: List[List[LarvalCohort]] = [[] for _ in range(N)]
     spawning_enabled = config.spawning is not None
 
@@ -1528,10 +1577,9 @@ def run_spatial_simulation(
                 for i, node in enumerate(network.nodes):
                     if not pending_cohorts[i]:
                         continue
-                    ready = [c for c in pending_cohorts[i]
-                             if (sim_day - c.spawn_day) >= c.pld_days]
-                    pending_cohorts[i] = [c for c in pending_cohorts[i]
-                                          if (sim_day - c.spawn_day) < c.pld_days]
+                    # Phase 7 optimization: pop from sorted front instead
+                    # of filtering the entire list each day
+                    ready = _pop_ready_cohorts(pending_cohorts[i], sim_day)
                     if ready:
                         nd = node.definition
                         n_settled = settle_daily_cohorts(
@@ -1569,10 +1617,10 @@ def run_spatial_simulation(
                             current_sst=node.current_sst,
                         )
                         if cohorts_today:
-                            # Tag cohorts with source node
+                            # Tag cohorts with source node and insert sorted
                             for c in cohorts_today:
                                 c.source_node = nd.node_id
-                            pending_cohorts[i].extend(cohorts_today)
+                                _insort_cohort(pending_cohorts[i], c)
                     # Tick down immunosuppression timers
                     immuno_mask = node.agents['immunosuppression_timer'] > 0
                     node.agents['immunosuppression_timer'][immuno_mask] -= 1
@@ -1736,7 +1784,7 @@ def run_spatial_simulation(
                             )
                             yearly_recruits_accum[k] += n_settled
                         else:
-                            pending_cohorts[k].append(cohort)
+                            _insort_cohort(pending_cohorts[k], cohort)
 
         # 5. Pre-epidemic allele frequency snapshot
         if (disease_year is not None and year == disease_year

@@ -779,12 +779,14 @@ def settle_recruits(
     # Batch genotype assignment
     genotypes[slots] = settler_genotypes[:n_slots]
 
-    # Vectorized resistance score computation
-    resistance_scores = np.array([
-        _compute_resistance(settler_genotypes[j], effect_sizes, w_od)
-        for j in range(n_slots)
-    ])
-    agents['resistance'][slots] = resistance_scores
+    # Truly vectorized batch resistance computation (Phase 7)
+    allele_means = (
+        settler_genotypes[:n_slots, :N_ADDITIVE, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    additive = allele_means @ effects
+    ef1a_sum = settler_genotypes[:n_slots, IDX_EF1A, :].sum(axis=1)
+    od_bonus = np.where(ef1a_sum == 1, w_od, 0.0)
+    agents['resistance'][slots] = additive + od_bonus
 
     return n_slots
 

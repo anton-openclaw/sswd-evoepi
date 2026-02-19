@@ -196,6 +196,11 @@ class LarvalCohort:
     spawn_day: int = 0             # absolute simulation day when spawned
     sst_at_spawn: float = 10.5    # SST at spawning (determines PLD)
 
+    @property
+    def settlement_day(self) -> int:
+        """Absolute sim day when this cohort becomes competent to settle."""
+        return self.spawn_day + int(self.pld_days)
+
 
 @dataclass
 class SettlerPacket:
