@@ -427,6 +427,153 @@ def annual_growth_and_aging(
         )
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# CONTINUOUS (DAILY) DEMOGRAPHIC FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════
+# These replace the annual lump-sum mortality/growth in the simulation
+# loop. The old annual_* functions above are retained for backward
+# compatibility and testing.
+#
+# Reference: specs/continuous-mortality-spec.md
+
+_INV_365 = 1.0 / 365.0  # pre-computed for daily timestep
+
+
+def daily_natural_mortality(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+) -> Tuple[int, int]:
+    """Apply daily natural mortality to all alive individuals (vectorized).
+
+    Converts annual stage-specific survival rates to daily death
+    probabilities via ``p_death_daily = 1 - S_annual^(1/365)``.
+    Senescence overlay for agents older than ``senescence_age``.
+
+    Args:
+        agents: Structured agent array (modified in place).
+        pop_cfg: Population configuration with annual_survival,
+            senescence_age, senescence_mortality.
+        rng: NumPy random generator.
+
+    Returns:
+        (n_killed, n_senescence) — total natural deaths this day and
+        the subset that died from senescence.
+    """
+    alive = np.where(agents['alive'])[0]
+    if len(alive) == 0:
+        return 0, 0
+
+    stages = agents['stage'][alive]
+    ages = agents['age'][alive]
+
+    # Vectorized annual survival lookup by stage
+    annual_surv = np.array(pop_cfg.annual_survival, dtype=np.float64)
+    s_clipped = np.clip(stages, 0, len(annual_surv) - 1)
+    base_annual_mort = 1.0 - annual_surv[s_clipped]
+
+    # Senescence overlay: extra mortality for age > senescence_age
+    total_annual_mort = base_annual_mort.copy()
+    senes_mask = ages > pop_cfg.senescence_age
+    if np.any(senes_mask):
+        extra = (pop_cfg.senescence_mortality
+                 * (ages[senes_mask] - pop_cfg.senescence_age) / 20.0)
+        total_annual_mort[senes_mask] = np.minimum(
+            1.0, base_annual_mort[senes_mask] + extra
+        )
+
+    # Convert annual mortality → daily mortality
+    daily_mort = 1.0 - (1.0 - total_annual_mort) ** _INV_365
+
+    # Single vectorized random draw
+    rolls = rng.random(len(alive))
+    dies = rolls < daily_mort
+
+    # Apply deaths
+    dead_idx = alive[dies]
+    agents['alive'][dead_idx] = False
+
+    # Stamp cause of death: SENESCENCE (3) or NATURAL (2)
+    dead_ages = agents['age'][dead_idx]
+    senes_dead = dead_ages > pop_cfg.senescence_age
+    # Use field[slot] = value pattern (CE-critical for structured arrays)
+    agents['cause_of_death'][dead_idx[senes_dead]] = 3   # SENESCENCE
+    agents['cause_of_death'][dead_idx[~senes_dead]] = 2  # NATURAL
+
+    n_killed = int(np.sum(dies))
+    n_senescence = int(np.sum(senes_dead))
+    return n_killed, n_senescence
+
+
+def daily_growth_and_aging(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+) -> None:
+    """Advance age by 1/365 year, grow via VB, update stages (vectorized).
+
+    Von Bertalanffy differential form with dt=1/365:
+        ``new_size = L_inf - (L_inf - old_size) * exp(-k * 1/365)``
+
+    Growth noise: multiplicative log-normal with daily-scaled sigma
+    (σ_daily = 2.0 / √365 ≈ 0.105 mm).
+
+    Stage transitions checked via size thresholds (one-directional).
+    Size is clamped to never decrease (no shrinking).
+
+    Args:
+        agents: Structured agent array (modified in place).
+        pop_cfg: Population configuration with L_inf, k_growth.
+        rng: NumPy random generator.
+    """
+    alive = np.where(agents['alive'])[0]
+    if len(alive) == 0:
+        return
+
+    n = len(alive)
+
+    # Daily aging
+    agents['age'][alive] += _INV_365
+
+    # VB growth with dt = 1/365
+    old_size = agents['size'][alive].astype(np.float64)
+    L_inf = pop_cfg.L_inf
+    k = pop_cfg.k_growth
+    decay = np.exp(-k * _INV_365)  # scalar, same for all
+    deterministic = L_inf - (L_inf - old_size) * decay
+
+    # Growth noise: multiplicative log-normal (daily-scaled σ)
+    sigma_daily = 2.0 / np.sqrt(365.0)
+    noise = np.exp(rng.normal(0.0, sigma_daily * _INV_365, size=n))
+    # Apply noise to the increment only (not to existing size)
+    increment = (deterministic - old_size) * noise
+    new_size = old_size + np.maximum(increment, 0.0)
+
+    # Clamp: no shrinking
+    new_size = np.maximum(new_size, old_size)
+    agents['size'][alive] = new_size
+
+    # Vectorized stage assignment (one-directional only)
+    # Thresholds: SETTLER (<10) → JUVENILE (<150) → SUBADULT (<400) → ADULT
+    current_stage = agents['stage'][alive].copy()
+
+    # Only promote, never demote (use np.maximum against current stage)
+    # EGG_LARVA (0) handled externally — skip those
+    not_egg = current_stage != Stage.EGG_LARVA
+
+    new_stage = current_stage.copy()
+    # Start from smallest → largest threshold
+    new_stage[not_egg & (new_size >= 10.0)] = np.maximum(
+        new_stage[not_egg & (new_size >= 10.0)], Stage.JUVENILE
+    )
+    new_stage[not_egg & (new_size >= 150.0)] = np.maximum(
+        new_stage[not_egg & (new_size >= 150.0)], Stage.SUBADULT
+    )
+    new_stage[not_egg & (new_size >= 400.0)] = Stage.ADULT
+
+    agents['stage'][alive] = new_stage
+
+
 def annual_reproduction(
     agents: np.ndarray,
     genotypes: np.ndarray,
