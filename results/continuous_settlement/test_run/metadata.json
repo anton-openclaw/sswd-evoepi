@@ -1,0 +1,30 @@
+{
+  "git_hash": "c7f206feaae26b2cd707ee491289d15621ce76e2",
+  "seeds": [
+    42,
+    43,
+    44,
+    45
+  ],
+  "n_years": 20,
+  "disease_year": 3,
+  "n_nodes": 5,
+  "pathogen_evolution_enabled": true,
+  "timings": {
+    "42": 65.45655226707458,
+    "43": 68.38355851173401,
+    "44": 66.16929030418396,
+    "45": 65.93005609512329
+  },
+  "quality_gates": {
+    "N\u2192S mortality gradient": true,
+    "Fjord protection": true,
+    "Disease deaths > 0 all nodes": true,
+    "Mean virulence ~0.5": true,
+    "Resistance increases": true,
+    "Runtime < 150s": true,
+    "Cross-seed consistency": true,
+    "No sawtooth (settlement)": false
+  },
+  "timestamp": "2026-02-18T21:14:19-0800"
+}
