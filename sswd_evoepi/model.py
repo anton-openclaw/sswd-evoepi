@@ -772,6 +772,9 @@ class CoupledSimResult:
     # Death accounting by cause (annual timeseries)
     yearly_senescence_deaths: Optional[np.ndarray] = None
 
+    # Spawning event tracking (daily)
+    daily_spawning_counts: Optional[np.ndarray] = None  # (total_days,) spawners per day
+
     # Pathogen evolution (annual timeseries)
     yearly_mean_virulence: Optional[np.ndarray] = None          # (n_years,)
     yearly_virulence_new_infections: Optional[np.ndarray] = None  # (n_years,)
@@ -906,6 +909,9 @@ def run_coupled_simulation(
     # ── Allocate result arrays ────────────────────────────────────────
     total_days = n_years * DAYS_PER_YEAR
 
+    # Spawning event tracking (daily)
+    daily_spawning_counts = np.zeros(total_days, dtype=np.int32)
+
     yearly_pop = np.zeros(n_years, dtype=np.int32)
     yearly_adults = np.zeros(n_years, dtype=np.int32)
     yearly_recruits = np.zeros(n_years, dtype=np.int32)
@@ -1027,6 +1033,13 @@ def run_coupled_simulation(
                         spawning_diagnostics['n_spawning_events'] += len(cohorts_today)
                         spawning_diagnostics['n_cohorts'] += len(cohorts_today)
                         spawning_diagnostics['total_larvae'] += sum(c.n_competent for c in cohorts_today)
+                    
+                    # Count spawners today: agents whose last_spawn_day == today's DOY
+                    alive_spawned = (
+                        agents['alive'] &
+                        (agents['last_spawn_day'] == day_of_year)
+                    )
+                    daily_spawning_counts[sim_day] = int(np.sum(alive_spawned))
                 
                 # Tick down immunosuppression timers
                 with perf.track("immunosuppression_tick"):
@@ -1254,6 +1267,8 @@ def run_coupled_simulation(
         daily_pop=daily_pop,
         daily_infected=daily_infected,
         daily_vibrio=daily_vibrio,
+        # Spawning event tracking
+        daily_spawning_counts=daily_spawning_counts,
         # Summary
         initial_pop=initial_pop,
         final_pop=final_pop,
@@ -1304,6 +1319,8 @@ class SpatialSimResult:
     peak_disease_prevalence: Optional[np.ndarray] = None
     # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
     yearly_mean_virulence: Optional[np.ndarray] = None
+    # Spawning event tracking (daily, per-node)
+    daily_spawning_counts: Optional[np.ndarray] = None  # (n_nodes, total_days)
     # Summary
     initial_total_pop: int = 0
     final_total_pop: int = 0
@@ -1467,6 +1484,10 @@ def run_spatial_simulation(
                 cell_size=mov_cfg.cell_size,
             )
 
+    # ── Spawning event tracking (daily, per-node) ─────────────────
+    total_sim_days = n_years * DAYS_PER_YEAR
+    daily_spawning_counts_spatial = np.zeros((N, total_sim_days), dtype=np.int32)
+
     # ── Continuous settlement: per-node pending cohort lists ────────
     # Each node accumulates LarvalCohort objects from daily spawning.
     # At year-end, unsettled cohorts are collected for C matrix dispersal.
@@ -1621,6 +1642,12 @@ def run_spatial_simulation(
                             for c in cohorts_today:
                                 c.source_node = nd.node_id
                                 _insort_cohort(pending_cohorts[i], c)
+                        # Count spawners today at this node
+                        alive_spawned = (
+                            node.agents['alive'] &
+                            (node.agents['last_spawn_day'] == day_of_year)
+                        )
+                        daily_spawning_counts_spatial[i, sim_day] = int(np.sum(alive_spawned))
                     # Tick down immunosuppression timers
                     immuno_mask = node.agents['immunosuppression_timer'] > 0
                     node.agents['immunosuppression_timer'][immuno_mask] -= 1
@@ -1899,6 +1926,7 @@ def run_spatial_simulation(
         yearly_total_larvae_dispersed=yearly_total_larvae,
         peak_disease_prevalence=peak_disease_prev,
         yearly_mean_virulence=yearly_mean_v_spatial,
+        daily_spawning_counts=daily_spawning_counts_spatial,
         initial_total_pop=initial_total,
         final_total_pop=int(yearly_total_pop[-1]),
         disease_year=disease_year,

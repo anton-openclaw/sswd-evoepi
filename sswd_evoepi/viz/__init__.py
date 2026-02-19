@@ -8,6 +8,7 @@ Modules:
   - coevolution: Pathogen co-evolution & arms race (8 plots)
   - spatial: Spatial metapopulation & geography (8 plots)
   - dashboards: Dashboards & composite views (10 plots)
+  - settlement: Continuous settlement & spawning event tracking (9 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -107,4 +108,16 @@ from sswd_evoepi.viz.dashboards import (  # noqa: F401
     plot_conservation_scenario_matrix,
     plot_model_validation_panel,
     plot_parameter_space_exploration,
+)
+
+from sswd_evoepi.viz.settlement import (  # noqa: F401
+    plot_settlement_timing_heatmap,
+    plot_settlement_spread,
+    plot_pld_temperature_curve,
+    plot_daily_recruitment,
+    plot_before_after_epidemic,
+    plot_spawning_intensity,
+    plot_spawning_heatmap,
+    plot_spawning_density_dependence,
+    plot_spawning_cascade,
 )
