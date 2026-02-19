@@ -163,6 +163,11 @@ class DiseaseSection:
     susceptibility_multiplier: float = 2.0   # Force-of-infection multiplier during immunosuppression
     immunosuppression_duration: int = 28      # Duration of post-spawning immunosuppression (days)
 
+    # Juvenile immunity (Phase 11)
+    min_susceptible_age_days: int = 0  # Days post-settlement before susceptible
+                                       # 0 = immediate (backward compatible)
+                                       # SA range: [0, 180]
+
     # Invasion scenario extras
     invasion_year: Optional[int] = None
     invasion_nodes: Optional[List[int]] = None

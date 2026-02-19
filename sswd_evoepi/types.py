@@ -149,8 +149,11 @@ AGENT_DTYPE = np.dtype([
     ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
                                       #         2=natural, 3=senescence)
     ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S or R)
+    ('settlement_day', np.int32),     #  4 B — absolute sim day when settled/initialized
+                                      #         0 for initial pop (always susceptible)
+                                      #         Used for juvenile immunity (Phase 11)
 ])
-# Total: ~51 bytes per agent (was ~41, +10 bytes for spawning fields)
+# Total: ~55 bytes per agent (was ~51, +4 bytes for settlement_day)
 
 
 def allocate_agents(max_n: int) -> np.ndarray:

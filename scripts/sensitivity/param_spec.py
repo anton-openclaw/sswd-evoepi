@@ -183,6 +183,12 @@ PARAM_SPEC = OrderedDict([
         "low": 0.2, "high": 0.8, "dist": "uniform",
         "desc": "Initial pathogen virulence", "confidence": "★☆☆",
     }),
+    # ── NEW PARAMS (SA Round 3 — Phase 11) ───────────────────────────
+    # Juvenile immunity
+    ("disease.min_susceptible_age_days", {
+        "low": 0, "high": 180, "dist": "uniform",
+        "desc": "Days post-settlement before susceptible to infection", "confidence": "★☆☆",
+    }),
 ])
 
 
@@ -270,6 +276,7 @@ def sample_to_config_overrides(sample_row, param_names=None):
     # Integer coercion for fields that must be int
     int_fields = {
         ("disease", "immunosuppression_duration"),
+        ("disease", "min_susceptible_age_days"),
     }
     for (sec, fld) in int_fields:
         if sec in overrides and fld in overrides[sec]:

@@ -690,6 +690,13 @@ def daily_disease_update(
         mu_EI1 = arrhenius(cfg.mu_EI1_ref, cfg.Ea_EI1, T_celsius)
 
         susceptible = alive_mask & (ds == DiseaseState.S)
+
+        # Phase 11: Juvenile immunity — exclude recently settled agents
+        if cfg.min_susceptible_age_days > 0:
+            age_days = day - agents['settlement_day']
+            juvenile_mask = age_days < cfg.min_susceptible_age_days
+            susceptible = susceptible & ~juvenile_mask
+
         susc_indices = np.where(susceptible)[0]
 
         if len(susc_indices) > 0:

@@ -351,6 +351,7 @@ def initialize_population(
     agents['fecundity_mod'][sl] = 1.0
     agents['node_id'][sl] = 0
     agents['origin'][sl] = 0  # WILD
+    agents['settlement_day'][sl] = 0  # Phase 11: initial pop always susceptible
 
     # Compute resistance scores
     for i in range(n_individuals):
@@ -436,6 +437,7 @@ def annual_reproduction(
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
     w_od: float = 0.160,
+    sim_day: int = 0,
 ) -> dict:
     """Full annual reproduction: spawning → fertilization → SRS → settlement.
 
@@ -561,6 +563,7 @@ def annual_reproduction(
         agents[slot]['node_id'] = 0
         agents[slot]['origin'] = 0
         agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
+        agents[slot]['settlement_day'] = sim_day  # Phase 11: juvenile immunity
 
         genotypes[slot] = settler_geno[j]
         agents[slot]['resistance'] = _compute_resistance(
@@ -626,6 +629,7 @@ def settle_daily_cohorts(
     w_od: float = 0.160,
     node_id: int = 0,
     habitat_area: float = 1e6,
+    sim_day: int = 0,
 ) -> int:
     """Settle competent larval cohorts into the population.
 
@@ -648,6 +652,8 @@ def settle_daily_cohorts(
         w_od: Overdominant weight for EF1A locus.
         node_id: Node index for placed agents.
         habitat_area: Habitat area in m² (for spatial placement of settlers).
+        sim_day: Current simulation day (stamped as settlement_day for
+            juvenile immunity tracking).
 
     Returns:
         Total number of recruits successfully settled across all cohorts.
@@ -720,6 +726,7 @@ def settle_daily_cohorts(
         agents['node_id'][slots] = node_id
         agents['origin'][slots] = 0  # WILD
         agents['cause_of_death'][slots] = 0  # DeathCause.ALIVE
+        agents['settlement_day'][slots] = sim_day  # Phase 11: juvenile immunity
 
         # Batch genotype assignment
         genotypes[slots] = settler_geno[:n_slots]
@@ -1000,6 +1007,7 @@ def run_coupled_simulation(
                             ready, agents, genotypes, carrying_capacity,
                             pop_cfg, rng, effect_sizes,
                             habitat_area=habitat_area,
+                            sim_day=sim_day,
                         )
                         yearly_recruits_accum += n_settled
 
@@ -1082,10 +1090,12 @@ def run_coupled_simulation(
                 accumulated_cohorts = [c for c in accumulated_cohorts
                                        if ((year + 1) * DAYS_PER_YEAR - c.spawn_day) < c.pld_days]
                 if end_of_year_ready:
+                    end_of_year_sim_day = (year + 1) * DAYS_PER_YEAR - 1
                     n_eoy = settle_daily_cohorts(
                         end_of_year_ready, agents, genotypes,
                         carrying_capacity, pop_cfg, rng, effect_sizes,
                         habitat_area=habitat_area,
+                        sim_day=end_of_year_sim_day,
                     )
                     yearly_recruits_accum += n_eoy
 
@@ -1113,6 +1123,7 @@ def run_coupled_simulation(
                     carrying_capacity=carrying_capacity,
                     pop_cfg=pop_cfg,
                     rng=rng,
+                    sim_day=(year + 1) * DAYS_PER_YEAR - 1,
                 )
         else:
             repro_diag = {
@@ -1608,6 +1619,7 @@ def run_spatial_simulation(
                             nd.carrying_capacity, pop_cfg, rng,
                             effect_sizes, node_id=nd.node_id,
                             habitat_area=nd.habitat_area,
+                            sim_day=sim_day,
                         )
                         yearly_recruits_accum[i] += n_settled
 
@@ -1808,6 +1820,7 @@ def run_spatial_simulation(
                                 nd.carrying_capacity, pop_cfg, rng,
                                 effect_sizes, node_id=nd.node_id,
                                 habitat_area=nd.habitat_area,
+                                sim_day=end_of_year_day,
                             )
                             yearly_recruits_accum[k] += n_settled
                         else:

@@ -700,6 +700,7 @@ def settle_recruits(
     w_od: float = 0.160,
     settler_survival: float = 0.03,
     rng: Optional[np.random.Generator] = None,
+    sim_day: int = 0,
 ) -> int:
     """Add settled larvae to the node's agent arrays.
 
@@ -775,6 +776,7 @@ def settle_recruits(
     agents['fecundity_mod'][slots] = 1.0
     agents['node_id'][slots] = node_id
     agents['origin'][slots] = 0  # WILD
+    agents['settlement_day'][slots] = sim_day  # Phase 11: juvenile immunity
 
     # Batch genotype assignment
     genotypes[slots] = settler_genotypes[:n_slots]
@@ -783,7 +785,7 @@ def settle_recruits(
     allele_means = (
         settler_genotypes[:n_slots, :N_ADDITIVE, :].sum(axis=2).astype(np.float64) * 0.5
     )
-    additive = allele_means @ effects
+    additive = allele_means @ effect_sizes
     ef1a_sum = settler_genotypes[:n_slots, IDX_EF1A, :].sum(axis=1)
     od_bonus = np.where(ef1a_sum == 1, w_od, 0.0)
     agents['resistance'][slots] = additive + od_bonus
