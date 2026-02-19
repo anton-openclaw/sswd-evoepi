@@ -9,6 +9,7 @@ Modules:
   - spatial: Spatial metapopulation & geography (8 plots)
   - dashboards: Dashboards & composite views (10 plots)
   - settlement: Continuous settlement & spawning event tracking (9 plots)
+  - spawning_viz: Spawning dynamics deep visualization + animated GIFs (5 plots + 4 GIFs)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -120,4 +121,17 @@ from sswd_evoepi.viz.settlement import (  # noqa: F401
     plot_spawning_heatmap,
     plot_spawning_density_dependence,
     plot_spawning_cascade,
+)
+
+from sswd_evoepi.viz.spawning_viz import (  # noqa: F401
+    DailySnapshot,
+    run_simulation_with_snapshots,
+    classify_agents,
+    plot_spawning_event_profile,
+    plot_spawning_participation,
+    plot_readiness_cascade,
+    plot_spawning_vs_density,
+    plot_spawning_before_after,
+    create_spawning_animation,
+    create_comparison_animation,
 )
