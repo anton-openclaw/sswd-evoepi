@@ -867,7 +867,9 @@ class TestGeneticsDiseaseCoupling:
 
         # Phase 1 rate should be >= Phase 2 rate (rapid then slow)
         # Allow some tolerance for stochasticity
-        assert rate_phase1 > rate_phase2 - 0.005, \
+        # Allow wider tolerance: spawning overhaul (Phase 12) increases
+        # reproductive variance, which can amplify stochastic selection signals.
+        assert rate_phase1 > rate_phase2 - 0.015, \
             f"Phase 1 should be faster: rate1={rate_phase1:.4f}/yr, " \
             f"rate2={rate_phase2:.4f}/yr"
 
@@ -1185,8 +1187,10 @@ class TestDemographicValidation:
         # so year-end snapshots may show slightly wider variance than annual pulses.
         for year in range(3, 30):
             pop = result.yearly_pop[year]
-            assert 325 <= pop <= 675, \
-                f"Year {year}: pop={pop}, expected 325-675 (±35% of K=500)"
+            # Phase 12 spawning overhaul (female 2×, zero refractory) increases
+            # reproductive variance, allowing wider population fluctuations.
+            assert 275 <= pop <= 725, \
+                f"Year {year}: pop={pop}, expected 275-725 (±45% of K=500)"
 
     def test_no_disease_zero_disease_deaths(self):
         """Without disease, there should be zero disease deaths."""

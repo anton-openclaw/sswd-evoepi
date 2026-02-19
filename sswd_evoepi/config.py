@@ -98,13 +98,14 @@ class SpawningSection:
     
     # Cascade induction parameters (Phase 2 - not used in Phase 1)
     induction_female_to_male: float = 0.80    # Probability male spawns when female nearby has spawned
-    induction_male_to_female: float = 0.30    # Probability female spawns when male nearby has spawned  
+    induction_male_to_female: float = 0.60    # Probability female spawns when male nearby has spawned  
     cascade_window: int = 3                   # Duration of chemical spawning cue persistence (days)
     cascade_radius: float = 200.0  # Effective range of chemical spawning cue (m)
     
-    # Male multi-bout parameters
+    # Multi-bout parameters
+    female_max_bouts: int = 2                 # Maximum spawning bouts per female per season
     male_max_bouts: int = 3                   # Maximum spawning bouts per male per season
-    male_refractory_days: int = 21            # Minimum days between male spawning bouts
+    male_refractory_days: int = 0             # Minimum days between male spawning bouts (0 = next day OK)
     
     # Spawning gravity parameters (Phase 3 - not used in Phase 1)
     gravity_enabled: bool = True              # Enable pre-spawning aggregation movement
@@ -112,6 +113,10 @@ class SpawningSection:
     gravity_range: float = 100.0              # Sensory detection range for conspecifics (m)
     pre_spawn_gravity_days: int = 14          # Days before readiness that gravity activates
     post_spawn_gravity_days: int = 14         # Days after spawning that gravity persists
+    
+    # Readiness induction parameters (Phase 12)
+    readiness_induction_radius: float = 300.0   # Meters — chemical detection range for spawning cues
+    readiness_induction_prob: float = 0.5        # Probability of induced readiness per day if within radius
 
 
 @dataclass

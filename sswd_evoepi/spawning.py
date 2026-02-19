@@ -227,8 +227,8 @@ def spawning_step(
     # 3. Spontaneous spawning attempts
     spawners_today = []
     
-    # 3a. Ready females who haven't spawned yet
-    female_mask = (mature_adults['sex'] == 0) & (mature_adults['spawning_ready'] == 1) & (mature_adults['has_spawned'] == 0)
+    # 3a. Ready females who haven't reached bout limit
+    female_mask = (mature_adults['sex'] == 0) & (mature_adults['spawning_ready'] == 1) & (mature_adults['has_spawned'] < spawning_config.female_max_bouts)
     if np.any(female_mask):
         female_indices = mature_indices[female_mask]
         spawn_rolls = rng.random(len(female_indices))
@@ -236,7 +236,7 @@ def spawning_step(
         
         if np.any(spawning_females):
             spawning_female_indices = female_indices[spawning_females]
-            _execute_spawning_events(agents, spawning_female_indices, day_of_year, spawning_config, disease_config)
+            _execute_spawning_events(agents, spawning_female_indices, day_of_year, spawning_config, disease_config, refractory_days=0)
             spawners_today.extend(spawning_female_indices)
     
     # 3b. Ready males who can spawn (not in refractory, under bout limit)
@@ -267,7 +267,17 @@ def spawning_step(
     )
     spawners_today.extend(cascade_spawners)
 
-    # 5. Generate larval cohorts from today's spawners
+    # 5. Readiness induction: nearby spawning activity makes not-yet-ready adults ready
+    if spawners_today and spawning_config.readiness_induction_prob > 0:
+        _readiness_induction_step(
+            agents,
+            mature_indices,
+            spawners_today,
+            spawning_config,
+        rng
+        )
+
+    # 6. Generate larval cohorts from today's spawners
     if spawners_today:
         cohort = _generate_larval_cohort(
             agents, 
@@ -376,7 +386,7 @@ def _cascade_induction_step(
     if len(recent_male_indices) > 0:
         female_target_mask = (
             (targets['sex'] == 0) &
-            (targets['has_spawned'] == 0)  # Females spawn only once
+            (targets['has_spawned'] < spawning_config.female_max_bouts)
         )
         
         if np.any(female_target_mask):
@@ -388,7 +398,7 @@ def _cascade_induction_step(
             
             if triggered_females:
                 _execute_spawning_events(
-                    agents, triggered_females, day_of_year, spawning_config, disease_config
+                    agents, triggered_females, day_of_year, spawning_config, disease_config, refractory_days=0
                 )
                 cascade_spawners.extend(triggered_females)
     
@@ -512,12 +522,12 @@ def _execute_spawning_events(
     day_of_year: int,
     spawning_config: SpawningSection,
     disease_config: DiseaseSection,
-    refractory_days: Optional[int] = None
+    refractory_days: int = 0
 ) -> None:
     """Execute spawning events for specified agents.
     
-    Updates spawning status fields. For females, sets has_spawned=1 (single spawn).
-    For males, increments has_spawned bout count and sets refractory period.
+    Updates spawning status fields. Increments has_spawned bout count for both
+    sexes and sets refractory period (0 for females, configurable for males).
     Phase 4: Sets post-spawning immunosuppression timers.
     
     Args:
@@ -526,24 +536,81 @@ def _execute_spawning_events(
         day_of_year: Current day of year.
         spawning_config: Spawning configuration parameters.
         disease_config: Disease configuration parameters (for immunosuppression).
-        refractory_days: Refractory period for males (None for females).
+        refractory_days: Refractory period in days (0 for females, configurable for males).
     """
     # Record spawning day for all spawners
     agents['last_spawn_day'][spawner_indices] = day_of_year
     
-    # Update spawning counts
-    if refractory_days is None:
-        # Females: single spawn
-        agents['has_spawned'][spawner_indices] = 1
-    else:
-        # Males: increment bout count and set refractory
-        agents['has_spawned'][spawner_indices] += 1
+    # Increment bout count and set refractory for all spawners
+    agents['has_spawned'][spawner_indices] += 1
+    if refractory_days > 0:
         agents['spawn_refractory'][spawner_indices] = refractory_days
     
     # Phase 4: Set post-spawning immunosuppression timer
     if disease_config.immunosuppression_enabled:
-        # For males spawning multiple bouts, timer resets each time
+        # For agents spawning multiple bouts, timer resets each time
         agents['immunosuppression_timer'][spawner_indices] = disease_config.immunosuppression_duration
+
+
+def _readiness_induction_step(
+    agents: np.ndarray,
+    mature_indices: np.ndarray,
+    spawners_today: List[int],
+    spawning_config: SpawningSection,
+    rng: np.random.Generator,
+) -> None:
+    """Induce spawning readiness in not-yet-ready adults near today's spawners.
+    
+    Chemical cues from spawning activity can accelerate maturation in nearby
+    individuals. This does NOT trigger spawning directly — it only sets
+    spawning_ready = 1 so the individual can spawn on subsequent days via
+    spontaneous or cascade induction.
+    
+    Uses readiness_induction_radius (larger than cascade_radius — chemical
+    detection range ~200-500m) and readiness_induction_prob.
+    
+    Args:
+        agents: Agent array to modify.
+        mature_indices: Indices of all mature adults.
+        spawners_today: Indices of agents that spawned today.
+        spawning_config: Spawning configuration parameters.
+        rng: Random number generator.
+        
+    Side effects:
+        - Sets agents['spawning_ready'] = 1 for induced individuals
+        - Sets agents['spawn_gravity_timer'] if gravity enabled
+    """
+    if len(spawners_today) == 0 or len(mature_indices) == 0:
+        return
+    
+    spawner_indices = np.array(spawners_today, dtype=np.intp)
+    mature_adults = agents[mature_indices]
+    
+    # Find not-yet-ready mature adults
+    not_ready_mask = mature_adults['spawning_ready'] == 0
+    if not np.any(not_ready_mask):
+        return
+    
+    not_ready_indices = mature_indices[not_ready_mask]
+    
+    # Use the same spatial proximity check as cascade induction
+    induced = _check_cascade_induction(
+        agents, not_ready_indices, spawner_indices,
+        spawning_config.readiness_induction_radius,
+        spawning_config.readiness_induction_prob,
+        rng
+    )
+    
+    if induced:
+        induced_arr = np.array(induced, dtype=np.intp)
+        agents['spawning_ready'][induced_arr] = 1
+        # Set gravity timer if enabled
+        if spawning_config.gravity_enabled:
+            gravity_duration = (
+                spawning_config.pre_spawn_gravity_days
+                + spawning_config.post_spawn_gravity_days
+            )
+            agents['spawn_gravity_timer'][induced_arr] = gravity_duration
 
 
 def _generate_larval_cohort(
