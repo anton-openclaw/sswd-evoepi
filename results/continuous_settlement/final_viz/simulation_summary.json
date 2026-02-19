@@ -1,0 +1,34 @@
+{
+  "n_nodes": 5,
+  "node_names": [
+    "Sitka, AK",
+    "Howe Sound, BC",
+    "San Juan Islands, WA",
+    "Newport, OR",
+    "Monterey, CA"
+  ],
+  "node_K": [
+    1000,
+    400,
+    800,
+    600,
+    700
+  ],
+  "initial_total_pop": 3500,
+  "final_total_pop": 89,
+  "Sitka, AK_crash_pct": 95.4,
+  "Sitka, AK_final_pop": 45,
+  "Sitka, AK_resist_shift": 0.037,
+  "Howe Sound, BC_crash_pct": 93.2,
+  "Howe Sound, BC_final_pop": 26,
+  "Howe Sound, BC_resist_shift": 0.0314,
+  "San Juan Islands, WA_crash_pct": 99.3,
+  "San Juan Islands, WA_final_pop": 5,
+  "San Juan Islands, WA_resist_shift": 0.0575,
+  "Newport, OR_crash_pct": 99.1,
+  "Newport, OR_final_pop": 5,
+  "Newport, OR_resist_shift": 0.0605,
+  "Monterey, CA_crash_pct": 98.8,
+  "Monterey, CA_final_pop": 8,
+  "Monterey, CA_resist_shift": 0.0388
+}

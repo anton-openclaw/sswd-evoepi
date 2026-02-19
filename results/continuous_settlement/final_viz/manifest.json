@@ -1,0 +1,285 @@
+{
+  "total_time": 104.5,
+  "succeeded": 30,
+  "failed": 39,
+  "figures": [
+    {
+      "name": "01_settlement_timing_heatmap.png",
+      "size_bytes": 88553
+    },
+    {
+      "name": "02_settlement_spread.png",
+      "size_bytes": 97219
+    },
+    {
+      "name": "03_pld_temperature_curve.png",
+      "size_bytes": 124669
+    },
+    {
+      "name": "04_daily_recruitment.png",
+      "size_bytes": 150438
+    },
+    {
+      "name": "05_before_after_epidemic.png",
+      "size_bytes": 186576
+    },
+    {
+      "name": "06_spawning_intensity.png",
+      "size_bytes": 178119
+    },
+    {
+      "name": "07_spawning_heatmap.png",
+      "size_bytes": 100102
+    },
+    {
+      "name": "08_spawning_density_dependence.png",
+      "size_bytes": 180048
+    },
+    {
+      "name": "09_spawning_cascade.png",
+      "size_bytes": 126195
+    },
+    {
+      "name": "11_population_heatmap.png",
+      "size_bytes": 109884
+    },
+    {
+      "name": "12_stage_composition.png",
+      "size_bytes": 106988
+    },
+    {
+      "name": "17_node_comparison_bars.png",
+      "size_bytes": 46473
+    },
+    {
+      "name": "21_disease_state_heatmap.png",
+      "size_bytes": 114216
+    },
+    {
+      "name": "26_disease_mortality_by_node.png",
+      "size_bytes": 77050
+    },
+    {
+      "name": "27_epidemic_wave_timing.png",
+      "size_bytes": 53167
+    },
+    {
+      "name": "43_beta_init.png",
+      "size_bytes": 135639
+    },
+    {
+      "name": "50_metapopulation_timeseries.png",
+      "size_bytes": 116840
+    },
+    {
+      "name": "52_north_south_gradient.png",
+      "size_bytes": 63839
+    },
+    {
+      "name": "53_fjord_vs_open.png",
+      "size_bytes": 228279
+    },
+    {
+      "name": "54_spatial_epidemic_timeline.png",
+      "size_bytes": 54360
+    },
+    {
+      "name": "55_node_fate_matrix.png",
+      "size_bytes": 193424
+    },
+    {
+      "name": "59_spatial_dashboard.png",
+      "size_bytes": 367105
+    },
+    {
+      "name": "62_spawning_event_profile.png",
+      "size_bytes": 105093
+    },
+    {
+      "name": "63_readiness_cascade.png",
+      "size_bytes": 222849
+    },
+    {
+      "name": "64_spawning_density_scatter.png",
+      "size_bytes": 104442
+    },
+    {
+      "name": "65_spawning_before_after.png",
+      "size_bytes": 134602
+    },
+    {
+      "name": "66_spawning_highdensity.gif",
+      "size_bytes": 1345382
+    },
+    {
+      "name": "67_spawning_lowdensity.gif",
+      "size_bytes": 693735
+    },
+    {
+      "name": "68_spawning_param_comparison.gif",
+      "size_bytes": 2492434
+    },
+    {
+      "name": "69_spawning_full_season.gif",
+      "size_bytes": 9228409
+    }
+  ],
+  "errors": [
+    {
+      "name": "10_population_trajectory.png",
+      "error": "x and y must have same first dimension, but have shapes (20,) and (5, 20)"
+    },
+    {
+      "name": "13_sex_ratio.png",
+      "error": "x and y must have same first dimension, but have shapes (20,) and (5, 20)"
+    },
+    {
+      "name": "14_survival_curves.png",
+      "error": "'SpatialSimResult' object has no attribute 'initial_pop'"
+    },
+    {
+      "name": "15_recruitment_timeseries.png",
+      "error": "only 0-dimensional arrays can be converted to Python scalars"
+    },
+    {
+      "name": "16_density_dependence.png",
+      "error": "too many indices for array: array is 1-dimensional, but 2 were indexed"
+    },
+    {
+      "name": "18_age_size_pyramid.png",
+      "error": "'SpatialSimResult' object is not subscriptable"
+    },
+    {
+      "name": "19_cause_of_death.png",
+      "error": "only 0-dimensional arrays can be converted to Python scalars"
+    },
+    {
+      "name": "20_epidemic_curve.png",
+      "error": "'SpatialSimResult' object has no attribute 'daily_pop'"
+    },
+    {
+      "name": "22_cfr_over_time.png",
+      "error": "The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()"
+    },
+    {
+      "name": "23_R0_over_time.png",
+      "error": "only 0-dimensional arrays can be converted to Python scalars"
+    },
+    {
+      "name": "24_shedding_timeseries.png",
+      "error": "'SpatialSimResult' object has no attribute 'daily_vibrio'"
+    },
+    {
+      "name": "25_vibrio_concentration.png",
+      "error": "'SpatialSimResult' object has no attribute 'daily_vibrio'"
+    },
+    {
+      "name": "28_recovery_vs_resistance.png",
+      "error": "'SpatialSimResult' object is not subscriptable"
+    },
+    {
+      "name": "29_force_of_infection.png",
+      "error": "'SpatialSimResult' object is not subscriptable"
+    },
+    {
+      "name": "30_immunosuppression_overlap.png",
+      "error": "cannot unpack non-iterable SpatialSimResult object"
+    },
+    {
+      "name": "31_compartment_flow_sankey.png",
+      "error": "'SpatialSimResult' object has no attribute 'total_disease_deaths'"
+    },
+    {
+      "name": "32_resistance_trajectory.png",
+      "error": "The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()"
+    },
+    {
+      "name": "33_resistance_distribution.png",
+      "error": "'SpatialSimResult' object has no attribute 'keys'"
+    },
+    {
+      "name": "34_allele_freq_spaghetti.png",
+      "error": "plot_allele_frequency_spaghetti() missing 1 required positional argument: 'effect_sizes'"
+    },
+    {
+      "name": "35_selection_differential.png",
+      "error": "plot_selection_differential() missing 1 required positional argument: 'yearly_pop'"
+    },
+    {
+      "name": "36_heritability.png",
+      "error": "plot_heritability_over_time() missing 1 required positional argument: 'yearly_vp'"
+    },
+    {
+      "name": "37_additive_variance.png",
+      "error": "x and y must have same first dimension, but have shapes (20,) and (5, 20)"
+    },
+    {
+      "name": "38_ef1a_dynamics.png",
+      "error": "x and y must have same first dimension, but have shapes (20,) and (5, 20)"
+    },
+    {
+      "name": "39_genotype_phenotype_map.png",
+      "error": "plot_genotype_phenotype_map() missing 2 required positional arguments: 'agents' and 'effect_sizes'"
+    },
+    {
+      "name": "40_resistance_violin.png",
+      "error": "'SpatialSimResult' object has no attribute 'keys'"
+    },
+    {
+      "name": "41_locus_effect_sizes.png",
+      "error": "object of type 'SpatialSimResult' has no len()"
+    },
+    {
+      "name": "42_genetic_drift_null.png",
+      "error": "plot_genetic_drift_null() missing 1 required positional argument: 'null_results'"
+    },
+    {
+      "name": "44_virulence_trajectory.png",
+      "error": "'SpatialSimResult' object has no attribute 'yearly_virulence_new_infections'"
+    },
+    {
+      "name": "45_tradeoff_curve.png",
+      "error": "plot_tradeoff_curve() missing 1 required positional argument: 'disease_cfg'"
+    },
+    {
+      "name": "46_coevo_phase_portrait.png",
+      "error": "'>' not supported between instances of 'NoneType' and 'int'"
+    },
+    {
+      "name": "47_virulence_distribution.png",
+      "error": "'SpatialSimResult' object has no attribute 'yearly_virulence_new_infections'"
+    },
+    {
+      "name": "48_virulence_vs_density.png",
+      "error": "'>' not supported between instances of 'NoneType' and 'int'"
+    },
+    {
+      "name": "49_R0_by_virulence.png",
+      "error": "plot_R0_by_virulence() missing 1 required positional argument: 'pe_cfg'"
+    },
+    {
+      "name": "51_connectivity_heatmap.png",
+      "error": "'SpatialSimResult' object has no attribute 'C'"
+    },
+    {
+      "name": "56_larval_flow_diagram.png",
+      "error": "plot_larval_flow_diagram() missing 1 required positional argument: 'network'"
+    },
+    {
+      "name": "57_network_map.png",
+      "error": "'SpatialSimResult' object has no attribute 'nodes'"
+    },
+    {
+      "name": "58_simulation_dashboard.png",
+      "error": "x and y must have same first dimension, but have shapes (20,) and (5, 20)"
+    },
+    {
+      "name": "60_evolutionary_rescue.png",
+      "error": "The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()"
+    },
+    {
+      "name": "61_validation_panel.png",
+      "error": "The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()"
+    }
+  ]
+}
