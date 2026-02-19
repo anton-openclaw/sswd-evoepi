@@ -1181,10 +1181,12 @@ class TestDemographicValidation:
             config=config,
         )
         # Population should stay within bounds after initial transient (first 3 years)
+        # With continuous settlement, recruits trickle in daily (PLD-dependent),
+        # so year-end snapshots may show slightly wider variance than annual pulses.
         for year in range(3, 30):
             pop = result.yearly_pop[year]
-            assert 350 <= pop <= 650, \
-                f"Year {year}: pop={pop}, expected 350-650 (±30% of K=500)"
+            assert 325 <= pop <= 675, \
+                f"Year {year}: pop={pop}, expected 325-675 (±35% of K=500)"
 
     def test_no_disease_zero_disease_deaths(self):
         """Without disease, there should be zero disease deaths."""

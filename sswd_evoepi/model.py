@@ -905,6 +905,7 @@ def run_coupled_simulation(
     # ── Main simulation loop ─────────────────────────────────────────
     for year in range(n_years):
         year_disease_deaths_before = cumulative_disease_deaths
+        yearly_recruits_accum = 0  # Daily settlement accumulator for this year
 
         # ── PHASE A: DAILY DISEASE LOOP (365 days) ───────────────────
         for day in range(DAYS_PER_YEAR):
@@ -936,6 +937,21 @@ def run_coupled_simulation(
                     new_deaths = node_disease.cumulative_deaths - deaths_before
                     cumulative_disease_deaths += new_deaths
 
+            # ── Daily settlement (continuous — settle cohorts that reached PLD) ─
+            if spawning_enabled and accumulated_cohorts:
+                ready = [c for c in accumulated_cohorts
+                         if (sim_day - c.spawn_day) >= c.pld_days]
+                accumulated_cohorts = [c for c in accumulated_cohorts
+                                       if (sim_day - c.spawn_day) < c.pld_days]
+                if ready:
+                    with perf.track("settlement"):
+                        n_settled = settle_daily_cohorts(
+                            ready, agents, genotypes, carrying_capacity,
+                            pop_cfg, rng, effect_sizes,
+                            habitat_area=habitat_area,
+                        )
+                        yearly_recruits_accum += n_settled
+
             # ── Spawning step (if enabled) ────────────────────────────
             if spawning_enabled:
                 day_of_year = (day + 1)  # Convert 0-based to 1-based day of year
@@ -958,6 +974,8 @@ def run_coupled_simulation(
                             spawning_config=config.spawning,
                             disease_config=config.disease,
                             rng=rng,
+                            current_sim_day=sim_day,
+                            current_sst=today_T,
                         )
                     if cohorts_today:
                         accumulated_cohorts.extend(cohorts_today)
@@ -997,84 +1015,34 @@ def run_coupled_simulation(
         pop_now = int(np.sum(alive_mask))
 
         # B4. Reproduction
-        if spawning_enabled and accumulated_cohorts:
-          with perf.track("recruitment"):
-            # Process accumulated larval cohorts from spawning system
-            total_competent_larvae = sum(cohort.n_competent for cohort in accumulated_cohorts)
-            
-            # Apply existing Beverton-Holt recruitment to accumulated larvae
-            current_alive = int(np.sum(agents['alive']))
-            n_recruits = beverton_holt_recruitment(
-                total_competent_larvae, carrying_capacity, pop_cfg.settler_survival,
-            )
-            # Cap by available slots
-            available_slots = max(0, carrying_capacity - current_alive)
-            n_recruits = min(n_recruits, available_slots, total_competent_larvae)
-            
-            # Settlement cue modifier for accumulated larvae
-            n_adults = current_alive
-            cue_mod = settlement_cue_modifier(n_adults)
-            n_recruits = max(0, int(n_recruits * cue_mod))
-            
-            # Settle recruits using genotypes from accumulated cohorts
-            if n_recruits > 0:
-                # Collect all genotypes from all cohorts
-                all_genotypes = []
-                for cohort in accumulated_cohorts:
-                    if cohort.n_competent > 0:
-                        all_genotypes.append(cohort.genotypes[:cohort.n_competent])
-                
-                if all_genotypes:
-                    combined_genotypes = np.vstack(all_genotypes)
-                    # Select which settlers survive
-                    if n_recruits < len(combined_genotypes):
-                        keep_idx = rng.choice(len(combined_genotypes), size=n_recruits, replace=False)
-                        settler_geno = combined_genotypes[keep_idx]
-                    else:
-                        settler_geno = combined_genotypes[:n_recruits]
-                    
-                    # Find dead/empty slots and place settlers
-                    dead_slots = np.where(~agents['alive'])[0]
-                    n_slots = min(n_recruits, len(dead_slots))
-                    hab_side = np.sqrt(max(habitat_area, 1.0))
-                    
-                    for j in range(n_slots):
-                        slot = dead_slots[j]
-                        agents[slot]['alive'] = True
-                        agents[slot]['x'] = rng.uniform(0, hab_side)
-                        agents[slot]['y'] = rng.uniform(0, hab_side)
-                        agents[slot]['heading'] = rng.uniform(0, 2 * np.pi)
-                        agents[slot]['speed'] = 0.1
-                        agents[slot]['size'] = 0.5  # mm at settlement
-                        agents[slot]['age'] = 0.0
-                        agents[slot]['stage'] = Stage.SETTLER
-                        agents[slot]['sex'] = rng.integers(0, 2)
-                        agents[slot]['disease_state'] = DiseaseState.S
-                        agents[slot]['disease_timer'] = 0
-                        agents[slot]['fecundity_mod'] = 1.0
-                        agents[slot]['node_id'] = 0
-                        agents[slot]['origin'] = 0
-                        agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
+        if spawning_enabled:
+            # Continuous settlement already happened daily in Phase A.
+            # Settle any remaining cohorts that matured on the last day.
+            if accumulated_cohorts:
+                end_of_year_ready = [c for c in accumulated_cohorts
+                                     if ((year + 1) * DAYS_PER_YEAR - c.spawn_day) >= c.pld_days]
+                accumulated_cohorts = [c for c in accumulated_cohorts
+                                       if ((year + 1) * DAYS_PER_YEAR - c.spawn_day) < c.pld_days]
+                if end_of_year_ready:
+                    n_eoy = settle_daily_cohorts(
+                        end_of_year_ready, agents, genotypes,
+                        carrying_capacity, pop_cfg, rng, effect_sizes,
+                        habitat_area=habitat_area,
+                    )
+                    yearly_recruits_accum += n_eoy
 
-                        genotypes[slot] = settler_geno[j]
-                        agents[slot]['resistance'] = _compute_resistance(
-                            settler_geno[j], effect_sizes, 0.160  # w_od
-                        )
-                    
-                    n_recruits = n_slots
-            
+            total_competent_larvae = spawning_diagnostics['total_larvae']
             repro_diag = {
                 'n_spawning_females': spawning_diagnostics['n_spawning_events'],
                 'n_spawning_males': spawning_diagnostics['n_spawning_events'],
                 'fertilization_success': 1.0 if total_competent_larvae > 0 else 0.0,
                 'n_competent': total_competent_larvae,
-                'n_recruits': n_recruits,
+                'n_recruits': yearly_recruits_accum,
             }
-            
-            # Clear accumulated cohorts for next year
-            accumulated_cohorts = []
+
+            # Reset diagnostics for next year (keep pending cohorts across years)
             spawning_diagnostics = {'n_spawning_events': 0, 'n_cohorts': 0, 'total_larvae': 0}
-            
+
         elif pop_now > 0:
             # Fall back to annual reproduction (backward compatibility)
             with perf.track("recruitment"):
