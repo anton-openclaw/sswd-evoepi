@@ -1107,10 +1107,18 @@ def run_coupled_simulation(
     min_pop_year = 0
     peak_mort_frac = 0.0
 
+    # ── Daily demographic accumulators (continuous mortality) ────────
+    daily_nat_deaths_accum = 0
+    daily_senes_deaths_accum = 0
+
     # ── Main simulation loop ─────────────────────────────────────────
     for year in range(n_years):
         year_disease_deaths_before = cumulative_disease_deaths
         yearly_recruits_accum = 0  # Daily settlement accumulator for this year
+
+        # Reset daily demographic accumulators for this year
+        daily_nat_deaths_accum = 0
+        daily_senes_deaths_accum = 0
 
         # ── PHASE A: DAILY DISEASE LOOP (365 days) ───────────────────
         for day in range(DAYS_PER_YEAR):
@@ -1203,6 +1211,15 @@ def run_coupled_simulation(
                 
                 previous_in_season = currently_in_season
 
+            # Daily demographics (continuous mortality + growth)
+            with perf.track('daily_mortality'):
+                n_mort, n_senes = daily_natural_mortality(agents, pop_cfg, rng)
+                daily_nat_deaths_accum += n_mort
+                daily_senes_deaths_accum += n_senes
+
+            with perf.track('daily_growth'):
+                daily_growth_and_aging(agents, pop_cfg, rng)
+
             # Daily recording
             if record_daily:
                 alive_mask = agents['alive'].astype(bool)
@@ -1215,13 +1232,10 @@ def run_coupled_simulation(
 
         # ── PHASE B: ANNUAL DEMOGRAPHIC UPDATE ───────────────────────
 
-        # B1. Natural mortality
-        with perf.track("mortality"):
-            n_nat_dead, n_senes_dead = annual_natural_mortality(agents, pop_cfg, rng)
-
-        # B2. Growth, aging, stage transitions
-        with perf.track("growth"):
-            annual_growth_and_aging(agents, pop_cfg, rng)
+        # B1. Natural mortality now runs daily (Phase A) — just record accumulators
+        n_nat_dead = daily_nat_deaths_accum
+        n_senes_dead = daily_senes_deaths_accum
+        # B2. Growth now runs daily (Phase A)
 
         # B3. Record pre-reproduction population
         alive_mask = agents['alive'].astype(bool)
@@ -1662,6 +1676,10 @@ def run_spatial_simulation(
     previous_in_season = [False] * N
     yearly_recruits_accum = [0] * N  # track daily settlement per node per year
 
+    # ── Per-node daily mortality accumulators ────────────────────────
+    node_daily_nat_deaths = np.zeros(N, dtype=np.int32)
+    node_daily_senes_deaths = np.zeros(N, dtype=np.int32)
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
@@ -1671,6 +1689,8 @@ def run_spatial_simulation(
 
         # Reset per-year accumulators
         yearly_recruits_accum = [0] * N
+        node_daily_nat_deaths[:] = 0
+        node_daily_senes_deaths[:] = 0
 
         # Track max vibrio per node this year
         max_vibrio_year = np.zeros(N, dtype=np.float64)
@@ -1812,6 +1832,14 @@ def run_spatial_simulation(
                     node.agents['immunosuppression_timer'][immuno_mask] -= 1
                     previous_in_season[i] = currently_in_season
 
+            # 6. Daily demographics (continuous mortality + growth)
+            for i, node in enumerate(network.nodes):
+                nd = node.agents
+                n_mort, n_senes = daily_natural_mortality(nd, pop_cfg, rng)
+                node_daily_nat_deaths[i] += n_mort
+                node_daily_senes_deaths[i] += n_senes
+                daily_growth_and_aging(nd, pop_cfg, rng)
+
             # Optional individual-level snapshot recording
             if snapshot_recorder is not None:
                 snapshot_recorder.capture_all_nodes(
@@ -1843,15 +1871,9 @@ def run_spatial_simulation(
 
         # ── ANNUAL DEMOGRAPHIC STEP ──────────────────────────────────
 
-        # 1. Natural mortality + growth at each node
-        node_nat_deaths = np.zeros(N, dtype=np.int32)
-        node_senes_deaths = np.zeros(N, dtype=np.int32)
-        for i, node in enumerate(network.nodes):
-            nd = node.agents
-            n_killed, n_senes = annual_natural_mortality(nd, pop_cfg, rng)
-            node_nat_deaths[i] = n_killed
-            node_senes_deaths[i] = n_senes
-            annual_growth_and_aging(nd, pop_cfg, rng)
+        # 1. Natural mortality + growth now handled daily (Phase A above)
+        node_nat_deaths = node_daily_nat_deaths.copy()
+        node_senes_deaths = node_daily_senes_deaths.copy()
 
         # 2. Larval dispersal via C matrix (annual)
         #    Collect unsettled cohorts from each source node, disperse via C,
