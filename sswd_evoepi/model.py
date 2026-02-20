@@ -1549,6 +1549,7 @@ class SpatialSimResult:
     yearly_recruits: Optional[np.ndarray] = None
     yearly_natural_deaths: Optional[np.ndarray] = None
     yearly_disease_deaths: Optional[np.ndarray] = None
+    yearly_recoveries: Optional[np.ndarray] = None
     yearly_senescence_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
     yearly_mean_tolerance: Optional[np.ndarray] = None
@@ -1694,6 +1695,7 @@ def run_spatial_simulation(
     yearly_recruits = np.zeros((N, n_years), dtype=np.int32)
     yearly_nat_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_dis_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_recoveries = np.zeros((N, n_years), dtype=np.int32)
     yearly_senes_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_mean_r = np.zeros((N, n_years), dtype=np.float64)
     yearly_mean_t = np.zeros((N, n_years), dtype=np.float64)
@@ -1734,6 +1736,7 @@ def run_spatial_simulation(
     node_disease_states = []
     disease_active_flags = [False] * N
     cumulative_dis_deaths = [0] * N
+    cumulative_recoveries = [0] * N
 
     for i in range(N):
         node_disease_states.append(NodeDiseaseState(node_id=i))
@@ -1781,6 +1784,7 @@ def run_spatial_simulation(
     for year in range(n_years):
         cal_year = start_year + year
         year_dd_before = list(cumulative_dis_deaths)
+        year_rec_before = list(cumulative_recoveries)
 
         # Reset per-year accumulators
         yearly_recruits_accum = [0] * N
@@ -1852,6 +1856,9 @@ def run_spatial_simulation(
                     node_disease_states[i].cumulative_deaths - deaths_before
                 )
                 cumulative_dis_deaths[i] += new_deaths
+                cumulative_recoveries[i] = (
+                    node_disease_states[i].cumulative_recoveries
+                )
 
             # 3. Pathogen dispersal between nodes (D matrix)
             P = np.array([
@@ -2162,6 +2169,9 @@ def run_spatial_simulation(
             yearly_dis_deaths[i, year] = (
                 cumulative_dis_deaths[i] - year_dd_before[i]
             )
+            yearly_recoveries[i, year] = (
+                cumulative_recoveries[i] - year_rec_before[i]
+            )
             yearly_vibrio_max[i, year] = max_vibrio_year[i]
             if pop_now > 0:
                 yearly_mean_r[i, year] = float(
@@ -2212,6 +2222,7 @@ def run_spatial_simulation(
         yearly_recruits=yearly_recruits,
         yearly_natural_deaths=yearly_nat_deaths,
         yearly_disease_deaths=yearly_dis_deaths,
+        yearly_recoveries=yearly_recoveries,
         yearly_senescence_deaths=yearly_senes_deaths,
         yearly_mean_resistance=yearly_mean_r,
         yearly_mean_tolerance=yearly_mean_t,

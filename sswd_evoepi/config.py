@@ -149,7 +149,7 @@ class DiseaseSection:
     Ea_I2D: float = 2000.0        # ERRATA E1: was 6000
 
     # Recovery
-    rho_rec: float = 0.01         # Base recovery rate (d⁻¹) — lowered from 0.05, no empirical basis
+    rho_rec: float = 0.05         # Base recovery rate (d⁻¹) — no empirical basis
 
     # Environmental pathogen
     P_env_max: float = 500.0      # Background Vibrio input (bact/mL/d)
