@@ -260,8 +260,11 @@ def extract_spatial_metrics(result):
     
     # disease_death_fraction: fraction of all deaths caused by disease
     total_dd = metrics.get("total_disease_deaths", 0.0)
-    total_natural = getattr(result, 'total_natural_deaths', 0)
-    total_senescence = getattr(result, 'total_senescence_deaths', 0)
+    # Fix: spatial result has yearly_* arrays, not total_* scalars
+    ynd = getattr(result, 'yearly_natural_deaths', None)
+    ysd = getattr(result, 'yearly_senescence_deaths', None)
+    total_natural = float(np.sum(ynd)) if ynd is not None else 0.0
+    total_senescence = float(np.sum(ysd)) if ysd is not None else 0.0
     all_deaths = total_dd + total_natural + total_senescence
     metrics["disease_death_fraction"] = total_dd / all_deaths if all_deaths > 0 else 0.0
     
@@ -281,13 +284,15 @@ def extract_spatial_metrics(result):
     else:
         metrics["mean_recruitment_rate"] = 0.0
     
-    # spawning_participation: proxy — fraction of pre-disease years with any recruits
-    if recruits is not None and SIM_DISEASE_YEAR > 0:
+    # spawning_participation: mean annual recruits/K across ALL years (not just pre-disease)
+    # Original binary metric was degenerate (always 1.0 over 3 pre-disease years).
+    # This continuous version captures how recruitment rate changes through the epidemic.
+    if recruits is not None:
         if recruits.ndim == 2:
-            yearly_total_recruits = np.sum(recruits[:, :SIM_DISEASE_YEAR], axis=0)
+            annual_total = np.sum(recruits, axis=0)  # sum across nodes per year
         else:
-            yearly_total_recruits = recruits[:SIM_DISEASE_YEAR]
-        metrics["spawning_participation"] = float(np.mean(yearly_total_recruits > 0))
+            annual_total = recruits
+        metrics["spawning_participation"] = float(np.mean(annual_total / np.sum(node_K)))
     else:
         metrics["spawning_participation"] = 0.0
     
