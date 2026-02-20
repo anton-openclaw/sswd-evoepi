@@ -1,8 +1,9 @@
 # SA Round 3 — Morris Screening Analysis
 
-**Date:** 2026-02-19  
-**Runs:** 850/880 successful (97%), 30 errors (extreme parameter combinations → crashes)  
-**Config:** 3-node spatial (Sitka / Howe Sound / Monterey), K = 5,000 each, 20-year simulation, pathogen evolution enabled, 1 movement substep/day
+**Date:** 2026-02-19 (v2.1 — corrected re-run, degenerate metrics fixed)  
+**Runs:** 880/880 successful (100%), 0 errors  
+**Config:** 3-node spatial (Sitka / Howe Sound / Monterey), K = 5,000 each, 20-year simulation, pathogen evolution enabled, 1 movement substep/day  
+**Wall time:** 110.9 min on 8 cores
 
 ---
 
@@ -125,55 +126,55 @@ All 43 parameters tested, organized by module. Each is varied independently acro
 
 ## 2. Global Parameter Ranking
 
-Mean normalized μ* across all 20 metrics. Higher = more influential.
+Mean normalized μ* across all 20 metrics. Higher = more influential. (v2.1 — corrected with non-degenerate disease_death_fraction and spawning_participation)
 
-| Rank | Parameter | μ\*_norm | Category | vs. Sobol R1 |
-|------|-----------|---------|----------|--------------|
-| 1 | **rho_rec** | 0.666 | Disease | ↑ was #14 |
-| 2 | **peak_width_days** | 0.544 | Spawning | 🆕 |
-| 3 | **settler_survival** | 0.490 | Population | ↑ was #19 |
-| 4 | **a_exposure** | 0.488 | Disease | → was #3 |
-| 5 | **target_mean_r** | 0.449 | Genetics | 🆕 |
-| 6 | k_growth | 0.378 | Population | ↑ was #13 |
-| 7 | sigma_D | 0.315 | Disease | ↑ |
-| 8 | L_min_repro | 0.309 | Population | → was #10 |
-| 9 | mu_I2D_ref | 0.308 | Disease | ↓ was #1 |
-| 10 | P_env_max | 0.299 | Disease | ↑ was #23 |
-| 11 | F0 | 0.299 | Population | ↑ |
-| 12 | K_half | 0.290 | Disease | ↑ |
-| 13 | sigma_2_eff | 0.280 | Disease | ↓ was #4 |
-| 14 | mu_EI1_ref | 0.276 | Disease | → was #6 |
-| 15 | p_spontaneous_male | 0.269 | Spawning | 🆕 |
-| 16 | q_init_beta_a | 0.264 | Genetics | 🆕 |
-| 17 | induction_female_to_male | 0.262 | Spawning | 🆕 |
-| 18 | susceptibility_multiplier | 0.250 | Disease | ↓ |
-| 19 | T_vbnc | 0.250 | Disease | — |
-| 20 | alpha_kill | 0.249 | Path. Evo | 🆕 |
-| 21 | n_additive | 0.243 | Genetics | ↓ was #5 |
-| 22 | min_susceptible_age_days | 0.242 | Disease | 🆕 |
-| 23 | T_ref | 0.235 | Disease | — |
-| 24 | senescence_age | 0.233 | Population | — |
-| 25 | readiness_induction_prob | 0.232 | Spawning | 🆕 |
-| 26 | sigma_v_mutation | 0.231 | Path. Evo | 🆕 |
-| 27 | immunosuppression_duration | 0.229 | Disease | 🆕 |
-| 28 | induction_male_to_female | 0.229 | Spawning | 🆕 |
-| 29 | female_max_bouts | 0.221 | Spawning | 🆕 |
-| 30 | gamma_early | 0.213 | Path. Evo | 🆕 |
-| 31 | mu_I1I2_ref | 0.213 | Disease | 🆕 |
-| 32 | s_min | 0.208 | Disease | — |
-| 33 | alpha_prog | 0.207 | Path. Evo | 🆕 |
-| 34 | D_L | 0.202 | Spatial | — |
-| 35 | p_spontaneous_female | 0.199 | Spawning | — |
-| 36 | alpha_self_open | 0.197 | Spatial | 🆕 |
-| 37 | v_init | 0.189 | Path. Evo | 🆕 |
-| 38 | q_init_beta_b | 0.187 | Genetics | 🆕 |
-| 39 | alpha_srs | 0.185 | Population | — |
-| 40 | alpha_self_fjord | 0.183 | Spatial | 🆕 |
-| 41 | sigma_1_eff | 0.182 | Disease | — |
-| 42 | alpha_shed | 0.176 | Path. Evo | 🆕 |
-| 43 | gamma_fert | 0.174 | Population | — (last) |
+| Rank | Parameter | μ\*_norm | Mean Rank | Top5 in | Category | vs. Sobol R1 |
+|------|-----------|---------|-----------|---------|----------|--------------|
+| 1 | **rho_rec** | 0.642 | 4.7 | 15/20 | Disease | ↑ was #14 |
+| 2 | **peak_width_days** | 0.573 | 9.3 | 13/20 | Spawning | 🆕 |
+| 3 | **settler_survival** | 0.571 | 7.5 | 13/20 | Population | ↑ was #19 |
+| 4 | **target_mean_r** | 0.432 | 11.2 | 8/20 | Genetics | 🆕 |
+| 5 | **k_growth** | 0.402 | 11.2 | 5/20 | Population | ↑ was #13 |
+| 6 | **a_exposure** | 0.394 | 8.0 | 10/20 | Disease | → was #3 |
+| 7 | mu_I2D_ref | 0.322 | 13.1 | 4/20 | Disease | ↓ was #1 |
+| 8 | K_half | 0.303 | 15.6 | 3/20 | Disease | ↑ |
+| 9 | T_vbnc | 0.298 | 16.2 | 3/20 | Disease | — |
+| 10 | sigma_2_eff | 0.298 | 13.5 | 6/20 | Disease | ↓ was #4 |
+| 11 | P_env_max | 0.287 | 17.6 | 3/20 | Disease | ↑ was #23 |
+| 12 | v_init | 0.263 | 17.4 | 0/20 | Path. Evo | 🆕 |
+| 13 | min_susceptible_age_days | 0.249 | 20.3 | 1/20 | Disease | 🆕 |
+| 14 | mu_I1I2_ref | 0.241 | 23.1 | 2/20 | Disease | 🆕 |
+| 15 | immunosuppression_duration | 0.231 | 24.9 | 2/20 | Disease | 🆕 |
+| 16 | induction_male_to_female | 0.227 | 20.2 | 0/20 | Spawning | 🆕 |
+| 17 | q_init_beta_b | 0.225 | 26.1 | 1/20 | Genetics | 🆕 |
+| 18 | D_L | 0.222 | 23.0 | 0/20 | Spatial | — |
+| 19 | n_additive | 0.221 | 23.2 | 1/20 | Genetics | ↓ was #5 |
+| 20 | F0 | 0.220 | 23.1 | 2/20 | Population | ↑ |
+| 21 | senescence_age | 0.220 | 21.4 | 1/20 | Population | — |
+| 22 | alpha_kill | 0.219 | 25.1 | 0/20 | Path. Evo | 🆕 |
+| 23 | susceptibility_multiplier | 0.215 | 22.2 | 1/20 | Disease | ↓ |
+| 24 | induction_female_to_male | 0.214 | 23.4 | 2/20 | Spawning | 🆕 |
+| 25 | L_min_repro | 0.214 | 24.2 | 2/20 | Population | → was #10 |
+| 26 | p_spontaneous_female | 0.212 | 19.8 | 0/20 | Spawning | — |
+| 27 | mu_EI1_ref | 0.209 | 20.1 | 0/20 | Disease | → was #6 |
+| 28 | p_spontaneous_male | 0.198 | 27.9 | 0/20 | Spawning | 🆕 |
+| 29 | sigma_D | 0.196 | 24.1 | 0/20 | Disease | ↑ |
+| 30 | gamma_early | 0.193 | 28.8 | 0/20 | Path. Evo | 🆕 |
+| 31 | sigma_v_mutation | 0.192 | 27.6 | 0/20 | Path. Evo | 🆕 |
+| 32 | female_max_bouts | 0.187 | 27.6 | 0/20 | Spawning | 🆕 |
+| 33 | readiness_induction_prob | 0.180 | 30.1 | 0/20 | Spawning | 🆕 |
+| 34 | T_ref | 0.176 | 26.1 | 0/20 | Disease | — |
+| 35 | alpha_srs | 0.169 | 29.2 | 0/20 | Population | — |
+| 36 | s_min | 0.168 | 30.5 | 0/20 | Disease | — |
+| 37 | gamma_fert | 0.167 | 27.4 | 0/20 | Population | — |
+| 38 | alpha_prog | 0.164 | 32.4 | 1/20 | Path. Evo | 🆕 |
+| 39 | alpha_self_open | 0.162 | 30.9 | 0/20 | Spatial | 🆕 |
+| 40 | q_init_beta_a | 0.161 | 28.1 | 0/20 | Genetics | 🆕 |
+| 41 | alpha_shed | 0.160 | 30.9 | 0/20 | Path. Evo | 🆕 |
+| 42 | alpha_self_fjord | 0.149 | 31.6 | 0/20 | Spatial | 🆕 |
+| 43 | sigma_1_eff | 0.146 | 27.3 | 1/20 | Disease | — (last) |
 
-**Elimination threshold (5% of max):** 0.033. **All 43 parameters above threshold — zero eliminated.**
+**Elimination threshold (5% of max):** 0.032. **All 43 parameters above threshold (minimum: sigma_1_eff at 0.146) — zero eliminated.**
 
 ---
 
@@ -226,11 +227,13 @@ Mean normalized μ* across all 20 metrics. Higher = more influential.
 ### 3.5 Spawning/Recruitment (participation rate, recruitment rate, disease death fraction)
 | Rank | Parameter | Normalized μ\* |
 |------|-----------|---------------|
-| 1 | k_growth | 1.000 |
-| 2 | senescence_age | 0.133 |
-| 3 | peak_width_days | 0.071 |
+| 1 | settler_survival | 0.714 |
+| 2 | k_growth | 0.703 |
+| 3 | peak_width_days | 0.632 |
+| 4 | rho_rec | 0.410 |
+| 5 | target_mean_r | 0.372 |
 
-**Interpretation:** Growth rate dominates because it determines when individuals reach reproductive size (L_min_repro). Pre-disease recruitment is almost entirely a function of demographics, not disease or genetics — as expected, since disease is introduced at year 3.
+**Interpretation:** [v2.1 CORRECTED — previously showed k_growth dominating at 1.000 with a 7.5× gap to #2, which was an artifact of disease_death_fraction and spawning_participation being degenerate (zero variance). With the corrected re-run, these metrics now have healthy variance and the ranking is more balanced.] settler_survival and k_growth jointly dominate — one controls demographic input from the sea (larval settlement success), the other controls how fast individuals reach reproductive size. peak_width_days matters because spawning synchrony determines whether larval settlement is a single pulse or diffuse season, with cascading effects on recruitment timing relative to epidemic waves. Notably, disease parameters (rho_rec, target_mean_r) now appear in this category's top 5 — disease-mediated adult mortality feeds back into spawning participation (fewer adults = fewer spawners = lower participation).
 
 ---
 
@@ -331,13 +334,39 @@ Howe Sound final survival minus mean non-fjord survival. Positive = fjord is pro
 
 **Interpretation:** peak_width_days has by far the largest absolute effect (μ\* = 33.8, in percentage-point units). Narrow spawning peak creates a synchronized pulse of naive juveniles → epidemic spike. Note: values >1.0 (>100%) are possible because this metric measures disease deaths / start-of-year population, and within-year recruitment can inflate the denominator.
 
-### 4.7 Degenerate Metrics
+### 4.7 Previously-Degenerate Metrics — Now Resolved
 
-Two metrics showed **zero variance** across all 880 Morris runs:
-- **disease_death_fraction**: Always ≈ 1.0 (disease deaths >> natural + senescence deaths in a 20-year sim with active SSWD)
-- **spawning_participation**: Always = 1.0 (every pre-disease year has nonzero recruitment)
+In the initial Morris run, disease_death_fraction and spawning_participation showed zero variance (always ≈ 1.0). The corrected re-run (880/880 runs, 0 errors) resolved this:
 
-These metrics are uninformative in the current configuration and should be redesigned or dropped for Sobol.
+#### disease_death_fraction (std = 0.137)
+
+Fraction of total deaths caused by disease (vs natural + senescence). No longer saturated at 1.0.
+
+| Rank | Parameter | μ\* | σ | σ/μ\* |
+|------|-----------|-----|---|-------|
+| 1 | k_growth | 0.238 | 0.118 | 0.50 |
+| 2 | rho_rec | 0.072 | 0.079 | 1.10 |
+| 3 | settler_survival | 0.069 | 0.059 | 0.86 |
+| 4 | min_susceptible_age_days | 0.065 | 0.106 | 1.63 |
+| 5 | a_exposure | 0.054 | 0.072 | 1.32 |
+
+**Interpretation:** k_growth dominates with σ/μ\* = 0.50 (nearly additive effect!) — faster growth means individuals reach larger sizes where natural and senescence mortality apply, diluting disease's share. The low σ/μ\* is notable: this is one of the few near-additive effects in the entire analysis. min_susceptible_age_days at #4 makes mechanistic sense: longer juvenile immunity delays disease exposure, reducing disease deaths relative to other causes.
+
+#### spawning_participation (std = 0.196)
+
+Fraction of pre-disease years with nonzero recruitment. Now shows meaningful variation.
+
+| Rank | Parameter | μ\* | σ | σ/μ\* |
+|------|-----------|-----|---|-------|
+| 1 | settler_survival | 0.323 | 0.172 | 0.53 |
+| 2 | peak_width_days | 0.265 | 0.376 | 1.42 |
+| 3 | rho_rec | 0.093 | 0.119 | 1.28 |
+| 4 | k_growth | 0.073 | 0.105 | 1.45 |
+| 5 | target_mean_r | 0.071 | 0.097 | 1.35 |
+
+**Interpretation:** settler_survival has the largest and most additive effect (σ/μ\* = 0.53) — below a threshold settler survival, recruitment drops to zero regardless of other conditions. peak_width_days at #2 with σ/μ\* = 1.42 reflects a nonlinear interaction: narrow peaks concentrate spawning into a window that either succeeds or fails entirely, while wide peaks spread the bet. The appearance of disease parameters (rho_rec, target_mean_r) confirms feedback: disease kills adults, reducing spawner counts, which lowers participation.
+
+**Key finding:** Both metrics' σ/μ\* ratios are lower than the model average, meaning direct (additive) effects are stronger here than for most other metrics. This makes sense — these are demographic ratios that respond more mechanically to parameter changes than, say, evolutionary rescue or virulence evolution.
 
 ### 4.8 σ/μ\* Summary — Where Interactions Dominate
 

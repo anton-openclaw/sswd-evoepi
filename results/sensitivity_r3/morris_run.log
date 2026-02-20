@@ -1,94 +1,36 @@
-Parameters: 43
-Metrics: 20
-Per-run timeout: 300s
+SA Round 3 Morris — 880 runs, 43 params, 20 metrics
+Cores: 8, checkpoint every 200
+Started: 2026-02-19 17:41:43
+Runs remaining: 880
+[18:09:55] 200/880 (22.7%) | 0.12 runs/s | ETA: 1.6h | errors: 0
+[18:34:06] 400/880 (45.5%) | 0.13 runs/s | ETA: 1.0h | errors: 0
+[18:59:44] 600/880 (68.2%) | 0.13 runs/s | ETA: 0.6h | errors: 0
+[19:24:10] 800/880 (90.9%) | 0.13 runs/s | ETA: 0.2h | errors: 0
 
-Generating Morris trajectories...
-Morris samples: (880, 43)
-
-Running 880 simulations on 8 cores...
-  50/880 done | 0 errors (0 timeouts) | 500s elapsed | 0.10 runs/s | mean_rt=71.3s | ETA 8300s
-  100/880 done | 0 errors (0 timeouts) | 902s elapsed | 0.11 runs/s | mean_rt=69.0s | ETA 7037s
-  150/880 done | 0 errors (0 timeouts) | 1250s elapsed | 0.12 runs/s | mean_rt=65.3s | ETA 6086s
-  200/880 done | 0 errors (0 timeouts) | 1676s elapsed | 0.12 runs/s | mean_rt=66.7s | ETA 5700s
-  250/880 done | 0 errors (0 timeouts) | 2062s elapsed | 0.12 runs/s | mean_rt=64.6s | ETA 5196s
-  300/880 done | 0 errors (0 timeouts) | 2335s elapsed | 0.13 runs/s | mean_rt=61.7s | ETA 4514s
-  350/880 done | 0 errors (0 timeouts) | 2724s elapsed | 0.13 runs/s | mean_rt=61.7s | ETA 4125s
-  400/880 done | 0 errors (0 timeouts) | 3136s elapsed | 0.13 runs/s | mean_rt=61.3s | ETA 3763s
-  450/880 done | 0 errors (0 timeouts) | 3565s elapsed | 0.13 runs/s | mean_rt=62.9s | ETA 3406s
-  500/880 done | 0 errors (0 timeouts) | 3900s elapsed | 0.13 runs/s | mean_rt=62.1s | ETA 2964s
-  550/880 done | 0 errors (0 timeouts) | 4295s elapsed | 0.13 runs/s | mean_rt=62.0s | ETA 2577s
-  600/880 done | 0 errors (0 timeouts) | 4659s elapsed | 0.13 runs/s | mean_rt=61.6s | ETA 2174s
-  650/880 done | 0 errors (0 timeouts) | 4991s elapsed | 0.13 runs/s | mean_rt=61.1s | ETA 1766s
-  700/880 done | 0 errors (0 timeouts) | 5430s elapsed | 0.13 runs/s | mean_rt=61.7s | ETA 1396s
-  750/880 done | 0 errors (0 timeouts) | 5782s elapsed | 0.13 runs/s | mean_rt=61.5s | ETA 1002s
-  800/880 done | 0 errors (0 timeouts) | 6110s elapsed | 0.13 runs/s | mean_rt=61.0s | ETA 611s
-  850/880 done | 0 errors (0 timeouts) | 6413s elapsed | 0.13 runs/s | mean_rt=60.2s | ETA 226s
-
-All 880 runs complete in 6643.9s (110.7 min)
-Errors: 0/880 (0.0%)
-Runtime per run: mean=60.2s, median=58.2s, min=25.2s, max=142.3s
-
-Building Y matrix...
-
-NaN counts per metric:
-  pop_crash_pct                                : 0/880 NaN (0.0%)
-  final_pop_frac                               : 0/880 NaN (0.0%)
-  recovery                                     : 0/880 NaN (0.0%)
-  extinction                                   : 0/880 NaN (0.0%)
-  peak_mortality                               : 0/880 NaN (0.0%)
-  time_to_nadir                                : 0/880 NaN (0.0%)
-  total_disease_deaths                         : 0/880 NaN (0.0%)
-  resistance_shift_mean                        : 0/880 NaN (0.0%)
-  resistance_shift_max                         : 0/880 NaN (0.0%)
-  va_retention_mean                            : 0/880 NaN (0.0%)
-  ef1a_shift_mean                              : 0/880 NaN (0.0%)
-  n_extinct_nodes                              : 0/880 NaN (0.0%)
-  north_south_mortality_gradient               : 0/880 NaN (0.0%)
-  fjord_protection_effect                      : 0/880 NaN (0.0%)
-  mean_final_virulence                         : 0/880 NaN (0.0%)
-  virulence_shift                              : 0/880 NaN (0.0%)
-  disease_death_fraction                       : 0/880 NaN (0.0%)
-  spawning_participation                       : 0/880 NaN (0.0%)
-  mean_recruitment_rate                        : 0/880 NaN (0.0%)
-  evolutionary_rescue_index                    : 0/880 NaN (0.0%)
+Runs complete: 880/880, errors: 0, wall time: 110.9min
 
 Running Morris analysis...
-  pop_crash_pct: top5 = disease.a_exposure=10.271, genetics.target_mean_r=9.744, disease.P_env_max=9.693, disease.rho_rec=9.498, disease.sigma_2_eff=9.295
-  final_pop_frac: top5 = population.settler_survival=0.188, disease.rho_rec=0.158, genetics.target_mean_r=0.131, disease.a_exposure=0.115, disease.K_half=0.107
-  recovery: top5 = disease.rho_rec=0.225, disease.immunosuppression_duration=0.150, disease.T_vbnc=0.150, disease.mu_I1I2_ref=0.150, disease.mu_EI1_ref=0.150
-  extinction: top5 = disease.rho_rec=0.150, population.L_min_repro=0.075, spawning.peak_width_days=0.075, disease.mu_EI1_ref=0.075, population.F0=0.075
-  peak_mortality: top5 = spawning.peak_width_days=34.338, population.settler_survival=20.811, disease.T_vbnc=11.429, disease.a_exposure=11.155, disease.mu_I2D_ref=10.621
-  time_to_nadir: top5 = genetics.n_additive=7.875, spawning.peak_width_days=7.800, disease.sigma_D=7.575, genetics.target_mean_r=7.275, population.k_growth=7.275
-  total_disease_deaths: top5 = population.settler_survival=54408.525, spawning.peak_width_days=39870.900, population.k_growth=23738.700, disease.mu_I2D_ref=15249.300, disease.rho_rec=11800.350
-  resistance_shift_mean: top5 = disease.rho_rec=0.073, genetics.target_mean_r=0.049, disease.a_exposure=0.034, disease.P_env_max=0.028, spawning.peak_width_days=0.028
-  resistance_shift_max: top5 = disease.rho_rec=0.058, disease.a_exposure=0.046, spawning.peak_width_days=0.043, population.L_min_repro=0.040, genetics.target_mean_r=0.039
-  va_retention_mean: top5 = disease.sigma_D=2.823, disease.susceptibility_multiplier=2.249, population.k_growth=1.563, disease.T_ref=1.559, disease.a_exposure=1.420
-  ef1a_shift_mean: top5 = genetics.target_mean_r=0.133, spawning.p_spontaneous_female=0.054, genetics.q_init_beta_a=0.050, disease.a_exposure=0.050, disease.sigma_D=0.048
-  n_extinct_nodes: top5 = disease.rho_rec=0.675, disease.a_exposure=0.225, population.L_min_repro=0.150, disease.P_env_max=0.150, disease.mu_EI1_ref=0.075
-  north_south_mortality_gradient: top5 = spawning.peak_width_days=5.255, population.settler_survival=5.137, population.k_growth=2.824, disease.rho_rec=1.838, genetics.target_mean_r=1.771
-  fjord_protection_effect: top5 = population.settler_survival=0.243, spawning.peak_width_days=0.219, disease.rho_rec=0.160, population.F0=0.135, disease.mu_I2D_ref=0.123
-  mean_final_virulence: top5 = spawning.peak_width_days=0.171, disease.rho_rec=0.138, disease.a_exposure=0.138, population.L_min_repro=0.128, disease.sigma_D=0.116
-  virulence_shift: top5 = spawning.peak_width_days=0.171, disease.rho_rec=0.138, disease.a_exposure=0.138, population.L_min_repro=0.128, disease.sigma_D=0.116
-  disease_death_fraction: zero variance, skipping
-  spawning_participation: zero variance, skipping
-  mean_recruitment_rate: top5 = population.k_growth=0.061, population.senescence_age=0.008, spawning.peak_width_days=0.004, spawning.induction_female_to_male=0.004, pathogen_evolution.alpha_prog=0.004
-  evolutionary_rescue_index: top5 = population.settler_survival=0.012, disease.rho_rec=0.010, disease.mu_I2D_ref=0.008, genetics.target_mean_r=0.007, spawning.peak_width_days=0.007
+Valid rows: 880/880
+  pop_crash_pct: analyzed (880 valid, std=13.05)
+  final_pop_frac: analyzed (880 valid, std=0.1884)
+  recovery: analyzed (880 valid, std=0.2501)
+  extinction: analyzed (880 valid, std=0.1251)
+  peak_mortality: analyzed (880 valid, std=24.33)
+  time_to_nadir: analyzed (880 valid, std=5.261)
+  total_disease_deaths: analyzed (880 valid, std=3.531e+04)
+  resistance_shift_mean: analyzed (880 valid, std=0.05051)
+  resistance_shift_max: analyzed (880 valid, std=0.04688)
+  va_retention_mean: analyzed (880 valid, std=0.6918)
+  ef1a_shift_mean: analyzed (880 valid, std=0.06624)
+  n_extinct_nodes: analyzed (880 valid, std=0.4524)
+  north_south_mortality_gradient: analyzed (880 valid, std=4.245)
+  fjord_protection_effect: analyzed (880 valid, std=0.1823)
+  mean_final_virulence: analyzed (880 valid, std=0.1089)
+  virulence_shift: analyzed (880 valid, std=0.1089)
+  disease_death_fraction: analyzed (880 valid, std=0.1372)
+  spawning_participation: analyzed (880 valid, std=0.1956)
+  mean_recruitment_rate: analyzed (880 valid, std=0.03118)
+  evolutionary_rescue_index: analyzed (880 valid, std=0.01)
 
-Saving results...
-Traceback (most recent call last):
-  File "/home/starbot/.openclaw/workspace/sswd-evoepi/scripts/sensitivity/run_morris_r3.py", line 185, in <module>
-    json.dump(morris_results, f, indent=2)
-  File "/usr/lib/python3.12/json/__init__.py", line 179, in dump
-    for chunk in iterable:
-  File "/usr/lib/python3.12/json/encoder.py", line 432, in _iterencode
-    yield from _iterencode_dict(o, _current_indent_level)
-  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
-    yield from chunks
-  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
-    yield from chunks
-  File "/usr/lib/python3.12/json/encoder.py", line 439, in _iterencode
-    o = _default(o)
-        ^^^^^^^^^^^
-  File "/usr/lib/python3.12/json/encoder.py", line 180, in default
-    raise TypeError(f'Object of type {o.__class__.__name__} '
-TypeError: Object of type ndarray is not JSON serializable
+Saved 20 metric analyses to morris_results.json
+Done: 2026-02-19 19:32:38
