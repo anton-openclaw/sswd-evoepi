@@ -3,19 +3,18 @@
 This module is the SINGLE SOURCE OF TRUTH for:
   - AGENT_DTYPE: NumPy structured array dtype for individual agents
   - Stage, DiseaseState, Origin, Tier enumerations
-  - Genotype constants (N_LOCI, N_ADDITIVE, IDX_EF1A)
+  - Genotype constants (N_LOCI, trait partition defaults, trait_slices())
   - Inter-module data transfer objects (LarvalCohort, SettlerPacket, NodeSnapshot)
 
 All modules import these types from here. No other module defines agent fields.
 
 References:
+  - three-trait-genetic-architecture-spec.md (17R/17T/17C partition)
   - integration-architecture-spec.md §4 (canonical AGENT_DTYPE)
   - population-dynamics-spec.md §1 (Stage enum)
   - disease-module-spec.md (DiseaseState enum)
-  - genetics-evolution-spec.md §1 (genotype constants)
   - ERRATA E4: disease_timer uses COUNTDOWN semantics
   - ERRATA E13: origin field for release tracking
-  - CODE_ERRATA CE-1: cost_resistance removed; fecundity_mod always 1.0
 """
 
 from dataclasses import dataclass, field
@@ -97,12 +96,39 @@ STAGE_SIZE_THRESHOLDS = {
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# GENOTYPE CONSTANTS
+# GENOTYPE CONSTANTS — Three-Trait Architecture
 # ═══════════════════════════════════════════════════════════════════════
 
-N_LOCI = 52          # 51 additive + 1 overdominant (EF1A analog)
-N_ADDITIVE = 51      # Additive resistance loci: indices 0–50
-IDX_EF1A = 51        # Overdominant locus index (EF1A analog)
+N_LOCI = 51  # Total diploid loci (no EF1A). Fixed constant.
+
+# Default partition (configurable via GeneticsSection):
+N_RESISTANCE_DEFAULT = 17  # Loci 0–16: resistance (immune exclusion)
+N_TOLERANCE_DEFAULT = 17   # Loci 17–33: tolerance (damage limitation)
+N_RECOVERY_DEFAULT = 17    # Loci 34–50: recovery (pathogen clearance)
+
+
+def trait_slices(n_r: int, n_t: int, n_c: int):
+    """Compute locus index slices from partition sizes.
+
+    Args:
+        n_r: Number of resistance loci.
+        n_t: Number of tolerance loci.
+        n_c: Number of recovery loci.
+
+    Returns:
+        Tuple of (resistance_slice, tolerance_slice, recovery_slice).
+
+    Raises:
+        AssertionError: If partition doesn't sum to N_LOCI.
+    """
+    assert n_r + n_t + n_c == N_LOCI, (
+        f"Partition must sum to {N_LOCI}, got {n_r}+{n_t}+{n_c}={n_r+n_t+n_c}"
+    )
+    return (
+        slice(0, n_r),                      # resistance
+        slice(n_r, n_r + n_t),              # tolerance
+        slice(n_r + n_t, n_r + n_t + n_c),  # recovery
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -129,9 +155,9 @@ AGENT_DTYPE = np.dtype([
                                       #         Managed exclusively by disease module.
 
     # --- Genetics (GEN writes) ---
-    ('resistance',     np.float32),   #  4 B — polygenic resistance r_i ∈ [0, 1]
-    ('fecundity_mod',  np.float32),   #  4 B — fecundity modifier; always 1.0
-                                      #         (CE-1: cost of resistance removed)
+    ('resistance',       np.float32),   #  4 B — resistance score r_i ∈ [0, 1]
+    ('tolerance',        np.float32),   #  4 B — tolerance score t_i ∈ [0, 1]
+    ('recovery_ability', np.float32),   #  4 B — recovery/clearance score c_i ∈ [0, 1]
 
     # --- Spawning (SPAWN writes) ---
     ('spawning_ready',          np.int8),   #  1 B — 0=not ready, 1=ready to spawn this season
@@ -153,7 +179,7 @@ AGENT_DTYPE = np.dtype([
                                       #         0 for initial pop (always susceptible)
                                       #         Used for juvenile immunity (Phase 11)
 ])
-# Total: ~55 bytes per agent (was ~51, +4 bytes for settlement_day)
+# Total: ~59 bytes per agent (+4 from tolerance + recovery_ability, -4 from fecundity_mod removal = net +4)
 
 
 def allocate_agents(max_n: int) -> np.ndarray:

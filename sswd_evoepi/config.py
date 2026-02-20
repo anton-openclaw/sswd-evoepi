@@ -150,7 +150,6 @@ class DiseaseSection:
 
     # Recovery
     rho_rec: float = 0.05         # Base recovery rate (d⁻¹)
-    recovery_exponent: int = 2    # r_i exponent in recovery probability
 
     # Environmental pathogen
     P_env_max: float = 500.0      # Background Vibrio input (bact/mL/d)
@@ -180,25 +179,38 @@ class DiseaseSection:
 
 @dataclass
 class GeneticsSection:
-    """Genetics and evolution parameters.
+    """Genetics and evolution parameters — three-trait architecture.
 
-    NOTE: cost_resistance is intentionally absent (Willem's decision, CE-1).
+    51 loci partitioned into resistance (R), tolerance (T), recovery (C).
+    Default: 17/17/17. Constraint: n_resistance + n_tolerance + n_recovery = 51.
 
     Allele frequency initialization:
-      - q_init_mode="uniform": all additive loci start at q_init (old behavior)
+      - q_init_mode="uniform": all loci start at q_init (old behavior)
       - q_init_mode="beta": per-locus frequencies drawn from Beta(q_init_beta_a,
-        q_init_beta_b), then scaled so population-mean r_i ≈ target_mean_r.
+        q_init_beta_b), then scaled so population-mean trait ≈ target_mean.
         This produces realistic among-locus variation (some loci common, some rare),
         consistent with independent evolutionary histories of immune genes.
+
+    References:
+      - three-trait-genetic-architecture-spec.md §4
     """
-    n_additive: int = 51
-    n_loci: int = 52
-    s_het: float = 0.19           # EF1A heterozygote advantage
-    q_ef1a_init: float = 0.24     # Initial EF1A allele frequency
+    # Trait partition (must sum to 51)
+    n_resistance: int = 17        # Loci 0 .. n_resistance-1
+    n_tolerance: int = 17         # Loci n_resistance .. n_resistance+n_tolerance-1
+    n_recovery: int = 17          # Loci n_resistance+n_tolerance .. sum-1
+
+    # Per-trait initialization targets
+    target_mean_r: float = 0.15   # Population-mean resistance at t=0
+    target_mean_t: float = 0.10   # Population-mean tolerance at t=0
+    target_mean_c: float = 0.08   # Population-mean recovery at t=0
+
+    # Tolerance mechanics
+    tau_max: float = 0.85         # Max I₂→D mortality reduction at t_i=1
+
+    # Shared genetics parameters
     mu_per_locus: float = 1.0e-8  # Mutation rate (per allele per generation)
     n_bank: int = 100             # Tier 2 genotype bank size
     effect_size_seed: int = 12345 # Seed for reproducible effect sizes
-    target_mean_r: float = 0.15   # Target population-mean resistance at t=0
     q_init_mode: str = "beta"     # "uniform" or "beta"
     q_init_beta_a: float = 2.0    # Beta shape a (only used if mode="beta")
     q_init_beta_b: float = 8.0    # Beta shape b (only used if mode="beta")
@@ -398,11 +410,18 @@ def validate_config(config: SimulationConfig) -> None:
             f"start_year ({config.simulation.start_year})"
         )
 
-    # Genetics
-    if config.genetics.n_loci != config.genetics.n_additive + 1:
+    # Genetics — three-trait partition must sum to 51
+    g = config.genetics
+    partition_sum = g.n_resistance + g.n_tolerance + g.n_recovery
+    if partition_sum != 51:
         raise ValueError(
-            f"n_loci ({config.genetics.n_loci}) must equal "
-            f"n_additive + 1 ({config.genetics.n_additive + 1})"
+            f"genetics partition must sum to 51, got "
+            f"{g.n_resistance}+{g.n_tolerance}+{g.n_recovery}={partition_sum}"
+        )
+    if g.n_resistance < 1 or g.n_tolerance < 1 or g.n_recovery < 1:
+        raise ValueError(
+            f"Each trait must have ≥1 locus, got "
+            f"R={g.n_resistance}, T={g.n_tolerance}, C={g.n_recovery}"
         )
 
     # Annual survival array length
