@@ -234,7 +234,126 @@ Mean normalized μ* across all 20 metrics. Higher = more influential.
 
 ---
 
-## 4. Key Findings
+## 4. Absolute Effect Sizes
+
+The normalized rankings (Section 2) show *relative* importance — which parameters matter more than others. This section reports **raw μ\*** values in each metric's native units, showing how much each parameter actually moves the outcome when perturbed across its range.
+
+**How to read μ\*:** The mean absolute elementary effect. If μ\* = 9.5 for pop_crash_pct, that means perturbing this parameter (one-at-a-time, across Morris trajectories) changes population crash by ±9.5 percentage points on average.
+
+### 4.1 Population Crash (%)
+
+Baseline crash in the default parameterization is ~95–99%. μ\* is in percentage-point units.
+
+| Rank | Parameter | μ\* (pp) | σ | 95% CI | σ/μ\* |
+|------|-----------|---------|---|--------|-------|
+| 1 | a_exposure | 10.27 | 22.14 | ±8.93 | 2.16 |
+| 2 | P_env_max | 9.52 | 19.32 | ±8.51 | 2.03 |
+| 3 | rho_rec | 9.50 | 8.99 | ±4.22 | 0.95 |
+| 4 | target_mean_r | 9.41 | 8.13 | ±3.29 | 0.86 |
+| 5 | sigma_2_eff | 9.30 | — | — | — |
+| 6 | K_half | 8.33 | — | — | — |
+| 7 | settler_survival | 7.66 | 10.82 | ±3.48 | 1.41 |
+| 8 | mu_I2D_ref | 6.29 | 7.92 | ±3.07 | 1.26 |
+| 9 | p_spontaneous_male | 5.40 | — | — | — |
+| 10 | T_vbnc | 4.99 | — | — | — |
+
+**Interpretation:** The top parameters each shift crash magnitude by 5–10 percentage points — substantial given that baseline crash is ~96%. Note a_exposure has μ\* = 10.3 but σ/μ\* = 2.16 — its effect is *highly* interaction-dependent (the crash impact of exposure rate depends strongly on what recovery rate, initial resistance, etc. are doing). In contrast, rho_rec and target_mean_r have σ/μ\* ≈ 0.9 — their effects are more consistent (closer to additive).
+
+### 4.2 Total Disease Deaths (individuals)
+
+Total across all 3 nodes × 20 years. Baseline total K = 15,000.
+
+| Rank | Parameter | μ\* (deaths) | σ | σ/μ\* |
+|------|-----------|-------------|---|-------|
+| 1 | settler_survival | 54,409 | — | — |
+| 2 | peak_width_days | 30,943 | — | — |
+| 3 | k_growth | 23,595 | — | — |
+| 4 | mu_I2D_ref | 15,062 | — | — |
+| 5 | rho_rec | 11,800 | — | — |
+| 6 | K_half | 11,387 | — | — |
+| 7 | a_exposure | 10,756 | — | — |
+
+**Interpretation:** settler_survival dominates total deaths (μ\* = 54,409 — over 3× total K!) because higher settler survival → larger standing population → more individuals available to die from disease. This is a demographic amplification effect: more recruitment sustains a larger host population that disease then kills. peak_width_days at 30,943 deaths reflects the same amplification through synchronized settlement creating vulnerable age cohorts.
+
+### 4.3 Mean Resistance Shift (Δr̄)
+
+Change in population-mean innate resistance from pre-epidemic (year 3) to final year. Schiebelhut observed Δq = 0.08–0.15 at individual loci in wild populations.
+
+| Rank | Parameter | μ\* (Δr̄) | σ | σ/μ\* |
+|------|-----------|----------|---|-------|
+| 1 | rho_rec | 0.073 | 0.125 | 1.72 |
+| 2 | target_mean_r | 0.048 | 0.069 | 1.45 |
+| 3 | a_exposure | 0.034 | 0.051 | 1.49 |
+| 4 | P_env_max | 0.028 | 0.058 | 2.07 |
+| 5 | K_half | 0.027 | — | — |
+| 6 | L_min_repro | 0.024 | 0.047 | 2.01 |
+| 7 | peak_width_days | 0.023 | 0.035 | 1.49 |
+
+**Interpretation:** rho_rec dominates evolutionary response with μ\* = 0.073 — meaning perturbing recovery rate shifts mean resistance by ±0.07 on average. This is in the same order of magnitude as Schiebelhut's observed Δq, suggesting recovery rate alone can determine whether the model produces realistic selection signals. But σ/μ\* = 1.72 means this effect is strongly interaction-dependent. target_mean_r at 0.048 confirms that standing variation is the raw material for selection — you can't evolve resistance you don't have.
+
+### 4.4 Final Virulence (v, dimensionless 0–1 scale)
+
+Pathogen virulence at year 20, starting from v_init ∈ [0.2, 0.8].
+
+| Rank | Parameter | μ\* (Δv) | σ | σ/μ\* |
+|------|-----------|----------|---|-------|
+| 1 | peak_width_days | 0.167 | 0.345 | 2.07 |
+| 2 | rho_rec | 0.138 | 0.290 | 2.10 |
+| 3 | a_exposure | 0.138 | 0.300 | 2.17 |
+| 4 | L_min_repro | 0.127 | 0.294 | 2.32 |
+| 5 | sigma_D | 0.116 | 0.264 | 2.28 |
+
+**Interpretation:** All top parameters show σ/μ\* > 2.0 for virulence — virulence evolution is **entirely interaction-driven**. No single parameter has a consistent, additive effect on evolved virulence. This makes biological sense: virulence evolution depends on the joint epidemiological context (host density × transmission × recovery × mortality), not any single axis. peak_width_days at μ\* = 0.167 means spawning timing can shift evolved virulence by ±0.17 on a 0–1 scale — a massive effect.
+
+### 4.5 Fjord Protection Effect (Δ survival fraction)
+
+Howe Sound final survival minus mean non-fjord survival. Positive = fjord is protective.
+
+| Rank | Parameter | μ\* | σ | σ/μ\* |
+|------|-----------|-----|---|-------|
+| 1 | settler_survival | 0.243 | 0.305 | 1.25 |
+| 2 | peak_width_days | 0.199 | 0.277 | 1.39 |
+| 3 | rho_rec | 0.160 | 0.241 | 1.51 |
+| 4 | mu_I2D_ref | 0.123 | 0.241 | 1.96 |
+| 5 | F0 | 0.133 | — | — |
+
+**Interpretation:** settler_survival has the largest effect on fjord protection (μ\* = 0.24 — nearly a quarter of the entire survival scale). The fjord advantage depends on whether recruitment can keep up with losses: high settler survival amplifies the self-recruitment advantage fjords have due to sill-restricted larval retention.
+
+### 4.6 Peak Mortality Rate (fraction of node population in worst year)
+
+| Rank | Parameter | μ\* | σ | σ/μ\* |
+|------|-----------|-----|---|-------|
+| 1 | peak_width_days | 33.81 | — | — |
+| 2 | settler_survival | 20.81 | — | — |
+| 3 | T_vbnc | 11.43 | — | — |
+| 4 | a_exposure | 11.16 | — | — |
+| 5 | mu_I2D_ref | 10.59 | — | — |
+
+**Interpretation:** peak_width_days has by far the largest absolute effect (μ\* = 33.8, in percentage-point units). Narrow spawning peak creates a synchronized pulse of naive juveniles → epidemic spike. Note: values >1.0 (>100%) are possible because this metric measures disease deaths / start-of-year population, and within-year recruitment can inflate the denominator.
+
+### 4.7 Degenerate Metrics
+
+Two metrics showed **zero variance** across all 880 Morris runs:
+- **disease_death_fraction**: Always ≈ 1.0 (disease deaths >> natural + senescence deaths in a 20-year sim with active SSWD)
+- **spawning_participation**: Always = 1.0 (every pre-disease year has nonzero recruitment)
+
+These metrics are uninformative in the current configuration and should be redesigned or dropped for Sobol.
+
+### 4.8 σ/μ\* Summary — Where Interactions Dominate
+
+| Parameter | pop_crash | resist_shift | virulence | fjord_protect | Mean σ/μ\* |
+|-----------|-----------|-------------|-----------|---------------|-----------|
+| rho_rec | 0.9 | 1.7 | 2.1 | 1.5 | 1.6 |
+| peak_width_days | 1.9 | 1.5 | 2.1 | 1.4 | 1.7 |
+| settler_survival | 1.4 | 1.6 | 2.6 | 1.3 | 1.7 |
+| a_exposure | **2.2** | 1.5 | **2.2** | 1.7 | 1.9 |
+| target_mean_r | 0.9 | 1.5 | **2.6** | 1.4 | 1.6 |
+
+**Key pattern:** σ/μ\* > 1 everywhere — interactions dominate for every top parameter on every metric. For virulence evolution, σ/μ\* > 2 universally. This confirms the Round 1 finding that **Sobol total-order indices (S_T) will be much larger than first-order (S₁)**. Morris μ\* alone cannot be trusted for ranking — it conflates direct and interaction effects. The Sobol decomposition is essential.
+
+---
+
+## 5. Key Findings
 
 ### 4.1 rho_rec: From Nobody to King (Sobol R1 #14 → Morris R3 #1)
 
@@ -266,7 +385,7 @@ All 43 parameters have μ\*_norm > 0.17 (minimum: gamma_fert at 0.174), well abo
 
 ---
 
-## 5. Round 1 vs Round 3 Comparison
+## 6. Round 1 vs Round 3 Comparison
 
 | Sobol R1 Rank | Parameter | Morris R3 Rank | Shift | Explanation |
 |------|-----------|------|-------|-------------|
@@ -285,7 +404,7 @@ All 43 parameters have μ\*_norm > 0.17 (minimum: gamma_fert at 0.174), well abo
 
 ---
 
-## 6. Sobol Plan
+## 7. Sobol Plan
 
 - **Parameters:** All 43 (no elimination)
 - **Sample size:** N = 512 (Saltelli sampling → 45,056 total runs)
