@@ -21,7 +21,7 @@ from scripts.sensitivity.param_spec import get_param_names
 from scripts.sensitivity.spatial_runner import run_single_spatial, METRIC_NAMES
 
 # ── Config ────────────────────────────────────────────────────────
-N_CORES = 8
+N_CORES = 12
 BASE_SEED = 31415
 CHECKPOINT_INTERVAL = 500
 RESULTS_DIR = "results/sensitivity_r3"
@@ -65,6 +65,7 @@ def main():
     args_list = [(i, X[i], names, BASE_SEED) for i in remaining]
     
     t_start = time.time()
+    last_interval_time = t_start
     n_errors = 0
     batch_done = 0
     
@@ -90,24 +91,18 @@ def main():
                 eta_s = (len(remaining) - batch_done) / rate if rate > 0 else 0
                 eta_h = eta_s / 3600
                 
+                # Per-interval rate (last CHECKPOINT_INTERVAL runs)
+                interval_elapsed = time.time() - last_interval_time if batch_done > CHECKPOINT_INTERVAL else elapsed
+                interval_rate = CHECKPOINT_INTERVAL / interval_elapsed if interval_elapsed > 0 else rate
+                last_interval_time = time.time()
+                
                 # Save checkpoint
                 np.savez(checkpoint_path, Y=Y, completed_mask=completed_mask)
                 
                 print(f"[{time.strftime('%H:%M:%S')}] {total_done}/{total_runs} "
                       f"({total_done/total_runs*100:.1f}%) | "
-                      f"{rate:.2f} runs/s | "
-                      f"ETA: {eta_h:.1f}h | "
-                      f"errors: {n_errors}")
-                sys.stdout.flush()
-            
-            # Also print every 2000 for coarser tracking
-            elif batch_done % 2000 == 0:
-                elapsed = time.time() - t_start
-                rate = batch_done / elapsed
-                eta_h = (len(remaining) - batch_done) / rate / 3600 if rate > 0 else 0
-                print(f"[{time.strftime('%H:%M:%S')}] {total_done}/{total_runs} "
-                      f"({total_done/total_runs*100:.1f}%) | "
-                      f"{rate:.2f} runs/s | "
+                      f"avg {rate:.2f} r/s | "
+                      f"last500 {interval_rate:.2f} r/s | "
                       f"ETA: {eta_h:.1f}h | "
                       f"errors: {n_errors}")
                 sys.stdout.flush()
