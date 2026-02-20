@@ -167,6 +167,9 @@ class DiseaseSection:
     susceptibility_multiplier: float = 2.0   # Force-of-infection multiplier during immunosuppression
     immunosuppression_duration: int = 28      # Duration of post-spawning immunosuppression (days)
 
+    # Tolerance (mirrored from GeneticsSection for disease-module convenience)
+    tau_max: float = 0.85             # Max I₂→D mortality reduction at t_i=1
+
     # Juvenile immunity (Phase 11)
     min_susceptible_age_days: int = 0  # Days post-settlement before susceptible
                                        # 0 = immediate (backward compatible)

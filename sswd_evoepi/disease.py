@@ -3,6 +3,10 @@
 Implements:
   - SEIPD+R compartments: S→E→I₁→I₂→D (+ recovery from I₁/I₂ → R)
   - Force of infection: λ_i = a × P/(K_half+P) × (1−r_i) × S_sal × f_size(L_i)
+  - Three-trait host genetics:
+      * Resistance (r_i): reduces force of infection
+      * Tolerance (t_i): timer-scales I₂ duration (longer survival while infected)
+      * Recovery (c_i): linear clearance probability from I₁/I₂ → R
   - Temperature-dependent progression rates (Arrhenius, T_ref=20°C)
   - Environmental pathogen dynamics: shedding − decay − flushing + reservoir
   - VBNC sigmoidal reservoir: P_env(T)
@@ -15,12 +19,13 @@ Implements:
 
 References:
   - disease-module-spec.md (authoritative specification)
+  - three-trait-genetic-architecture-spec.md §6
   - ERRATA E1: E_a/R for I₂→D = 2,000 K (not 6,000)
   - ERRATA E2: Field-effective shedding σ₁=5, σ₂=50 at 20°C
   - ERRATA E14: σ_D = 150 bact/mL/d/carcass
   - CODE_ERRATA CE-2: ubiquitous vs invasion via config
 
-Build target: Phase 4.
+Build target: Phase 3 (three-trait disease wiring).
 """
 
 from __future__ import annotations
@@ -62,7 +67,7 @@ K_VBNC = 1.0           # °C⁻¹ — transition steepness
 CARCASS_SHED_DAYS = 3
 
 # Recovery thresholds
-R_EARLY_THRESH = 0.6   # Minimum r_i for early recovery from I₁
+C_EARLY_THRESH = 0.5   # Minimum c_i for early recovery from I₁
 
 # Behavioral modifiers indexed by DiseaseState value
 SPEED_MODIFIER = np.array([1.0, 1.0, 0.5, 0.1, 0.0, 1.0], dtype=np.float64)
@@ -337,25 +342,37 @@ def sample_stage_duration(
     return max(1, int(np.round(total)))
 
 
-def recovery_probability_I2(r_i: float, rho_rec: float = 0.05) -> float:
+def recovery_probability_I2(c_i: float, rho_rec: float = 0.05) -> float:
     """Daily probability of recovery from I₂ state.
 
-    p_rec = ρ_rec × r_i²
-    Quadratic weighting: only high-r_i individuals recover meaningfully.
+    p_rec = ρ_rec × c_i
+
+    Linear in clearance ability. At c_i=0: no recovery possible.
+    At c_i=1: p_rec = ρ_rec (base rate, ~5%/day).
+
+    Args:
+        c_i: Individual recovery/clearance score [0, 1].
+        rho_rec: Base recovery rate (d⁻¹).
     """
-    return rho_rec * r_i * r_i
+    return rho_rec * c_i
 
 
-def recovery_probability_I1(r_i: float, rho_rec: float = 0.05) -> float:
+def recovery_probability_I1(c_i: float, rho_rec: float = 0.05) -> float:
     """Daily probability of early recovery from I₁ state.
 
-    Only for highly resistant individuals (r_i > 0.6).
-    p_early = ρ_rec × (r_i − 0.6)² / 0.16
+    Only meaningful for high-clearance individuals (c_i > 0.5).
+    Linear above threshold:
+        p_early = ρ_rec × 2 × (c_i − 0.5)
+
+    At c_i ≤ 0.5: 0. At c_i=1.0: ρ_rec.
+
+    Args:
+        c_i: Individual recovery/clearance score [0, 1].
+        rho_rec: Base recovery rate (d⁻¹).
     """
-    if r_i <= R_EARLY_THRESH:
+    if c_i <= C_EARLY_THRESH:
         return 0.0
-    excess = (r_i - R_EARLY_THRESH) ** 2 / 0.16
-    return rho_rec * excess
+    return rho_rec * 2.0 * (c_i - C_EARLY_THRESH)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -371,13 +388,18 @@ def compute_R0(
     mean_resistance: float = 0.08,
     v: "float | None" = None,
     pe_cfg: "PathogenEvolutionSection | None" = None,
+    mean_tolerance: float = 0.0,
+    mean_recovery: float = 0.0,
+    tau_max: "float | None" = None,
 ) -> float:
     """Compute basic reproduction number at a node.
 
     R₀ = (a × S₀ × (1−r̄) × S_sal) / (K_half × (ξ(T) + φ))
-         × (σ₁(T)/μ_I₁I₂(T) + σ₂(T)/μ_I₂D(T) + σ_D × τ_D)
+         × (σ₁(T)/μ_I₁I₂(T) + σ₂(T)/μ_I₂D_eff(T) + σ_D × τ_D)
 
     Includes carcass saprophytic shedding contribution (CE-6).
+    Tolerance reduces effective I₂→D rate (longer infectious period).
+    Recovery adds an exit pathway from I₂ (reduces effective I₂ duration).
 
     When *v* and *pe_cfg* are provided and pathogen evolution is enabled,
     uses virulence-adjusted rates for the given strain.
@@ -391,10 +413,16 @@ def compute_R0(
         mean_resistance: Population mean resistance score.
         v: Optional pathogen virulence phenotype for strain-specific R₀.
         pe_cfg: Optional PathogenEvolutionSection config.
+        mean_tolerance: Population mean tolerance score [0, 1].
+        mean_recovery: Population mean recovery/clearance score [0, 1].
+        tau_max: Max mortality reduction. Defaults to cfg.tau_max.
 
     Returns:
         R₀ estimate.
     """
+    if tau_max is None:
+        tau_max = cfg.tau_max
+
     sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
     suscept = (1.0 - mean_resistance) * sal_mod
 
@@ -412,9 +440,17 @@ def compute_R0(
         mu_i1i2 = arrhenius(cfg.mu_I1I2_ref, cfg.Ea_I1I2, T_celsius)
         mu_i2d = arrhenius(cfg.mu_I2D_ref, cfg.Ea_I2D, T_celsius)
 
+    # Effective I₂→D rate accounting for population-mean tolerance
+    mu_i2d_eff = mu_i2d * (1.0 - mean_tolerance * tau_max)
+    mu_i2d_eff = max(mu_i2d_eff, mu_i2d * 0.05)  # floor at 5%
+
+    # Effective I₂ exit rate accounting for recovery
+    # Mean time in I₂ ≈ 1 / (μ_I2D_eff + ρ_rec × mean_recovery)
+    effective_I2_exit = mu_i2d_eff + cfg.rho_rec * mean_recovery
+
     # Total pathogen shed per infection event: live stages + carcass burst
     shedding_integral = (sigma1 / mu_i1i2
-                         + sigma2 / mu_i2d
+                         + sigma2 / effective_I2_exit
                          + cfg.sigma_D * CARCASS_SHED_DAYS)
 
     R0 = (cfg.a_exposure * S_0 * suscept) / (cfg.K_half * total_removal) * shedding_integral
@@ -822,13 +858,18 @@ def daily_disease_update(
                 dt_rem[idx] = sample_stage_duration(rate_I1I2, K_SHAPE_I1, rng)
             elif state == DiseaseState.I1:
                 ds[idx] = DiseaseState.I2
-                # I2→D timer: virulence-dependent when pe active
+                # I2→D timer: base rate (optionally virulence-adjusted),
+                # then scaled by host tolerance (timer-scaling approach)
                 if pe_active:
                     v_i = float(agents['pathogen_virulence'][idx])
                     rate_I2D = float(mu_I2D_strain(v_i, T_celsius, cfg, pe_cfg))
                 else:
                     rate_I2D = mu_I2D
-                dt_rem[idx] = sample_stage_duration(rate_I2D, K_SHAPE_I2, rng)
+                # Tolerance reduces effective death rate → longer I₂ timer
+                t_i = float(agents['tolerance'][idx])
+                effective_rate = rate_I2D * (1.0 - t_i * cfg.tau_max)
+                effective_rate = max(effective_rate, rate_I2D * 0.05)  # floor at 5%
+                dt_rem[idx] = sample_stage_duration(effective_rate, K_SHAPE_I2, rng)
             elif state == DiseaseState.I2:
                 # Timer expired in I₂ → death
                 if pe_active:
@@ -839,17 +880,17 @@ def daily_disease_update(
                 agents['cause_of_death'][idx] = 1  # DeathCause.DISEASE
                 new_deaths += 1
         else:
-            # Timer not expired — check for recovery
-            r_i = resistance[idx]
+            # Timer not expired — check for recovery (uses clearance c_i)
+            c_i = float(agents['recovery_ability'][idx])
             if state == DiseaseState.I2:
-                p_rec = recovery_probability_I2(r_i, cfg.rho_rec)
+                p_rec = recovery_probability_I2(c_i, cfg.rho_rec)
                 if rng.random() < p_rec:
                     ds[idx] = DiseaseState.R
                     dt_rem[idx] = 0
                     agents['pathogen_virulence'][idx] = 0.0
                     new_recoveries += 1
             elif state == DiseaseState.I1:
-                p_early = recovery_probability_I1(r_i, cfg.rho_rec)
+                p_early = recovery_probability_I1(c_i, cfg.rho_rec)
                 if rng.random() < p_early:
                     ds[idx] = DiseaseState.R
                     dt_rem[idx] = 0
@@ -951,12 +992,16 @@ def run_single_node_epidemic(
     record_daily: bool = False,
     initial_vibrio: Optional[float] = None,
     pe_cfg: "PathogenEvolutionSection | None" = None,
+    mean_tolerance: float = 0.10,
+    tolerance_std: float = 0.05,
+    mean_recovery: float = 0.08,
+    recovery_std: float = 0.04,
 ) -> EpidemicResult:
     """Run a standalone single-node epidemic simulation.
 
     Creates a population of susceptible individuals with given
-    resistance distribution, seeds initial infections, and runs
-    daily disease updates.
+    resistance/tolerance/recovery distributions, seeds initial
+    infections, and runs daily disease updates.
 
     Args:
         n_individuals: Population size.
@@ -974,6 +1019,11 @@ def run_single_node_epidemic(
         record_daily: If True, record daily compartment timeseries.
         initial_vibrio: Starting Vibrio concentration. If None, computed
             from steady-state background.
+        pe_cfg: Optional pathogen evolution config.
+        mean_tolerance: Mean of tolerance distribution.
+        tolerance_std: SD of tolerance distribution.
+        mean_recovery: Mean of recovery/clearance distribution.
+        recovery_std: SD of recovery/clearance distribution.
 
     Returns:
         EpidemicResult with summary statistics.
@@ -991,12 +1041,26 @@ def run_single_node_epidemic(
     r_values = np.clip(r_values, 0.0, 1.0)
     agents['resistance'] = r_values.astype(np.float32)
 
+    # Assign tolerance (truncated normal, [0, 1])
+    if tolerance_std > 0:
+        t_values = rng.normal(mean_tolerance, tolerance_std, n_individuals)
+        t_values = np.clip(t_values, 0.0, 1.0)
+        agents['tolerance'] = t_values.astype(np.float32)
+    else:
+        agents['tolerance'] = np.float32(mean_tolerance)
+
+    # Assign recovery ability (truncated normal, [0, 1])
+    if recovery_std > 0:
+        c_values = rng.normal(mean_recovery, recovery_std, n_individuals)
+        c_values = np.clip(c_values, 0.0, 1.0)
+        agents['recovery_ability'] = c_values.astype(np.float32)
+    else:
+        agents['recovery_ability'] = np.float32(mean_recovery)
+
     # Assign sizes (truncated normal, min 50mm)
     sizes = rng.normal(mean_size, size_std, n_individuals)
     sizes = np.clip(sizes, 50.0, 1000.0)
     agents['size'] = sizes.astype(np.float32)
-
-    # fecundity_mod removed (three-trait architecture)
 
     # Seed initial infections
     if initial_infected > 0:

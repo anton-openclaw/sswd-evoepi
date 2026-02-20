@@ -23,7 +23,7 @@ from sswd_evoepi.disease import (
     K_SHAPE_I1,
     K_SHAPE_I2,
     L_BAR,
-    R_EARLY_THRESH,
+    C_EARLY_THRESH,
     SIGMA_L,
     T_REF_K,
     CarcassTracker,
@@ -406,36 +406,42 @@ class TestStageDuration:
 
 
 class TestRecoveryProbability:
-    """Tests for recovery probability functions."""
+    """Tests for recovery probability functions (three-trait: c_i = clearance)."""
 
-    def test_i2_zero_resistance(self):
-        """Zero resistance → zero recovery probability."""
+    def test_i2_zero_clearance(self):
+        """Zero clearance → zero recovery probability."""
         assert recovery_probability_I2(0.0) == 0.0
 
-    def test_i2_quadratic(self):
-        """Recovery probability should be quadratic in r_i."""
+    def test_i2_linear(self):
+        """Recovery probability should be linear in c_i."""
         p1 = recovery_probability_I2(0.2)
         p2 = recovery_probability_I2(0.4)
-        # p2/p1 should be (0.4/0.2)² = 4.0
-        assert p2 / p1 == pytest.approx(4.0, rel=0.01)
+        # p2/p1 should be 0.4/0.2 = 2.0 (linear)
+        assert p2 / p1 == pytest.approx(2.0, rel=0.01)
 
-    def test_i2_pre_sswd_negligible(self):
-        """Pre-SSWD mean r̄=0.08 → negligible recovery."""
-        p = recovery_probability_I2(0.08)
-        # p = 0.05 × 0.0064 = 0.00032 → ~0.2% over 7 days
-        assert p < 0.001
+    def test_i2_max_clearance(self):
+        """c_i=1.0 → recovery probability = rho_rec."""
+        assert recovery_probability_I2(1.0, 0.05) == pytest.approx(0.05)
+
+    def test_i2_half_clearance(self):
+        """c_i=0.5 → recovery probability = rho_rec / 2."""
+        assert recovery_probability_I2(0.5, 0.05) == pytest.approx(0.025)
 
     def test_i1_below_threshold(self):
-        """Below r_early_thresh → zero early recovery."""
-        assert recovery_probability_I1(0.5) == 0.0
+        """Below c_early_thresh=0.5 → zero early recovery."""
+        assert recovery_probability_I1(0.3) == 0.0
 
     def test_i1_above_threshold(self):
         """Above threshold → positive early recovery probability."""
-        assert recovery_probability_I1(0.8) > 0.0
+        assert recovery_probability_I1(0.7) > 0.0
 
     def test_i1_threshold_exact(self):
-        """At exactly r_early_thresh → zero."""
-        assert recovery_probability_I1(R_EARLY_THRESH) == 0.0
+        """At exactly c_early_thresh → zero."""
+        assert recovery_probability_I1(C_EARLY_THRESH) == 0.0
+
+    def test_i1_max_clearance(self):
+        """c_i=1.0 → I₁ early recovery = rho_rec."""
+        assert recovery_probability_I1(1.0, 0.05) == pytest.approx(0.05)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -605,7 +611,8 @@ class TestDailyDiseaseUpdate:
 
         agents['disease_state'][0] = DiseaseState.I2
         agents['disease_timer'][0] = 1  # expires today
-        agents['resistance'][0] = 0.0  # no recovery chance
+        agents['resistance'][0] = 0.0
+        agents['recovery_ability'][0] = 0.0  # no recovery chance
 
         state = NodeDiseaseState(node_id=0)
         state = daily_disease_update(
@@ -755,6 +762,10 @@ class TestEpidemicDynamics:
             seed=42,
             record_daily=True,
             initial_vibrio=0.0,  # Start from zero, let VBNC build up
+            mean_tolerance=0.0,  # VBNC test — isolate pathogen dynamics
+            tolerance_std=0.0,
+            mean_recovery=0.0,
+            recovery_std=0.0,
         )
         # Steady-state P at 8°C should be very low
         # P* = P_env(8°C) / (ξ(8°C) + φ) ≈ 5.3 / 1.1 ≈ 4.8
@@ -822,6 +833,8 @@ class TestEpidemicDynamics:
             size_std=30.0,
             seed=42,
             record_daily=True,
+            mean_tolerance=0.0, tolerance_std=0.0,  # Isolate size effect
+            mean_recovery=0.0, recovery_std=0.0,
         )
         # Run with large individuals
         result_large = run_single_node_epidemic(
@@ -836,6 +849,8 @@ class TestEpidemicDynamics:
             size_std=30.0,
             seed=42,
             record_daily=True,
+            mean_tolerance=0.0, tolerance_std=0.0,  # Isolate size effect
+            mean_recovery=0.0, recovery_std=0.0,
         )
         # Larger individuals should have more infections in 60 days
         assert result_large.total_infected >= result_small.total_infected, \
@@ -1423,17 +1438,17 @@ class TestStrainInheritance:
         pe_cfg = PathogenEvolutionSection(enabled=True)
         agents = self._make_agents(20)
 
-        # Set up agents in I1 and I2 with high resistance (for recovery)
+        # Set up agents in I1 and I2 with high clearance ability (for recovery)
         # and known pathogen virulence
         for i in range(10):
             agents['disease_state'][i] = DiseaseState.I1
             agents['disease_timer'][i] = 5
-            agents['resistance'][i] = 0.95  # very high → recovery likely
+            agents['recovery_ability'][i] = 0.95  # very high → recovery likely
             agents['pathogen_virulence'][i] = 0.7
         for i in range(10, 20):
             agents['disease_state'][i] = DiseaseState.I2
             agents['disease_timer'][i] = 5
-            agents['resistance'][i] = 0.95
+            agents['recovery_ability'][i] = 0.95
             agents['pathogen_virulence'][i] = 0.7
 
         # Use high recovery rate to ensure recoveries happen
