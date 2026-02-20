@@ -1,8 +1,12 @@
 """
 Spatial sensitivity analysis runner.
 
-Runs a 5-node spatial simulation with overridden parameters and extracts metrics.
-Designed to be called from multiprocessing pool.
+Runs an 11-node stepping-stone simulation with overridden parameters
+and extracts metrics. Designed to be called from multiprocessing pool.
+
+SA Round 4: upgraded from 3-node to 11-node chain to make spatial
+parameters (D_L, alpha_self) testable. Adjacent nodes ~110-452 km
+apart → 32-76% larval exchange at default D_L=400 km.
 """
 
 import time
@@ -21,42 +25,50 @@ from scripts.sensitivity.param_spec import (
 )
 
 
-# ─── 5-node prototype network ────────────────────────────────────────
-# Realistic K values from the prototype runs
+# ─── 11-node stepping-stone chain ────────────────────────────────────
+# Sitka → Monterey with ~250-450 km spacing (max gap 452 km).
+# Ensures D_L (100-1000 km SA range) meaningfully affects connectivity.
+
+K_PER_NODE = 5000  # ~55,000 total agents
+
+# (name, lat, lon, mean_sst, sst_amplitude, salinity, is_fjord, flushing_rate)
+NODE_SPECS = [
+    ("Sitka",         57.06, -135.34, 8.0,  3.5, 32.0, False, 0.80),
+    ("Ketchikan",     55.34, -131.64, 8.5,  3.5, 31.0, False, 0.50),
+    ("Haida Gwaii",   53.25, -132.07, 9.0,  3.0, 31.5, False, 0.60),
+    ("Bella Bella",   52.16, -128.15, 9.5,  3.5, 28.0, False, 0.40),
+    ("Howe Sound",    49.52, -123.25, 10.0, 4.0, 22.0, True,  0.03),
+    ("SJI",           48.53, -123.02, 10.5, 4.0, 30.0, False, 0.30),
+    ("Westport",      46.89, -124.10, 11.0, 3.5, 32.0, False, 0.50),
+    ("Newport",       44.63, -124.05, 11.5, 3.0, 33.0, False, 0.60),
+    ("Crescent City", 41.76, -124.20, 12.0, 2.5, 33.0, False, 0.50),
+    ("Fort Bragg",    39.45, -123.80, 12.5, 2.5, 33.5, False, 0.50),
+    ("Monterey",      36.62, -121.90, 13.0, 2.5, 33.5, False, 0.40),
+]
+
 
 def build_network(rng_seed=42):
-    """Build a 3-node NE Pacific network with realistic K.
-    
-    3 nodes capturing:
-    - Sitka (cold, high-latitude Alaska)
-    - Howe Sound (fjord refugium, BC) 
-    - Monterey (warm, southern range)
-    
-    K=5000 per site based on field densities of 0.1-0.2 ind/m²
-    at healthy sites (Willem, pers. comm.), with ~33,000 m² habitat patches.
+    """Build an 11-node NE Pacific stepping-stone network.
+
+    K=5000 per node. Adjacent nodes ~110-452 km apart, ensuring
+    larval exchange is meaningful across the D_L parameter range.
     """
-    node_defs = [
-        NodeDefinition(
-            node_id=0, name="Sitka", lat=57.05, lon=-135.33,
-            subregion="AK-SE", habitat_area=33333.0, carrying_capacity=5000,
-            mean_sst=8.5, sst_amplitude=4.0, salinity=30.0,
-            flushing_rate=0.3,
-        ),
-        NodeDefinition(
-            node_id=1, name="Howe_Sound", lat=49.55, lon=-123.23,
-            subregion="BC", habitat_area=33333.0, carrying_capacity=5000,
-            is_fjord=True, sill_depth=50.0, flushing_rate=0.15,
-            mean_sst=10.0, sst_amplitude=5.0, salinity=28.0,
-        ),
-        NodeDefinition(
-            node_id=2, name="Monterey", lat=36.60, lon=-121.90,
-            subregion="CA", habitat_area=33333.0, carrying_capacity=5000,
-            mean_sst=13.0, sst_amplitude=3.0, salinity=33.5,
-            flushing_rate=0.6,
-        ),
-    ]
-    
-    # Haversine distances (km)
+    node_defs = []
+    for i, (name, lat, lon, sst, amp, sal, fjord, flush) in enumerate(NODE_SPECS):
+        kwargs = dict(
+            node_id=i, name=name, lat=lat, lon=lon,
+            subregion=name[:2].upper(),
+            habitat_area=33333.0,
+            carrying_capacity=K_PER_NODE,
+            mean_sst=sst, sst_amplitude=amp, salinity=sal,
+            sst_trend=0.02, flushing_rate=flush,
+            is_fjord=fjord,
+        )
+        if fjord:
+            kwargs["sill_depth"] = 30.0
+        node_defs.append(NodeDefinition(**kwargs))
+
+    # Haversine distance matrix
     n = len(node_defs)
     D = np.zeros((n, n))
     for i in range(n):
@@ -64,18 +76,13 @@ def build_network(rng_seed=42):
             if i != j:
                 dlat = np.radians(node_defs[i].lat - node_defs[j].lat)
                 dlon = np.radians(node_defs[i].lon - node_defs[j].lon)
-                a = (np.sin(dlat/2)**2 + 
-                     np.cos(np.radians(node_defs[i].lat)) * 
-                     np.cos(np.radians(node_defs[j].lat)) * 
+                a = (np.sin(dlat/2)**2 +
+                     np.cos(np.radians(node_defs[i].lat)) *
+                     np.cos(np.radians(node_defs[j].lat)) *
                      np.sin(dlon/2)**2)
-                D[i,j] = 6371 * 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
-    
-    # Wrap in SpatialNodes
-    nodes = []
-    for nd in node_defs:
-        sn = SpatialNode(definition=nd)
-        nodes.append(sn)
-    
+                D[i, j] = 6371 * 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+
+    nodes = [SpatialNode(definition=nd) for nd in node_defs]
     rng = np.random.default_rng(rng_seed)
     network = MetapopulationNetwork(
         nodes=nodes,
@@ -84,11 +91,10 @@ def build_network(rng_seed=42):
         distances=D,
         rng=rng,
     )
-    
     return network
 
 
-# Keep old name for backward compatibility
+# Backward compatibility
 build_5node_network = build_network
 
 
@@ -124,6 +130,9 @@ METRIC_NAMES = [
     "spawning_participation",
     "mean_recruitment_rate",
     "evolutionary_rescue_index",
+    # SA Round 4: recovery events (uses new yearly_recoveries field)
+    "total_recovery_events",
+    "recovery_rate",
 ]
 
 
@@ -227,13 +236,23 @@ def extract_spatial_metrics(result):
         else:
             metrics["north_south_mortality_gradient"] = 0.0
         
-        # Fjord protection: Howe Sound (1, fjord) vs average of non-fjord nodes
-        if n_nodes >= 3 and result.node_K is not None:
-            hs_survival = final_pops[1] / max(result.node_K[1], 1)
-            # Average of non-fjord nodes (Sitka=0, Monterey=2)
+        # Fjord protection: Howe Sound (node 4 in 11-node, or find fjord)
+        # Find fjord node dynamically
+        fjord_idx = None
+        node_names = result.node_names or []
+        for idx, nm in enumerate(node_names):
+            if "howe" in nm.lower() or "sound" in nm.lower():
+                fjord_idx = idx
+                break
+        if fjord_idx is None:
+            # Fallback: check node_K for any fjord (use index 4 for 11-node)
+            fjord_idx = 4 if n_nodes >= 11 else (1 if n_nodes >= 3 else None)
+
+        if fjord_idx is not None and result.node_K is not None:
+            hs_survival = final_pops[fjord_idx] / max(result.node_K[fjord_idx], 1)
             non_fjord_survival = np.mean([
                 final_pops[i] / max(result.node_K[i], 1)
-                for i in range(n_nodes) if i != 1
+                for i in range(n_nodes) if i != fjord_idx
             ])
             metrics["fjord_protection_effect"] = hs_survival - non_fjord_survival
         else:
@@ -311,7 +330,19 @@ def extract_spatial_metrics(result):
     metrics["evolutionary_rescue_index"] = (
         metrics.get("final_pop_frac", 0.0) * metrics.get("resistance_shift_mean", 0.0)
     )
-    
+
+    # ── SA Round 4: Recovery event tracking ────────────────────────
+    yr = getattr(result, 'yearly_recoveries', None)
+    if yr is not None:
+        total_rec = float(np.sum(yr))
+        metrics["total_recovery_events"] = total_rec
+        metrics["recovery_rate"] = (
+            total_rec / total_dd if total_dd > 0 else 0.0
+        )
+    else:
+        metrics["total_recovery_events"] = 0.0
+        metrics["recovery_rate"] = 0.0
+
     return metrics
 
 
