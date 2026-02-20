@@ -149,7 +149,7 @@ class DiseaseSection:
     Ea_I2D: float = 2000.0        # ERRATA E1: was 6000
 
     # Recovery
-    rho_rec: float = 0.05         # Base recovery rate (d⁻¹)
+    rho_rec: float = 0.01         # Base recovery rate (d⁻¹) — lowered from 0.05, no empirical basis
 
     # Environmental pathogen
     P_env_max: float = 500.0      # Background Vibrio input (bact/mL/d)
@@ -205,7 +205,7 @@ class GeneticsSection:
     # Per-trait initialization targets
     target_mean_r: float = 0.15   # Population-mean resistance at t=0
     target_mean_t: float = 0.10   # Population-mean tolerance at t=0
-    target_mean_c: float = 0.08   # Population-mean recovery at t=0
+    target_mean_c: float = 0.02   # Population-mean recovery at t=0 — rare standing variation
 
     # Tolerance mechanics
     tau_max: float = 0.85         # Max I₂→D mortality reduction at t_i=1
