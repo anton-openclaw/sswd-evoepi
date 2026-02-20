@@ -10,15 +10,15 @@
 
 This document formalizes the workflow from sensitivity analysis through calibration, convergence validation, and production runs. The core principle: **calibrate cheap, validate expensive**.
 
-| Phase | Purpose | K per node | Runs | Machine | Est. Time |
-|-------|---------|-----------|------|---------|-----------|
-| 1. Sensitivity Analysis | Identify influential parameters | 5,000 | ~45,000 | Ryzen | ~4 days |
-| 2. Calibration (ABC-SMC) | Fit parameters to empirical data | 5,000 | 10,000–50,000 | Ryzen or Xeon | 1–5 days |
-| 3. Convergence Validation | Verify N-independence | 1K–100K | ~350 | Ryzen | ~12 hours |
-| 4. Scale Correction | Fix N-dependent parameters | 50,000 | ~200 | Ryzen | ~2 days |
-| 5. Production Scenarios | Paper-quality results | 50,000–100,000 | ~500 | Ryzen or Xeon | 2–5 days |
+| Phase | Purpose | K per node | Runs | Est. Time (8 cores) |
+|-------|---------|-----------|------|---------------------|
+| 1. Sensitivity Analysis | Identify influential parameters | 5,000 | ~45,000 | ~4 days |
+| 2. Calibration (ABC-SMC) | Fit parameters to empirical data | 5,000 | 10,000–50,000 | 1–5 days |
+| 3. Convergence Validation | Verify N-independence | 1K–100K | ~350 | ~12 hours |
+| 4. Scale Correction | Fix N-dependent parameters | 50,000 | ~200 | ~2 days |
+| 5. Production Scenarios | Paper-quality results | 50,000–100,000 | ~500 | 2–5 days |
 
-**Total compute:** ~2–3 weeks on Ryzen, ~1 week on Xeon.
+**Total compute:** ~2–3 weeks at 8 cores. Scales linearly with more cores.
 
 ---
 
@@ -228,12 +228,12 @@ Using calibrated + scale-corrected parameters at K = 50,000–100,000 per node.
 
 ### 6.2 Computational Cost
 
-| Group | Runs | K | Est. time (Ryzen) | Est. time (Xeon) |
-|-------|------|---|-------------------|-----------------|
-| Baselines (A–C) | 60 | 100K | ~2 days | ~8 hours |
-| Conservation (D–H) | 100 | 50K | ~2 days | ~8 hours |
-| Sensitivity (I–L) | 90 | 50K | ~1.5 days | ~6 hours |
-| **Total** | **250** | — | **~5 days** | **~22 hours** |
+| Group | Runs | K | Est. time (8 cores) |
+|-------|------|---|---------------------|
+| Baselines (A–C) | 60 | 100K | ~2 days |
+| Conservation (D–H) | 100 | 50K | ~2 days |
+| Sensitivity (I–L) | 90 | 50K | ~1.5 days |
+| **Total** | **250** | — | **~5 days** |
 
 ### 6.3 Outputs
 
@@ -250,19 +250,15 @@ For each scenario:
 
 ## 7. Timeline
 
-Assuming Ryzen-only (add Xeon and everything compresses ~4×):
-
 | Week | Phase | Status |
 |------|-------|--------|
 | Feb 19–25 | Phase 1: Sobol SA | IN PROGRESS |
 | Feb 25–26 | Phase 1: Sobol analysis + report | — |
-| Feb 27 – Mar 5 | Phase 2: ABC-SMC calibration | — |
-| Mar 5–6 | Phase 3: Convergence validation | — |
-| Mar 6–7 | Phase 4: Scale correction (if needed) | — |
-| Mar 8–14 | Phase 5: Production scenarios | — |
-| Mar 14–21 | Analysis, visualization, writing | — |
-
-**Target:** Paper-ready results by end of March 2026.
+| Feb 26 – Mar 2 | Phase 2: ABC-SMC calibration | — |
+| Mar 2–3 | Phase 3: Convergence validation | — |
+| Mar 3–4 | Phase 4: Scale correction (if needed) | — |
+| Mar 4–8 | Phase 5: Production scenarios | — |
+| Mar 8–14 | Analysis, visualization, writing | — |
 
 ---
 
@@ -283,18 +279,7 @@ Assuming Ryzen-only (add Xeon and everything compresses ~4×):
 |------|------------|--------|-----------|
 | Sobol run crashes/hangs | Low | 1–2 day delay | Checkpointing every 500 runs |
 | ABC doesn't converge | Medium | 1 week delay | Start with fewer calibration targets, widen priors |
-| Scale correction fails (strong N-dependence) | Low | Conceptual problem | May need to calibrate directly at large K on Xeon |
-| Power outage during long run | Medium | Hours lost | Checkpoint + systemd auto-restart |
+| Scale correction fails (strong N-dependence) | Low | Conceptual problem | Calibrate directly at large K with more compute |
+| Power outage during long run | Medium | Hours lost | Checkpoint + auto-restart |
 | Posterior is multimodal | Medium | Interpretation difficulty | Report all modes, run scenarios from each |
 | Key parameter unidentifiable | High (for rho_rec) | Scientific limitation | Report explicitly, test sensitivity of conclusions to rho_rec value |
-
----
-
-## 10. Open Questions for Willem
-
-1. **Calibration targets:** Are the empirical values in Section 3.2 correct? Any additional data sources?
-2. **Summary statistic weights:** Are the proposed weights reasonable?
-3. **Production scenarios:** Which conservation scenarios are highest priority?
-4. **Xeon availability:** When could we access the server? Phase 2 (calibration) benefits most from parallelism.
-5. **Timeline:** Is end-of-March realistic for your schedule?
-6. **Clement et al. 2024:** Still need this paper — their DFTD eco-evo IBM calibration approach could inform our ABC design.
