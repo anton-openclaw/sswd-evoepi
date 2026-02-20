@@ -85,14 +85,30 @@ PARAM_SPEC = OrderedDict([
         "low": 200.0, "high": 500.0, "dist": "uniform",
         "desc": "Min reproductive size (mm)", "confidence": "★☆☆",
     }),
-    # Genetics (1)
-    # NOTE: s_het and q_ef1a_init (EF1A) dropped — Wares 2016 finding is
-    # Pisaster ochraceus, not Pycnopodia. Overdominant locus is a structural
-    # assumption to test separately, not a continuous parameter to sweep.
-    ("genetics.n_additive", {
-        "low": 10, "high": 51, "dist": "discrete",
-        "values": [10, 20, 30, 40, 51],
-        "desc": "Number of additive resistance loci", "confidence": "★★☆",
+    # Genetics — three-trait architecture (Phase 4)
+    # n_resistance + n_tolerance + n_recovery = 51 (constrained)
+    # Parameterize as two free variables; n_recovery = 51 - n_resistance - n_tolerance
+    ("genetics.n_resistance", {
+        "low": 5, "high": 30, "dist": "discrete",
+        "values": [5, 10, 17, 25, 30],
+        "desc": "Number of resistance loci", "confidence": "★★☆",
+    }),
+    ("genetics.n_tolerance", {
+        "low": 5, "high": 30, "dist": "discrete",
+        "values": [5, 10, 17, 25, 30],
+        "desc": "Number of tolerance loci", "confidence": "★★☆",
+    }),
+    ("genetics.target_mean_t", {
+        "low": 0.02, "high": 0.30, "dist": "uniform",
+        "desc": "Target mean tolerance at t=0", "confidence": "★☆☆",
+    }),
+    ("genetics.target_mean_c", {
+        "low": 0.02, "high": 0.25, "dist": "uniform",
+        "desc": "Target mean recovery at t=0", "confidence": "★☆☆",
+    }),
+    ("genetics.tau_max", {
+        "low": 0.3, "high": 0.95, "dist": "uniform",
+        "desc": "Max tolerance mortality reduction", "confidence": "★☆☆",
     }),
     # Spawning (3)
     ("spawning.p_spontaneous_female", {
@@ -287,9 +303,24 @@ def sample_to_config_overrides(sample_row, param_names=None):
         
         overrides[section][field] = val
     
-    # Enforce constraint: n_loci = n_additive + 1
-    if "genetics" in overrides and "n_additive" in overrides["genetics"]:
-        overrides["genetics"]["n_loci"] = overrides["genetics"]["n_additive"] + 1
+    # Enforce constraint: n_resistance + n_tolerance + n_recovery = 51
+    if "genetics" in overrides:
+        g = overrides["genetics"]
+        n_r = g.get("n_resistance", 17)
+        n_t = g.get("n_tolerance", 17)
+        # Derive n_recovery = 51 - n_r - n_t (clamped to ≥1)
+        n_c = max(1, 51 - n_r - n_t)
+        # If partition overflows, adjust tolerance down
+        if n_r + n_t + n_c != 51:
+            n_t = max(1, 51 - n_r - n_c)
+        g["n_recovery"] = n_c
+        g["n_resistance"] = n_r
+        g["n_tolerance"] = n_t
+        # Sync tau_max to disease section (disease reads it from there too)
+        if "tau_max" in g:
+            if "disease" not in overrides:
+                overrides["disease"] = {}
+            overrides["disease"]["tau_max"] = g["tau_max"]
     
     # Integer coercion for fields that must be int
     int_fields = {

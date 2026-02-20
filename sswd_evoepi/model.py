@@ -58,7 +58,12 @@ from sswd_evoepi.genetics import (
     compute_allele_frequencies,
     compute_additive_variance,
     compute_genetic_diagnostics,
+    initialize_trait_effect_sizes,
+    update_all_trait_scores,
     update_resistance_scores,
+    RESISTANCE_SLICE,
+    TOLERANCE_SLICE,
+    RECOVERY_SLICE,
 )
 from sswd_evoepi.reproduction import (
     beverton_holt_recruitment,
@@ -234,18 +239,20 @@ def initialize_population(
     rng: np.random.Generator,
     q_init: float = 0.05,
     genetics_cfg: Optional['GeneticsSection'] = None,
+    effects_t: Optional[np.ndarray] = None,
+    effects_c: Optional[np.ndarray] = None,
     **kwargs,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Initialize a population at demographic equilibrium.
 
     Creates individuals with age/size drawn from an approximate
     stable age distribution, random genotypes with given allele
-    frequencies, and computed resistance scores.
+    frequencies, and computed resistance/tolerance/recovery scores.
 
-    If ``genetics_cfg`` is provided, uses its ``q_init_mode``,
-    ``target_mean_r``, and Beta parameters to set per-locus allele
-    frequencies (independent across loci). Otherwise falls back to
-    the uniform ``q_init`` for backward compatibility.
+    Three-trait initialization: if ``genetics_cfg`` and all three
+    effect arrays are provided, uses ``initialize_genotypes_three_trait``
+    to set up all 51 loci with per-trait target means. Otherwise
+    falls back to resistance-only initialization.
 
     Args:
         n_individuals: Target number of live individuals.
@@ -256,30 +263,19 @@ def initialize_population(
         rng: Random generator.
         q_init: Initial resistant allele frequency (legacy fallback).
         genetics_cfg: GeneticsSection with initialization config.
+        effects_t: Tolerance effect sizes (optional).
+        effects_c: Recovery effect sizes (optional).
         **kwargs: Absorbs legacy arguments (q_ef1a, w_od, etc.).
 
     Returns:
         (agents, genotypes) tuple.
     """
+    from sswd_evoepi.genetics import initialize_genotypes_three_trait
+
     agents = allocate_agents(max_agents)
     genotypes = allocate_genotypes(max_agents)
 
     n_res = len(effect_sizes)
-
-    # Compute per-locus allele frequencies for resistance
-    if genetics_cfg is not None:
-        q_per_locus = _make_per_locus_q(
-            n_loci=n_res,
-            effect_sizes=effect_sizes,
-            target_mean=genetics_cfg.target_mean_r,
-            mode=genetics_cfg.q_init_mode,
-            rng=rng,
-            beta_a=genetics_cfg.q_init_beta_a,
-            beta_b=genetics_cfg.q_init_beta_b,
-        )
-    else:
-        # Legacy: uniform q across resistance loci
-        q_per_locus = np.full(n_res, q_init)
 
     hab_side = np.sqrt(max(habitat_area, 1.0))
 
@@ -305,11 +301,43 @@ def initialize_population(
     ):
         stages[sizes < threshold_size] = stage
 
-    # Vectorized genotype initialization (resistance loci only;
-    # tolerance/recovery stay at zero until full three-trait init is wired in)
-    for l_idx in range(n_res):
-        genotypes[:n_individuals, l_idx, 0] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
-        genotypes[:n_individuals, l_idx, 1] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+    # Genotype initialization: three-trait if all effect arrays provided
+    if genetics_cfg is not None and effects_t is not None and effects_c is not None:
+        # Full three-trait initialization
+        init_geno = initialize_genotypes_three_trait(
+            n_agents=n_individuals,
+            effects_r=effect_sizes,
+            effects_t=effects_t,
+            effects_c=effects_c,
+            rng=rng,
+            target_mean_r=genetics_cfg.target_mean_r,
+            target_mean_t=genetics_cfg.target_mean_t,
+            target_mean_c=genetics_cfg.target_mean_c,
+            beta_a=genetics_cfg.q_init_beta_a,
+            beta_b=genetics_cfg.q_init_beta_b,
+            n_resistance=genetics_cfg.n_resistance,
+            n_tolerance=genetics_cfg.n_tolerance,
+            n_recovery=genetics_cfg.n_recovery,
+        )
+        genotypes[:n_individuals] = init_geno
+    else:
+        # Legacy: resistance-only initialization
+        if genetics_cfg is not None:
+            q_per_locus = _make_per_locus_q(
+                n_loci=n_res,
+                effect_sizes=effect_sizes,
+                target_mean=genetics_cfg.target_mean_r,
+                mode=genetics_cfg.q_init_mode,
+                rng=rng,
+                beta_a=genetics_cfg.q_init_beta_a,
+                beta_b=genetics_cfg.q_init_beta_b,
+            )
+        else:
+            q_per_locus = np.full(n_res, q_init)
+
+        for l_idx in range(n_res):
+            genotypes[:n_individuals, l_idx, 0] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+            genotypes[:n_individuals, l_idx, 1] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
 
     # Fill agent fields
     sl = slice(0, n_individuals)
@@ -328,11 +356,24 @@ def initialize_population(
     agents['origin'][sl] = 0  # WILD
     agents['settlement_day'][sl] = 0
 
-    # Compute resistance scores
-    for i in range(n_individuals):
-        agents[i]['resistance'] = _compute_resistance(
-            genotypes[i], effect_sizes
+    # Compute trait scores for initial population
+    if effects_t is not None and effects_c is not None:
+        # Full three-trait score computation
+        res_s, tol_s, rec_s = trait_slices(
+            genetics_cfg.n_resistance if genetics_cfg else N_RESISTANCE_DEFAULT,
+            genetics_cfg.n_tolerance if genetics_cfg else N_TOLERANCE_DEFAULT,
+            genetics_cfg.n_recovery if genetics_cfg else N_RECOVERY_DEFAULT,
         )
+        update_all_trait_scores(
+            agents, genotypes, effect_sizes, effects_t, effects_c,
+            res_slice=res_s, tol_slice=tol_s, rec_slice=rec_s,
+        )
+    else:
+        # Resistance-only (legacy)
+        for i in range(n_individuals):
+            agents[i]['resistance'] = _compute_resistance(
+                genotypes[i], effect_sizes
+            )
 
     return agents, genotypes
 
@@ -755,6 +796,11 @@ def settle_daily_cohorts(
     habitat_area: float = 1e6,
     sim_day: int = 0,
     w_od: float = 0.0,  # deprecated, ignored
+    effects_t: np.ndarray = None,
+    effects_c: np.ndarray = None,
+    res_slice: slice = None,
+    tol_slice: slice = None,
+    rec_slice: slice = None,
 ) -> int:
     """Settle competent larval cohorts into the population.
 
@@ -851,12 +897,24 @@ def settle_daily_cohorts(
         # Batch genotype assignment
         genotypes[slots] = settler_geno[:n_slots]
 
-        # Batch resistance computation (resistance loci only)
+        # Batch trait score computation for settlers
         n_res = len(effect_sizes)
-        allele_means = (
+        allele_means_r = (
             settler_geno[:n_slots, :n_res, :].sum(axis=2).astype(np.float64) * 0.5
         )
-        agents['resistance'][slots] = (allele_means @ effect_sizes).astype(np.float32)
+        agents['resistance'][slots] = (allele_means_r @ effect_sizes).astype(np.float32)
+
+        # Tolerance and recovery if effect arrays provided
+        if effects_t is not None and tol_slice is not None:
+            allele_means_t = (
+                settler_geno[:n_slots, tol_slice, :].sum(axis=2).astype(np.float64) * 0.5
+            )
+            agents['tolerance'][slots] = (allele_means_t @ effects_t).astype(np.float32)
+        if effects_c is not None and rec_slice is not None:
+            allele_means_c = (
+                settler_geno[:n_slots, rec_slice, :].sum(axis=2).astype(np.float64) * 0.5
+            )
+            agents['recovery_ability'][slots] = (allele_means_c @ effects_c).astype(np.float32)
 
         total_settled += n_slots
 
@@ -878,11 +936,15 @@ class CoupledSimResult:
     yearly_natural_deaths: Optional[np.ndarray] = None
     yearly_disease_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
+    yearly_mean_tolerance: Optional[np.ndarray] = None
+    yearly_mean_recovery: Optional[np.ndarray] = None
     yearly_fert_success: Optional[np.ndarray] = None
 
     # Genetics tracking (Phase 7)
     yearly_allele_freq_top3: Optional[np.ndarray] = None   # (n_years, 3)
     yearly_va: Optional[np.ndarray] = None                  # (n_years,) additive variance
+    yearly_va_tolerance: Optional[np.ndarray] = None        # (n_years,)
+    yearly_va_recovery: Optional[np.ndarray] = None         # (n_years,)
     pre_epidemic_allele_freq: Optional[np.ndarray] = None   # (N_LOCI,) snapshot
     post_epidemic_allele_freq: Optional[np.ndarray] = None  # (N_LOCI,) snapshot
 
@@ -986,8 +1048,20 @@ def run_coupled_simulation(
 
     rng = np.random.default_rng(seed)
 
-    # Initialize effect sizes
-    effect_sizes = make_effect_sizes(config.genetics.effect_size_seed)
+    # Initialize effect sizes for all three traits
+    gen_cfg = config.genetics
+    effect_sizes = make_effect_sizes(gen_cfg.effect_size_seed, n_loci=gen_cfg.n_resistance)
+    effects_t = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 1),
+        gen_cfg.n_tolerance, total_weight=1.0,
+    )
+    effects_c = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 2),
+        gen_cfg.n_recovery, total_weight=1.0,
+    )
+    res_slice, tol_slice, rec_slice = trait_slices(
+        gen_cfg.n_resistance, gen_cfg.n_tolerance, gen_cfg.n_recovery,
+    )
 
     # Allocate arrays — extra capacity for population fluctuation
     max_agents = max(int(carrying_capacity * 2.5), n_individuals * 3)
@@ -999,7 +1073,9 @@ def run_coupled_simulation(
         pop_cfg=pop_cfg,
         rng=rng,
         q_init=0.05,
-        genetics_cfg=config.genetics,
+        genetics_cfg=gen_cfg,
+        effects_t=effects_t,
+        effects_c=effects_c,
     )
 
     # Disease state
@@ -1040,11 +1116,15 @@ def run_coupled_simulation(
     yearly_disease_deaths = np.zeros(n_years, dtype=np.int32)
     yearly_senescence_deaths = np.zeros(n_years, dtype=np.int32)
     yearly_mean_resistance = np.zeros(n_years, dtype=np.float64)
+    yearly_mean_tolerance = np.zeros(n_years, dtype=np.float64)
+    yearly_mean_recovery = np.zeros(n_years, dtype=np.float64)
     yearly_fert_success = np.zeros(n_years, dtype=np.float64)
 
     # Genetics tracking (Phase 7)
     yearly_allele_freq_top3 = np.zeros((n_years, 3), dtype=np.float64)
     yearly_va = np.zeros(n_years, dtype=np.float64)
+    yearly_va_tolerance = np.zeros(n_years, dtype=np.float64)
+    yearly_va_recovery = np.zeros(n_years, dtype=np.float64)
     pre_epidemic_allele_freq = None
     post_epidemic_allele_freq = None
     epidemic_started_year = None  # track when epidemic begins for snapshot timing
@@ -1129,6 +1209,11 @@ def run_coupled_simulation(
                             pop_cfg, rng, effect_sizes,
                             habitat_area=habitat_area,
                             sim_day=sim_day,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
                         )
                         yearly_recruits_accum += n_settled
 
@@ -1227,6 +1312,11 @@ def run_coupled_simulation(
                         carrying_capacity, pop_cfg, rng, effect_sizes,
                         habitat_area=habitat_area,
                         sim_day=end_of_year_sim_day,
+                        effects_t=effects_t,
+                        effects_c=effects_c,
+                        res_slice=res_slice,
+                        tol_slice=tol_slice,
+                        rec_slice=rec_slice,
                     )
                     yearly_recruits_accum += n_eoy
 
@@ -1319,13 +1409,21 @@ def run_coupled_simulation(
         )
         yearly_fert_success[year] = repro_diag.get('fertilization_success', 0.0)
 
-        # Mean resistance of living individuals
+        # Mean trait scores of living individuals
         if pop_after > 0:
             yearly_mean_resistance[year] = float(
                 np.mean(agents['resistance'][alive_mask])
             )
+            yearly_mean_tolerance[year] = float(
+                np.mean(agents['tolerance'][alive_mask])
+            )
+            yearly_mean_recovery[year] = float(
+                np.mean(agents['recovery_ability'][alive_mask])
+            )
         else:
             yearly_mean_resistance[year] = 0.0
+            yearly_mean_tolerance[year] = 0.0
+            yearly_mean_recovery[year] = 0.0
 
         # ── Pathogen evolution virulence tracking ─────────────────────
         if pe_cfg is not None:
@@ -1363,7 +1461,13 @@ def run_coupled_simulation(
             allele_freq = compute_allele_frequencies(genotypes, alive_mask)
             yearly_allele_freq_top3[year] = allele_freq[:3]
             yearly_va[year] = compute_additive_variance(
-                allele_freq, effect_sizes
+                allele_freq, effect_sizes, res_slice
+            )
+            yearly_va_tolerance[year] = compute_additive_variance(
+                allele_freq, effects_t, tol_slice
+            )
+            yearly_va_recovery[year] = compute_additive_variance(
+                allele_freq, effects_c, rec_slice
             )
 
         # Track minimum population
@@ -1393,10 +1497,14 @@ def run_coupled_simulation(
         yearly_disease_deaths=yearly_disease_deaths,
         yearly_senescence_deaths=yearly_senescence_deaths,
         yearly_mean_resistance=yearly_mean_resistance,
+        yearly_mean_tolerance=yearly_mean_tolerance,
+        yearly_mean_recovery=yearly_mean_recovery,
         yearly_fert_success=yearly_fert_success,
         # Genetics (Phase 7)
         yearly_allele_freq_top3=yearly_allele_freq_top3,
         yearly_va=yearly_va,
+        yearly_va_tolerance=yearly_va_tolerance,
+        yearly_va_recovery=yearly_va_recovery,
         pre_epidemic_allele_freq=pre_epidemic_allele_freq,
         post_epidemic_allele_freq=post_epidemic_allele_freq,
         # Pathogen evolution
@@ -1443,9 +1551,13 @@ class SpatialSimResult:
     yearly_disease_deaths: Optional[np.ndarray] = None
     yearly_senescence_deaths: Optional[np.ndarray] = None
     yearly_mean_resistance: Optional[np.ndarray] = None
+    yearly_mean_tolerance: Optional[np.ndarray] = None
+    yearly_mean_recovery: Optional[np.ndarray] = None
     yearly_vibrio_max: Optional[np.ndarray] = None
     # Per-node genetics: shape (n_nodes, n_years)
     yearly_va: Optional[np.ndarray] = None
+    yearly_va_tolerance: Optional[np.ndarray] = None
+    yearly_va_recovery: Optional[np.ndarray] = None
     yearly_allele_freq_top3: Optional[np.ndarray] = None  # (n_nodes, n_years, 3)
     yearly_ne_ratio: Optional[np.ndarray] = None
     # Pre/post-epidemic snapshots per node: shape (n_nodes, N_LOCI)
@@ -1530,7 +1642,19 @@ def run_spatial_simulation(
     N = network.n_nodes
 
     # ── Initialize populations at each node ──────────────────────────
-    effect_sizes = make_effect_sizes(config.genetics.effect_size_seed)
+    gen_cfg = config.genetics
+    effect_sizes = make_effect_sizes(gen_cfg.effect_size_seed, n_loci=gen_cfg.n_resistance)
+    effects_t = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 1),
+        gen_cfg.n_tolerance, total_weight=1.0,
+    )
+    effects_c = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 2),
+        gen_cfg.n_recovery, total_weight=1.0,
+    )
+    res_slice, tol_slice, rec_slice = trait_slices(
+        gen_cfg.n_resistance, gen_cfg.n_tolerance, gen_cfg.n_recovery,
+    )
 
     for node in network.nodes:
         nd = node.definition
@@ -1544,7 +1668,9 @@ def run_spatial_simulation(
             pop_cfg=pop_cfg,
             rng=rng,
             q_init=0.05,
-            genetics_cfg=config.genetics,
+            genetics_cfg=gen_cfg,
+            effects_t=effects_t,
+            effects_c=effects_c,
         )
         # Stamp node_id on all agents
         agents['node_id'][:K] = nd.node_id
@@ -1570,12 +1696,16 @@ def run_spatial_simulation(
     yearly_dis_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_senes_deaths = np.zeros((N, n_years), dtype=np.int32)
     yearly_mean_r = np.zeros((N, n_years), dtype=np.float64)
+    yearly_mean_t = np.zeros((N, n_years), dtype=np.float64)
+    yearly_mean_c = np.zeros((N, n_years), dtype=np.float64)
     yearly_vibrio_max = np.zeros((N, n_years), dtype=np.float64)
     yearly_total_pop = np.zeros(n_years, dtype=np.int32)
     yearly_total_larvae = np.zeros(n_years, dtype=np.int32)
 
     # Genetics tracking per node per year
     yearly_va = np.zeros((N, n_years), dtype=np.float64)
+    yearly_va_t = np.zeros((N, n_years), dtype=np.float64)
+    yearly_va_c = np.zeros((N, n_years), dtype=np.float64)
     yearly_allele_freq_top3 = np.zeros((N, n_years, 3), dtype=np.float64)
     yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)
 
@@ -1752,6 +1882,11 @@ def run_spatial_simulation(
                             effect_sizes, node_id=nd.node_id,
                             habitat_area=nd.habitat_area,
                             sim_day=sim_day,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
                         )
                         yearly_recruits_accum[i] += n_settled
 
@@ -1960,6 +2095,11 @@ def run_spatial_simulation(
                                 effect_sizes, node_id=nd.node_id,
                                 habitat_area=nd.habitat_area,
                                 sim_day=end_of_year_day,
+                                effects_t=effects_t,
+                                effects_c=effects_c,
+                                res_slice=res_slice,
+                                tol_slice=tol_slice,
+                                rec_slice=rec_slice,
                             )
                             yearly_recruits_accum[k] += n_settled
                         else:
@@ -2027,10 +2167,18 @@ def run_spatial_simulation(
                 yearly_mean_r[i, year] = float(
                     np.mean(node.agents['resistance'][alive_mask])
                 )
+                yearly_mean_t[i, year] = float(
+                    np.mean(node.agents['tolerance'][alive_mask])
+                )
+                yearly_mean_c[i, year] = float(
+                    np.mean(node.agents['recovery_ability'][alive_mask])
+                )
                 # Genetics tracking
                 af = compute_allele_frequencies(node.genotypes, alive_mask)
                 yearly_allele_freq_top3[i, year] = af[:3]
-                yearly_va[i, year] = compute_additive_variance(af, effect_sizes)
+                yearly_va[i, year] = compute_additive_variance(af, effect_sizes, res_slice)
+                yearly_va_t[i, year] = compute_additive_variance(af, effects_t, tol_slice)
+                yearly_va_c[i, year] = compute_additive_variance(af, effects_c, rec_slice)
 
             # Per-node virulence tracking (time-weighted daily mean)
             if pe_cfg is not None:
@@ -2066,8 +2214,12 @@ def run_spatial_simulation(
         yearly_disease_deaths=yearly_dis_deaths,
         yearly_senescence_deaths=yearly_senes_deaths,
         yearly_mean_resistance=yearly_mean_r,
+        yearly_mean_tolerance=yearly_mean_t,
+        yearly_mean_recovery=yearly_mean_c,
         yearly_vibrio_max=yearly_vibrio_max,
         yearly_va=yearly_va,
+        yearly_va_tolerance=yearly_va_t,
+        yearly_va_recovery=yearly_va_c,
         yearly_allele_freq_top3=yearly_allele_freq_top3,
         yearly_ne_ratio=yearly_ne_ratio,
         pre_epidemic_allele_freq=pre_epidemic_af if pre_snapshot_taken else None,

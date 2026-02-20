@@ -111,7 +111,8 @@ METRIC_NAMES = [
     "resistance_shift_mean",
     "resistance_shift_max",
     "va_retention_mean",
-    "ef1a_shift_mean",
+    "tolerance_shift_mean",
+    "recovery_shift_mean",
     "n_extinct_nodes",
     "north_south_mortality_gradient",
     "fjord_protection_effect",
@@ -193,13 +194,23 @@ def extract_spatial_metrics(result):
     else:
         metrics["va_retention_mean"] = 1.0
     
-    # EF1A dynamics
-    ef = result.yearly_ef1a_freq  # (n_nodes, n_years)
-    if ef is not None and n_years > 1:
-        shifts = np.abs(ef[:, -1] - ef[:, 0])
-        metrics["ef1a_shift_mean"] = float(np.mean(shifts))
+    # Tolerance evolution
+    mt = result.yearly_mean_tolerance  # (n_nodes, n_years)
+    if mt is not None and n_years > SIM_DISEASE_YEAR:
+        pre_t = mt[:, SIM_DISEASE_YEAR]
+        post_t = mt[:, -1]
+        metrics["tolerance_shift_mean"] = float(np.mean(post_t - pre_t))
     else:
-        metrics["ef1a_shift_mean"] = 0.0
+        metrics["tolerance_shift_mean"] = 0.0
+
+    # Recovery evolution
+    mc = result.yearly_mean_recovery  # (n_nodes, n_years)
+    if mc is not None and n_years > SIM_DISEASE_YEAR:
+        pre_c = mc[:, SIM_DISEASE_YEAR]
+        post_c = mc[:, -1]
+        metrics["recovery_shift_mean"] = float(np.mean(post_c - pre_c))
+    else:
+        metrics["recovery_shift_mean"] = 0.0
     
     # Node-level outcomes
     pops = result.yearly_pop

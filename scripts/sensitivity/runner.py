@@ -72,13 +72,20 @@ def extract_metrics(result):
     else:
         metrics["va_retention"] = 0.0 if (va is None or len(va) == 0) else 1.0
     
-    # EF1A dynamics
-    ef = result.yearly_ef1a_freq
-    if ef is not None and len(ef) > 1:
-        metrics["ef1a_shift"] = abs(float(ef[-1]) - float(ef[0]))
+    # Tolerance shift
+    mt = result.yearly_mean_tolerance
+    if mt is not None and len(mt) > SIM_DISEASE_YEAR:
+        metrics["tolerance_shift"] = float(mt[-1] - mt[SIM_DISEASE_YEAR])
     else:
-        metrics["ef1a_shift"] = 0.0
-    
+        metrics["tolerance_shift"] = 0.0
+
+    # Recovery shift
+    mc = result.yearly_mean_recovery
+    if mc is not None and len(mc) > SIM_DISEASE_YEAR:
+        metrics["recovery_shift"] = float(mc[-1] - mc[SIM_DISEASE_YEAR])
+    else:
+        metrics["recovery_shift"] = 0.0
+
     return metrics
 
 
@@ -92,7 +99,8 @@ METRIC_NAMES = [
     "total_disease_deaths",
     "resistance_shift",
     "va_retention",
-    "ef1a_shift",
+    "tolerance_shift",
+    "recovery_shift",
 ]
 
 
