@@ -6,9 +6,10 @@ import pytest
 from sswd_evoepi.types import (
     AGENT_DTYPE,
     ANNUAL_SURVIVAL,
-    N_ADDITIVE,
     N_LOCI,
-    IDX_EF1A,
+    N_RESISTANCE_DEFAULT,
+    N_TOLERANCE_DEFAULT,
+    N_RECOVERY_DEFAULT,
     STAGE_SIZE_THRESHOLDS,
     DiseaseState,
     LarvalCohort,
@@ -19,6 +20,7 @@ from sswd_evoepi.types import (
     Tier,
     allocate_agents,
     allocate_genotypes,
+    trait_slices,
 )
 
 
@@ -75,27 +77,43 @@ class TestTierEnum:
 # ── Constants tests ───────────────────────────────────────────────────
 
 class TestConstants:
-    def test_loci_counts(self):
-        assert N_LOCI == 52
-        assert N_ADDITIVE == 51
-        assert IDX_EF1A == 51
-        assert N_LOCI == N_ADDITIVE + 1
+    def test_loci_count(self):
+        assert N_LOCI == 51
+
+    def test_default_partition(self):
+        assert N_RESISTANCE_DEFAULT == 17
+        assert N_TOLERANCE_DEFAULT == 17
+        assert N_RECOVERY_DEFAULT == 17
+        assert N_RESISTANCE_DEFAULT + N_TOLERANCE_DEFAULT + N_RECOVERY_DEFAULT == N_LOCI
+
+    def test_trait_slices(self):
+        rs, ts, cs = trait_slices(17, 17, 17)
+        assert rs == slice(0, 17)
+        assert ts == slice(17, 34)
+        assert cs == slice(34, 51)
+
+    def test_trait_slices_custom(self):
+        rs, ts, cs = trait_slices(10, 20, 21)
+        assert rs == slice(0, 10)
+        assert ts == slice(10, 30)
+        assert cs == slice(30, 51)
+
+    def test_trait_slices_validation(self):
+        with pytest.raises(AssertionError):
+            trait_slices(10, 10, 10)  # sum != 51
 
     def test_stage_thresholds(self):
         assert STAGE_SIZE_THRESHOLDS[Stage.SETTLER] == 10.0
         assert STAGE_SIZE_THRESHOLDS[Stage.JUVENILE] == 150.0
         assert STAGE_SIZE_THRESHOLDS[Stage.SUBADULT] == 400.0
-        # EGG_LARVA and ADULT have no size threshold (transitions are handled differently)
         assert Stage.EGG_LARVA not in STAGE_SIZE_THRESHOLDS
         assert Stage.ADULT not in STAGE_SIZE_THRESHOLDS
 
     def test_annual_survival(self):
         assert len(ANNUAL_SURVIVAL) == 5
         assert ANNUAL_SURVIVAL.dtype == np.float64
-        # All survival values in [0, 1]
         assert np.all(ANNUAL_SURVIVAL >= 0.0)
         assert np.all(ANNUAL_SURVIVAL <= 1.0)
-        # Specific values from spec
         assert ANNUAL_SURVIVAL[Stage.SETTLER] == pytest.approx(0.03)
         assert ANNUAL_SURVIVAL[Stage.ADULT] == pytest.approx(0.98)
 
@@ -104,20 +122,31 @@ class TestConstants:
 
 class TestAgentDtype:
     def test_has_all_fields(self):
-        """AGENT_DTYPE has every field from the integration spec §4.1 + spawning fields."""
+        """AGENT_DTYPE has every field from the three-trait architecture spec."""
         expected_fields = [
-            'x', 'y', 'heading', 'speed',       # Spatial
-            'size', 'age', 'stage', 'sex',       # Life history
-            'disease_state', 'disease_timer',     # Disease
-            'resistance', 'fecundity_mod',        # Genetics
-            'spawning_ready', 'has_spawned', 'spawn_refractory',  # Spawning (Phase 1)
-            'spawn_gravity_timer', 'immunosuppression_timer', 'last_spawn_day',  # Spawning (continued)
+            'x', 'y', 'heading', 'speed',        # Spatial
+            'size', 'age', 'stage', 'sex',        # Life history
+            'disease_state', 'disease_timer',      # Disease
+            'resistance', 'tolerance', 'recovery_ability',  # Three-trait genetics
+            'spawning_ready', 'has_spawned', 'spawn_refractory',  # Spawning
+            'spawn_gravity_timer', 'immunosuppression_timer', 'last_spawn_day',
             'node_id', 'alive', 'origin', 'cause_of_death',  # Administrative
             'pathogen_virulence',  # Pathogen evolution
-            'settlement_day',  # Juvenile immunity (Phase 11)
+            'settlement_day',  # Juvenile immunity
         ]
         actual_fields = [name for name in AGENT_DTYPE.names]
         assert actual_fields == expected_fields
+
+    def test_no_fecundity_mod(self):
+        """fecundity_mod was removed (CE-1: always 1.0, dead weight)."""
+        assert 'fecundity_mod' not in AGENT_DTYPE.names
+
+    def test_three_trait_fields(self):
+        """tolerance and recovery_ability fields exist."""
+        assert 'tolerance' in AGENT_DTYPE.names
+        assert 'recovery_ability' in AGENT_DTYPE.names
+        assert AGENT_DTYPE['tolerance'] == np.float32
+        assert AGENT_DTYPE['recovery_ability'] == np.float32
 
     def test_field_dtypes(self):
         """Field types match the spec."""
@@ -130,7 +159,6 @@ class TestAgentDtype:
         assert AGENT_DTYPE['disease_state'] == np.int8
         assert AGENT_DTYPE['disease_timer'] == np.int16
         assert AGENT_DTYPE['resistance'] == np.float32
-        assert AGENT_DTYPE['fecundity_mod'] == np.float32
         assert AGENT_DTYPE['node_id'] == np.int16
         assert AGENT_DTYPE['alive'] == np.bool_
         assert AGENT_DTYPE['origin'] == np.int8
@@ -142,7 +170,6 @@ class TestAgentDtype:
     def test_disease_timer_is_int16(self):
         """ERRATA E4: disease_timer needs countdown range."""
         assert AGENT_DTYPE['disease_timer'] == np.int16
-        # int16 range: -32768 to 32767 — enough for countdown days
 
 
 # ── Allocation tests ──────────────────────────────────────────────────
@@ -158,6 +185,8 @@ class TestAllocateAgents:
         assert np.all(agents['alive'] == False)
         assert np.all(agents['size'] == 0.0)
         assert np.all(agents['resistance'] == 0.0)
+        assert np.all(agents['tolerance'] == 0.0)
+        assert np.all(agents['recovery_ability'] == 0.0)
 
     def test_zero_size(self):
         agents = allocate_agents(0)
@@ -170,11 +199,14 @@ class TestAllocateAgents:
         agents[0]['disease_state'] = DiseaseState.S
         agents[0]['origin'] = Origin.CAPTIVE_BRED
         agents[0]['resistance'] = 0.42
-        agents[0]['fecundity_mod'] = 1.0  # CE-1: always 1.0
+        agents[0]['tolerance'] = 0.15
+        agents[0]['recovery_ability'] = 0.08
         assert agents[0]['alive'] == True
         assert agents[0]['stage'] == Stage.ADULT
         assert agents[0]['origin'] == Origin.CAPTIVE_BRED
         assert agents[0]['resistance'] == pytest.approx(0.42, abs=1e-6)
+        assert agents[0]['tolerance'] == pytest.approx(0.15, abs=1e-6)
+        assert agents[0]['recovery_ability'] == pytest.approx(0.08, abs=1e-6)
 
 
 class TestAllocateGenotypes:
@@ -190,21 +222,19 @@ class TestAllocateGenotypes:
     def test_diploid_encoding(self):
         """Can set alleles per individual per locus."""
         geno = allocate_genotypes(5)
-        # Individual 0, locus 3, allele copy 1 → resistant
         geno[0, 3, 1] = 1
-        assert geno[0, 3, 0] == 0  # other copy unchanged
+        assert geno[0, 3, 0] == 0
         assert geno[0, 3, 1] == 1
 
-    def test_ef1a_locus(self):
-        """EF1A locus is at the expected index."""
+    def test_three_trait_blocks(self):
+        """Genotype array has correct shape for 51-locus three-trait architecture."""
         geno = allocate_genotypes(3)
-        # Heterozygote at EF1A
-        geno[0, IDX_EF1A, 0] = 0
-        geno[0, IDX_EF1A, 1] = 1
-        assert geno[0, IDX_EF1A].sum() == 1  # heterozygous
-        # Homozygous resistant (lethal — flagged by genetics module, not here)
-        geno[1, IDX_EF1A, :] = 1
-        assert geno[1, IDX_EF1A].sum() == 2
+        assert geno.shape == (3, 51, 2)
+        # Set resistance loci
+        geno[0, :17, :] = 1
+        assert geno[0, :17, :].sum() == 34
+        # Tolerance and recovery loci unaffected
+        assert geno[0, 17:, :].sum() == 0
 
 
 # ── Data transfer object tests ────────────────────────────────────────
@@ -222,7 +252,6 @@ class TestLarvalCohort:
         assert cohort.n_competent == 100
         assert cohort.genotypes.shape == (100, N_LOCI, 2)
         assert cohort.pld_days == 63.0
-        # Default values for new fields
         assert cohort.spawn_day == 0
         assert cohort.sst_at_spawn == 10.5
 

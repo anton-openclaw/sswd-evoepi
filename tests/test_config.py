@@ -68,8 +68,9 @@ class TestDefaultConfig:
         assert config.simulation.end_year == 2100
         assert config.simulation.seed == 42
         assert config.disease.scenario == "ubiquitous"
-        assert config.genetics.n_loci == 52
-        assert config.genetics.n_additive == 51
+        assert config.genetics.n_resistance == 17
+        assert config.genetics.n_tolerance == 17
+        assert config.genetics.n_recovery == 17
 
     def test_no_cost_of_resistance(self):
         """CE-1: cost_resistance must not appear in config."""
@@ -103,7 +104,7 @@ class TestLoadConfig:
         assert config.simulation.seed == 99
         assert config.simulation.start_year == 1900
         # Unspecified sections get defaults
-        assert config.genetics.n_loci == 52
+        assert config.genetics.n_resistance == 17
         assert config.population.L_inf == 1000.0
 
     def test_load_with_scenario_override(self, tmp_path):
@@ -153,7 +154,7 @@ class TestLoadConfig:
             assert config.disease.Ea_I2D == 2000.0  # ERRATA E1
             assert config.disease.sigma_1_eff == 5.0  # ERRATA E2
             assert config.disease.sigma_D == 15.0     # CE-6: reduced from 150
-            assert config.genetics.n_loci == 52
+            assert config.genetics.n_resistance == 17
 
 
 # ── Validation tests ──────────────────────────────────────────────────
@@ -194,8 +195,10 @@ class TestValidation:
 
     def test_loci_consistency(self):
         config = default_config()
-        config.genetics.n_loci = 100  # mismatch with n_additive=51
-        with pytest.raises(ValueError, match="n_loci"):
+        config.genetics.n_resistance = 10
+        config.genetics.n_tolerance = 10
+        config.genetics.n_recovery = 10  # sum=30, not 51
+        with pytest.raises((ValueError, AssertionError)):
             validate_config(config)
 
     def test_survival_array_wrong_length(self):
@@ -226,8 +229,10 @@ class TestSections:
         """CE-1: No cost_resistance attribute."""
         gs = GeneticsSection()
         assert not hasattr(gs, 'cost_resistance')
-        assert gs.n_loci == 52
-        assert gs.s_het == 0.19
+        assert gs.n_resistance == 17
+        assert gs.n_tolerance == 17
+        assert gs.n_recovery == 17
+        assert gs.tau_max == 0.85
 
     def test_population_section_defaults(self):
         ps = PopulationSection()

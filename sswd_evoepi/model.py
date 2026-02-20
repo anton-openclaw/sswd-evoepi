@@ -83,15 +83,15 @@ from sswd_evoepi.spawning import (
 from sswd_evoepi.types import (
     AGENT_DTYPE,
     ANNUAL_SURVIVAL,
-    IDX_EF1A,
     LarvalCohort,
-    N_ADDITIVE,
     N_LOCI,
+    N_RESISTANCE_DEFAULT,
     STAGE_SIZE_THRESHOLDS,
     DiseaseState,
     Stage,
     allocate_agents,
     allocate_genotypes,
+    trait_slices,
 )
 
 
@@ -106,18 +106,17 @@ DAYS_PER_YEAR = 365
 # EFFECT SIZES (deterministic from seed)
 # ═══════════════════════════════════════════════════════════════════════
 
-def make_effect_sizes(seed: int = 12345) -> np.ndarray:
+def make_effect_sizes(seed: int = 12345, n_loci: int = N_RESISTANCE_DEFAULT, total_weight: float = 1.0) -> np.ndarray:
     """Create canonical effect-size vector (exponential, normalized).
 
     Sorted descending so first loci have largest effects.
-    Total additive weight sums to W_add ≈ 0.840.
+    Total weight sums to total_weight (default 1.0).
 
     CE-3: Exponential distribution per Lotterhos & Whitlock 2016.
     """
     rng = np.random.default_rng(seed)
-    raw = rng.exponential(1.0, size=N_ADDITIVE)
-    W_add = 0.840  # total additive contribution to r_i
-    normalized = raw / raw.sum() * W_add
+    raw = rng.exponential(1.0, size=n_loci)
+    normalized = raw / raw.sum() * total_weight
     normalized.sort()
     return normalized[::-1].copy()
 
@@ -187,52 +186,41 @@ def natural_mortality_prob(stage: int, age: float,
 # ═══════════════════════════════════════════════════════════════════════
 
 def _make_per_locus_q(
-    n_additive: int,
+    n_loci: int,
     effect_sizes: np.ndarray,
-    target_mean_r: float,
+    target_mean: float,
     mode: str,
     rng: np.random.Generator,
     beta_a: float = 2.0,
     beta_b: float = 8.0,
-    q_ef1a: float = 0.24,
-    w_od: float = 0.160,
+    **kwargs,
 ) -> np.ndarray:
-    """Compute per-locus allele frequencies for additive resistance loci.
+    """Compute per-locus allele frequencies for a trait block.
 
     Args:
-        n_additive: Number of additive loci.
-        effect_sizes: (N_ADDITIVE,) effect size vector.
-        target_mean_r: Target population-mean resistance.
+        n_loci: Number of loci for this trait.
+        effect_sizes: Effect size vector.
+        target_mean: Target population-mean trait score.
         mode: "uniform" or "beta".
         rng: Random generator.
         beta_a, beta_b: Beta distribution shape parameters.
-        q_ef1a: EF1A allele frequency (for computing its contribution).
-        w_od: Overdominant weight for EF1A.
+        **kwargs: Absorbs legacy arguments (q_ef1a, w_od, n_additive, etc.).
 
     Returns:
-        (N_ADDITIVE,) float64 per-locus allele frequencies.
+        (n_loci,) float64 per-locus allele frequencies.
     """
-    # Subtract EF1A's expected contribution to mean r_i
-    ef1a_het_contrib = 2.0 * q_ef1a * (1.0 - q_ef1a) * w_od
-    target_additive = max(0.0, target_mean_r - ef1a_het_contrib)
-
     if mode == "beta":
-        # Draw independent per-locus frequencies from Beta(a, b)
-        raw_q = rng.beta(beta_a, beta_b, size=n_additive)
-        # Scale so E[r_additive] = target_additive
-        # E[r_additive] = Σ e_l × q_l (each allele contributes e_l × q_l
-        # to mean resistance, factor of 2 for diploid is already in effect_sizes)
-        current_additive = np.dot(effect_sizes, raw_q)
-        if current_additive > 0:
-            scale = target_additive / current_additive
+        raw_q = rng.beta(beta_a, beta_b, size=n_loci)
+        current = np.dot(effect_sizes, raw_q)
+        if current > 0:
+            scale = target_mean / current
             q_vals = np.clip(raw_q * scale, 0.001, 0.999)
         else:
-            q_vals = np.full(n_additive, 0.01)
+            q_vals = np.full(n_loci, 0.01)
     else:
-        # Uniform q across all loci
-        q_uniform = target_additive / effect_sizes.sum() if effect_sizes.sum() > 0 else 0.01
+        q_uniform = target_mean / effect_sizes.sum() if effect_sizes.sum() > 0 else 0.01
         q_uniform = np.clip(q_uniform, 0.001, 0.999)
-        q_vals = np.full(n_additive, q_uniform)
+        q_vals = np.full(n_loci, q_uniform)
 
     return q_vals
 
@@ -245,9 +233,8 @@ def initialize_population(
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
     q_init: float = 0.05,
-    q_ef1a: float = 0.24,
-    w_od: float = 0.160,
     genetics_cfg: Optional['GeneticsSection'] = None,
+    **kwargs,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Initialize a population at demographic equilibrium.
 
@@ -264,14 +251,12 @@ def initialize_population(
         n_individuals: Target number of live individuals.
         max_agents: Array capacity (must be >= n_individuals).
         habitat_area: Habitat area (m²) for spatial placement.
-        effect_sizes: (N_ADDITIVE,) effect size vector.
+        effect_sizes: Resistance effect sizes.
         pop_cfg: Population configuration.
         rng: Random generator.
-        q_init: Initial resistant allele frequency at additive loci
-            (only used if genetics_cfg is None — legacy fallback).
-        q_ef1a: Initial EF1A allele frequency.
-        w_od: Overdominant weight for EF1A.
+        q_init: Initial resistant allele frequency (legacy fallback).
         genetics_cfg: GeneticsSection with initialization config.
+        **kwargs: Absorbs legacy arguments (q_ef1a, w_od, etc.).
 
     Returns:
         (agents, genotypes) tuple.
@@ -279,27 +264,26 @@ def initialize_population(
     agents = allocate_agents(max_agents)
     genotypes = allocate_genotypes(max_agents)
 
-    # Compute per-locus allele frequencies
+    n_res = len(effect_sizes)
+
+    # Compute per-locus allele frequencies for resistance
     if genetics_cfg is not None:
         q_per_locus = _make_per_locus_q(
-            n_additive=N_ADDITIVE,
+            n_loci=n_res,
             effect_sizes=effect_sizes,
-            target_mean_r=genetics_cfg.target_mean_r,
+            target_mean=genetics_cfg.target_mean_r,
             mode=genetics_cfg.q_init_mode,
             rng=rng,
             beta_a=genetics_cfg.q_init_beta_a,
             beta_b=genetics_cfg.q_init_beta_b,
-            q_ef1a=q_ef1a,
-            w_od=w_od,
         )
     else:
-        # Legacy: uniform q across all loci
-        q_per_locus = np.full(N_ADDITIVE, q_init)
+        # Legacy: uniform q across resistance loci
+        q_per_locus = np.full(n_res, q_init)
 
     hab_side = np.sqrt(max(habitat_area, 1.0))
 
     # --- Vectorized demographic initialization ---
-    # Sample ages from approximate stable age distribution
     u_ages = rng.random(n_individuals)
     ages = np.empty(n_individuals)
     ages[u_ages < 0.05] = rng.uniform(0.0, 1.0, size=(u_ages < 0.05).sum())
@@ -315,25 +299,17 @@ def initialize_population(
     sizes *= rng.lognormal(0.0, 0.10, size=n_individuals)
     sizes = np.maximum(sizes, 0.5)
 
-    # Assign stages (STAGE_SIZE_THRESHOLDS: {Stage: max_size})
-    # Iterate largest threshold first so smaller stages overwrite correctly
     stages = np.full(n_individuals, Stage.ADULT, dtype=np.int8)
     for stage, threshold_size in sorted(
         STAGE_SIZE_THRESHOLDS.items(), key=lambda x: -x[1]
     ):
         stages[sizes < threshold_size] = stage
 
-    # Vectorized genotype initialization (all loci at once)
-    for l_idx in range(N_ADDITIVE):
+    # Vectorized genotype initialization (resistance loci only;
+    # tolerance/recovery stay at zero until full three-trait init is wired in)
+    for l_idx in range(n_res):
         genotypes[:n_individuals, l_idx, 0] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
         genotypes[:n_individuals, l_idx, 1] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
-    # EF1A
-    genotypes[:n_individuals, IDX_EF1A, 0] = (rng.random(n_individuals) < q_ef1a).astype(np.int8)
-    genotypes[:n_individuals, IDX_EF1A, 1] = (rng.random(n_individuals) < q_ef1a).astype(np.int8)
-    # Fix lethal homozygotes
-    ef1a_sum = genotypes[:n_individuals, IDX_EF1A, :].sum(axis=1)
-    lethal = ef1a_sum == 2
-    genotypes[:n_individuals, IDX_EF1A, 1][lethal] = 0
 
     # Fill agent fields
     sl = slice(0, n_individuals)
@@ -348,15 +324,14 @@ def initialize_population(
     agents['sex'][sl] = rng.integers(0, 2, size=n_individuals)
     agents['disease_state'][sl] = DiseaseState.S
     agents['disease_timer'][sl] = 0
-    agents['fecundity_mod'][sl] = 1.0
     agents['node_id'][sl] = 0
     agents['origin'][sl] = 0  # WILD
-    agents['settlement_day'][sl] = 0  # Phase 11: initial pop always susceptible
+    agents['settlement_day'][sl] = 0
 
     # Compute resistance scores
     for i in range(n_individuals):
         agents[i]['resistance'] = _compute_resistance(
-            genotypes[i], effect_sizes, w_od
+            genotypes[i], effect_sizes
         )
 
     return agents, genotypes
@@ -587,8 +562,8 @@ def annual_reproduction(
     carrying_capacity: int,
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
-    w_od: float = 0.160,
     sim_day: int = 0,
+    w_od: float = 0.0,  # deprecated, ignored
 ) -> dict:
     """Full annual reproduction: spawning → fertilization → SRS → settlement.
 
@@ -710,7 +685,6 @@ def annual_reproduction(
         agents[slot]['sex'] = rng.integers(0, 2)
         agents[slot]['disease_state'] = DiseaseState.S
         agents[slot]['disease_timer'] = 0
-        agents[slot]['fecundity_mod'] = 1.0
         agents[slot]['node_id'] = 0
         agents[slot]['origin'] = 0
         agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
@@ -718,7 +692,7 @@ def annual_reproduction(
 
         genotypes[slot] = settler_geno[j]
         agents[slot]['resistance'] = _compute_resistance(
-            settler_geno[j], effect_sizes, w_od
+            settler_geno[j], effect_sizes
         )
 
     diag['n_recruits'] = n_slots
@@ -777,19 +751,16 @@ def settle_daily_cohorts(
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
     effect_sizes: np.ndarray = None,
-    w_od: float = 0.160,
     node_id: int = 0,
     habitat_area: float = 1e6,
     sim_day: int = 0,
+    w_od: float = 0.0,  # deprecated, ignored
 ) -> int:
     """Settle competent larval cohorts into the population.
 
     Called daily in the simulation loop for cohorts whose PLD has elapsed.
     Applies Beverton-Holt density-dependent recruitment per cohort,
     modulated by settlement cue (adult biofilm Allee effect).
-
-    Uses the same slot-finding and agent initialization logic as
-    ``settle_recruits`` and ``annual_reproduction``.
 
     Args:
         cohorts: List of LarvalCohort objects ready to settle (PLD elapsed).
@@ -798,9 +769,8 @@ def settle_daily_cohorts(
         carrying_capacity: K for this node.
         pop_cfg: Population dynamics configuration (for settler_survival).
         rng: Random number generator.
-        effect_sizes: (N_ADDITIVE,) float64 effect sizes for resistance.
+        effect_sizes: Resistance effect sizes.
             If None, uses ``make_effect_sizes()`` default.
-        w_od: Overdominant weight for EF1A locus.
         node_id: Node index for placed agents.
         habitat_area: Habitat area in m² (for spatial placement of settlers).
         sim_day: Current simulation day (stamped as settlement_day for
@@ -873,7 +843,6 @@ def settle_daily_cohorts(
         agents['sex'][slots] = rng.integers(0, 2, n_slots)
         agents['disease_state'][slots] = DiseaseState.S
         agents['disease_timer'][slots] = 0
-        agents['fecundity_mod'][slots] = 1.0
         agents['node_id'][slots] = node_id
         agents['origin'][slots] = 0  # WILD
         agents['cause_of_death'][slots] = 0  # DeathCause.ALIVE
@@ -882,16 +851,12 @@ def settle_daily_cohorts(
         # Batch genotype assignment
         genotypes[slots] = settler_geno[:n_slots]
 
-        # Truly vectorized batch resistance computation (Phase 7)
-        # Additive: mean allele dosage × effect sizes, summed across loci
+        # Batch resistance computation (resistance loci only)
+        n_res = len(effect_sizes)
         allele_means = (
-            settler_geno[:n_slots, :N_ADDITIVE, :].sum(axis=2).astype(np.float64) * 0.5
-        )  # shape (n_slots, N_ADDITIVE)
-        additive = allele_means @ effect_sizes  # shape (n_slots,)
-        # Overdominant: EF1A heterozygote bonus
-        ef1a_sum = settler_geno[:n_slots, IDX_EF1A, :].sum(axis=1)
-        od_bonus = np.where(ef1a_sum == 1, w_od, 0.0)
-        agents['resistance'][slots] = additive + od_bonus
+            settler_geno[:n_slots, :n_res, :].sum(axis=2).astype(np.float64) * 0.5
+        )
+        agents['resistance'][slots] = (allele_means @ effect_sizes).astype(np.float32)
 
         total_settled += n_slots
 
@@ -917,7 +882,6 @@ class CoupledSimResult:
 
     # Genetics tracking (Phase 7)
     yearly_allele_freq_top3: Optional[np.ndarray] = None   # (n_years, 3)
-    yearly_ef1a_freq: Optional[np.ndarray] = None           # (n_years,)
     yearly_va: Optional[np.ndarray] = None                  # (n_years,) additive variance
     pre_epidemic_allele_freq: Optional[np.ndarray] = None   # (N_LOCI,) snapshot
     post_epidemic_allele_freq: Optional[np.ndarray] = None  # (N_LOCI,) snapshot
@@ -1035,7 +999,6 @@ def run_coupled_simulation(
         pop_cfg=pop_cfg,
         rng=rng,
         q_init=0.05,
-        q_ef1a=config.genetics.q_ef1a_init,
         genetics_cfg=config.genetics,
     )
 
@@ -1081,7 +1044,6 @@ def run_coupled_simulation(
 
     # Genetics tracking (Phase 7)
     yearly_allele_freq_top3 = np.zeros((n_years, 3), dtype=np.float64)
-    yearly_ef1a_freq = np.zeros(n_years, dtype=np.float64)
     yearly_va = np.zeros(n_years, dtype=np.float64)
     pre_epidemic_allele_freq = None
     post_epidemic_allele_freq = None
@@ -1400,7 +1362,6 @@ def run_coupled_simulation(
         if pop_after > 0:
             allele_freq = compute_allele_frequencies(genotypes, alive_mask)
             yearly_allele_freq_top3[year] = allele_freq[:3]
-            yearly_ef1a_freq[year] = float(allele_freq[IDX_EF1A])
             yearly_va[year] = compute_additive_variance(
                 allele_freq, effect_sizes
             )
@@ -1435,7 +1396,6 @@ def run_coupled_simulation(
         yearly_fert_success=yearly_fert_success,
         # Genetics (Phase 7)
         yearly_allele_freq_top3=yearly_allele_freq_top3,
-        yearly_ef1a_freq=yearly_ef1a_freq,
         yearly_va=yearly_va,
         pre_epidemic_allele_freq=pre_epidemic_allele_freq,
         post_epidemic_allele_freq=post_epidemic_allele_freq,
@@ -1485,7 +1445,6 @@ class SpatialSimResult:
     yearly_mean_resistance: Optional[np.ndarray] = None
     yearly_vibrio_max: Optional[np.ndarray] = None
     # Per-node genetics: shape (n_nodes, n_years)
-    yearly_ef1a_freq: Optional[np.ndarray] = None
     yearly_va: Optional[np.ndarray] = None
     yearly_allele_freq_top3: Optional[np.ndarray] = None  # (n_nodes, n_years, 3)
     yearly_ne_ratio: Optional[np.ndarray] = None
@@ -1585,7 +1544,6 @@ def run_spatial_simulation(
             pop_cfg=pop_cfg,
             rng=rng,
             q_init=0.05,
-            q_ef1a=config.genetics.q_ef1a_init,
             genetics_cfg=config.genetics,
         )
         # Stamp node_id on all agents
@@ -1617,7 +1575,6 @@ def run_spatial_simulation(
     yearly_total_larvae = np.zeros(n_years, dtype=np.int32)
 
     # Genetics tracking per node per year
-    yearly_ef1a_freq = np.zeros((N, n_years), dtype=np.float64)
     yearly_va = np.zeros((N, n_years), dtype=np.float64)
     yearly_allele_freq_top3 = np.zeros((N, n_years, 3), dtype=np.float64)
     yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)
@@ -2073,7 +2030,6 @@ def run_spatial_simulation(
                 # Genetics tracking
                 af = compute_allele_frequencies(node.genotypes, alive_mask)
                 yearly_allele_freq_top3[i, year] = af[:3]
-                yearly_ef1a_freq[i, year] = float(af[IDX_EF1A])
                 yearly_va[i, year] = compute_additive_variance(af, effect_sizes)
 
             # Per-node virulence tracking (time-weighted daily mean)
@@ -2111,7 +2067,6 @@ def run_spatial_simulation(
         yearly_senescence_deaths=yearly_senes_deaths,
         yearly_mean_resistance=yearly_mean_r,
         yearly_vibrio_max=yearly_vibrio_max,
-        yearly_ef1a_freq=yearly_ef1a_freq,
         yearly_va=yearly_va,
         yearly_allele_freq_top3=yearly_allele_freq_top3,
         yearly_ne_ratio=yearly_ne_ratio,

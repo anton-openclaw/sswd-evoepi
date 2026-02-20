@@ -11,7 +11,7 @@ Acceptance criteria:
   8. (Phase 7) Selection visible in allele frequencies post-epidemic
   9. (Phase 7) Top loci show larger positive shifts than random loci
   10. (Phase 7) Without disease: no directional allele frequency change
-  11. (Phase 7) EF1A dynamics: frequency shifts during epidemic
+  11. (Phase 7) Three-trait genetics: resistance, tolerance, recovery
   12. (Phase 7) Two-phase adaptation: rapid initial shift, then slower
 
 References:
@@ -54,9 +54,8 @@ from sswd_evoepi.model import (
 from sswd_evoepi.types import (
     ANNUAL_SURVIVAL,
     DiseaseState,
-    IDX_EF1A,
-    N_ADDITIVE,
     N_LOCI,
+    N_RESISTANCE_DEFAULT,
     Stage,
 )
 
@@ -198,13 +197,14 @@ class TestPopulationInit:
         assert np.all(r >= 0.0)
         assert np.all(r <= 1.0)
 
-    def test_no_ef1a_lethals(self, default_cfg, effect_sizes):
+    def test_genotype_shape(self, default_cfg, effect_sizes):
+        """Genotype arrays should have shape (max, 51, 2) — no EF1A locus."""
         rng = np.random.default_rng(42)
         _, geno = initialize_population(
             100, 200, 10000.0, effect_sizes, default_cfg.population, rng,
         )
-        for i in range(100):
-            assert geno[i, 51, :].sum() < 2  # no ins/ins lethals
+        assert geno.shape == (200, N_LOCI, 2)
+        assert N_LOCI == 51
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -608,7 +608,7 @@ class TestGeneticsDiseaseCoupling:
         selection effects from spawning-related susceptibility changes.
         """
         # Low resistance + uniform q for strong, detectable selection
-        # target_mean_r=0.10 gives additive q≈0.04 after EF1A subtraction,
+        # target_mean_r=0.10 gives low allele frequencies,
         # matching the old hardcoded q_init=0.05 behavior
         config = default_config()
         config.genetics.target_mean_r = 0.10
@@ -795,36 +795,6 @@ class TestGeneticsDiseaseCoupling:
             f"Disease should produce more positive shift among survivors: " \
             f"disease={mean_disease:+.4f}, no-disease={mean_nodisease:+.4f}"
 
-    def test_ef1a_frequency_shifts_during_epidemic(self):
-        """EF1A frequency should change during epidemic.
-
-        EF1A heterozygotes have higher r_i → higher survival during
-        epidemic → EF1A frequency should increase.
-        """
-        result = self._run_selection_sim(42)
-        ef1a_pre = result.yearly_ef1a_freq[1]
-        # After epidemic (year 5 = 3 years post-disease)
-        ef1a_post = result.yearly_ef1a_freq[5]
-
-        # EF1A should be present (not lost)
-        assert ef1a_post > 0, "EF1A should not be lost during epidemic"
-        # EF1A should generally increase during epidemic
-        # (heterozygote advantage via higher r_i)
-        # Allow some drift but check across seeds
-        ef1a_shifts = []
-        for seed in range(42, 47):  # Reduced from 10 to 5 seeds for performance
-            r = self._run_selection_sim(seed)
-            # Only include seeds with survivors at year 5
-            if len(r.yearly_ef1a_freq) > 5 and len(r.yearly_pop) > 5 and r.yearly_pop[5] > 0:
-                ef1a_shifts.append(r.yearly_ef1a_freq[5] - r.yearly_ef1a_freq[1])
-
-        # Need at least 2 survivors for EF1A analysis
-        assert len(ef1a_shifts) >= 2, f"Need ≥2 EF1A survivors, got {len(ef1a_shifts)}"
-        
-        # EF1A mean shift should be positive (heterozygote advantage)
-        assert np.mean(ef1a_shifts) > -0.01, \
-            f"EF1A should not dramatically decrease: mean shift = {np.mean(ef1a_shifts):+.4f}"
-
     def test_two_phase_adaptation(self):
         """Adaptation should show two phases (Höllinger et al. 2022):
         1. Rapid initial shift during/just after epidemic
@@ -903,7 +873,6 @@ class TestGeneticsDiseaseCoupling:
         """All genetics tracking arrays should have correct shapes."""
         result = self._run_selection_sim(42)
         assert result.yearly_allele_freq_top3.shape == (8, 3)
-        assert result.yearly_ef1a_freq.shape == (8,)
         assert result.yearly_va.shape == (8,)
 
     def test_mortality_fraction_near_target(self):
@@ -972,7 +941,6 @@ class TestLongSimulation:
         # Genetics tracking should be present and valid
         assert result.yearly_allele_freq_top3 is not None
         assert not np.any(np.isnan(result.yearly_allele_freq_top3))
-        assert not np.any(np.isnan(result.yearly_ef1a_freq))
         assert not np.any(np.isnan(result.yearly_va))
 
     def test_twenty_years_disease_free(self):
@@ -1120,12 +1088,13 @@ class TestErrataCompliance:
     """Verify CODE_ERRATA items are properly integrated."""
 
     def test_ce1_no_cost_resistance(self, default_cfg, effect_sizes):
-        """CE-1: fecundity_mod is always 1.0 (no cost of resistance)."""
+        """CE-1: fecundity_mod removed (no cost of resistance)."""
         rng = np.random.default_rng(42)
         agents, _ = initialize_population(
             100, 200, 10000.0, effect_sizes, default_cfg.population, rng,
         )
-        assert np.all(agents['fecundity_mod'][:100] == 1.0)
+        # fecundity_mod no longer exists in AGENT_DTYPE
+        assert 'fecundity_mod' not in agents.dtype.names
 
     def test_ce5_high_fecundity_allee(self):
         """CE-5: Allee effect operates through reduced growth rate.

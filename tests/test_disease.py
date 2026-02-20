@@ -554,7 +554,7 @@ class TestDailyDiseaseUpdate:
         agents['resistance'] = np.clip(
             rng.normal(mean_r, 0.04, n), 0.0, 1.0
         ).astype(np.float32)
-        agents['fecundity_mod'] = 1.0
+        # fecundity_mod removed
         return agents
 
     def test_no_infection_without_vibrio(self, cfg):
@@ -1318,7 +1318,7 @@ class TestStrainInheritance:
         agents['disease_timer'] = 0
         agents['resistance'] = 0.0  # no resistance → easy infection
         agents['size'] = 300.0  # reference size
-        agents['fecundity_mod'] = 1.0
+        # fecundity_mod removed
         agents['pathogen_virulence'] = 0.0
         return agents
 
@@ -1507,7 +1507,7 @@ class TestVirulenceDependentDynamics:
         agents['disease_timer'] = 0
         agents['resistance'] = 0.0  # no resistance → easy infection
         agents['size'] = 300.0  # reference size
-        agents['fecundity_mod'] = 1.0
+        # fecundity_mod removed
         agents['pathogen_virulence'] = 0.0
         return agents
 

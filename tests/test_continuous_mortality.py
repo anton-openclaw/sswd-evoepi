@@ -76,7 +76,7 @@ def _make_alive_agents(n: int, stage: int, age: float, size: float = 100.0) -> n
     agents['size'][:n] = size
     agents['sex'][:n] = 0
     agents['disease_state'][:n] = 0  # S
-    agents['fecundity_mod'][:n] = 1.0
+    # fecundity_mod removed (three-trait architecture)
     return agents
 
 
@@ -451,14 +451,14 @@ class TestCauseOfDeathStamping:
         agents['stage'][:n_young] = Stage.ADULT
         agents['age'][:n_young] = 10.0
         agents['size'][:n_young] = 600.0
-        agents['fecundity_mod'][:n_young] = 1.0
+        # fecundity_mod removed (three-trait architecture)
 
         # Old adults (age 60, past senescence_age=50)
         agents['alive'][n_young:total] = True
         agents['stage'][n_young:total] = Stage.ADULT
         agents['age'][n_young:total] = 60.0
         agents['size'][n_young:total] = 800.0
-        agents['fecundity_mod'][n_young:total] = 1.0
+        # fecundity_mod removed (three-trait architecture)
 
         rng = np.random.default_rng(42)
 

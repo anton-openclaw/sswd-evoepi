@@ -996,7 +996,7 @@ def run_single_node_epidemic(
     sizes = np.clip(sizes, 50.0, 1000.0)
     agents['size'] = sizes.astype(np.float32)
 
-    agents['fecundity_mod'] = 1.0
+    # fecundity_mod removed (three-trait architecture)
 
     # Seed initial infections
     if initial_infected > 0:

@@ -15,9 +15,8 @@ import pytest
 from sswd_evoepi.types import (
     AGENT_DTYPE,
     ANNUAL_SURVIVAL,
-    IDX_EF1A,
-    N_ADDITIVE,
     N_LOCI,
+    N_RESISTANCE_DEFAULT,
     DiseaseState,
     LarvalCohort,
     Stage,
@@ -55,8 +54,8 @@ def _make_effect_sizes(rng=None):
     """Create a canonical effect-size vector for testing."""
     if rng is None:
         rng = np.random.default_rng(12345)
-    raw = rng.exponential(1.0, size=N_ADDITIVE)
-    normalized = raw / raw.sum() * 0.840
+    raw = rng.exponential(1.0, size=N_RESISTANCE_DEFAULT)
+    normalized = raw / raw.sum() * 1.0
     normalized.sort()
     return normalized[::-1].copy()
 
@@ -89,19 +88,13 @@ def _make_spawning_population(
         agents[i]['size'] = size_mm + rng.normal(0, 50)
         agents[i]['age'] = 10.0
         agents[i]['disease_state'] = DiseaseState.S
-        agents[i]['fecundity_mod'] = 1.0
+        # fecundity_mod removed
         agents[i]['node_id'] = 0
 
-        # Random genotypes: ~5% resistant allele frequency at additive loci
-        for l in range(N_ADDITIVE):
+        # Random genotypes: ~5% resistant allele frequency at resistance loci
+        for l in range(N_RESISTANCE_DEFAULT):
             genotypes[i, l, 0] = 1 if rng.random() < 0.05 else 0
             genotypes[i, l, 1] = 1 if rng.random() < 0.05 else 0
-        # EF1A: 24% allele frequency
-        genotypes[i, IDX_EF1A, 0] = 1 if rng.random() < 0.24 else 0
-        genotypes[i, IDX_EF1A, 1] = 1 if rng.random() < 0.24 else 0
-        # Fix lethal homozygotes
-        if genotypes[i, IDX_EF1A, :].sum() == 2:
-            genotypes[i, IDX_EF1A, 1] = 0
 
         agents[i]['resistance'] = _compute_resistance(genotypes[i], effect_sizes)
 
@@ -461,15 +454,14 @@ class TestSRSLottery:
         assert offspring_g.shape[2] == 2
         assert np.all((offspring_g == 0) | (offspring_g == 1))
 
-    def test_ef1a_lethal_elimination(self):
-        """No offspring should be homozygous ins/ins at EF1A."""
+    def test_offspring_genotypes_valid(self):
+        """All offspring genotypes should be binary (0 or 1)."""
         agents, geno, fem, mal, efx = _make_spawning_population()
         rng = np.random.default_rng(42)
         offspring_g, pairs = srs_reproductive_lottery(
             fem, mal, agents, geno, n_offspring_target=5000, rng=rng,
         )
-        ef1a_sum = offspring_g[:, IDX_EF1A, :].sum(axis=1)
-        assert not np.any(ef1a_sum == 2), "EF1A ins/ins lethal should be eliminated"
+        assert np.all((offspring_g == 0) | (offspring_g == 1))
 
     def test_no_parents_no_offspring(self):
         """Zero females or males should produce no offspring."""
@@ -765,9 +757,6 @@ class TestSettleRecruits:
 
         n_settlers = 500
         settler_geno = rng.integers(0, 2, size=(n_settlers, N_LOCI, 2), dtype=np.int8)
-        # Fix EF1A lethals
-        lethal = settler_geno[:, IDX_EF1A, :].sum(axis=1) == 2
-        settler_geno[lethal, IDX_EF1A, 1] = 0
 
         n_added = settle_recruits(
             agents=agents,
@@ -789,7 +778,6 @@ class TestSettleRecruits:
         assert np.all(agents['stage'][alive_mask] == Stage.SETTLER)
         assert np.all(agents['size'][alive_mask] == pytest.approx(0.5))
         assert np.all(agents['disease_state'][alive_mask] == DiseaseState.S)
-        assert np.all(agents['fecundity_mod'][alive_mask] == 1.0)
 
     def test_no_settlers_no_recruits(self):
         """Empty settler array → 0 recruits."""
@@ -814,8 +802,6 @@ class TestSettleRecruits:
 
         n_settlers = 500
         settler_geno = rng.integers(0, 2, size=(n_settlers, N_LOCI, 2), dtype=np.int8)
-        lethal = settler_geno[:, IDX_EF1A, :].sum(axis=1) == 2
-        settler_geno[lethal, IDX_EF1A, 1] = 0
 
         settle_recruits(
             agents, genotypes, settler_geno,
@@ -843,30 +829,27 @@ class TestResistanceScore:
         effects = _make_effect_sizes()
         assert _compute_resistance(geno, effects) == 0.0
 
-    def test_all_resistant_het_ef1a(self):
-        """All additive loci resistant + EF1A heterozygote → r = 1.0."""
-        geno = np.ones((N_LOCI, 2), dtype=np.int8)
-        geno[IDX_EF1A, 1] = 0  # heterozygote
+    def test_all_resistant(self):
+        """All resistance loci homozygous derived → r = 1.0."""
+        geno = np.zeros((N_LOCI, 2), dtype=np.int8)
+        geno[:N_RESISTANCE_DEFAULT, :] = 1
         effects = _make_effect_sizes()
         r = _compute_resistance(geno, effects)
         assert r == pytest.approx(1.0, abs=0.01)
 
-    def test_ef1a_heterozygote_bonus(self):
-        """EF1A heterozygote should add ~0.16 to resistance."""
+    def test_heterozygote_half_effect(self):
+        """Single heterozygous locus → r = effect/2."""
         effects = _make_effect_sizes()
-        geno_hom = np.zeros((N_LOCI, 2), dtype=np.int8)
-        geno_het = np.zeros((N_LOCI, 2), dtype=np.int8)
-        geno_het[IDX_EF1A, 0] = 1  # heterozygote
-
-        r_hom = _compute_resistance(geno_hom, effects)
-        r_het = _compute_resistance(geno_het, effects)
-        assert r_het - r_hom == pytest.approx(0.16, abs=0.01)
+        geno = np.zeros((N_LOCI, 2), dtype=np.int8)
+        geno[0, 0] = 1  # heterozygous at first locus
+        r = _compute_resistance(geno, effects)
+        assert r == pytest.approx(effects[0] / 2.0, abs=0.001)
 
     def test_additive_scaling(self):
         """More resistant alleles → higher r (additive)."""
         effects = _make_effect_sizes()
         r_values = []
-        for n_resistant in [0, 10, 25, 51]:
+        for n_resistant in [0, 5, 10, 17]:
             geno = np.zeros((N_LOCI, 2), dtype=np.int8)
             geno[:n_resistant, :] = 1
             r_values.append(_compute_resistance(geno, effects))
@@ -879,9 +862,6 @@ class TestResistanceScore:
         effects = _make_effect_sizes()
         for _ in range(100):
             geno = rng.integers(0, 2, size=(N_LOCI, 2), dtype=np.int8)
-            # Fix EF1A lethal
-            if geno[IDX_EF1A, :].sum() == 2:
-                geno[IDX_EF1A, 1] = 0
             r = _compute_resistance(geno, effects)
             assert 0.0 <= r <= 1.0 + 1e-6, f"r={r} out of range"
 

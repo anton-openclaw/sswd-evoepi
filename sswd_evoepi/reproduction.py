@@ -6,7 +6,6 @@ Implements Phase 3 of the population dynamics module:
   - Quadratic Allee fertilization: F(D) per Lundquist & Botsford 2004
   - Sweepstakes reproductive success: Pareto(α) offspring distribution
   - Mendelian inheritance with independent assortment
-  - EF1A lethal homozygote elimination
   - Ne/N effective population size tracking
   - Larval production and pelagic survival
   - Settlement with density-dependent recruitment (Beverton-Holt)
@@ -15,7 +14,8 @@ Implements Phase 3 of the population dynamics module:
 References:
   - population-dynamics-spec.md §3 (reproduction), §4 (larval), §5–6 (density/Allee)
   - genetics-evolution-spec.md §4 (SRS), §5 (Mendelian inheritance)
-  - CODE_ERRATA CE-1: cost_resistance removed; fecundity_mod always 1.0
+  - three-trait-genetic-architecture-spec.md (17R/17T/17C, no EF1A)
+  - CODE_ERRATA CE-1: cost_resistance removed
 
 Authors: Anton 🔬 & Willem Weertman
 """
@@ -29,14 +29,14 @@ import numpy as np
 
 from sswd_evoepi.types import (
     AGENT_DTYPE,
-    IDX_EF1A,
-    N_ADDITIVE,
     N_LOCI,
+    N_RESISTANCE_DEFAULT,
     DiseaseState,
     LarvalCohort,
     Stage,
     allocate_agents,
     allocate_genotypes,
+    trait_slices,
 )
 
 
@@ -234,8 +234,7 @@ def srs_reproductive_lottery(
 
     Each spawning parent receives a random Pareto(α) weight; females are
     further weighted by fecundity (size-dependent). Parent pairs are sampled
-    with replacement, offspring receive Mendelian-inherited genotypes, and
-    EF1A lethal homozygotes are eliminated.
+    with replacement, offspring receive Mendelian-inherited genotypes.
 
     CE-1: No cost_of_resistance in quality weighting.
 
@@ -288,8 +287,8 @@ def srs_reproductive_lottery(
     prob_f = weighted_f / sum_f
     prob_m = raw_m / sum_m
 
-    # --- Step 4: Oversample to account for EF1A lethal elimination (~6%) ---
-    n_sample = int(n_offspring_target * 1.10) + 20
+    # --- Step 4: Sample offspring ---
+    n_sample = n_offspring_target + 10  # slight oversample for safety
     mother_idx = rng.choice(females, size=n_sample, p=prob_f)
     father_idx = rng.choice(males, size=n_sample, p=prob_m)
 
@@ -298,12 +297,9 @@ def srs_reproductive_lottery(
         genotypes, mother_idx, father_idx, n_sample, rng
     )
 
-    # --- Step 6: EF1A lethal elimination ---
-    ef1a_sum = offspring_geno[:, IDX_EF1A, :].sum(axis=1)
-    viable_mask = ef1a_sum < 2  # eliminate ins/ins (sum == 2)
-    offspring_geno = offspring_geno[viable_mask]
+    # No EF1A lethal elimination (EF1A removed — three-trait architecture)
     parent_pairs = np.column_stack(
-        [mother_idx[viable_mask], father_idx[viable_mask]]
+        [mother_idx, father_idx]
     ).astype(np.int32)
 
     # Trim to target
@@ -697,10 +693,10 @@ def settle_recruits(
     n_adults_present: int,
     habitat_area: float,
     effect_sizes: np.ndarray,
-    w_od: float = 0.160,
     settler_survival: float = 0.03,
     rng: Optional[np.random.Generator] = None,
     sim_day: int = 0,
+    w_od: float = 0.0,  # deprecated, ignored (EF1A removed)
 ) -> int:
     """Add settled larvae to the node's agent arrays.
 
@@ -717,8 +713,7 @@ def settle_recruits(
         carrying_capacity: K for this node.
         n_adults_present: Adults present (for settlement cue).
         habitat_area: Habitat area in m² (for spatial placement).
-        effect_sizes: (N_ADDITIVE,) float64 effect size vector.
-        w_od: Overdominant weight for EF1A.
+        effect_sizes: Resistance effect sizes.
         settler_survival: Beverton-Holt s0.
         rng: Random generator.
 
@@ -773,7 +768,6 @@ def settle_recruits(
     agents['sex'][slots] = rng.integers(0, 2, n_slots)
     agents['disease_state'][slots] = DiseaseState.S
     agents['disease_timer'][slots] = 0
-    agents['fecundity_mod'][slots] = 1.0
     agents['node_id'][slots] = node_id
     agents['origin'][slots] = 0  # WILD
     agents['settlement_day'][slots] = sim_day  # Phase 11: juvenile immunity
@@ -781,14 +775,12 @@ def settle_recruits(
     # Batch genotype assignment
     genotypes[slots] = settler_genotypes[:n_slots]
 
-    # Truly vectorized batch resistance computation (Phase 7)
+    # Batch resistance computation (three-trait: resistance loci only)
+    n_res = min(N_RESISTANCE_DEFAULT, N_LOCI)
     allele_means = (
-        settler_genotypes[:n_slots, :N_ADDITIVE, :].sum(axis=2).astype(np.float64) * 0.5
+        settler_genotypes[:n_slots, :n_res, :].sum(axis=2).astype(np.float64) * 0.5
     )
-    additive = allele_means @ effect_sizes
-    ef1a_sum = settler_genotypes[:n_slots, IDX_EF1A, :].sum(axis=1)
-    od_bonus = np.where(ef1a_sum == 1, w_od, 0.0)
-    agents['resistance'][slots] = additive + od_bonus
+    agents['resistance'][slots] = (allele_means @ effect_sizes[:n_res]).astype(np.float32)
 
     return n_slots
 
@@ -796,29 +788,23 @@ def settle_recruits(
 def _compute_resistance(
     genotype: np.ndarray,
     effects: np.ndarray,
-    w_od: float = 0.160,
+    w_od: float = 0.0,  # deprecated, ignored (EF1A removed)
 ) -> float:
     """Compute individual resistance score r_i from genotype.
 
-    r_i = Σ ẽ_l × (g_l0 + g_l1)/2  +  δ_het × w_od
+    r_i = Σ e_l × (g_l0 + g_l1)/2 over resistance loci.
 
     Args:
         genotype: (N_LOCI, 2) int8 array.
-        effects: (N_ADDITIVE,) float64 effect sizes.
-        w_od: Overdominant weight.
+        effects: Resistance effect sizes.
+        w_od: Deprecated, ignored (EF1A removed).
 
     Returns:
         r_i ∈ [0, 1].
     """
-    # Additive component
-    allele_means = genotype[:N_ADDITIVE, :].sum(axis=1).astype(np.float64) * 0.5
-    additive = float(np.dot(allele_means, effects))
-
-    # Overdominant component
-    ef1a_sum = int(genotype[IDX_EF1A, 0]) + int(genotype[IDX_EF1A, 1])
-    od_bonus = w_od if ef1a_sum == 1 else 0.0
-
-    return additive + od_bonus
+    n_res = min(len(effects), N_LOCI)
+    allele_means = genotype[:n_res, :].sum(axis=1).astype(np.float64) * 0.5
+    return float(np.dot(allele_means, effects[:n_res]))
 
 
 # ═══════════════════════════════════════════════════════════════════════
