@@ -44,7 +44,9 @@ def main():
 
     # Generate Saltelli samples
     # calc_second_order=True → N × (2D+2) samples
-    X = saltelli.sample(problem, N_SOBOL, calc_second_order=True, seed=BASE_SEED)
+    # Set global seed (saltelli.sample doesn't accept seed kwarg in this SALib version)
+    np.random.seed(BASE_SEED)
+    X = saltelli.sample(problem, N_SOBOL, calc_second_order=True)
     total_runs = X.shape[0]
     expected = N_SOBOL * (2 * n_params + 2)
 
