@@ -1,0 +1,342 @@
+\begin{thebibliography}{57}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Aalto et~al.(2020)Aalto, Lafferty, Sokolow, Grewelle, Ben-Horin, Boch, Raimondi, Bograd, Hazen, Jacox, Micheli, and De~Leo]{Aalto2020}
+Emilius~A. Aalto, Kevin~D. Lafferty, Susanne~H. Sokolow, Richard~E. Grewelle, Tal Ben-Horin, Charles~A. Boch, Peter~T. Raimondi, Steven~J. Bograd, Elliott~L. Hazen, Michael~G. Jacox, Fiorenza Micheli, and Giulio~A. De~Leo.
+\newblock Models with environmental drivers offer a plausible mechanism for the rapid spread of infectious disease outbreaks in marine organisms.
+\newblock \emph{Scientific Reports}, 10:\penalty0 5975, 2020.
+\newblock \doi{10.1038/s41598-020-62118-4}.
+
+\bibitem[Aquino et~al.(2021)Aquino, Besemer, DeRito, Kocian, Porter, Raiber, Episale, and Hewson]{Aquino2021}
+Citlalli~A. Aquino, Ryan~M. Besemer, Christopher~M. DeRito, Jan Kocian, Ian~R. Porter, Peter~T. Raiber, John~E. Episale, and Ian Hewson.
+\newblock Evidence that microorganisms at the animal-water interface drive sea star wasting disease.
+\newblock \emph{Frontiers in Microbiology}, 11:\penalty0 610009, 2021.
+\newblock \doi{10.3389/fmicb.2020.610009}.
+
+\bibitem[{\'A}rnason et~al.(2023){\'A}rnason, Koskela, Halld{\'o}rsd{\'o}ttir, and Eldon]{Arnason2023}
+Einar {\'A}rnason, Jere Koskela, Katr{\'i}n Halld{\'o}rsd{\'o}ttir, and Bjarki Eldon.
+\newblock Sweepstakes reproductive success via pervasive and recurrent selective sweeps.
+\newblock \emph{eLife}, 12:\penalty0 e80781, 2023.
+\newblock \doi{10.7554/eLife.80781}.
+
+\bibitem[Arroyo-Esquivel et~al.(2025)Arroyo-Esquivel, Gehman, Collins, and Sanchez]{Arroyo-Esquivel2025}
+Jorge Arroyo-Esquivel, Alyssa Gehman, Katie Collins, and Fernanda Sanchez.
+\newblock Managing populations after a disease outbreak: exploration of epidemiological consequences of managed host reintroduction following disease-driven host decline.
+\newblock \emph{bioRxiv}, 2025.
+\newblock \doi{10.1101/2025.02.28.640833}.
+
+\bibitem[{AZA SAFE}(2024)]{AZA2024}
+{AZA SAFE}.
+\newblock Sunflower sea star program plan 2024--2027.
+\newblock Technical report, Association of Zoos and Aquariums, 2024.
+
+\bibitem[Burt et~al.(2018)Burt, Tinker, Okamoto, Demes, Holmes, and Salomon]{Burt2018}
+Jenn~M. Burt, M.~Tim Tinker, Daniel~K. Okamoto, Kyle~W. Demes, Katie Holmes, and Anne~K. Salomon.
+\newblock Sudden collapse of a mesopredator reveals its complementary role in mediating rocky reef regime shifts.
+\newblock \emph{Proceedings of the Royal Society B}, 285:\penalty0 20180553, 2018.
+\newblock \doi{10.1098/rspb.2018.0553}.
+
+\bibitem[{California Ocean Protection Council}(2025)]{CAOPC2025}
+{California Ocean Protection Council}.
+\newblock Staff recommendation item 9: Consideration and approval of disbursement of funds to support sunflower sea star reintroduction.
+\newblock Technical report, California Ocean Protection Council, 2025.
+
+\bibitem[Clement et~al.(2024{\natexlab{a}})Clement, Hamede, Jones, and Hohenlohe]{clement2024coevolution}
+Matthew Clement, Rodrigo Hamede, Menna~E. Jones, and Paul~A. Hohenlohe.
+\newblock Coevolution enables host persistence in an eco-evolutionary epidemiological model of {Tasmanian} devil facial tumor disease.
+\newblock \emph{Evolution}, 78\penalty0 (12):\penalty0 2095--2110, 2024{\natexlab{a}}.
+\newblock \doi{10.1093/evolut/qpae143}.
+
+\bibitem[Clement et~al.(2024{\natexlab{b}})]{Clement2024}
+Matthew Clement et~al.
+\newblock Eco-evolutionary individual-based model for coevolution between {T}asmanian devils and devil facial tumour disease.
+\newblock \emph{Evolution}, 2024{\natexlab{b}}.
+\newblock \doi{10.1093/evolut/qpae143}.
+
+\bibitem[DeAngelis and Mooij(2005)]{deangelis2005individual}
+Donald~L. DeAngelis and Wolf~M. Mooij.
+\newblock Individual-based modeling of ecological and evolutionary processes.
+\newblock \emph{Annual Review of Ecology, Evolution, and Systematics}, 36:\penalty0 147--168, 2005.
+\newblock \doi{10.1146/annurev.ecolsys.36.102003.152644}.
+
+\bibitem[Dungan et~al.(1982)Dungan, Miller, and Thomson]{Dungan1982}
+Michael~L. Dungan, Thomas~E. Miller, and Donald~A. Thomson.
+\newblock Catastrophic decline of a top carnivore in the {G}ulf of {C}alifornia rocky intertidal zone.
+\newblock \emph{Science}, 216:\penalty0 989--991, 1982.
+\newblock \doi{10.1126/science.216.4549.989}.
+
+\bibitem[Eisenlord et~al.(2016)Eisenlord, Groner, Yoshioka, Elliott, Maynard, Fradkin, Turner, Pyne, Wyllie-Echeverria, Miner, and Harvell]{eisenlord2016ochre}
+Morgan~E. Eisenlord, Maya~L. Groner, Robin~M. Yoshioka, Jennifer Elliott, Jeffrey Maynard, Steven Fradkin, Margaret Turner, Katie Pyne, Sandy Wyllie-Echeverria, Benjamin~G. Miner, and C.~Drew Harvell.
+\newblock Ochre star mortality during the 2014 wasting disease epizootic: role of population size and temperature.
+\newblock \emph{Philosophical Transactions of the Royal Society B}, 371\penalty0 (1689):\penalty0 20150212, 2016.
+\newblock \doi{10.1098/rstb.2015.0212}.
+
+\bibitem[Eldon and Stephan(2024)]{Eldon2024}
+Bjarki Eldon and Wolfgang Stephan.
+\newblock Sweepstakes reproduction facilitates rapid adaptation in highly fecund populations.
+\newblock \emph{Molecular Ecology}, 33:\penalty0 e16903, 2024.
+\newblock \doi{10.1111/mec.16903}.
+
+\bibitem[Galloway et~al.(2023)Galloway, Gravem, Kobelt, et~al.]{Galloway2023}
+Aaron W.~E. Galloway, Sarah~A. Gravem, Jenna~N. Kobelt, et~al.
+\newblock Sunflower sea star predation on urchins can facilitate kelp forest recovery.
+\newblock \emph{Proceedings of the Royal Society B}, 290:\penalty0 20221897, 2023.
+\newblock \doi{10.1098/rspb.2022.1897}.
+
+\bibitem[Gascoigne and Lipcius(2004)]{Gascoigne2004}
+Joanna~C. Gascoigne and Romuald~N. Lipcius.
+\newblock Allee effects in marine systems.
+\newblock \emph{Marine Ecology Progress Series}, 269:\penalty0 49--59, 2004.
+\newblock \doi{10.3354/meps269049}.
+
+\bibitem[Gim{\'e}nez-Romero et~al.(2021)Gim{\'e}nez-Romero, Grau, Hendriks, and Mat{\'i}as]{Gimenez-Romero2021}
+{\`A}lex Gim{\'e}nez-Romero, Antoni Grau, Iris~E. Hendriks, and Manuel~A. Mat{\'i}as.
+\newblock Modelling parasite-produced marine diseases: The case of the mass mortality event of \textit{{P}inna nobilis}.
+\newblock \emph{Ecological Modelling}, 459:\penalty0 109740, 2021.
+\newblock \doi{10.1016/j.ecolmodel.2021.109740}.
+
+\bibitem[Gravem and Menge(2025)]{Gravem2025}
+Sarah~A. Gravem and Bruce~A. Menge.
+\newblock Metapopulation-scale resilience to disease-induced mass mortality in a keystone predator: From stasis to instability.
+\newblock \emph{Ecosphere}, 16:\penalty0 e70426, 2025.
+\newblock \doi{10.1002/ecs2.70426}.
+
+\bibitem[Gravem et~al.(2021)Gravem, Heady, Saccomanno, Alvstad, Gehman, Frierson, and Hamilton]{Gravem2021}
+Sarah~A. Gravem, Walter~N. Heady, Vienna~R. Saccomanno, Kathleen~F. Alvstad, Alyssa-Lois~M. Gehman, Taylor~N. Frierson, and Scott~L. Hamilton.
+\newblock \textit{{P}ycnopodia helianthoides}.
+\newblock \emph{The IUCN Red List of Threatened Species}, 2021.
+\newblock \doi{10.2305/IUCN.UK.2021-1.RLTS.T178290276A197818455.en}.
+
+\bibitem[Grimm and Railsback(2005)]{grimm2005individual}
+Volker Grimm and Steven~F. Railsback.
+\newblock \emph{Individual-Based Modeling and Ecology}.
+\newblock Princeton University Press, Princeton, NJ, 2005.
+
+\bibitem[Hagedorn et~al.(2021)]{Hagedorn2021}
+Mary Hagedorn et~al.
+\newblock Assisted gene flow using cryopreserved sperm in critically endangered coral.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 118:\penalty0 e2110559118, 2021.
+\newblock \doi{10.1073/pnas.2110559118}.
+
+\bibitem[Hamilton et~al.(2021)]{Hamilton2021}
+Scott~L. Hamilton et~al.
+\newblock Disease-driven mass mortality event leads to widespread extirpation and variable recovery potential of a marine predator across the eastern {P}acific.
+\newblock \emph{Proceedings of the Royal Society B}, 288:\penalty0 20211195, 2021.
+\newblock \doi{10.1098/rspb.2021.1195}.
+
+\bibitem[Harvell et~al.(2019)Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.]{Harvell2019}
+C.~Drew Harvell, Diego Montecino-Latorre, Joseph~M. Caldwell, Jenn~M. Burt, Kathryn Bosley, et~al.
+\newblock Disease epidemic and a marine heat wave are associated with the continental-scale collapse of a pivotal predator (\textit{{P}ycnopodia helianthoides}).
+\newblock \emph{Science Advances}, 5:\penalty0 eaau7042, 2019.
+\newblock \doi{10.1126/sciadv.aau7042}.
+
+\bibitem[Heady et~al.(2022)Heady, Beas-Luna, Dawson, et~al.]{Heady2022}
+Walter~N. Heady, Rodrigo Beas-Luna, Michael~N. Dawson, et~al.
+\newblock Roadmap to recovery for the sunflower sea star along the {W}est {C}oast of {N}orth {A}merica.
+\newblock Technical report, The Nature Conservancy, 2022.
+
+\bibitem[Hedgecock and Pudovkin(2011)]{Hedgecock2011}
+Dennis Hedgecock and Alexander~I. Pudovkin.
+\newblock Sweepstakes reproductive success in highly fecund marine fish and shellfish: A review and commentary.
+\newblock \emph{Bulletin of Marine Science}, 87:\penalty0 971--1002, 2011.
+\newblock \doi{10.5343/bms.2010.1051}.
+
+\bibitem[Hewson(2021)]{Hewson2021}
+Ian Hewson.
+\newblock Microbial respiration in the asteroid diffusive boundary layer influenced sea star wasting disease during the 2013--2014 northeast {P}acific {O}cean mass mortality event.
+\newblock \emph{Marine Ecology Progress Series}, 668:\penalty0 231--237, 2021.
+\newblock \doi{10.3354/meps13710}.
+
+\bibitem[Hewson(2025)]{Hewson2025autecology}
+Ian Hewson.
+\newblock When bacteria meet many arms: Autecological insights into \textit{{V}ibrio pectinicida} {FHCF}-3 in echinoderms.
+\newblock \emph{bioRxiv}, 2025.
+\newblock \doi{10.1101/2025.08.15.670479}.
+
+\bibitem[Hewson et~al.(2014)Hewson, Button, Gudenkauf, et~al.]{Hewson2014}
+Ian Hewson, Jason~B. Button, Brent~M. Gudenkauf, et~al.
+\newblock Densovirus associated with sea-star wasting disease and mass mortality.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 111:\penalty0 17278--17283, 2014.
+\newblock \doi{10.1073/pnas.1416625111}.
+
+\bibitem[Hewson et~al.(2025)Hewson, Johnson, and Reyes-Chavez]{Hewson2025review}
+Ian Hewson, Morgan~R. Johnson, and Benjamin Reyes-Chavez.
+\newblock Lessons learned from the sea star wasting disease investigation.
+\newblock \emph{Annual Review of Marine Science}, 17:\penalty0 257--279, 2025.
+\newblock \doi{10.1146/annurev-marine-040623-082617}.
+
+\bibitem[Hewson et~al.(2018)]{Hewson2018}
+Ian Hewson et~al.
+\newblock Investigating the complex association between viral ecology, environment, and {N}ortheast {P}acific sea star wasting.
+\newblock \emph{Frontiers in Marine Science}, 5:\penalty0 77, 2018.
+\newblock \doi{10.3389/fmars.2018.00077}.
+
+\bibitem[Hewson et~al.(2019)]{Hewson2019}
+Ian Hewson et~al.
+\newblock Perspective: Something old, something new? {R}eview of wasting and other mortality in {A}steroidea ({E}chinodermata).
+\newblock \emph{Frontiers in Marine Science}, 6:\penalty0 406, 2019.
+\newblock \doi{10.3389/fmars.2019.00406}.
+
+\bibitem[Hodin et~al.(2021)Hodin, Pearson-Lund, Anteau, Kitaeff, and Cefalu]{Hodin2021}
+Jason Hodin, Amanda Pearson-Lund, Freya~P. Anteau, Philippe Kitaeff, and Sarah Cefalu.
+\newblock Progress toward complete life-cycle culturing of the endangered sunflower star, \textit{{P}ycnopodia helianthoides}.
+\newblock \emph{Biological Bulletin}, 241:\penalty0 243--258, 2021.
+\newblock \doi{10.1086/716552}.
+
+\bibitem[H{\"o}llinger et~al.(2022)H{\"o}llinger, Pennings, and Hermisson]{Hollinger2022}
+Ilse H{\"o}llinger, Pleuni~S. Pennings, and Joachim Hermisson.
+\newblock Polygenic adaptation: From sweeps to subtle frequency shifts.
+\newblock \emph{eLife}, 11:\penalty0 e66697, 2022.
+\newblock \doi{10.7554/eLife.66697}.
+
+\bibitem[Lambert et~al.(1998)Lambert, Nicolas, Cilia, and Corre]{lambert1998virulence}
+C.~Lambert, J.-L. Nicolas, V.~Cilia, and S.~Corre.
+\newblock Vibrio pectenicida sp. nov., a pathogen of scallop ({Pecten} maximus) larvae.
+\newblock \emph{International Journal of Systematic Bacteriology}, 48:\penalty0 481--487, 1998.
+\newblock \doi{10.1099/00207713-48-2-481}.
+
+\bibitem[Langendorf et~al.(2025)Langendorf, Estes, Watson, Kenner, Hatfield, Tinker, Waddle, DeMarch, and Doak]{Langendorf2025}
+Ryan~E. Langendorf, James~A. Estes, James~C. Watson, Michael~C. Kenner, Brian~B. Hatfield, M.~Tim Tinker, Elizabeth Waddle, Michelle~L. DeMarch, and Daniel~F. Doak.
+\newblock Dynamic and context-dependent keystone species effects in kelp forests.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 2025.
+\newblock \doi{10.1073/pnas.XXXXXXX}.
+
+\bibitem[Lessios(2016)]{Lessios2016}
+Harilaos~A. Lessios.
+\newblock The great \textit{{D}iadema antillarum} die-off: 30 years later.
+\newblock \emph{Annual Review of Marine Science}, 8:\penalty0 267--283, 2016.
+\newblock \doi{10.1146/annurev-marine-122414-033857}.
+
+\bibitem[Lotterhos and Whitlock(2015)]{Lotterhos2015}
+Katie~E. Lotterhos and Michael~C. Whitlock.
+\newblock The relative power of genome scans to detect local adaptation depends on sampling design and statistical method.
+\newblock \emph{Molecular Ecology}, 24\penalty0 (5):\penalty0 1031--1046, 2015.
+\newblock \doi{10.1111/mec.13100}.
+
+\bibitem[Lowry et~al.(2022)Lowry, Wright, Neuman, et~al.]{Lowry2022}
+Dayv Lowry, Sarah Wright, Melissa Neuman, et~al.
+\newblock Endangered {S}pecies {A}ct status review report: Sunflower sea star (\textit{{P}ycnopodia helianthoides}).
+\newblock Technical report, NOAA National Marine Fisheries Service, 2022.
+
+\bibitem[Lundquist and Botsford(2004)]{Lundquist2004}
+Carolyn~J. Lundquist and Louis~W. Botsford.
+\newblock Model projections of the fishery implications of the {A}llee effect in broadcast spawners.
+\newblock \emph{Ecological Applications}, 14:\penalty0 929--941, 2004.
+\newblock \doi{10.1890/02-5325}.
+
+\bibitem[Lupo et~al.(2020{\natexlab{a}})Lupo, Cabello-Yeves, Ferreira, de~Lorgeril, and Vezzulli]{lupo2020vibrionaceae}
+Coralie Lupo, Pedro~J. Cabello-Yeves, Sara Ferreira, Julien de~Lorgeril, and Luigi Vezzulli.
+\newblock Vibrio ecology, pathogenesis, and evolution.
+\newblock \emph{Frontiers in Microbiology}, 11:\penalty0 587685, 2020{\natexlab{a}}.
+\newblock \doi{10.3389/fmicb.2020.587685}.
+
+\bibitem[Lupo et~al.(2020{\natexlab{b}})]{Lupo2020}
+Coralie Lupo et~al.
+\newblock Spatial epidemiological modelling of infection by \textit{{V}ibrio aestuarianus} shows that connectivity and temperature control oyster mortality.
+\newblock \emph{Aquaculture Environment Interactions}, 12:\penalty0 511--527, 2020{\natexlab{b}}.
+\newblock \doi{10.3354/aei00379}.
+
+\bibitem[Lynch(2010)]{Lynch2010}
+Michael Lynch.
+\newblock Evolution of the mutation rate.
+\newblock \emph{Trends in Genetics}, 26:\penalty0 345--352, 2010.
+\newblock \doi{10.1016/j.tig.2010.05.003}.
+
+\bibitem[Mancuso et~al.(2025)Mancuso, Gravem, Campbell, Hunter, Raimondi, Galloway, and Kroeker]{Mancuso2025}
+Ryan~T. Mancuso, Sarah~A. Gravem, Rachel~S. Campbell, Nathan Hunter, Pete Raimondi, Aaron W.~E. Galloway, and Kristy~J. Kroeker.
+\newblock Sunflower sea star chemical cues locally reduce kelp consumption by eliciting a flee response in red sea urchins.
+\newblock \emph{Proceedings of the Royal Society B}, 2025.
+\newblock \doi{10.1098/rspb.2025.0949}.
+
+\bibitem[Meunier et~al.(2024)Meunier, Hacker, and Menge]{Meunier2024}
+Zofia~D. Meunier, Sally~D. Hacker, and Bruce~A. Menge.
+\newblock Regime shifts in rocky intertidal communities associated with a marine heatwave and disease outbreak.
+\newblock \emph{Nature Ecology \& Evolution}, 8:\penalty0 1285--1297, 2024.
+\newblock \doi{10.1038/s41559-024-02425-5}.
+
+\bibitem[Miner et~al.(2018)Miner, Burnaford, Ambrose, Antrim, et~al.]{Miner2018}
+C.~Melissa Miner, Jennifer~L. Burnaford, Richard~F. Ambrose, Liam Antrim, et~al.
+\newblock Large-scale impacts of sea star wasting disease ({SSWD}) on intertidal sea stars and implications for recovery.
+\newblock \emph{PLoS ONE}, 13:\penalty0 e0192870, 2018.
+\newblock \doi{10.1371/journal.pone.0192870}.
+
+\bibitem[Montecino-Latorre et~al.(2016)Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.]{Montecino-Latorre2016}
+Diego Montecino-Latorre, Morgan~E. Eisenlord, Morgan Turner, Reyn Yoshioka, C.~Drew Harvell, et~al.
+\newblock Devastating transboundary impacts of sea star wasting disease on subtidal asteroids.
+\newblock \emph{PLoS ONE}, 11:\penalty0 e0163190, 2016.
+\newblock \doi{10.1371/journal.pone.0163190}.
+
+\bibitem[Prentice et~al.(2025)Prentice, Aquino, Chan, Davis, Hershberger, Finke, Hodin, McCracken, Kellogg, Clemente-Carvalho, Prentice, Zhong, Harvell, Suttle, and Gehman]{Prentice2025}
+Maya~B. Prentice, Citlalli~A. Aquino, Amy~M. Chan, Kalia~M. Davis, Paul~K. Hershberger, Jan~F. Finke, Jason Hodin, Aquiala McCracken, Christina T.~E. Kellogg, Rute B.~G. Clemente-Carvalho, Christy Prentice, Kiana~X. Zhong, C.~Drew Harvell, Curtis~A. Suttle, and Alyssa-Lois~M. Gehman.
+\newblock \textit{{V}ibrio pectenicida} strain {FHCF}-3 is a causative agent of sea star wasting disease.
+\newblock \emph{Nature Ecology \& Evolution}, 2025.
+\newblock \doi{10.1038/s41559-025-02797-2}.
+
+\bibitem[R{\aa}berg et~al.(2009)R{\aa}berg, Graham, and Read]{raberg2009decomposing}
+Lars R{\aa}berg, Andrea~L. Graham, and Andrew~F. Read.
+\newblock Decomposing health: tolerance and resistance to parasites in animals.
+\newblock \emph{Philosophical Transactions of the Royal Society B}, 364\penalty0 (1513):\penalty0 37--49, 2009.
+\newblock \doi{10.1098/rstb.2008.0184}.
+
+\bibitem[Rogers-Bennett and Catton(2019)]{Rogers-Bennett2019}
+Laura Rogers-Bennett and Cynthia~A. Catton.
+\newblock Marine heat wave and multiple stressors tip bull kelp forest to sea urchin barrens.
+\newblock \emph{Scientific Reports}, 9:\penalty0 15050, 2019.
+\newblock \doi{10.1038/s41598-019-51114-y}.
+
+\bibitem[Schiebelhut et~al.(2018{\natexlab{a}})Schiebelhut, Puritz, and Dawson]{Schiebelhut2018}
+Lauren~M. Schiebelhut, Jonathan~B. Puritz, and Michael~N. Dawson.
+\newblock Decimation by sea star wasting disease and rapid genetic change in a keystone species, \textit{{P}isaster ochraceus}.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 115:\penalty0 7069--7074, 2018{\natexlab{a}}.
+\newblock \doi{10.1073/pnas.1800285115}.
+
+\bibitem[Schiebelhut et~al.(2018{\natexlab{b}})Schiebelhut, Puritz, and Dawson]{schiebelhut2018collapse}
+Lauren~M. Schiebelhut, Jonathan~B. Puritz, and Michael~N. Dawson.
+\newblock Decimation by sea star wasting disease and rapid genetic change in a keystone species, \textit{Pisaster ochraceus}.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 115\penalty0 (27):\penalty0 7069--7074, 2018{\natexlab{b}}.
+\newblock \doi{10.1073/pnas.1800285115}.
+
+\bibitem[Schiebelhut et~al.(2024)]{Schiebelhut2024genome}
+Lauren~M. Schiebelhut et~al.
+\newblock A reference genome for ecological restoration of the sunflower sea star, \textit{{P}ycnopodia helianthoides}.
+\newblock \emph{Journal of Heredity}, 115:\penalty0 86--93, 2024.
+\newblock \doi{10.1093/jhered/esad054}.
+
+\bibitem[{Sea Star Lab}(2025)]{SSL2025}
+{Sea Star Lab}.
+\newblock Sea star cryopreservation breakthrough inspires hope for sunflower stars, 2025.
+\newblock Press release.
+
+\bibitem[{Sunflower Star Lab}(2025)]{Simon2025}
+{Sunflower Star Lab}.
+\newblock First-ever temporary experimental outplanting of sunflower stars in {C}alifornia, 2025.
+\newblock Press release.
+
+\bibitem[Tolimieri(2022)]{Tolimieri2022}
+Nick Tolimieri.
+\newblock Appendix {A}: Population viability analysis of \textit{{P}ycnopodia helianthoides}.
+\newblock \emph{In: Lowry et al., ESA Status Review Report, NOAA NMFS}, 2022.
+
+\bibitem[Vendrami et~al.(2021)Vendrami, Peck, Clark, Eldon, Meredith, and Hoffman]{Vendrami2021}
+David L.~J. Vendrami, Lloyd~S. Peck, Melody~S. Clark, Bjarki Eldon, Michael Meredith, and Joseph~I. Hoffman.
+\newblock Sweepstake reproductive success and collective dispersal produce chaotic genetic patchiness in a broadcast spawner.
+\newblock \emph{Science Advances}, 7:\penalty0 eabj4713, 2021.
+\newblock \doi{10.1126/sciadv.abj4713}.
+
+\bibitem[Wares and Schiebelhut(2016)]{Wares2016}
+John~P. Wares and Lauren~M. Schiebelhut.
+\newblock What doesn't kill them makes them stronger: an association between elongation factor 1-$\alpha$ overdominance in the sea star \textit{{P}isaster ochraceus} and ``sea star wasting disease''.
+\newblock \emph{PeerJ}, 4:\penalty0 e1876, 2016.
+\newblock \doi{10.7717/peerj.1876}.
+
+\bibitem[Wearing et~al.(2005)Wearing, Rohani, and Keeling]{wearing2005appropriate}
+Helen~J. Wearing, Pejman Rohani, and Matt~J. Keeling.
+\newblock Appropriate models for the management of infectious diseases.
+\newblock \emph{PLoS Medicine}, 2\penalty0 (7):\penalty0 e174, 2005.
+\newblock \doi{10.1371/journal.pmed.0020174}.
+
+\end{thebibliography}

@@ -1,3 +1,352 @@
-% genetics_module.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% GENETICS MODULE
+% Fact-checked against: sswd_evoepi/genetics.py, config.py
+%   (GeneticsSection), types.py, three-trait-genetic-architecture-spec.md
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Genetics Module}
 \label{sec:genetics_module}
+
+The genetics module tracks a diploid genotype at 51 biallelic loci for
+every individual, partitioned into three quantitative defense traits:
+\emph{resistance}, \emph{tolerance}, and \emph{recovery}. Genotypes
+are transmitted via Mendelian inheritance with free recombination,
+mutated at a per-allele rate $\mu = 10^{-8}$ per generation
+\citep{Lynch2010}, and subject to natural selection through the
+coupling of trait scores to disease dynamics
+(Section~\ref{sec:disease_module}). The module additionally implements
+sweepstakes reproductive success (SRS) to capture the extreme
+reproductive variance characteristic of broadcast-spawning marine
+invertebrates \citep{Hedgecock2011}.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Three-Trait Architecture}
+\label{sec:three_trait}
+
+Each individual carries a $(51 \times 2)$ genotype array of
+\texttt{int8} alleles, where the 51 loci are partitioned into three
+contiguous blocks:
+
+\begin{table}[H]
+\centering
+\caption{Three-trait genetic architecture. The partition is
+configurable (constraint: $n_R + n_T + n_C = 51$); the default
+17/17/17 split is used in all analyses reported here.}
+\label{tab:trait_partition}
+\small
+\begin{tabular}{lcccp{6.2cm}}
+\toprule
+\textbf{Trait} & \textbf{Symbol} & \textbf{Loci} & \textbf{Indices} & \textbf{Mechanistic role} \\
+\midrule
+Resistance & $r_i$ & $n_R = 17$ & $0$--$16$  & Immune exclusion: reduces probability of $\text{S} \to \text{E}$ transition \\
+Tolerance  & $t_i$ & $n_T = 17$ & $17$--$33$ & Damage limitation: extends $\text{I}_2$ survival via mortality rate reduction \\
+Recovery   & $c_i$ & $n_C = 17$ & $34$--$50$ & Pathogen clearance: daily probability of $\text{I}_1$/$\text{I}_2 \to \text{R}$ transition \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These three traits represent biologically distinct immune strategies
+with different epidemiological consequences
+\citep{raberg2009decomposing}:
+%
+\begin{itemize}
+  \item \textbf{Resistance} ($r_i$) acts \emph{before} infection via
+    receptor polymorphisms, barrier defenses, and innate pathogen
+    recognition. Resistant individuals reduce pathogen pressure on the
+    population by preventing shedding entirely.
+
+  \item \textbf{Tolerance} ($t_i$) acts \emph{during} infection via
+    tissue repair, anti-inflammatory regulation, and metabolic
+    compensation. Tolerant hosts survive longer while infected but
+    continue to shed pathogen---they are epidemiological ``silent
+    spreaders'' that maintain transmission pressure while saving
+    themselves.
+
+  \item \textbf{Recovery} ($c_i$) acts \emph{during late infection}
+    via coelomocyte phagocytosis and immune effector mobilization.
+    Recovering hosts actively clear the pathogen and transition to an
+    immune state (R), removing a shedding host from the population.
+\end{itemize}
+
+The locus count of 51 is motivated by \citet{Schiebelhut2018}, who
+identified $\sim$51 loci under selection in \textit{Pisaster
+ochraceus} SSWD survivors. No genome-wide association study (GWAS) data
+currently distinguish resistance, tolerance, and recovery loci in
+\pycshort{}; the equal 17/17/17 partition is a simplifying assumption
+whose sensitivity is explored via the $n_R$ parameter in the global
+sensitivity analysis (Section~\ref{sec:sensitivity_analysis}). A
+reference genome for \pycshort{} is now available
+\citep{Schiebelhut2024genome}, enabling future empirical partitioning.
+
+\paragraph{Removal of EF1A overdominant locus.}
+An earlier model version included a 52nd locus representing the EF1A
+elongation factor with overdominant fitness effects, based on
+\citet{Wares2016} who documented allele frequency shifts at this locus
+in \textit{Pisaster ochraceus} following SSWD. We removed this locus
+because (1) the EF1A finding is specific to \textit{Pisaster} with no
+evidence of overdominance in \pycshort{}, and (2) a single
+overdominant locus imposed a hard floor on heterozygosity loss that
+was biologically unjustified for our focal species.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Trait Score Computation}
+\label{sec:trait_scores}
+
+At each locus $\ell$, an individual carries two alleles $g_{\ell,0},
+g_{\ell,1} \in \{0, 1\}$, where $1$ denotes the derived (protective)
+allele and $0$ the ancestral allele. Each locus within a trait block
+has a fixed effect size $e_\ell > 0$, and an individual's trait score
+is the effect-weighted mean allele dosage:
+
+\begin{equation}
+  \label{eq:trait_score}
+  \theta_i = \sum_{\ell \in \mathcal{L}_\theta}
+    e_\ell \, \frac{g_{\ell,0} + g_{\ell,1}}{2}
+\end{equation}
+
+\noindent
+where $\mathcal{L}_\theta$ denotes the locus set for trait
+$\theta \in \{r, t, c\}$ and $\theta_i \in [0, \sum e_\ell]$.
+Effect sizes within each trait block are normalized so
+$\sum_{\ell \in \mathcal{L}_\theta} e_\ell = 1$, bounding all
+trait scores to $[0, 1]$.
+
+
+\subsubsection{Effect Size Distribution}
+\label{sec:effect_sizes}
+
+Per-locus effect sizes are drawn from an exponential distribution
+$e_\ell \sim \text{Exp}(\lambda = 1)$, normalized to sum to 1.0
+within each trait, and sorted in descending order. This produces a
+distribution where a few loci have large effects and the remainder
+have small effects, consistent with empirical QTL architectures for
+disease resistance traits \citep{Lotterhos2015}. A fixed seed ensures
+identical effect sizes across simulation runs. Each trait block
+receives independently drawn effect sizes.
+
+
+\subsubsection{Coupling to Disease Dynamics}
+\label{sec:trait_disease_coupling}
+
+The three traits feed into the disease module
+(Section~\ref{sec:disease_module}) as follows:
+
+\begin{enumerate}
+  \item \textbf{Resistance} reduces the per-individual force of
+    infection:
+    \begin{equation}
+      \label{eq:resistance_foi}
+      \lambda_i = a \cdot \frac{P}{K_{1/2} + P}
+        \cdot (1 - r_i) \cdot S_\text{sal} \cdot f_L(L_i)
+    \end{equation}
+    where $a$ is the exposure rate, $P$ the local \vp{} concentration,
+    $K_{1/2}$ the half-infective dose, $S_\text{sal}$ the salinity
+    modifier, and $f_L(L_i)$ the size-dependent susceptibility factor.
+
+  \item \textbf{Tolerance} reduces the I$_2 \to$ D transition rate
+    via a timer-scaling mechanism:
+    \begin{equation}
+      \label{eq:tolerance_mortality}
+      \mu_{\text{I}_2\text{D},i}^\text{eff}
+        = \mu_{\text{I}_2\text{D}}(T)
+        \cdot \bigl(1 - t_i \cdot \tau_\text{max}\bigr)
+    \end{equation}
+    where $\tau_\text{max} = 0.85$ is the maximum mortality reduction
+    achievable at $t_i = 1$. A floor of $5\%$ of the baseline rate
+    prevents complete elimination of disease mortality. Tolerant
+    individuals survive longer while infected but continue shedding,
+    creating a selective conflict between individual and population-level
+    fitness.
+
+  \item \textbf{Recovery} determines the daily clearance probability:
+    \begin{equation}
+      \label{eq:recovery_prob}
+      p_{\text{rec},i} = \rho_\text{rec} \times c_i
+    \end{equation}
+    where $\rho_\text{rec} = 0.05$~d$^{-1}$ is the base recovery rate.
+    Recovery from I$_1$ requires $c_i > 0.5$ (early clearance); recovery
+    from I$_2$ has no threshold. Successful recovery transitions the
+    agent to the R (recovered, immune) compartment.
+\end{enumerate}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Genotype Initialization}
+\label{sec:geno_init}
+
+Initial allele frequencies are drawn independently for each locus from
+a Beta distribution:
+\begin{equation}
+  q_\ell \sim \text{Beta}(a, b) \quad \text{(default } a = 2,\; b = 8\text{)}
+\end{equation}
+producing a right-skewed frequency spectrum where most protective
+alleles are rare ($\mathbb{E}[q] = a/(a+b) = 0.2$), consistent with
+standing variation in immune genes maintained by mutation--selection
+balance. The raw frequencies are then rescaled per-trait so that the
+expected population-mean trait score equals a configurable target:
+
+\begin{table}[H]
+\centering
+\caption{Default target population-mean trait scores at initialization.}
+\label{tab:trait_targets}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Trait} & \textbf{Target mean} & \textbf{Rationale} \\
+\midrule
+Resistance ($r_i$) & 0.15 & Pre-epidemic standing variation \\
+Tolerance ($t_i$)  & 0.10 & Moderate damage limitation \\
+Recovery ($c_i$)   & 0.02 & Rare standing variation for clearance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Recovery is initialized with the lowest mean because active pathogen
+clearance is assumed to be the rarest phenotype prior to epidemic
+exposure. Per-locus frequencies are clipped to $[0.001, 0.5]$ to
+prevent fixation at initialization while ensuring the derived allele
+never begins at majority frequency. Genotypes are then sampled
+assuming Hardy--Weinberg equilibrium at each locus: each allele copy
+is independently drawn as a Bernoulli trial with probability $q_\ell$.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Mendelian Inheritance and Mutation}
+\label{sec:inheritance}
+
+At reproduction, each offspring inherits one randomly chosen allele
+from each parent at every locus (independent assortment, no linkage).
+The vectorized implementation draws allele choices for all
+$n_\text{offspring} \times 51 \times 2$ positions simultaneously,
+then indexes into parental genotype arrays.
+
+Mutations are applied to offspring genotypes at rate
+$\mu = 10^{-8}$ per allele per generation \citep{Lynch2010}. The
+total number of mutations per cohort is drawn from a Poisson
+distribution: $n_\text{mut} \sim \text{Pois}(\mu \times
+n_\text{offspring} \times 51 \times 2)$. Each mutation flips the
+allele at a randomly chosen position ($0 \to 1$ or $1 \to 0$),
+providing bidirectional mutational pressure. At the default mutation
+rate, mutations are negligible within the 20--100 year simulation
+horizon (expected $\sim 10^{-6}$ mutations per offspring), and
+evolution proceeds primarily through selection on standing variation.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Sweepstakes Reproductive Success}
+\label{sec:srs}
+
+Broadcast-spawning marine invertebrates exhibit sweepstakes
+reproductive success (SRS): a tiny fraction of adults contribute the
+majority of surviving offspring in any given cohort
+\citep{Hedgecock2011}. This phenomenon produces
+$N_e/N$ ratios on the order of $10^{-3}$ in empirical observations
+\citep{Arnason2023} and dramatically amplifies genetic drift while
+simultaneously accelerating the fixation of favorable alleles in
+post-epidemic populations \citep{Eldon2024}.
+
+\modelname{} implements SRS via a Pareto-weighted reproductive lottery.
+Each spawning adult receives a random weight drawn from a Pareto
+distribution with shape parameter $\alpha_\text{SRS}$ (default 1.35):
+
+\begin{equation}
+  w_i \sim \text{Pareto}(\alpha_\text{SRS}) + 1
+\end{equation}
+
+Female weights are additionally multiplied by size-dependent fecundity
+(Section~\ref{sec:fecundity}), so larger females that win the
+sweepstakes lottery contribute disproportionately:
+
+\begin{equation}
+  \tilde{w}_{i,\text{female}} = w_i \times
+    \left(\frac{L_i}{L_\text{ref}}\right)^b
+\end{equation}
+
+\noindent
+where $b = 2.5$ is the fecundity allometric exponent and
+$L_\text{ref} = 500$~mm. Male weights use the raw Pareto draw without
+fecundity modulation. Parents are then sampled with replacement from
+the normalized weight distributions, and offspring receive
+Mendelian-inherited genotypes.
+
+The Pareto shape $\alpha_\text{SRS} = 1.35$ was chosen to produce
+$N_e/N$ ratios consistent with empirical estimates of $\sim\!10^{-3}$
+in marine broadcast spawners \citep{Hedgecock2011, Arnason2023}. A
+small annual variation in $\alpha$ (drawn from
+$\mathcal{N}(\alpha_\text{SRS}, \sigma_\alpha^2)$ with
+$\sigma_\alpha = 0.10$) produces temporal fluctuation in the variance
+of reproductive success across cohorts.
+
+\paragraph{Effective population size.}
+$N_e$ is computed from the realized offspring distribution using the
+standard formula \citep{Hedgecock2011}:
+\begin{equation}
+  N_e = \frac{4N - 2}{V_k + 2}
+\end{equation}
+where $N$ is the number of spawning parents and $V_k$ is the variance
+in offspring number. Sex-specific $N_e$ values are computed for
+females and males separately, then combined via harmonic mean:
+$N_e = 4 N_{e,f} N_{e,m} / (N_{e,f} + N_{e,m})$.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Genetic Diagnostics and Tracking}
+\label{sec:genetics_diagnostics}
+
+The model records a suite of genetic summary statistics at each node
+at annual intervals:
+
+\begin{itemize}
+  \item \textbf{Per-trait means and variances:}
+    $\bar{r}$, $\bar{t}$, $\bar{c}$ and
+    $\text{Var}(r)$, $\text{Var}(t)$, $\text{Var}(c)$.
+
+  \item \textbf{Additive genetic variance} ($V_A$) per trait:
+    \begin{equation}
+      V_{A,\theta} = \sum_{\ell \in \mathcal{L}_\theta}
+        2 \, e_\ell^2 \, q_\ell \, (1 - q_\ell)
+    \end{equation}
+    where $q_\ell$ is the derived allele frequency at locus $\ell$.
+    $V_A$ determines the potential rate of evolutionary response to
+    selection.
+
+  \item \textbf{Heterozygosity:} Observed ($H_o$) and expected ($H_e$)
+    heterozygosity averaged across all 51 loci.
+
+  \item \textbf{$F_{ST}$:} Weir--Cockerham-style $F_{ST}$ across nodes,
+    computed as $F_{ST} = \text{Var}(\bar{q}) / [\bar{q}(1-\bar{q})]$
+    averaged across polymorphic loci.
+
+  \item \textbf{Pre- and post-epidemic allele frequency snapshots:}
+    Full 51-locus allele frequency vectors taken immediately before
+    pathogen introduction and two years after the epidemic onset,
+    enabling direct measurement of allele frequency shifts
+    ($\Delta q$) attributable to selection.
+\end{itemize}
+
+\paragraph{No cost of resistance.}
+A cost-of-resistance parameter (fecundity penalty for high $r_i$) was
+considered but excluded following discussion with the senior author.
+No empirical evidence supports a measurable fecundity cost for disease
+resistance alleles in \pycshort{}, and including an unparameterized
+cost would introduce a free parameter with no calibration target.
+Fecundity depends solely on body size
+(Section~\ref{sec:fecundity}).
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Genotype Bank (Tier~2 Nodes)}
+\label{sec:genotype_bank}
+
+For Tier~2 spatial nodes that use simplified demographics rather than
+full agent tracking, the genetics module maintains a \emph{genotype
+bank} of $N_\text{bank} = 100$ representative diploid genotypes with
+associated frequency weights. The bank is created by random sampling
+from the alive population and preserves all three trait scores and
+allele frequencies. When agents migrate from a Tier~2 to a Tier~1
+node, genotypes are expanded from the bank using SRS-weighted sampling
+(Pareto weights $\times$ bank frequency weights) to reconstruct
+individual-level genetic variation.

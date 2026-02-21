@@ -1,3 +1,477 @@
-% population_dynamics.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% POPULATION DYNAMICS
+% Fact-checked against: sswd_evoepi/model.py (daily_natural_mortality,
+%   daily_growth_and_aging, von_bertalanffy, grow_individual,
+%   annual_reproduction, settle_daily_cohorts),
+%   sswd_evoepi/reproduction.py (fecundity, fertilization_success,
+%   srs_reproductive_lottery, beverton_holt_recruitment,
+%   pelagic_larval_duration, larval_survival, settlement_cue_modifier),
+%   sswd_evoepi/spawning.py (spawning_step, cascade_induction,
+%   immunosuppression)
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Population Dynamics}
 \label{sec:population_dynamics}
+
+The population dynamics module governs the complete life history of
+\pyc{}: growth, natural mortality, reproduction, larval dispersal,
+and settlement. All demographic processes operate on a daily timestep,
+integrated within the master simulation loop described in
+Section~\ref{sec:model_architecture}. Disease-driven mortality is
+handled by the disease module (Section~\ref{sec:disease_module});
+coupling occurs through shared access to the agent array.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Life Stages}
+\label{sec:stages}
+
+Each individual progresses through five life stages defined by size
+thresholds (Table~\ref{tab:stages_pop}). Stage transitions are
+unidirectional: agents can only advance, never regress.
+
+\begin{table}[H]
+\centering
+\caption{Life stages and transition thresholds for \pycshort{}.}
+\label{tab:stages_pop}
+\small
+\begin{tabular}{llcl}
+\toprule
+\textbf{Stage} & \textbf{Size range} & \textbf{Transition at} & \textbf{Duration} \\
+\midrule
+Egg/Larva   & Planktonic      & Settlement event & 49--146 days PLD \\
+Settler     & 0.5--10~mm      & $\geq 10$~mm     & $\sim$1 year \\
+Juvenile    & 10--150~mm      & $\geq 150$~mm    & $\sim$1--5 years \\
+Subadult    & 150--400~mm     & $\geq 400$~mm    & $\sim$5--10 years \\
+Adult       & $>$400~mm       & ---               & 10--50+ years \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Growth}
+\label{sec:growth}
+
+Individual growth follows the von Bertalanffy (VB) growth model in
+differential form, resolved daily:
+
+\begin{equation}
+  \label{eq:vb_growth}
+  L(t + \Delta t) = L_\infty - (L_\infty - L(t)) \cdot
+    \exp(-k_\text{growth} \cdot \Delta t)
+\end{equation}
+
+\noindent
+where $L_\infty = 1000$~mm is the asymptotic arm-tip diameter,
+$k_\text{growth} = 0.08$~yr$^{-1}$ is the Brody growth coefficient,
+and $\Delta t = 1/365$~yr for the daily timestep. Individual growth
+variation is introduced through a multiplicative log-normal noise
+term applied to the daily increment:
+
+\begin{equation}
+  \Delta L_i = (L_\text{det} - L_i) \cdot
+    \exp\!\bigl(\varepsilon_i\bigr), \quad
+  \varepsilon_i \sim \mathcal{N}\!\left(0,\;
+    \frac{\sigma_g}{\sqrt{365}}\right)
+\end{equation}
+
+\noindent
+where $\sigma_g = 2.0$~mm is the annual growth noise scale and the
+$\sqrt{365}$ scaling preserves the annual CV when integrated over
+daily steps. Size is constrained to never decrease (no shrinking).
+Stage transitions are evaluated after each growth step based on the
+thresholds in Table~\ref{tab:stages_pop}.
+
+Aging proceeds at $1/365$ years per day, producing fractional ages
+that drive size-at-age trajectories and determine eligibility for
+senescence mortality.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Natural Mortality}
+\label{sec:mortality}
+
+Natural mortality is resolved daily using continuous hazard rates
+derived from stage-specific annual survival probabilities.
+The daily death probability for individual $i$ is:
+
+\begin{equation}
+  \label{eq:daily_mort}
+  p_{\text{death},i} = 1 -
+    \bigl(1 - m_\text{annual}(s_i)\bigr)^{1/365}
+\end{equation}
+
+\noindent
+where $m_\text{annual}(s) = 1 - S_\text{annual}(s)$ is the annual
+mortality rate for stage $s$. The annual survival schedule
+(Table~\ref{tab:survival}) produces a type III survivorship curve
+with high settler/juvenile mortality and low adult mortality,
+consistent with demographic estimates for long-lived asteroids.
+
+\begin{table}[H]
+\centering
+\caption{Stage-specific annual survival rates.}
+\label{tab:survival}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Stage} & \textbf{Annual survival ($S$)} & \textbf{Annual mortality} \\
+\midrule
+Settler  & 0.001 & 0.999 \\
+Juvenile & 0.03  & 0.97 \\
+Subadult & 0.90  & 0.10 \\
+Adult    & 0.95  & 0.05 \\
+Senescent & 0.98 & 0.02 (base) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Senescence.}
+Individuals exceeding the senescence age ($a_\text{sen} = 50$~yr)
+accumulate additional mortality linearly:
+
+\begin{equation}
+  m_\text{total}(s_i, a_i) = m_\text{annual}(s_i) +
+    m_\text{sen} \cdot \frac{a_i - a_\text{sen}}{20}
+\end{equation}
+
+\noindent
+where $m_\text{sen} = 0.10$ and the divisor of 20 scales the
+senescence ramp such that a 70-year-old individual experiences an
+additional 10\% annual mortality.
+
+Daily mortality is applied via a single vectorized random draw across
+all alive agents, converting stage-dependent annual rates to daily
+hazard probabilities. This continuous approach avoids the artificial
+synchronization artifacts of annual batch mortality and permits
+realistic within-year population fluctuations.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Spawning System}
+\label{sec:spawning}
+
+\modelname{} implements a biologically detailed spawning system
+reflecting the extended reproductive season and cascading spawning
+behavior observed in \pycshort{}.
+
+\subsubsection{Spawning Season and Phenology}
+\label{sec:spawning_season}
+
+The spawning season extends from day~305 ($\approx$November~1) through
+day~196 ($\approx$July~15) of the following year, spanning
+approximately 270 days and wrapping across the calendar year boundary.
+Spawning intensity follows a Normal envelope centered on a
+latitude-adjusted peak:
+
+\begin{equation}
+  \label{eq:spawning_envelope}
+  P_\text{season}(d) = \exp\!\left(
+    -\frac{(\Delta d)^2}{2\,\sigma_\text{peak}^2}
+  \right)
+\end{equation}
+
+\noindent
+where $\Delta d$ is the shortest circular distance between day $d$
+and the peak day (accounting for year wrapping), and
+$\sigma_\text{peak} = 60$~days is the standard deviation of the
+seasonal peak. The peak day-of-year is latitude-dependent:
+
+\begin{equation}
+  d_\text{peak}(\phi) = d_\text{peak,base} +
+    \lceil(\phi - 40^\circ\text{N}) \times 3\;\text{d/}^\circ\rceil
+\end{equation}
+
+\noindent
+where $d_\text{peak,base} = 105$ ($\approx$April~15) is the reference
+peak at $40^\circ$N, and higher-latitude populations spawn
+approximately 3 days later per degree northward.
+
+
+\subsubsection{Spontaneous Spawning}
+\label{sec:spontaneous_spawning}
+
+Each day during the spawning season, mature adults ($\geq$400~mm,
+Susceptible or Recovered disease state) are first evaluated for
+\emph{readiness}, a stochastic physiological state modulated by
+the seasonal envelope $P_\text{season}(d)$. Once ready, individuals
+attempt spontaneous spawning with sex-specific daily probabilities:
+
+\begin{align}
+  p_{\text{spawn},\text{female}} &= 0.012 \\
+  p_{\text{spawn},\text{male}}   &= 0.0125
+\end{align}
+
+\noindent
+These rates were calibrated to produce $\geq$80\% female spawning
+participation per season and a mean of $\sim$2.2 male bouts per
+season, consistent with the observation that males spawn more
+frequently than females in broadcast-spawning asteroids.
+
+\paragraph{Bout limits and refractory periods.}
+Females are limited to a maximum of 2 spawning bouts per season;
+males are limited to 3 bouts. Males enter a brief refractory period
+between bouts (default 0 days, configurable) during which they
+cannot spawn, reflecting the physiological recovery time for
+spermatogenesis.
+
+
+\subsubsection{Cascade Induction}
+\label{sec:cascade}
+
+Spawning by one individual can trigger spawning in nearby conspecifics
+via waterborne chemical cues (spawning-induced spawning), producing
+the synchronous mass spawning events observed in broadcast spawners.
+Induction operates over a 3-day chemical cue persistence window and
+is strongly sex-asymmetric:
+
+\begin{align}
+  \kappa_{\text{fm}} &= 0.80 \quad \text{(female $\to$ male induction)} \\
+  \kappa_{\text{mf}} &= 0.60 \quad \text{(male $\to$ female induction)}
+\end{align}
+
+\noindent
+where $\kappa_{\text{fm}}$ is the probability that a ready male spawns
+when a female within the cascade radius (200~m) has spawned within
+the cue window. The female-to-male asymmetry reflects the stronger
+spawning trigger provided by egg-associated chemical signals.
+Readiness induction also operates: individuals not yet
+physiologically ready can be driven to readiness by nearby spawning
+activity, with a daily probability of 0.5 when within a 300~m
+detection radius.
+
+
+\subsubsection{Post-Spawning Immunosuppression}
+\label{sec:post_spawn_immunosuppression}
+
+Spawning imposes a 28-day immunosuppression period during which the
+individual's force of infection is multiplied by a susceptibility
+factor of 2.0:
+
+\begin{equation}
+  \label{eq:post_spawn_immunosuppression}
+  \lambda_i^\text{eff} = \lambda_i \times
+    \begin{cases}
+      \chi_\text{immuno} = 2.0 & \text{if immunosuppression timer} > 0 \\
+      1.0 & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+\noindent
+This reflects the metabolic cost of gamete production and the
+documented increase in disease susceptibility following reproductive
+investment in marine invertebrates. The immunosuppression timer is
+reset each time an individual spawns, so multiple spawning bouts
+within a season extend the vulnerability window. Immunosuppression
+timers are decremented daily regardless of spawning season status.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Fecundity}
+\label{sec:fecundity}
+
+Female fecundity follows an allometric relationship with body size:
+
+\begin{equation}
+  \label{eq:fecundity}
+  F_i = F_0 \cdot
+    \left(\frac{L_i}{L_\text{ref}}\right)^b
+\end{equation}
+
+\noindent
+where $F_0 = 10^7$ eggs is the reference fecundity at
+$L_\text{ref} = 500$~mm and $b = 2.5$ is the allometric exponent.
+Only females at or above the minimum reproductive size
+$L_\text{min} = 400$~mm produce eggs. No cost-of-resistance penalty
+is applied to fecundity (Section~\ref{sec:genetics_diagnostics}).
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Fertilization Kinetics and the Allee Effect}
+\label{sec:fertilization}
+
+Broadcast spawners face a fertilization Allee effect: at low
+population density, sperm limitation reduces the fraction of eggs
+successfully fertilized \citep{Gascoigne2004, Lundquist2004}. We model
+fertilization success using a mean-field approximation of the
+\citet{Lundquist2004} broadcast fertilization model:
+
+\begin{equation}
+  \label{eq:fertilization}
+  \mathcal{F}(\rho_m) = 1 -
+    \exp(-\gamma_\text{fert} \cdot \rho_{m,\text{eff}})
+\end{equation}
+
+\noindent
+where $\gamma_\text{fert} = 4.5$~m$^2$ is the sperm contact parameter
+and $\rho_{m,\text{eff}}$ is the effective male density, potentially
+enhanced by spawning aggregation behavior. The aggregation factor
+increases effective local density within spawning clumps above the
+spatially uniform average when adult count exceeds a threshold.
+
+This produces a quadratic relationship between zygote production and
+density at low density: $\text{zygotes} \propto \rho_f \times
+\mathcal{F}(\rho_m) \propto \rho^2$ when $\rho \to 0$, creating a
+strong demographic Allee effect. For high-fecundity broadcast spawners
+like \pycshort{}, the deterministic Allee threshold is near zero
+density; the practical Allee effect operates through stochastic
+processes at low $N$.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Larval Phase}
+\label{sec:larval}
+
+Fertilized eggs enter a temperature-dependent pelagic larval duration
+(PLD):
+
+\begin{equation}
+  \label{eq:pld}
+  \text{PLD}(T) = \text{PLD}_\text{ref} \cdot
+    \exp\!\bigl(-Q_\text{dev} \cdot (T - T_\text{ref})\bigr)
+\end{equation}
+
+\noindent
+where $\text{PLD}_\text{ref} = 63$~days at $T_\text{ref} = 10.5$°C
+\citep{Hodin2021}, and $Q_\text{dev} = 0.05$~°C$^{-1}$ produces
+shorter PLD at warmer temperatures. PLD is clamped to $[30, 150]$
+days.
+
+Larval survival during the pelagic phase follows a constant daily
+mortality model:
+
+\begin{equation}
+  \label{eq:larval_survival}
+  S_\text{larval} = \exp(-\mu_\text{larva} \cdot \text{PLD})
+\end{equation}
+
+\noindent
+with $\mu_\text{larva} = 0.05$~d$^{-1}$. At the reference PLD of
+63 days, this yields $S_\text{larval} \approx 4.3\%$ --- high
+mortality that is compensated by the enormous fecundity of
+\pycshort{}.
+
+Larval cohorts carry genotypes inherited via the SRS lottery
+(Section~\ref{sec:srs}) and are tracked as discrete objects during
+the pelagic phase. Upon completion of PLD, competent larvae are
+available for settlement. In the spatial simulation
+(Section~\ref{sec:spatial_module}), cohorts are dispersed between
+nodes via the larval connectivity matrix $\mathbf{C}$ before
+settlement.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Settlement and Recruitment}
+\label{sec:settlement}
+
+Competent larvae settle into the benthic population through a
+three-stage process:
+
+\paragraph{1. Settlement cue (Allee effect).}
+Settlement success is modulated by the presence of conspecific adults
+via a Michaelis--Menten function representing biofilm-mediated
+settlement cues:
+
+\begin{equation}
+  \label{eq:settlement_cue}
+  C_\text{settle}(N_\text{adults}) = 0.2 +
+    \frac{0.8 \cdot N_\text{adults}}{5 + N_\text{adults}}
+\end{equation}
+
+\noindent
+where the baseline of 0.2 represents settlement on coralline algae in
+the absence of adults, and the additional 0.8 reflects enhanced
+settlement induced by adult biofilm. The half-saturation constant of 5
+adults means that even a small remnant population provides strong
+settlement cues.
+
+\paragraph{2. Density-dependent recruitment (Beverton--Holt).}
+The number of recruits is governed by a standard Beverton--Holt
+stock-recruitment relationship:
+
+\begin{equation}
+  \label{eq:bh}
+  R = \frac{K \cdot s_0 \cdot S}{K + s_0 \cdot S}
+\end{equation}
+
+\noindent
+where $S$ is the number of effective settlers (after cue modulation),
+$K$ is the carrying capacity, and $s_0 = 0.03$ is the
+density-independent per-settler survival rate. At low $S$,
+$R \approx s_0 S$ (supply-limited); at high $S$, $R \to K$
+(habitat-limited). For broadcast spawners with $S \gg K$, recruitment
+is typically habitat-limited and population self-regulates.
+
+\paragraph{3. Agent initialization.}
+Recruited settlers are placed in dead agent slots, assigned size
+0.5~mm, age 0, Settler stage, random sex (1:1 ratio), Susceptible
+disease state, and random position within the node's habitat area.
+Genotypes are copied from the SRS-selected settler genotypes, and all
+three trait scores ($r_i$, $t_i$, $c_i$) are computed from the
+inherited genotype.
+
+\paragraph{Juvenile immunity.}
+Newly settled individuals can optionally be granted a juvenile
+immunity period (configurable, default 0 days) during which they
+are not susceptible to infection. The settlement day is recorded
+for each recruit to enable age-dependent susceptibility calculations.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Continuous Settlement}
+\label{sec:continuous_settlement}
+
+Rather than settling all larvae in an annual pulse, the model
+tracks individual larval cohorts and settles them daily as their PLD
+elapses. Cohorts generated by daily spawning events throughout the
+extended spawning season (Section~\ref{sec:spawning_season}) are
+stored in a per-node pending list sorted by settlement day. Each
+simulation day, cohorts whose PLD has elapsed are popped from the
+sorted list front (amortized $O(1)$) and passed through the
+settlement pipeline. This continuous approach produces realistic
+seasonal recruitment pulses that peak several months after the
+spawning peak, consistent with the observed temporal offset between
+spawning and juvenile recruitment in \pycshort{}.
+
+At the annual boundary, any remaining unsettled cohorts from each
+node are collected for spatial dispersal via the connectivity matrix
+$\mathbf{C}$ (Section~\ref{sec:spatial_module}), then redistributed
+to destination nodes where they continue to settle daily as PLD
+elapses.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Demographic--Genetic--Epidemiological Coupling}
+\label{sec:demo_coupling}
+
+The population dynamics module is bidirectionally coupled to the
+disease and genetics modules:
+
+\begin{itemize}
+  \item \textbf{Disease $\to$ demographics:} Disease kills
+    individuals (I$_2 \to$ D), reducing population size and altering
+    age/size structure. Post-spawning immunosuppression
+    (Section~\ref{sec:post_spawn_immunosuppression}) increases disease risk for
+    recent spawners, creating a temporal alignment between peak
+    reproductive effort and peak epidemic severity during warm months.
+
+  \item \textbf{Demographics $\to$ disease:} Reduced population
+    density lowers contact rates and environmental pathogen
+    concentration. The fertilization Allee effect
+    (Section~\ref{sec:fertilization}) amplifies population collapse
+    by reducing reproductive output at low density, potentially
+    trapping populations in an extinction vortex.
+
+  \item \textbf{Genetics $\to$ demographics:} The SRS lottery
+    (Section~\ref{sec:srs}) produces extreme reproductive variance
+    that amplifies genetic drift while accelerating the fixation of
+    resistance, tolerance, and recovery alleles enriched by
+    selection during epidemic episodes.
+
+  \item \textbf{Demographics $\to$ genetics:} Population bottlenecks
+    from disease reduce $N_e$ far below census $N$, compounded by
+    SRS ($N_e/N \sim 10^{-3}$). The interaction of selection with
+    small effective population size determines whether evolutionary
+    rescue is fast enough to prevent extinction.
+\end{itemize}
