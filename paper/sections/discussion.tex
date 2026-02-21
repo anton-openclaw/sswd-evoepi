@@ -1,3 +1,400 @@
-% discussion.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% DISCUSSION
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Discussion}
 \label{sec:discussion}
+
+\modelname{} represents, to our knowledge, the first individual-based
+model to couple eco-evolutionary host--pathogen dynamics with
+sweepstakes reproductive success in a marine broadcast spawner.
+By tracking diploid genotypes at 51 loci across three defense traits
+(resistance, tolerance, recovery) while simultaneously resolving
+disease transmission, pathogen virulence evolution, and spatially
+explicit metapopulation dynamics, the model provides a framework for
+evaluating conservation interventions that depend on the interplay
+between ecological and evolutionary processes. Here we discuss the
+principal contributions of this work, its relationship to existing
+eco-evolutionary disease models, key limitations, and priorities for
+future development.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Summary of Contributions}
+\label{sec:disc_contributions}
+
+This study makes four principal contributions:
+
+\begin{enumerate}
+  \item \textbf{Integrated eco-evolutionary framework for SSWD.}
+    Previous models of SSWD dynamics have addressed epidemiology
+    \citep{Aalto2020}, population viability \citep{Tolimieri2022},
+    and reintroduction epidemiology \citep{Arroyo-Esquivel2025}
+    in isolation. \modelname{} integrates these processes,
+    enabling the emergent dynamics that arise from feedback loops
+    between disease-driven selection, host genetic adaptation,
+    demographic recovery, and pathogen counter-adaptation to be
+    studied within a single coherent framework.
+
+  \item \textbf{Three-trait genetic architecture.}
+    Decomposing host defense into resistance (immune exclusion),
+    tolerance (damage limitation), and recovery (pathogen
+    clearance)---following the conceptual framework of
+    \citet{raberg2009decomposing}---reveals that these traits
+    evolve at markedly different rates under SSWD selection
+    pressure. Recovery ($c_i$) emerges as the fastest-evolving
+    trait at every node and population scale
+    (Section~\ref{sec:validation}), a prediction that is
+    testable with longitudinal genomic sampling.
+
+  \item \textbf{Comprehensive global sensitivity analysis.}
+    Four rounds of progressive SA spanning 47 parameters, up to 23
+    output metrics, and spatial configurations from 3 to 11 nodes
+    identify the parameters most influential for model behavior
+    (Section~\ref{sec:sensitivity_analysis}). The finding that all
+    47 parameters exhibit nonlinear interactions
+    ($\sigma/\mu^* > 1.0$) establishes that joint calibration via
+    approximate Bayesian computation is essential, and identifies
+    $\rho_{\text{rec}}$, $k_{\text{growth}}$, $K_{\text{half}}$,
+    $P_{\text{env,max}}$, and $n_{\text{resistance}}$ as the
+    highest-priority empirical targets.
+
+  \item \textbf{Scale-invariant behavioral predictions.}
+    Cross-scale validation from $K = 5{,}000$ to $K = 100{,}000$
+    per node demonstrates that catastrophic population crashes
+    ($>$97\%), recovery trait dominance, and the extinction vortex
+    are robust predictions of the model, not artifacts of small
+    population sizes (Section~\ref{sec:val_cross}).
+\end{enumerate}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Comparison with Clement et al.\ (2024)}
+\label{sec:disc_clement}
+
+The closest methodological precedent for \modelname{} is the
+eco-evolutionary IBM developed by \citet{clement2024coevolution} for
+coevolution between Tasmanian devils (\textit{Sarcophilus harrisii})
+and devil facial tumour disease (DFTD). Both models track individual
+diploid genotypes, couple SEI-type disease dynamics with quantitative
+genetic evolution, and explore the conditions under which evolutionary
+rescue can avert host extinction following a novel disease
+introduction. However, several fundamental differences in the study
+systems produce divergent model architectures and predictions.
+
+\paragraph{Reproductive biology.}
+Tasmanian devils are iteroparous mammals with deterministic
+reproduction: each female produces a small litter ($\sim$4 young)
+per season, with high maternal investment per offspring. \pyc{}
+is a broadcast spawner producing $\sim$$10^7$ eggs per female, with
+fertilization success dependent on gamete encounter rates in the
+water column and subject to Allee effects at low density
+\citep{Lundquist2004}. \modelname{} implements sweepstakes
+reproductive success (SRS) via a Pareto-distributed offspring
+contribution ($\alpha \approx 1.35$), producing $N_e/N \sim 10^{-3}$
+\citep{Hedgecock2011}---a reproductive mode with no analog in the
+Clement et al.\ framework. SRS amplifies genetic drift at the
+population level while simultaneously creating the potential for
+rapid frequency shifts at individual loci when combined with strong
+selection \citep{Eldon2024}, fundamentally altering the
+evolutionary dynamics compared to a mammalian system.
+
+\paragraph{Spatial structure.}
+The Clement et al.\ model operates on a single well-mixed population,
+reflecting the relatively continuous distribution of Tasmanian
+devils across Tasmania. \modelname{} represents the NE Pacific range
+of \pyc{} as a metapopulation network of up to 150 discrete habitat
+nodes connected by larval dispersal and waterborne pathogen transport.
+This spatial complexity introduces dispersal--selection interactions
+that are absent in the single-population case: local adaptation can
+proceed at different rates across nodes (as observed in the
+differential recovery at Monterey; Section~\ref{sec:val_5k}), and
+larval exchange can either homogenize or maintain genetic
+differentiation depending on the balance of gene flow and
+spatially heterogeneous selection.
+
+\paragraph{Pathogen evolution.}
+Clement et al.\ model DFTD as a clonally transmitted cancer whose
+evolution follows a phenotypic difference model, with host resistance
+and tumor growth rate coevolving along continuous trait axes. Their
+key finding---that coevolution enables host persistence over 50
+generations---relies on the tumor's capacity to evolve reduced
+virulence in response to host resistance. \modelname{} implements
+pathogen evolution through a heritable virulence phenotype that
+scales shedding rate, host mortality rate, and disease progression
+along mechanistic tradeoff curves
+(Section~\ref{sec:sensitivity_analysis}). The qualitative prediction
+differs: in our model, the environmental pathogen reservoir
+($P_{\text{env}}$) decouples pathogen fitness from individual host
+survival, weakening the virulence--transmission tradeoff that drives
+attenuation in the Clement et al.\ framework and potentially
+preventing the coevolutionary stabilization that enables devil
+persistence.
+
+\paragraph{Evolutionary rescue prospects.}
+Clement et al.\ found a high probability of devil persistence over
+50 generations ($\sim$150 years for devils), driven by rapid
+coevolutionary dynamics. Our model produces a starkly different
+prediction: no recovery to $>$5\% of carrying capacity within 20
+years ($\sim$4 \pyc{} generations) at any node or population scale.
+This contrast likely reflects the fundamental mismatch between
+\pyc{}'s long generation time ($\sim$5 years vs.\ $\sim$3 years for
+devils), the extreme variance in reproductive success under SRS
+(which reduces the efficacy of selection relative to drift), and the
+environmental pathogen reservoir that maintains infection pressure
+independently of the host population's genetic composition.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{The Environmental Pathogen Reservoir as a Multi-Species Abstraction}
+\label{sec:disc_penv}
+
+The environmental pathogen concentration $P_{\text{env}}$ is the
+most conceptually novel---and most empirically unconstrained---element
+of the \modelname{} disease module. Rather than explicitly modeling
+\vpshort{} dynamics in non-\pyc{} host species, $P_{\text{env}}$
+serves as an aggregate abstraction for all pathogen sources external
+to the focal \pyc{} population: other asteroid species, marine
+sediment reservoirs, and environmental bacteria. This design choice
+was motivated by two considerations.
+
+First, the multi-species nature of the 2013--2015 SSWD pandemic,
+which affected $>$20 asteroid species \citep{Miner2018,Hewson2019},
+implies that \vpshort{} (or closely related Vibrio strains) can
+persist in the environment independently of any single host species.
+\citet{Hewson2025autecology} demonstrated explosive \vpshort{} growth
+in the presence of decaying echinoderm tissue, suggesting a
+saprophytic lifestyle that can sustain environmental pathogen pools
+even when live \pyc{} are absent. The fjord refuge mechanism
+identified by \citet{Gehman2025}---where reduced salinity and
+temperature suppress Vibrio growth---operates at the community level,
+further supporting a spatially varying environmental reservoir.
+
+Second, explicitly modeling multi-species SSWD dynamics would require
+parameterizing disease susceptibility, shedding rates, and population
+dynamics for $>$20 additional asteroid species, most of which lack
+even basic demographic data. The $P_{\text{env}}$ abstraction captures
+the functional consequence (sustained pathogen pressure at the
+community level) without requiring species-specific parameterization.
+
+However, this abstraction comes at a cost. The sensitivity analysis
+reveals that $P_{\text{env,max}}$ is the 4th most influential
+parameter globally and the most influential parameter for the fjord
+protection metric (Section~\ref{sec:r4_results}). Its interaction
+ratio ($\sigma/\mu^* = 1.92$) indicates strong nonlinear coupling
+with other parameters, meaning that uncertainty in $P_{\text{env}}$
+propagates broadly through the model. Calibrating $P_{\text{env}}$
+against field data (e.g., environmental Vibrio concentrations in
+\pyc{} habitat, disease prevalence in non-\pyc{} asteroids) is a
+high priority for constraining model predictions.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Conservation Implications}
+\label{sec:disc_conservation}
+
+\subsubsection{Evolutionary Rescue Is Too Slow}
+
+The central finding of both the validation and sensitivity analyses
+is that natural selection on polygenic resistance cannot drive
+population recovery on conservation-relevant timescales. At
+$K = 100{,}000$ per node, resistance trait scores actually
+\emph{decline} over 20 years (mean $\Delta r_i = -0.005$;
+Table~\ref{tab:val_100k}), and even the fastest-evolving trait
+(recovery, $\Delta c_i \approx +0.06$) produces daily clearance
+probabilities of only 0.35--0.45\%, far below what is needed to
+substantially reduce disease mortality. This finding is consistent
+with evolutionary rescue theory, which predicts that rescue requires
+standing genetic variance $\times$ selection intensity to exceed the
+rate of population decline \citep{Clement2024}. For \pyc{}, the
+mismatch is severe: generation times of $\sim$5 years versus crash
+timescales of $\sim$2 years mean that $<$1 generation of selection
+can act before populations enter the extinction vortex.
+
+This result has a direct conservation implication: \textbf{waiting
+for natural evolution is not a viable recovery strategy}. Active
+intervention through captive breeding and managed release is
+essential to prevent functional extinction. The AZA SAFE program's
+existing captive population of $>$2{,}500 juveniles and 130+
+reproductive adults \citep{AZA2024}, combined with the successful
+December 2025 pilot outplanting at Monterey \citep{Simon2025},
+provides the demographic foundation for such intervention.
+
+\subsubsection{Recovery Trait as a Breeding Target}
+
+The model's prediction that recovery ($c_i$) evolves 7--13$\times$
+faster than resistance ($r_i$) suggests a specific strategy for
+captive breeding programs: selecting for pathogen clearance ability
+rather than infection prevention. If \pyc{} recovery ability has a
+heritable genetic basis---as implied by the strong fitness gradient
+on $c_i$ in the model---then challenge experiments in captive
+facilities could identify high-clearance individuals for preferential
+breeding. The Pycnopodia reference genome \citep{Schiebelhut2024genome}
+enables genome-wide association studies to identify the genomic basis
+of clearance variation.
+
+\subsubsection{Release Site Selection}
+
+The consistent identification of Monterey as the most resilient
+node---with the lowest crash percentage (97.1\% at $K = 100{,}000$),
+highest recovery count, and strongest recovery trait
+evolution---reflects an emergent property of warmer temperatures
+driving stronger selection for clearance. This suggests that
+southern sites may be preferable for initial releases if the goal
+is to establish self-sustaining populations with elevated disease
+resistance. However, warmer temperatures also increase disease
+pressure, creating a tension between maximizing selective benefit
+and minimizing initial mortality. The planned conservation module
+(Section~\ref{sec:disc_future}) will enable explicit optimization
+of release timing, location, and genetic composition.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Model Limitations}
+\label{sec:disc_limitations}
+
+We identify five principal limitations of the current model:
+
+\paragraph{1.\ No multi-species dynamics.}
+\modelname{} focuses exclusively on \pyc{}, abstracting all
+community-level interactions into the $P_{\text{env}}$ term.
+This excludes potential competitive release of sea urchins
+following \pyc{} decline \citep{Rogers-Bennett2019,Galloway2023},
+cross-species transmission dynamics \citep{Miner2018}, and the
+possibility that recovery of \pyc{} could itself alter the
+selective environment for disease. The trophic cascade from
+\pyc{} loss to urchin proliferation to kelp deforestation
+\citep{Meunier2024} represents a feedback loop that could
+modify habitat quality and, consequently, sea star survival,
+but is not represented.
+
+\paragraph{2.\ Environmental pathogen reservoir is unconstrained.}
+$P_{\text{env,max}}$ ranks 4th in global sensitivity yet has no
+empirical calibration target. Field measurements of waterborne
+\vpshort{} concentrations in \pyc{} habitat are needed to
+constrain this parameter. Until such data are available, model
+predictions about the feasibility of local disease elimination
+via host removal or habitat management should be treated as
+exploratory.
+
+\paragraph{3.\ 47-parameter model with universal nonlinearity.}
+The SA reveals that all 47 parameters interact nonlinearly
+($\sigma/\mu^* > 1.0$ for every parameter;
+Section~\ref{sec:universal_nonlinearity}). While this is a
+realistic property of complex biological systems, it means that
+the model cannot be calibrated by tuning individual parameters
+in isolation. Joint calibration via ABC-SMC
+\citep{Saltelli2008} is computationally expensive ($>$$10^4$
+model evaluations) and requires well-defined summary statistics
+and calibration targets, many of which are currently lacking for
+\pyc{}.
+
+\paragraph{4.\ Recovery rate has zero empirical basis.}
+The base recovery rate $\rho_{\text{rec}}$ is the single most
+influential parameter in the model (Section~\ref{sec:r4_ranking}),
+yet whether \pyc{} can clear \vpshort{} infections at all is
+unknown. The SA finding that $\rho_{\text{rec}}$ explains more
+output variance than any other parameter underscores this as the
+highest-priority empirical gap. Challenge-recovery experiments
+in captive \pyc{} \citep{Prentice2025} could provide direct
+estimates of clearance probability as a function of dose,
+temperature, and individual genotype.
+
+\paragraph{5.\ Spatial resolution.}
+The validation runs use 5--11 nodes, far below the 150+ nodes
+needed to represent the full NE Pacific range of \pyc{} at
+ecologically meaningful resolution. Scaling analysis
+(Section~\ref{sec:sa_methods}) confirms computational feasibility
+($\sim$72~s for 75{,}000 agents, 150 nodes), but the reduced-node
+configurations used here may underestimate the importance of
+spatial heterogeneity, as demonstrated by the dramatic rank gains
+of spatial parameters between R3 (3 nodes) and R4 (11 nodes).
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Future Directions}
+\label{sec:disc_future}
+
+\subsubsection{ABC-SMC Calibration}
+
+The immediate next step is formal calibration using approximate
+Bayesian computation with sequential Monte Carlo sampling
+(ABC-SMC). Summary statistics will include: (i)~range-wide
+population decline ($>$90\% crash within 2 years of disease
+introduction), (ii)~latitudinal mortality gradient
+\citep{Hamilton2021}, (iii)~fjord protection effect
+\citep{Gehman2025}, (iv)~allele frequency shifts at outlier loci
+\citep{Schiebelhut2018}, and (v)~disease progression timelines
+from challenge experiments \citep{Prentice2025}. The R4 SA
+results (Table~\ref{tab:r4_morris_full}) provide a natural
+prioritization: the top 10--15 parameters can be calibrated
+jointly while fixing the remaining 32--37 at their default
+values with minimal loss of model fidelity.
+
+\subsubsection{Conservation Scenario Evaluation}
+
+A conservation module is under development to simulate specific
+management interventions:
+\begin{itemize}
+  \item Captive-bred release: number, timing, location, and genetic
+    composition of released cohorts, parameterized from AZA SAFE
+    protocols \citep{AZA2024};
+  \item Assisted gene flow: introduction of cryopreserved gametes
+    from genetically diverse wild-caught founders
+    \citep{Hagedorn2021};
+  \item Marine protected areas: local reduction of environmental
+    stressors that may interact with disease susceptibility.
+\end{itemize}
+The December 2025 Monterey outplanting data \citep{Simon2025}
+will provide the first empirical validation target for
+captive-bred survival post-release.
+
+\subsubsection{Full Coastline Network}
+
+Expanding the spatial network to 150 nodes spanning the full NE
+Pacific range of \pyc{} (Baja California to the Aleutian Islands)
+will test whether the patterns identified at 5--11 nodes---the
+north--south mortality gradient, fjord protection, Monterey
+resilience---scale to the full metapopulation. The overwater
+distance matrix for 489 candidate sites has been computed
+(Section~\ref{sec:spatial_module}), and computational scaling
+analysis confirms feasibility ($\sim$66~s for 150 nodes;
+Section~\ref{sec:sa_methods}).
+
+\subsubsection{Integration with Empirical Data}
+
+The publication of the \pyc{} reference genome
+\citep{Schiebelhut2024genome} enables future GWAS to identify
+resistance-, tolerance-, and recovery-associated loci, providing
+direct calibration targets for the genetic architecture parameters
+($n_{\text{resistance}}$, $n_{\text{tolerance}}$, $n_{\text{recovery}}$,
+trait-specific effect size distributions). The Koch's-postulates
+confirmation of \vpshort{} as the causative agent \citep{Prentice2025}
+opens the door to controlled challenge experiments that can estimate
+dose-dependent infection probability, stage-specific duration,
+recovery rate, and temperature sensitivity---the parameters that
+the SA identifies as most influential. Combining these empirical
+constraints with ABC-SMC calibration will substantially reduce
+parametric uncertainty and increase confidence in conservation
+scenario predictions.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Conclusions}
+\label{sec:disc_conclusions}
+
+\modelname{} provides a comprehensive computational framework for
+exploring the eco-evolutionary dynamics of SSWD in \pyc{}. The model
+reveals that evolutionary rescue through natural selection on
+polygenic resistance is insufficient to prevent population collapse
+on conservation timescales, that pathogen clearance (recovery) rather
+than infection prevention (resistance) is the primary adaptive
+pathway, and that the extinction vortex persists at ecologically
+realistic population sizes. These findings reinforce the scientific
+case for captive breeding and managed release as the essential
+conservation strategy for this critically endangered species. The
+four-round sensitivity analysis establishes clear priorities for
+empirical research---recovery rate, environmental pathogen pressure,
+genetic architecture, and growth rate---that will enable formal
+model calibration and, ultimately, quantitative predictions for
+guiding \pyc{} recovery efforts across the northeastern Pacific.

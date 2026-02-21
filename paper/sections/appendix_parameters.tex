@@ -1,3 +1,249 @@
-% appendix_parameters.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% APPENDIX: PARAMETER TABLES
+% Fact-checked against: scripts/sensitivity/param_spec.py (SA ranges),
+%   sswd_evoepi/config.py (default values)
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Parameter Tables}
 \label{sec:appendix_parameters}
+
+Table~\ref{tab:params_disease}--\ref{tab:params_pathogen} list all 47
+parameters included in the sensitivity analysis, grouped by module.
+For each parameter we report the default value used in validation runs,
+the sensitivity analysis range (low--high), the distribution used for
+sampling (U = uniform, LU = log-uniform, D = discrete), and the
+empirical confidence rating:
+$\star\star\star$ = directly measured,
+$\star\star$ = constrained by related data,
+$\star$ = poorly constrained or assumed.
+
+% ── Disease parameters (16) ──────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Disease module parameters (16). Default values from
+  \texttt{config.py}; SA ranges from \texttt{param\_spec.py}.}
+\label{tab:params_disease} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\midrule \multicolumn{6}{r}{\textit{Continued}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+
+$a_{\text{exposure}}$ & Exposure rate (d$^{-1}$) & 0.75 &
+  [0.30, 1.50] & U & $\star$ \\
+$K_{\text{half}}$ & Half-infective dose (bact/mL) & 87{,}000 &
+  [2$\times$10$^4$, 2$\times$10$^5$] & LU & $\star$ \\
+$\sigma_{1,\text{eff}}$ & I$_1$ shedding rate (field-effective) & 5.0 &
+  [1.0, 25.0] & LU & $\star$ \\
+$\sigma_{2,\text{eff}}$ & I$_2$ shedding rate (field-effective) & 50.0 &
+  [10.0, 250.0] & LU & $\star$ \\
+$\sigma_D$ & Saprophytic burst (field-effective) & 15.0 &
+  [3.0, 75.0] & LU & $\star$ \\
+$\rho_{\text{rec}}$ & Recovery rate (d$^{-1}$) & 0.05 &
+  [0.0, 0.20] & U & $\star$ \\
+$\mu_{\text{EI1,ref}}$ & E$\to$I$_1$ progression at $T_{\text{ref}}$ & 0.57 &
+  [0.20, 1.00] & U & $\star\star$ \\
+$\mu_{\text{I1I2,ref}}$ & I$_1$$\to$I$_2$ progression at $T_{\text{ref}}$ & 0.40 &
+  [0.15, 0.80] & U & $\star\star$ \\
+$\mu_{\text{I2D,ref}}$ & I$_2$$\to$Death rate at $T_{\text{ref}}$ & 0.173 &
+  [0.08, 0.35] & U & $\star\star$ \\
+$P_{\text{env,max}}$ & Background Vibrio input (bact/mL/d) & 500.0 &
+  [50.0, 5{,}000.0] & LU & $\star$ \\
+$T_{\text{ref}}$ & \vpshort{} temperature optimum ($^\circ$C) & 20.0 &
+  [17.0, 23.0] & U & $\star\star$ \\
+$T_{\text{VBNC}}$ & VBNC midpoint temperature ($^\circ$C) & 12.0 &
+  [8.0, 15.0] & U & $\star\star$ \\
+$s_{\text{min}}$ & Salinity minimum for Vibrio (psu) & 10.0 &
+  [5.0, 15.0] & U & $\star\star$ \\
+suscept.\ multiplier & Post-spawning immunosuppression multiplier & 2.0 &
+  [1.0, 4.0] & U & $\star$ \\
+immunosupp.\ duration & Post-spawning immunosuppression (days) & 28 &
+  [7, 56] & U & $\star\star$ \\
+min.\ susceptible age & Days post-settlement before susceptible & 0 &
+  [0, 180] & U & $\star$ \\
+\end{longtable}
+\end{landscape}
+
+% ── Population parameters (7) ────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Population dynamics parameters (7).}
+\label{tab:params_population} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+$F_0$ & Reference fecundity (eggs) & $10^7$ &
+  [$10^6$, $10^8$] & LU & $\star$ \\
+$\gamma_{\text{fert}}$ & Fertilization kinetics parameter & 4.5 &
+  [1.0, 10.0] & U & $\star$ \\
+$s_0$ (settler survival) & Beverton--Holt settler survival & 0.03 &
+  [0.005, 0.10] & LU & $\star$ \\
+$\alpha_{\text{SRS}}$ & SRS Pareto shape & 1.35 &
+  [1.0, 1.8] & U & $\star\star$ \\
+senescence age & Senescence onset age (yr) & 50.0 &
+  [20.0, 80.0] & U & $\star$ \\
+$k_{\text{growth}}$ & von Bertalanffy growth rate (yr$^{-1}$) & 0.08 &
+  [0.03, 0.15] & U & $\star$ \\
+$L_{\text{min,repro}}$ & Minimum reproductive size (mm) & 400.0 &
+  [200.0, 500.0] & U & $\star$ \\
+\end{longtable}
+\end{landscape}
+
+% ── Genetics parameters (8) ──────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Genetics module parameters (8). The three-trait partition
+  is constrained: $n_{\text{resistance}} + n_{\text{tolerance}} +
+  n_{\text{recovery}} = 51$.}
+\label{tab:params_genetics} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+$n_{\text{resistance}}$ & Number of resistance loci & 17 &
+  \{5, 10, 17, 25, 30\} & D & $\star\star$ \\
+$n_{\text{tolerance}}$ & Number of tolerance loci & 17 &
+  \{5, 10, 17, 25, 30\} & D & $\star\star$ \\
+target\_mean\_r & Target mean resistance at $t=0$ & 0.15 &
+  [0.05, 0.30] & U & $\star$ \\
+target\_mean\_t & Target mean tolerance at $t=0$ & 0.10 &
+  [0.02, 0.30] & U & $\star$ \\
+target\_mean\_c & Target mean recovery at $t=0$ & 0.02 &
+  [0.02, 0.25] & U & $\star$ \\
+$\tau_{\text{max}}$ & Max tolerance mortality reduction & 0.85 &
+  [0.30, 0.95] & U & $\star$ \\
+$q_{\text{init},\beta_a}$ & Beta shape $a$ for allele freq.\ init. & 2.0 &
+  [1.0, 5.0] & U & $\star$ \\
+$q_{\text{init},\beta_b}$ & Beta shape $b$ for allele freq.\ init. & 8.0 &
+  [3.0, 15.0] & U & $\star$ \\
+\end{longtable}
+\end{landscape}
+
+% ── Spawning parameters (7) ──────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Spawning module parameters (7).}
+\label{tab:params_spawning} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+$p_{\text{spont,f}}$ & Daily spontaneous female spawning prob.\ & 0.012 &
+  [0.005, 0.025] & U & $\star\star$ \\
+$p_{\text{spont,m}}$ & Daily spontaneous male spawning prob.\ & 0.0125 &
+  [0.005, 0.025] & U & $\star\star$ \\
+$\kappa_{\text{fm}}$ & Female$\to$male cascade induction prob.\ & 0.80 &
+  [0.40, 0.95] & U & $\star\star$ \\
+$\kappa_{\text{mf}}$ & Male$\to$female cascade induction prob.\ & 0.60 &
+  [0.10, 0.60] & U & $\star\star$ \\
+$\sigma_{\text{spawn}}$ & Spawning peak width (std dev, days) & 60.0 &
+  [30.0, 90.0] & U & $\star\star$ \\
+readiness ind.\ prob.\ & Social spawning readiness induction & 0.50 &
+  [0.10, 0.80] & U & $\star$ \\
+female max bouts & Max spawning bouts per female per season & 2 &
+  \{1, 2, 3\} & D & $\star\star$ \\
+\end{longtable}
+\end{landscape}
+
+% ── Spatial parameters (3) ───────────────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Spatial module parameters (3).}
+\label{tab:params_spatial} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+$D_L$ & Larval dispersal scale (km) & 400.0 &
+  [100.0, 1{,}000.0] & LU & $\star$ \\
+$\alpha_{\text{self,fjord}}$ & Larval self-recruitment (fjord) & 0.30 &
+  [0.10, 0.50] & U & $\star$ \\
+$\alpha_{\text{self,open}}$ & Larval self-recruitment (open coast) & 0.10 &
+  [0.02, 0.20] & U & $\star$ \\
+\end{longtable}
+\end{landscape}
+
+% ── Pathogen evolution parameters (6) ────────────────────────────────
+\begin{landscape}
+\begin{longtable}{@{}lp{5.5cm}rlll@{}}
+\caption{Pathogen evolution module parameters (6).}
+\label{tab:params_pathogen} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Default} &
+  \textbf{Range} & \textbf{Dist.} & \textbf{Conf.} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+$\alpha_{\text{kill}}$ & Death rate scaling exponent & 2.0 &
+  [1.0, 4.0] & U & $\star$ \\
+$\alpha_{\text{shed}}$ & Shedding rate scaling exponent & 1.5 &
+  [0.5, 3.0] & U & $\star$ \\
+$\alpha_{\text{prog}}$ & I$_1$$\to$I$_2$ progression scaling exp.\ & 1.0 &
+  [0.5, 2.0] & U & $\star$ \\
+$\gamma_{\text{early}}$ & Early shedding attenuation factor & 0.3 &
+  [0.0, 1.0] & U & $\star$ \\
+$\sigma_{v,\text{mut}}$ & Virulence mutation step size (std dev) & 0.02 &
+  [0.005, 0.10] & LU & $\star$ \\
+$v_{\text{init}}$ & Initial pathogen virulence & 0.5 &
+  [0.2, 0.8] & U & $\star$ \\
+\end{longtable}
+\end{landscape}
