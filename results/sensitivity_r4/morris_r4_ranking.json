@@ -1,0 +1,472 @@
+[
+  {
+    "rank": 1,
+    "parameter": "disease.rho_rec",
+    "short_name": "rho_rec",
+    "module": "disease",
+    "mean_norm_mu_star": 0.8888408998782171,
+    "sigma_mu_star_ratio": 1.4556333866601843,
+    "r3_rank": 1,
+    "rank_change": 0
+  },
+  {
+    "rank": 2,
+    "parameter": "population.k_growth",
+    "short_name": "k_growth",
+    "module": "population",
+    "mean_norm_mu_star": 0.6326317395935093,
+    "sigma_mu_star_ratio": 1.6320630203349924,
+    "r3_rank": 5,
+    "rank_change": 3
+  },
+  {
+    "rank": 3,
+    "parameter": "disease.K_half",
+    "short_name": "K_half",
+    "module": "disease",
+    "mean_norm_mu_star": 0.6220237281228108,
+    "sigma_mu_star_ratio": 1.8431992502539658,
+    "r3_rank": 8,
+    "rank_change": 5
+  },
+  {
+    "rank": 4,
+    "parameter": "disease.P_env_max",
+    "short_name": "P_env_max",
+    "module": "disease",
+    "mean_norm_mu_star": 0.597525203592524,
+    "sigma_mu_star_ratio": 1.9228305061951907,
+    "r3_rank": 11,
+    "rank_change": 7
+  },
+  {
+    "rank": 5,
+    "parameter": "genetics.n_resistance",
+    "short_name": "n_resistance",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.5254183094461327,
+    "sigma_mu_star_ratio": 1.7822976980343936,
+    "r3_rank": 19,
+    "rank_change": 14
+  },
+  {
+    "rank": 6,
+    "parameter": "population.settler_survival",
+    "short_name": "settler_survival",
+    "module": "population",
+    "mean_norm_mu_star": 0.5091520967501016,
+    "sigma_mu_star_ratio": 1.4224399175746754,
+    "r3_rank": 3,
+    "rank_change": -3
+  },
+  {
+    "rank": 7,
+    "parameter": "disease.sigma_2_eff",
+    "short_name": "sigma_2_eff",
+    "module": "disease",
+    "mean_norm_mu_star": 0.4308375429309929,
+    "sigma_mu_star_ratio": 1.947327289321187,
+    "r3_rank": 10,
+    "rank_change": 3
+  },
+  {
+    "rank": 8,
+    "parameter": "disease.mu_I2D_ref",
+    "short_name": "mu_I2D_ref",
+    "module": "disease",
+    "mean_norm_mu_star": 0.41867014512446743,
+    "sigma_mu_star_ratio": 1.9799593142708451,
+    "r3_rank": 7,
+    "rank_change": -1
+  },
+  {
+    "rank": 9,
+    "parameter": "spawning.peak_width_days",
+    "short_name": "peak_width_days",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.3914783297448847,
+    "sigma_mu_star_ratio": 2.028259136057103,
+    "r3_rank": 2,
+    "rank_change": -7
+  },
+  {
+    "rank": 10,
+    "parameter": "genetics.target_mean_c",
+    "short_name": "target_mean_c",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.38447171901075217,
+    "sigma_mu_star_ratio": 2.081013650966088,
+    "r3_rank": null,
+    "rank_change": null
+  },
+  {
+    "rank": 11,
+    "parameter": "disease.a_exposure",
+    "short_name": "a_exposure",
+    "module": "disease",
+    "mean_norm_mu_star": 0.3787223638562775,
+    "sigma_mu_star_ratio": 2.196376014803861,
+    "r3_rank": 6,
+    "rank_change": -5
+  },
+  {
+    "rank": 12,
+    "parameter": "disease.T_vbnc",
+    "short_name": "T_vbnc",
+    "module": "disease",
+    "mean_norm_mu_star": 0.3547669565650315,
+    "sigma_mu_star_ratio": 2.066273582738008,
+    "r3_rank": 9,
+    "rank_change": -3
+  },
+  {
+    "rank": 13,
+    "parameter": "genetics.tau_max",
+    "short_name": "tau_max",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.2920852694161181,
+    "sigma_mu_star_ratio": 2.0459332187104136,
+    "r3_rank": null,
+    "rank_change": null
+  },
+  {
+    "rank": 14,
+    "parameter": "pathogen_evolution.sigma_v_mutation",
+    "short_name": "sigma_v_mutation",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.25898616290085547,
+    "sigma_mu_star_ratio": 2.5206998725011,
+    "r3_rank": 31,
+    "rank_change": 17
+  },
+  {
+    "rank": 15,
+    "parameter": "pathogen_evolution.alpha_kill",
+    "short_name": "alpha_kill",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.25360866888221645,
+    "sigma_mu_star_ratio": 2.246584755157836,
+    "r3_rank": 22,
+    "rank_change": 7
+  },
+  {
+    "rank": 16,
+    "parameter": "disease.sigma_1_eff",
+    "short_name": "sigma_1_eff",
+    "module": "disease",
+    "mean_norm_mu_star": 0.2453646591413619,
+    "sigma_mu_star_ratio": 2.240712825924125,
+    "r3_rank": 43,
+    "rank_change": 27
+  },
+  {
+    "rank": 17,
+    "parameter": "genetics.target_mean_r",
+    "short_name": "target_mean_r",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.2357807391510279,
+    "sigma_mu_star_ratio": 1.8598531151873507,
+    "r3_rank": 4,
+    "rank_change": -13
+  },
+  {
+    "rank": 18,
+    "parameter": "disease.T_ref",
+    "short_name": "T_ref",
+    "module": "disease",
+    "mean_norm_mu_star": 0.2291846346852707,
+    "sigma_mu_star_ratio": 1.9390985371958647,
+    "r3_rank": 34,
+    "rank_change": 16
+  },
+  {
+    "rank": 19,
+    "parameter": "disease.min_susceptible_age_days",
+    "short_name": "min_susceptible_age_days",
+    "module": "disease",
+    "mean_norm_mu_star": 0.2287354454375374,
+    "sigma_mu_star_ratio": 2.0442682914060297,
+    "r3_rank": 13,
+    "rank_change": -6
+  },
+  {
+    "rank": 20,
+    "parameter": "disease.sigma_D",
+    "short_name": "sigma_D",
+    "module": "disease",
+    "mean_norm_mu_star": 0.21140345087142579,
+    "sigma_mu_star_ratio": 1.9576868057758594,
+    "r3_rank": 29,
+    "rank_change": 9
+  },
+  {
+    "rank": 21,
+    "parameter": "spawning.female_max_bouts",
+    "short_name": "female_max_bouts",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.20567136988411078,
+    "sigma_mu_star_ratio": 1.9456313954153224,
+    "r3_rank": 32,
+    "rank_change": 11
+  },
+  {
+    "rank": 22,
+    "parameter": "spawning.readiness_induction_prob",
+    "short_name": "readiness_induction_prob",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.20381411624790907,
+    "sigma_mu_star_ratio": 2.264902574184995,
+    "r3_rank": 33,
+    "rank_change": 11
+  },
+  {
+    "rank": 23,
+    "parameter": "genetics.target_mean_t",
+    "short_name": "target_mean_t",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.19658683640820343,
+    "sigma_mu_star_ratio": 2.0486529356762135,
+    "r3_rank": null,
+    "rank_change": null
+  },
+  {
+    "rank": 24,
+    "parameter": "genetics.n_tolerance",
+    "short_name": "n_tolerance",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.18902712981605863,
+    "sigma_mu_star_ratio": 2.510271529163965,
+    "r3_rank": null,
+    "rank_change": null
+  },
+  {
+    "rank": 25,
+    "parameter": "spatial.alpha_self_open",
+    "short_name": "alpha_self_open",
+    "module": "spatial",
+    "mean_norm_mu_star": 0.18664662964368023,
+    "sigma_mu_star_ratio": 2.066564541870118,
+    "r3_rank": 39,
+    "rank_change": 14
+  },
+  {
+    "rank": 26,
+    "parameter": "spatial.D_L",
+    "short_name": "D_L",
+    "module": "spatial",
+    "mean_norm_mu_star": 0.17746439267942193,
+    "sigma_mu_star_ratio": 2.2946754803992278,
+    "r3_rank": 18,
+    "rank_change": -8
+  },
+  {
+    "rank": 27,
+    "parameter": "spawning.induction_male_to_female",
+    "short_name": "induction_male_to_female",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.17599654034375994,
+    "sigma_mu_star_ratio": 2.070581581089727,
+    "r3_rank": 16,
+    "rank_change": -11
+  },
+  {
+    "rank": 28,
+    "parameter": "disease.s_min",
+    "short_name": "s_min",
+    "module": "disease",
+    "mean_norm_mu_star": 0.17532658436766665,
+    "sigma_mu_star_ratio": 1.839802718305209,
+    "r3_rank": 36,
+    "rank_change": 8
+  },
+  {
+    "rank": 29,
+    "parameter": "pathogen_evolution.v_init",
+    "short_name": "v_init",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.17287046384102128,
+    "sigma_mu_star_ratio": 2.1274312264617246,
+    "r3_rank": 12,
+    "rank_change": -17
+  },
+  {
+    "rank": 30,
+    "parameter": "spawning.p_spontaneous_male",
+    "short_name": "p_spontaneous_male",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.1688852490162396,
+    "sigma_mu_star_ratio": 2.1083810287755855,
+    "r3_rank": 28,
+    "rank_change": -2
+  },
+  {
+    "rank": 31,
+    "parameter": "disease.mu_I1I2_ref",
+    "short_name": "mu_I1I2_ref",
+    "module": "disease",
+    "mean_norm_mu_star": 0.15579342450592457,
+    "sigma_mu_star_ratio": 1.9749491218488329,
+    "r3_rank": 14,
+    "rank_change": -17
+  },
+  {
+    "rank": 32,
+    "parameter": "genetics.q_init_beta_a",
+    "short_name": "q_init_beta_a",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.14981456172020208,
+    "sigma_mu_star_ratio": 2.445202732160849,
+    "r3_rank": 40,
+    "rank_change": 8
+  },
+  {
+    "rank": 33,
+    "parameter": "spatial.alpha_self_fjord",
+    "short_name": "alpha_self_fjord",
+    "module": "spatial",
+    "mean_norm_mu_star": 0.14852621757593745,
+    "sigma_mu_star_ratio": 2.0006560291150723,
+    "r3_rank": 42,
+    "rank_change": 9
+  },
+  {
+    "rank": 34,
+    "parameter": "population.senescence_age",
+    "short_name": "senescence_age",
+    "module": "population",
+    "mean_norm_mu_star": 0.14844710235163966,
+    "sigma_mu_star_ratio": 1.6627763938488382,
+    "r3_rank": 21,
+    "rank_change": -13
+  },
+  {
+    "rank": 35,
+    "parameter": "pathogen_evolution.gamma_early",
+    "short_name": "gamma_early",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.1475217566613936,
+    "sigma_mu_star_ratio": 2.0268301220203964,
+    "r3_rank": 30,
+    "rank_change": -5
+  },
+  {
+    "rank": 36,
+    "parameter": "population.alpha_srs",
+    "short_name": "alpha_srs",
+    "module": "population",
+    "mean_norm_mu_star": 0.14601982074958936,
+    "sigma_mu_star_ratio": 2.344649664329972,
+    "r3_rank": 35,
+    "rank_change": -1
+  },
+  {
+    "rank": 37,
+    "parameter": "pathogen_evolution.alpha_prog",
+    "short_name": "alpha_prog",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.14317310005004724,
+    "sigma_mu_star_ratio": 2.09005942903738,
+    "r3_rank": 38,
+    "rank_change": 1
+  },
+  {
+    "rank": 38,
+    "parameter": "disease.mu_EI1_ref",
+    "short_name": "mu_EI1_ref",
+    "module": "disease",
+    "mean_norm_mu_star": 0.1413765188209983,
+    "sigma_mu_star_ratio": 2.1923581576603794,
+    "r3_rank": 27,
+    "rank_change": -11
+  },
+  {
+    "rank": 39,
+    "parameter": "population.L_min_repro",
+    "short_name": "L_min_repro",
+    "module": "population",
+    "mean_norm_mu_star": 0.13943968598264309,
+    "sigma_mu_star_ratio": 2.0555608610201332,
+    "r3_rank": 25,
+    "rank_change": -14
+  },
+  {
+    "rank": 40,
+    "parameter": "pathogen_evolution.alpha_shed",
+    "short_name": "alpha_shed",
+    "module": "pathogen_evolution",
+    "mean_norm_mu_star": 0.1358364305216743,
+    "sigma_mu_star_ratio": 2.121286084395321,
+    "r3_rank": 41,
+    "rank_change": 1
+  },
+  {
+    "rank": 41,
+    "parameter": "spawning.induction_female_to_male",
+    "short_name": "induction_female_to_male",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.12960511630983154,
+    "sigma_mu_star_ratio": 1.7936532640199814,
+    "r3_rank": 24,
+    "rank_change": -17
+  },
+  {
+    "rank": 42,
+    "parameter": "disease.immunosuppression_duration",
+    "short_name": "immunosuppression_duration",
+    "module": "disease",
+    "mean_norm_mu_star": 0.12691239001931712,
+    "sigma_mu_star_ratio": 2.0745655388188697,
+    "r3_rank": 15,
+    "rank_change": -27
+  },
+  {
+    "rank": 43,
+    "parameter": "population.gamma_fert",
+    "short_name": "gamma_fert",
+    "module": "population",
+    "mean_norm_mu_star": 0.12152199449332007,
+    "sigma_mu_star_ratio": 2.212386888931492,
+    "r3_rank": 37,
+    "rank_change": -6
+  },
+  {
+    "rank": 44,
+    "parameter": "disease.susceptibility_multiplier",
+    "short_name": "susceptibility_multiplier",
+    "module": "disease",
+    "mean_norm_mu_star": 0.11117529363126241,
+    "sigma_mu_star_ratio": 2.029797910508764,
+    "r3_rank": 23,
+    "rank_change": -21
+  },
+  {
+    "rank": 45,
+    "parameter": "spawning.p_spontaneous_female",
+    "short_name": "p_spontaneous_female",
+    "module": "spawning",
+    "mean_norm_mu_star": 0.11030530688161072,
+    "sigma_mu_star_ratio": 1.6749134892189053,
+    "r3_rank": 26,
+    "rank_change": -19
+  },
+  {
+    "rank": 46,
+    "parameter": "genetics.q_init_beta_b",
+    "short_name": "q_init_beta_b",
+    "module": "genetics",
+    "mean_norm_mu_star": 0.10359222114838233,
+    "sigma_mu_star_ratio": 2.2015956028622945,
+    "r3_rank": 17,
+    "rank_change": -29
+  },
+  {
+    "rank": 47,
+    "parameter": "population.F0",
+    "short_name": "F0",
+    "module": "population",
+    "mean_norm_mu_star": 0.10175438865825404,
+    "sigma_mu_star_ratio": 1.8275978587334132,
+    "r3_rank": 20,
+    "rank_change": -27
+  }
+]
