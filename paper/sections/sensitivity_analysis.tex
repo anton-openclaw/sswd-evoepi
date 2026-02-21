@@ -1,3 +1,741 @@
-% sensitivity_analysis.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% SENSITIVITY ANALYSIS
+% Fact-checked against:
+%   results/sensitivity/report/SENSITIVITY_ANALYSIS_REPORT.md  (R1-R2)
+%   results/sensitivity_r3/MORRIS_ANALYSIS_v2.md               (R3)
+%   results/sensitivity_r4/MORRIS_R4_ANALYSIS.md               (R4)
+%   results/sensitivity_r4/morris_r4_ranking.json              (R4 data)
+%   results/sensitivity_r4/morris_results.json                 (R4 raw)
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Sensitivity Analysis}
 \label{sec:sensitivity_analysis}
+
+The \modelname{} model contains 47 uncertain parameters spanning six
+modules: disease transmission and progression (16 parameters),
+genetics and trait architecture (8), population dynamics (7),
+spawning biology (7), pathogen virulence evolution (6), and spatial
+connectivity (3). Most of these parameters have limited empirical
+constraints (Section~\ref{sec:appendix_parameters}), necessitating a
+systematic sensitivity analysis (SA) to identify which parameters
+most influence model behavior and, critically, which parameter
+\emph{interactions} dominate the system's dynamics. We conducted a
+progressive, four-round SA campaign that tracked the model's growing
+complexity from a single-trait, 3-node prototype through to the full
+three-trait, 11-node eco-evolutionary framework.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Methods}
+\label{sec:sa_methods}
+
+\subsubsection{Morris Elementary Effects Screening}
+\label{sec:morris_method}
+
+Each SA round began with Morris elementary effects screening
+\citep{Morris1991}, implemented via the SALib Python library
+\citep{Herman2017}. The Morris method is a one-at-a-time (OAT)
+design in which each parameter is perturbed along $r$ independent
+trajectories through the $p$-dimensional input space. For parameter
+$x_i$ in trajectory $j$, the elementary effect is
+%
+\begin{equation}
+  d_{ij} = \frac{f(x_1, \ldots, x_i + \Delta_i, \ldots, x_p)
+              - f(x_1, \ldots, x_i, \ldots, x_p)}{\Delta_i},
+  \label{eq:elementary_effect}
+\end{equation}
+%
+where $\Delta_i$ is the perturbation step. From these we compute
+two summary statistics per parameter per metric
+\citep{Campolongo2007}:
+%
+\begin{itemize}
+  \item $\mu^*_i$: the mean of the \emph{absolute} elementary
+    effects, measuring overall parameter importance regardless of
+    sign;
+  \item $\sigma_i$: the standard deviation of elementary effects,
+    measuring interaction and nonlinearity strength.
+\end{itemize}
+%
+When $\sigma_i / \mu^*_i > 1$, the parameter's influence on the
+metric is dominated by interactions with other parameters rather
+than by its direct (additive) effect \citep{Saltelli2008}. To
+enable cross-metric comparison, we normalize $\mu^*$ by the
+range of the metric across all trajectories, then rank parameters
+by the mean normalized $\mu^*$ across all output metrics.
+
+All rounds used $r = 20$ trajectories, yielding
+$r \times (p + 1)$ total model evaluations per round (e.g.,
+$20 \times 48 = 960$ runs for the 47-parameter Round~4).
+
+\subsubsection{Sobol Variance Decomposition}
+\label{sec:sobol_method}
+
+Parameters surviving Morris screening advance to Sobol
+variance-based global sensitivity analysis \citep{Sobol2001},
+which decomposes the total output variance into contributions
+from individual parameters and their interactions. Using the
+Saltelli sampling scheme \citep{Saltelli2002}, $N(2p + 2)$
+model evaluations produce two key indices for each parameter
+$x_i$ and output metric $Y$:
+%
+\begin{itemize}
+  \item $S_{1,i} = V_{x_i}[E_{x_{\sim i}}(Y | x_i)] \;/\;
+    V(Y)$: the \emph{first-order} Sobol index, measuring the
+    fraction of output variance attributable to $x_i$ alone;
+  \item $S_{T,i} = 1 - V_{x_{\sim i}}[E_{x_i}(Y | x_{\sim i})]
+    \;/\; V(Y)$: the \emph{total-order} index, capturing $x_i$'s
+    contribution including all interactions with other parameters.
+\end{itemize}
+%
+The gap $S_{T,i} - S_{1,i}$ quantifies the strength of parameter
+interactions. When $S_{T,i} \gg S_{1,i}$, the parameter's
+influence is mediated primarily through joint effects with other
+parameters, implying that it cannot be calibrated independently.
+
+\subsubsection{Output Metrics}
+\label{sec:sa_metrics}
+
+The SA tracks 23 output metrics capturing demographic, evolutionary,
+spatial, and pathogen outcomes over 20-year simulations:
+%
+\begin{itemize}
+  \item \textbf{Demographic:} population crash percentage,
+    final population fraction, recovery (population returns to
+    $>$50\% of initial), extinction (metapopulation collapse),
+    peak single-year mortality, time to population nadir, total
+    disease deaths, disease death fraction;
+  \item \textbf{Evolutionary (host):} mean and maximum resistance
+    shift ($\Delta \bar{r}$), tolerance shift ($\Delta \bar{t}$),
+    recovery-trait shift ($\Delta \bar{c}$), additive variance
+    retention ($V_A^{\text{post}}/V_A^{\text{pre}}$),
+    evolutionary rescue index (composite of survival and
+    resistance gain), total recovery events, recovery rate;
+  \item \textbf{Spatial:} number of extinct nodes, north--south
+    mortality gradient, fjord protection effect;
+  \item \textbf{Pathogen:} mean final virulence, virulence shift
+    ($\Delta \bar{v}$);
+  \item \textbf{Spawning:} spawning participation rate, mean
+    recruitment rate.
+\end{itemize}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Progressive Sensitivity Analysis Design}
+\label{sec:sa_rounds}
+
+The SA was conducted in four rounds (Table~\ref{tab:sa_rounds}),
+each corresponding to a major model extension. This progressive
+design allows us to track how parameter importance shifts as model
+complexity grows---a critical diagnostic for identifying emergent
+behaviors introduced by new modules.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of sensitivity analysis rounds. Each round
+  incorporates all changes from prior rounds. ``New'' parameters
+  are those added relative to the previous round.}
+\label{tab:sa_rounds}
+\small
+\begin{tabular}{@{}lccccl@{}}
+\toprule
+\textbf{Round} & \textbf{Params} & \textbf{Metrics} &
+  \textbf{Nodes} & \textbf{Runs} & \textbf{Key Changes} \\
+\midrule
+R1 (Morris) & 23 & 14 & 3 & 480 &
+  Baseline: single resistance trait \\
+R2 (Sobol) & 23 & 14 & 3 & 12{,}288 &
+  Sobol decomposition of R1 params \\
+R3 (Morris) & 43 & 20 & 3 & 880 &
+  +20 params: pathogen evo, spawning, \\
+  &&&&&
+  continuous mortality, daily growth \\
+R4 (Morris) & 47 & 23 & 11 & 960 &
+  +4 params: three-trait genetics, \\
+  &&&&&
+  11-node stepping-stone network \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Rounds 1--2 (Pre--Three-Trait Baseline).}
+The initial SA (Rounds~1--2) examined 23 parameters across disease
+(13), population (7), genetics (1: $n_{\text{additive}}$), and
+spawning (2) modules using a 3-node spatial network (Sitka, Howe
+Sound, Monterey; $K = 5{,}000$ per node). The model at this stage
+tracked a single resistance trait with $n_{\text{additive}}$
+additive loci. Morris screening (480 runs) retained all 23
+parameters for Sobol analysis (12{,}288 runs, $N = 256$).
+
+The Sobol decomposition revealed that disease progression rate
+$\mu_{\text{I2D,ref}}$ (I$_2 \to$ Death) was the single most
+influential parameter (mean $S_T = 0.638$), followed by
+$\text{susceptibility\_multiplier}$ ($S_T = 0.540$) and
+$a_{\text{exposure}}$ ($S_T = 0.473$). A critical methodological
+finding was that Morris and Sobol rankings \emph{disagreed}: Morris
+identified \texttt{settler\_survival} and $\rho_{\text{rec}}$ as
+the top drivers of population outcomes, while Sobol elevated
+$\text{susceptibility\_multiplier}$ and $\mu_{\text{I2D,ref}}$.
+This discrepancy arises because Morris measures marginal effects
+from extreme-value perturbations, whereas Sobol captures
+variance-weighted contributions including interactions. This
+confirmed that Morris screening alone is insufficient for
+identifying calibration priorities in this model.
+
+\paragraph{Round 3 (Expanded Model, 3-Node).}
+Round~3 added 20 parameters from four newly implemented modules:
+pathogen virulence evolution (6 parameters: virulence--fitness
+tradeoff exponents, mutation rate, initial virulence), expanded
+spawning biology (4: male spontaneous spawning, readiness
+induction, female bout limits, peak width), and additional disease
+mechanics (immunosuppression duration, minimum susceptible age,
+$\text{I}_1 \to \text{I}_2$ progression rate) and genetics
+parameters ($\text{target\_mean\_r}$, Beta-distribution shape
+parameters for initial allele frequencies). The network remained
+at 3 nodes for comparability with R1--R2.
+
+Morris screening (880 runs, 20 trajectories) revealed a dramatic
+reshuffling: $\rho_{\text{rec}}$ (recovery rate) rose to \#1
+($\mu^*_{\text{norm}} = 0.642$), displacing $\mu_{\text{I2D,ref}}$
+from its R1--R2 dominance. This occurred because the transition
+from discrete-stage to continuous daily mortality diluted the
+I$_2 \to$ Death rate's marginal influence, while recovery rate's
+role was amplified by its interaction with the new pathogen
+evolution module (higher $\rho_{\text{rec}}$ imposes stronger
+selection against virulent strains). All 43 parameters exceeded
+the 5\% elimination threshold; zero were pruned.
+
+\paragraph{Round 4 (Full Model, 11-Node).}
+Round~4 represents the complete \modelname{} model with two
+additions: (1) the three-trait genetic architecture (resistance,
+tolerance, recovery; Section~\ref{sec:three_trait}), contributing
+four new parameters ($\text{target\_mean\_c}$,
+$\text{target\_mean\_t}$, $\tau_{\text{max}}$, $n_{\text{tolerance}}$);
+and (2) an 11-node stepping-stone network spanning the latitudinal
+range of \pyc{} habitat. The expanded spatial network was critical
+for resolving spatial parameters that were undetectable at 3 nodes.
+This round (960 runs, 48 cores on an Intel Xeon W-3365) provides
+the most comprehensive screening of the model to date.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Round 4 Morris Results}
+\label{sec:r4_results}
+
+\subsubsection{Global Parameter Ranking}
+\label{sec:r4_ranking}
+
+Table~\ref{tab:r4_morris_full} presents the complete Round~4
+Morris ranking for all 47 parameters, sorted by mean normalized
+$\mu^*$ across 23 output metrics.
+Figure~\ref{fig:morris_top20} shows the top 20 parameters
+color-coded by module.
+
+The top-10 parameters span four of six modules:
+%
+\begin{enumerate}
+  \item $\rho_{\text{rec}}$ (recovery rate; $\mu^*_{\text{norm}} =
+    0.889$) --- the rate at which infected individuals clear
+    pathogen remains the single most influential parameter, as in
+    R3. Its semi-additive behavior ($\sigma/\mu^* = 1.46$, the
+    lowest interaction ratio of any parameter) reflects its direct
+    mechanistic role: daily clearance probability
+    $p_{\text{rec}} = \rho_{\text{rec}} \times c_i$ scales
+    linearly with this rate regardless of other parameter values.
+  \item $k_{\text{growth}}$ (von Bertalanffy growth rate;
+    $\mu^*_{\text{norm}} = 0.633$) --- faster growth accelerates
+    maturation and spawning eligibility, providing demographic
+    compensation during epidemics. Rose from \#5 (R3) to \#2.
+  \item $K_{\text{half}}$ (half-infective dose;
+    $\mu^*_{\text{norm}} = 0.622$) --- the Michaelis--Menten
+    saturation parameter controlling infection probability.
+    Rose from \#8 to \#3.
+  \item $P_{\text{env,max}}$ (environmental reservoir;
+    $\mu^*_{\text{norm}} = 0.598$) --- background waterborne
+    \vpshort{} input, independent of host shedding. Rose
+    dramatically from \#11 to \#4, reflecting its interaction
+    with the 11-node spatial network where environmental
+    pathogen load varies with latitude and temperature.
+  \item $n_{\text{resistance}}$ (number of resistance loci;
+    $\mu^*_{\text{norm}} = 0.525$) --- genetic architecture
+    of resistance. The largest rank gain of any parameter:
+    \#19 $\to$ \#5 ($\Delta = +14$). The three-trait partition
+    (17 loci per trait vs.\ the former 51 total) amplifies
+    the sensitivity to how many loci underlie each defense
+    mechanism.
+  \item $s_0$ (settler survival;
+    $\mu^*_{\text{norm}} = 0.509$) --- Beverton--Holt baseline
+    recruitment. Dropped modestly from \#3 to \#6.
+  \item $\sigma_{2,\text{eff}}$ (late-stage shedding rate;
+    $\mu^*_{\text{norm}} = 0.431$).
+  \item $\mu_{\text{I2D,ref}}$ (I$_2 \to$ Death rate;
+    $\mu^*_{\text{norm}} = 0.419$) --- formerly the \#1 parameter
+    in R1--R2 Sobol ($S_T = 0.638$), now \#8 in R4 Morris.
+  \item $\sigma_{\text{spawn}}$ (spawning peak width;
+    $\mu^*_{\text{norm}} = 0.392$) --- controls synchrony of
+    the reproductive pulse; dropped from \#2 to \#9.
+  \item $\text{target\_mean\_c}$ (initial mean recovery trait;
+    $\mu^*_{\text{norm}} = 0.385$) --- a \emph{new} R4 parameter
+    entering directly at \#10, confirming that the recovery trait
+    ($c_i$) is the fastest-evolving defense in the model
+    (Section~\ref{sec:three_trait}).
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/morris_r4_top20.png}
+  \caption{Top 20 parameters by mean normalized $\mu^*$ in
+    Round~4 Morris screening (47 parameters, 23 metrics, 11-node
+    network, 960 runs). Bars are color-coded by module. Error bars
+    show 95\% bootstrap confidence intervals across 20 trajectories.}
+  \label{fig:morris_top20}
+\end{figure}
+
+\subsubsection{Key Rank Shifts from Round 3}
+\label{sec:r4_shifts}
+
+The transition from R3 to R4 produced dramatic rank changes
+(Figure~\ref{fig:morris_vs_r3}), driven by two structural
+changes: the three-trait genetic architecture and the 11-node
+spatial network.
+
+\paragraph{Major rank gains.}
+Six parameters gained $\geq$7 ranks (Table~\ref{tab:rank_shifts}):
+%
+\begin{itemize}
+  \item $\sigma_{1,\text{eff}}$ (early shedding rate): \#43 $\to$
+    \#16 ($\Delta = +27$). Early shedding now interacts with
+    pathogen evolution: $\sigma_1$ shapes the initial epidemic
+    wave that determines the selection regime on virulence.
+  \item $\sigma_{v,\text{mut}}$ (virulence mutation step size):
+    \#31 $\to$ \#14 ($\Delta = +17$). With 11 nodes providing
+    diverse thermal and demographic environments, mutation rate
+    controls how fast pathogen lineages adapt to local conditions.
+  \item $T_{\text{ref}}$ (pathogen temperature optimum): \#34
+    $\to$ \#18 ($\Delta = +16$). The latitudinal temperature
+    gradient across 11 nodes (vs.\ 3) amplifies the importance
+    of the thermal reference point.
+  \item $n_{\text{resistance}}$: \#19 $\to$ \#5 ($\Delta = +14$),
+    as discussed above.
+  \item $\alpha_{\text{self,open}}$ (open-coast larval retention):
+    \#39 $\to$ \#25 ($\Delta = +14$). Spatial retention was
+    invisible at 3 nodes but becomes detectable with 11 nodes
+    and realistic dispersal distances.
+  \item $P_{\text{env,max}}$: \#11 $\to$ \#4 ($\Delta = +7$).
+\end{itemize}
+
+\paragraph{Major rank drops.}
+Five parameters dropped $\geq$19 ranks:
+%
+\begin{itemize}
+  \item $q_{\text{init},\beta_b}$ (Beta-distribution shape $b$):
+    \#17 $\to$ \#46 ($\Delta = -29$). Initial allele-frequency
+    shape is overwhelmed by the trait-specific mean parameters
+    ($\text{target\_mean\_r/t/c}$).
+  \item $F_0$ (reference fecundity): \#20 $\to$ \#47 ($\Delta =
+    -27$). Diluted in the expanded 47-parameter space.
+  \item Immunosuppression duration: \#15 $\to$ \#42 ($\Delta =
+    -27$). Its effect is absorbed by spawning parameters and the
+    recovery trait ($c_i$), which provides an alternative pathway
+    through immunosuppressed periods.
+  \item $\text{susceptibility\_multiplier}$: \#23 $\to$ \#44
+    ($\Delta = -21$). This parameter was \#1 in the R1--R2 Sobol
+    analysis ($S_T = 0.540$); its precipitous decline reflects
+    absorption by the explicit resistance genetics---individual
+    $r_i$ now captures susceptibility variation mechanistically,
+    rendering the multiplicative modifier redundant.
+  \item $p_{\text{spont},\female}$ (female spontaneous spawning):
+    \#26 $\to$ \#45 ($\Delta = -19$).
+\end{itemize}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/morris_r4_vs_r3.png}
+  \caption{Rank change from Round~3 to Round~4 for the 43 parameters
+    common to both rounds. Positive values (rightward) indicate
+    increased importance in R4; negative values (leftward) indicate
+    decreased importance. Parameters are sorted by R4 rank. Four new
+    R4 parameters (not shown) entered at ranks \#10, \#13, \#23,
+    and~\#24.}
+  \label{fig:morris_vs_r3}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Largest rank shifts from R3 to R4 Morris screening. Positive
+  $\Delta$ indicates increased importance.}
+\label{tab:rank_shifts}
+\small
+\begin{tabular}{@{}llccl@{}}
+\toprule
+\textbf{Parameter} & \textbf{Module} &
+  \textbf{R3 $\to$ R4} & $\boldsymbol{\Delta}$ &
+  \textbf{Mechanism} \\
+\midrule
+$\sigma_{1,\text{eff}}$ & Disease &
+  43 $\to$ 16 & $+27$ & Interacts with pathogen evolution \\
+$\sigma_{v,\text{mut}}$ & Pathogen evo. &
+  31 $\to$ 14 & $+17$ & Controls adaptation speed \\
+$T_{\text{ref}}$ & Disease &
+  34 $\to$ 18 & $+16$ & 11-node thermal gradient \\
+$n_{\text{resistance}}$ & Genetics &
+  19 $\to$ 5 & $+14$ & Three-trait partition \\
+$\alpha_{\text{self,open}}$ & Spatial &
+  39 $\to$ 25 & $+14$ & Resolvable at 11 nodes \\
+\midrule
+$q_{\text{init},\beta_b}$ & Genetics &
+  17 $\to$ 46 & $-29$ & Absorbed by trait means \\
+$F_0$ & Population &
+  20 $\to$ 47 & $-27$ & Diluted in larger space \\
+Immunosupp.\ duration & Disease &
+  15 $\to$ 42 & $-27$ & Absorbed by recovery trait \\
+Suscept.\ multiplier & Disease &
+  23 $\to$ 44 & $-21$ & Absorbed by resistance genetics \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{New Three-Trait Parameters}
+\label{sec:r4_new_params}
+
+The four parameters introduced with the three-trait architecture
+(Section~\ref{sec:three_trait}) immediately demonstrated meaningful
+sensitivity:
+%
+\begin{itemize}
+  \item $\text{target\_mean\_c}$ (initial mean recovery trait):
+    rank \#10 ($\mu^*_{\text{norm}} = 0.385$). A top-10 entry
+    confirms that recovery ($c_i$) is the dominant evolutionary
+    pathway in the model, consistent with the validation finding
+    that $\Delta \bar{c}$ exceeds $\Delta \bar{r}$ by $\sim$$7
+    \times$ at all nodes (Section~\ref{sec:validation}).
+  \item $\tau_{\text{max}}$ (maximum tolerance scaling): rank
+    \#13 ($\mu^*_{\text{norm}} = 0.292$). The ceiling on how
+    much tolerance extends I$_2$ survival matters because it sets
+    the upper bound on the tolerance--recovery interaction.
+  \item $\text{target\_mean\_t}$ (initial mean tolerance): rank
+    \#23 ($\mu^*_{\text{norm}} = 0.197$). Mid-pack, reflecting
+    the weaker selection signal on tolerance compared to recovery.
+  \item $n_{\text{tolerance}}$ (number of tolerance loci): rank
+    \#24 ($\mu^*_{\text{norm}} = 0.189$). Mid-pack, but notably
+    the most interacting parameter in the entire model
+    ($\sigma/\mu^* = 2.51$), suggesting tolerance's role is
+    context-dependent.
+\end{itemize}
+
+\subsubsection{Universal Nonlinearity}
+\label{sec:universal_nonlinearity}
+
+A striking finding of the R4 Morris analysis is that \emph{every
+one of the 47 parameters} has $\sigma/\mu^* > 1.0$
+(Figure~\ref{fig:morris_interaction}). This means that no parameter
+in the model acts additively---every parameter's effect on every
+metric depends on the values of other parameters. The model is a
+deeply coupled, nonlinear system.
+
+The interaction ratio $\sigma/\mu^*$ ranges from 1.42
+($s_0$, settler survival) to 2.52 ($\sigma_{v,\text{mut}}$,
+virulence mutation rate). Two interaction tiers are apparent:
+%
+\begin{itemize}
+  \item \textbf{Moderately interacting} ($\sigma/\mu^* < 1.5$;
+    2 parameters): $\rho_{\text{rec}}$ (1.46) and $s_0$ (1.42).
+    These parameters operate semi-additively---their effects are
+    relatively stable across parameter space. For
+    $\rho_{\text{rec}}$, this reflects its direct mechanistic role:
+    daily clearance probability scales linearly with recovery rate
+    regardless of context.
+  \item \textbf{Strongly to extremely interacting}
+    ($\sigma/\mu^* > 1.5$; 45 parameters): the remaining
+    parameters exhibit moderate to extreme nonlinearity.
+    The most interacting parameters are genetic/evolutionary:
+    $\sigma_{v,\text{mut}}$ (2.52), $n_{\text{tolerance}}$
+    (2.51), $q_{\text{init},\beta_a}$ (2.45), and
+    $\alpha_{\text{SRS}}$ (2.34). These control \emph{adaptation
+    rates} that feed back on disease dynamics, which feed back on
+    selection pressures---creating cascading interaction loops.
+\end{itemize}
+%
+This universal nonlinearity has profound implications for
+calibration: no parameter can be tuned independently. Joint
+calibration via approximate Bayesian computation (ABC) or Markov
+chain Monte Carlo methods is essential.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/morris_r4_interaction.png}
+  \caption{Morris $\mu^*$ vs.\ $\sigma$ scatter for all 47
+    parameters (R4). The dashed line shows $\sigma = \mu^*$ (unit
+    interaction ratio). All parameters fall above this line,
+    indicating universal nonlinearity. Symbol color indicates
+    module; symbol size scales with mean normalized $\mu^*$.}
+  \label{fig:morris_interaction}
+\end{figure}
+
+\subsubsection{Module-Level Sensitivity}
+\label{sec:module_sa}
+
+Figure~\ref{fig:morris_modules} summarizes sensitivity by module.
+The disease module dominates in both parameter count (16) and mean
+importance ($\overline{\mu^*_{\text{norm}}} = 0.332$), but genetics
+punches above its weight: with only 8 parameters, it achieves the
+second-highest mean importance ($\overline{\mu^*_{\text{norm}}} =
+0.260$), and its top parameter ($n_{\text{resistance}}$) ranks \#5
+globally. The pathogen evolution module, despite being entirely new
+in R3--R4, achieves a mean $\mu^*_{\text{norm}} = 0.185$ with
+$\sigma_{v,\text{mut}}$ at \#14---virulence evolution is not
+negligible and must be retained in calibration.
+
+Spatial parameters ($\overline{\mu^*_{\text{norm}}} = 0.171$) are
+detectable for the first time at 11 nodes. At the 3-node
+configuration of R1--R3, these parameters ranked \#39--\#42; at 11
+nodes, they rise to \#25--\#33. This confirms that adequate spatial
+resolution is necessary to capture dispersal and retention
+dynamics.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/morris_r4_modules.png}
+  \caption{Module-level sensitivity summary for R4 Morris screening.
+    Bar height shows mean normalized $\mu^*$ for each module;
+    whiskers show the range from minimum to maximum parameter within
+    each module. Number of parameters per module shown in
+    parentheses.}
+  \label{fig:morris_modules}
+\end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Cross-Round Parameter Trajectories}
+\label{sec:cross_round}
+
+Tracking individual parameters across all four rounds reveals
+which parameters have stable importance versus those whose
+influence is contingent on model structure
+(Figure~\ref{fig:morris_heatmap}):
+
+\paragraph{Consistently important.}
+$\rho_{\text{rec}}$, $a_{\text{exposure}}$, and
+$\sigma_{2,\text{eff}}$ remain in the top 12 across all rounds.
+These are robust calibration targets regardless of model
+configuration.
+
+\paragraph{Structurally contingent.}
+$\mu_{\text{I2D,ref}}$ was \#1 in R1--R2 Sobol but dropped to
+\#7--\#8 in R3--R4 Morris after the switch to continuous daily
+mortality. $\text{susceptibility\_multiplier}$ fell from \#1--\#2
+(R1--R2) to \#44 (R4) as explicit resistance genetics absorbed its
+role. These shifts demonstrate that parameter importance can be an
+\emph{artifact of model structure}, not a property of the
+underlying biology, underscoring the need for structural
+sensitivity analysis alongside parametric SA.
+
+\paragraph{Emergent with complexity.}
+$P_{\text{env,max}}$, $n_{\text{resistance}}$, and all pathogen
+evolution parameters only revealed their importance at $\geq$11
+nodes or $\geq$43 parameters. Simple model configurations
+systematically underestimate the importance of spatial and
+evolutionary parameters.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/morris_r4_heatmap.png}
+  \caption{Parameter--metric sensitivity heatmap (R4 Morris).
+    Cell color indicates normalized $\mu^*$ for each
+    parameter--metric pair. Parameters (rows) are sorted by global
+    rank; metrics (columns) are grouped by category. White cells
+    indicate $\mu^*_{\text{norm}} < 0.05$.}
+  \label{fig:morris_heatmap}
+\end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Sobol Variance Decomposition: Rounds 1--2 and Ongoing}
+\label{sec:sobol_results}
+
+\subsubsection{R1--R2 Sobol Results}
+
+The Round~1--2 Sobol analysis (23 parameters, $N = 256$, 12{,}288
+runs) revealed massive parameter interactions across the model.
+For most metrics, total-order indices $S_T$ far exceeded
+first-order indices $S_1$, meaning that parameter combinations
+dominate behavior over individual effects. Notable interaction
+signatures include:
+%
+\begin{itemize}
+  \item \textbf{Extinction:} $\sigma_{2,\text{eff}}$ had
+    $S_T = 1.51$ but $S_1 \approx 0$---extinction risk is
+    \emph{entirely} driven by interactions between shedding rate
+    and other parameters.
+  \item \textbf{Fjord protection:} $a_{\text{exposure}}$ had
+    $S_T = 0.96$ but $S_1 = -0.12$---a negative first-order index
+    means the parameter's effect \emph{reverses sign} depending on
+    the values of other parameters.
+  \item \textbf{Recovery:} $\text{susceptibility\_multiplier}$ had
+    $S_T = 0.96$ but $S_1 = 0.38$---60\% of its influence arises
+    through interactions.
+\end{itemize}
+
+\subsubsection{Round 4 Sobol (In Progress)}
+\label{sec:r4_sobol}
+
+A Round~4 Sobol analysis is currently running on a 48-core Intel
+Xeon W-3365 server. With 47 parameters and $N = 512$, the Saltelli
+design requires $N(2p + 2) = 49{,}152$ model evaluations at
+$\sim$25~s each. At 12 parallel workers, the estimated wall time
+is approximately 7~days. This analysis will provide the first
+variance decomposition of the full three-trait, 11-node model and
+will enable direct comparison with the R1--R2 Sobol indices to
+quantify how the three-trait architecture redistributes variance
+among parameters.
+
+Based on the R4 Morris results, we prioritize convergence
+monitoring for the top-10 parameters and anticipate particularly
+informative second-order ($S_2$) indices for the following
+parameter pairs:
+%
+\begin{itemize}
+  \item $\rho_{\text{rec}} \times \text{target\_mean\_c}$:
+    recovery rate $\times$ recovery genetics (both affect pathogen
+    clearance);
+  \item $P_{\text{env,max}} \times a_{\text{exposure}}$:
+    environmental reservoir $\times$ transmission rate (dual
+    exposure pathways);
+  \item $n_{\text{resistance}} \times \sigma_{v,\text{mut}}$:
+    host genetic architecture $\times$ pathogen adaptation rate
+    (coevolutionary arms race);
+  \item $k_{\text{growth}} \times s_0$:
+    growth rate $\times$ recruitment (demographic compensation).
+\end{itemize}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Summary and Implications}
+\label{sec:sa_summary}
+
+The four-round sensitivity analysis yields five principal findings:
+
+\begin{enumerate}
+  \item \textbf{Recovery dominates.} The base recovery rate
+    $\rho_{\text{rec}}$ is consistently the most influential
+    parameter across rounds and model configurations, yet has zero
+    empirical basis. Determining whether \pyc{} can clear
+    \vpshort{} infections---and at what rate---is the single
+    highest-priority empirical question for model calibration.
+
+  \item \textbf{Genetic architecture is a structural choice with
+    major consequences.} The number of resistance loci
+    ($n_{\text{resistance}}$) ranks \#5 globally and cannot be
+    calibrated from data without high-resolution GWAS. The
+    three-trait partition amplifies this sensitivity: 17 loci per
+    trait behave very differently from 51 loci in a single trait.
+
+  \item \textbf{Parameter importance is model-contingent.}
+    $\text{susceptibility\_multiplier}$ fell from \#1 (R1--R2
+    Sobol) to \#44 (R4 Morris) as explicit genetics absorbed its
+    role; $\mu_{\text{I2D,ref}}$ fell from \#1 to \#8 with
+    continuous mortality. SA results from simpler model
+    configurations cannot be extrapolated to the full model.
+
+  \item \textbf{Universal nonlinearity demands joint calibration.}
+    All 47 parameters interact ($\sigma/\mu^* > 1.0$). No
+    parameter can be tuned independently. Approximate Bayesian
+    computation with sequential Monte Carlo sampling (ABC-SMC) is
+    the appropriate calibration framework.
+
+  \item \textbf{Spatial resolution matters.} Spatial and
+    environmental parameters only emerge as important at $\geq$11
+    nodes. The planned 150-node full-coastline simulation will
+    likely reveal additional spatially contingent sensitivities.
+\end{enumerate}
+
+
+% ──────────────────────────────────────────────────────────────────────
+% FULL PARAMETER TABLE
+% ──────────────────────────────────────────────────────────────────────
+
+\begin{landscape}
+\begin{longtable}{@{}rllS[table-format=1.3]S[table-format=1.2]rr@{}}
+\caption{Complete Round~4 Morris parameter ranking (47 parameters,
+  23 metrics, 11-node network, 960 runs). Mean normalized $\mu^*$
+  is averaged across all metrics. The $\sigma/\mu^*$ ratio indicates
+  interaction strength ($> 1$: interaction-dominated). R3 Rank
+  column shows the parameter's position in the 43-parameter R3
+  analysis; ``---'' indicates a new R4 parameter.}
+\label{tab:r4_morris_full} \\
+
+\toprule
+\textbf{Rank} & \textbf{Parameter} & \textbf{Module} &
+  {$\overline{\mu^*_{\text{norm}}}$} &
+  {$\sigma/\mu^*$} &
+  \textbf{R3} & $\boldsymbol{\Delta}$ \\
+\midrule
+\endfirsthead
+
+\multicolumn{7}{c}%
+  {\tablename\ \thetable\ (continued)} \\
+\toprule
+\textbf{Rank} & \textbf{Parameter} & \textbf{Module} &
+  {$\overline{\mu^*_{\text{norm}}}$} &
+  {$\sigma/\mu^*$} &
+  \textbf{R3} & $\boldsymbol{\Delta}$ \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{7}{r}{\textit{Continued on next page}} \\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+1  & $\rho_{\text{rec}}$              & Disease    & 0.889 & 1.46 & 1  & {---}    \\
+2  & $k_{\text{growth}}$              & Population & 0.633 & 1.63 & 5  & {$\uparrow$3}  \\
+3  & $K_{\text{half}}$                & Disease    & 0.622 & 1.84 & 8  & {$\uparrow$5}  \\
+4  & $P_{\text{env,max}}$             & Disease    & 0.598 & 1.92 & 11 & {$\uparrow$7}  \\
+5  & $n_{\text{resistance}}$          & Genetics   & 0.525 & 1.78 & 19 & {$\uparrow$14} \\
+6  & $s_0$ (settler survival)         & Population & 0.509 & 1.42 & 3  & {$\downarrow$3} \\
+7  & $\sigma_{2,\text{eff}}$          & Disease    & 0.431 & 1.95 & 10 & {$\uparrow$3}  \\
+8  & $\mu_{\text{I2D,ref}}$           & Disease    & 0.419 & 1.98 & 7  & {$\downarrow$1} \\
+9  & $\sigma_{\text{spawn}}$ (peak width) & Spawning & 0.392 & 2.03 & 2  & {$\downarrow$7} \\
+10 & $\text{target\_mean\_c}$         & Genetics   & 0.385 & 2.08 & {---} & {---}     \\
+11 & $a_{\text{exposure}}$            & Disease    & 0.379 & 2.20 & 6  & {$\downarrow$5} \\
+12 & $T_{\text{VBNC}}$                & Disease    & 0.355 & 2.07 & 9  & {$\downarrow$3} \\
+13 & $\tau_{\text{max}}$              & Genetics   & 0.292 & 2.05 & {---} & {---}     \\
+14 & $\sigma_{v,\text{mut}}$          & Path.\ evo.& 0.259 & 2.52 & 31 & {$\uparrow$17} \\
+15 & $\alpha_{\text{kill}}$           & Path.\ evo.& 0.254 & 2.25 & 22 & {$\uparrow$7}  \\
+16 & $\sigma_{1,\text{eff}}$          & Disease    & 0.245 & 2.24 & 43 & {$\uparrow$27} \\
+17 & $\text{target\_mean\_r}$         & Genetics   & 0.236 & 1.86 & 4  & {$\downarrow$13} \\
+18 & $T_{\text{ref}}$                 & Disease    & 0.229 & 1.94 & 34 & {$\uparrow$16} \\
+19 & min.\ susceptible age            & Disease    & 0.229 & 2.04 & 13 & {$\downarrow$6} \\
+20 & $\sigma_D$                       & Disease    & 0.211 & 1.96 & 29 & {$\uparrow$9}  \\
+21 & female max bouts                 & Spawning   & 0.206 & 1.95 & 32 & {$\uparrow$11} \\
+22 & readiness induction prob.        & Spawning   & 0.204 & 2.26 & 33 & {$\uparrow$11} \\
+23 & $\text{target\_mean\_t}$         & Genetics   & 0.197 & 2.05 & {---} & {---}     \\
+24 & $n_{\text{tolerance}}$           & Genetics   & 0.189 & 2.51 & {---} & {---}     \\
+25 & $\alpha_{\text{self,open}}$      & Spatial    & 0.187 & 2.07 & 39 & {$\uparrow$14} \\
+26 & $D_L$                            & Spatial    & 0.178 & 2.29 & 18 & {$\downarrow$8} \\
+27 & $\kappa_{\text{mf}}$ (M$\to$F induction) & Spawning & 0.176 & 2.07 & 16 & {$\downarrow$11} \\
+28 & $s_{\text{min}}$                 & Disease    & 0.175 & 1.84 & 36 & {$\uparrow$8}  \\
+29 & $v_{\text{init}}$                & Path.\ evo.& 0.173 & 2.13 & 12 & {$\downarrow$17} \\
+30 & $p_{\text{spont,m}}$              & Spawning   & 0.169 & 2.11 & 28 & {$\downarrow$2} \\
+31 & $\mu_{\text{I1I2,ref}}$          & Disease    & 0.156 & 1.97 & 14 & {$\downarrow$17} \\
+32 & $q_{\text{init},\beta_a}$        & Genetics   & 0.150 & 2.45 & 40 & {$\uparrow$8}  \\
+33 & $\alpha_{\text{self,fjord}}$     & Spatial    & 0.149 & 2.00 & 42 & {$\uparrow$9}  \\
+34 & senescence age                   & Population & 0.148 & 1.66 & 21 & {$\downarrow$13} \\
+35 & $\gamma_{\text{early}}$          & Path.\ evo.& 0.148 & 2.03 & 30 & {$\downarrow$5} \\
+36 & $\alpha_{\text{SRS}}$            & Population & 0.146 & 2.34 & 35 & {$\downarrow$1} \\
+37 & $\alpha_{\text{prog}}$           & Path.\ evo.& 0.143 & 2.09 & 38 & {$\uparrow$1}  \\
+38 & $\mu_{\text{EI1,ref}}$           & Disease    & 0.141 & 2.19 & 27 & {$\downarrow$11} \\
+39 & $L_{\text{min,repro}}$           & Population & 0.139 & 2.06 & 25 & {$\downarrow$14} \\
+40 & $\alpha_{\text{shed}}$           & Path.\ evo.& 0.136 & 2.12 & 41 & {$\uparrow$1}  \\
+41 & $\kappa_{\text{fm}}$ (F$\to$M induction) & Spawning & 0.130 & 1.79 & 24 & {$\downarrow$17} \\
+42 & immunosupp.\ duration            & Disease    & 0.127 & 2.07 & 15 & {$\downarrow$27} \\
+43 & $\gamma_{\text{fert}}$           & Population & 0.122 & 2.21 & 37 & {$\downarrow$6} \\
+44 & suscept.\ multiplier             & Disease    & 0.111 & 2.03 & 23 & {$\downarrow$21} \\
+45 & $p_{\text{spont,f}}$              & Spawning   & 0.110 & 1.67 & 26 & {$\downarrow$19} \\
+46 & $q_{\text{init},\beta_b}$        & Genetics   & 0.104 & 2.20 & 17 & {$\downarrow$29} \\
+47 & $F_0$                            & Population & 0.102 & 1.83 & 20 & {$\downarrow$27} \\
+
+\end{longtable}
+\end{landscape}
