@@ -1,0 +1,81 @@
+\documentclass[12pt, a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{siunitx}
+\usepackage{lineno}
+\usepackage{appendix}
+
+% ── Formatting ────────────────────────────────────────────────────────
+\onehalfspacing
+\linenumbers
+
+% ── Custom commands ───────────────────────────────────────────────────
+\newcommand{\pyc}{\textit{Pycnopodia helianthoides}}
+\newcommand{\pycshort}{\textit{P.~helianthoides}}
+\newcommand{\vp}{\textit{Vibrio pectenicida}}
+\newcommand{\vpshort}{\textit{V.~pectenicida}}
+\newcommand{\modelname}{SSWD-EvoEpi}
+\newcommand{\Rz}{R_0}
+
+% ── Title ─────────────────────────────────────────────────────────────
+\title{%
+  \textbf{\modelname{}: A Coupled Eco-Evolutionary Epidemiological Model \\
+  for Sea Star Wasting Disease in \pyc{}} \\[0.5em]
+  \large Technical Report — Model Development and Sensitivity Analysis
+}
+
+\author{%
+  Willem Weertman\textsuperscript{1,2} \\[0.3em]
+  \small\textsuperscript{1}Department of Psychology, University of Washington, Seattle, WA \\
+  \small\textsuperscript{2}Friday Harbor Laboratories, University of Washington, Friday Harbor, WA
+}
+
+\date{\today}
+
+% ══════════════════════════════════════════════════════════════════════
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ── Main sections ─────────────────────────────────────────────────────
+\input{sections/introduction}
+\input{sections/model_architecture}
+\input{sections/disease_module}
+\input{sections/genetics_module}
+\input{sections/population_dynamics}
+\input{sections/spatial_module}
+\input{sections/sensitivity_analysis}
+\input{sections/validation}
+\input{sections/discussion}
+
+% ── References ────────────────────────────────────────────────────────
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% ── Appendices ────────────────────────────────────────────────────────
+\appendix
+\input{sections/appendix_parameters}
+
+\end{document}
