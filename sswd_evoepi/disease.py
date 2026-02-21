@@ -342,6 +342,35 @@ def sample_stage_duration(
     return max(1, int(np.round(total)))
 
 
+def batch_sample_stage_duration(
+    mu_rates: np.ndarray,
+    k_shape: int,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Vectorized Erlang duration sampling for multiple individuals.
+
+    Equivalent to calling sample_stage_duration() for each element,
+    but uses batch Gamma sampling for ~10-100× speedup.
+
+    Gamma(k, 1/(k×μ)) has mean 1/μ — same as Erlang(k, k×μ).
+
+    Args:
+        mu_rates: Array of rate parameters (d⁻¹), shape (n,).
+        k_shape: Erlang shape parameter (same for all).
+        rng: NumPy random generator.
+
+    Returns:
+        Array of durations in days (≥ 1), shape (n,), dtype int32.
+    """
+    n = len(mu_rates)
+    if n == 0:
+        return np.array([], dtype=np.int32)
+    rates = np.maximum(np.asarray(mu_rates, dtype=np.float64), 1e-10)
+    scales = 1.0 / (k_shape * rates)
+    totals = rng.gamma(k_shape, scales, size=n)
+    return np.maximum(1, np.round(totals)).astype(np.int32)
+
+
 def recovery_probability_I2(c_i: float, rho_rec: float = 0.05) -> float:
     """Daily probability of recovery from I₂ state.
 
@@ -810,92 +839,145 @@ def daily_disease_update(
                 else:
                     p_from_shedder = 0.0
 
-            for idx in susc_indices[infected_mask]:
-                ds[idx] = DiseaseState.E
-                dt_rem[idx] = sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
-                new_infections += 1
+            new_inf_idx = susc_indices[infected_mask]
+            n_new = len(new_inf_idx)
+            if n_new > 0:
+                ds[new_inf_idx] = DiseaseState.E
+                # Batch Erlang timer sampling
+                new_timers = batch_sample_stage_duration(
+                    np.full(n_new, mu_EI1), K_SHAPE_E, rng,
+                )
+                dt_rem[new_inf_idx] = new_timers
+                new_infections += n_new
 
-                # Strain inheritance
+                # Strain inheritance (batch)
                 if pe_active:
-                    if P_total > 0 and len(shedder_indices) > 0 and rng.random() < p_from_shedder:
-                        source_idx = rng.choice(shedder_indices, p=weights)
-                        v_parent = agents['pathogen_virulence'][source_idx]
-                    else:
-                        v_parent = pe_cfg.v_env
-
-                    v_new = v_parent + rng.normal(0, pe_cfg.sigma_v_mutation)
+                    inherit_draws = rng.random(n_new)
+                    from_shedder = (
+                        (P_total > 0)
+                        & (len(shedder_indices) > 0)
+                        & (inherit_draws < p_from_shedder)
+                    )
+                    v_parents = np.full(n_new, pe_cfg.v_env)
+                    n_from_shed = int(np.sum(from_shedder))
+                    if n_from_shed > 0:
+                        sources = rng.choice(
+                            shedder_indices, size=n_from_shed, p=weights,
+                        )
+                        v_parents[from_shedder] = agents['pathogen_virulence'][sources]
+                    v_new = v_parents + rng.normal(0, pe_cfg.sigma_v_mutation, size=n_new)
                     v_new = np.clip(v_new, pe_cfg.v_min, pe_cfg.v_max)
-                    agents['pathogen_virulence'][idx] = v_new
-                    node_state.virulence_sum_new_infections += float(v_new)
-                    node_state.virulence_count_new_infections += 1
+                    agents['pathogen_virulence'][new_inf_idx] = v_new
+                    node_state.virulence_sum_new_infections += float(np.sum(v_new))
+                    node_state.virulence_count_new_infections += n_new
 
-    # ── STEP 3: Disease progression ──────────────────────────────────
+    # ── STEP 3: Disease progression (vectorized) ──────────────────────
 
     # Pre-compute temperature-dependent base rates
     mu_I1I2 = arrhenius(cfg.mu_I1I2_ref, cfg.Ea_I1I2, T_celsius)
     mu_I2D = arrhenius(cfg.mu_I2D_ref, cfg.Ea_I2D, T_celsius)
-    mu_EI1_prog = arrhenius(cfg.mu_EI1_ref, cfg.Ea_EI1, T_celsius)
 
-    # Process all diseased individuals
+    # All diseased individuals (E, I1, I2)
     diseased = alive_mask & (ds >= DiseaseState.E) & (ds <= DiseaseState.I2)
-    diseased_indices = np.where(diseased)[0]
+    diseased_idx = np.where(diseased)[0]
 
-    for idx in diseased_indices:
-        state = ds[idx]
-        dt_rem[idx] -= 1  # decrement daily timer
+    if len(diseased_idx) > 0:
+        # Batch timer decrement
+        dt_rem[diseased_idx] -= 1
 
-        if dt_rem[idx] <= 0:
-            # Timer expired → transition to next state
-            if state == DiseaseState.E:
-                # E→I1: incubation NOT virulence-dependent (pathogen replicating silently)
-                ds[idx] = DiseaseState.I1
-                # I1→I2 timer: virulence-dependent when pe active
-                if pe_active:
-                    v_i = float(agents['pathogen_virulence'][idx])
-                    rate_I1I2 = float(mu_I1I2_strain(v_i, T_celsius, cfg, pe_cfg))
-                else:
-                    rate_I1I2 = mu_I1I2
-                dt_rem[idx] = sample_stage_duration(rate_I1I2, K_SHAPE_I1, rng)
-            elif state == DiseaseState.I1:
-                ds[idx] = DiseaseState.I2
-                # I2→D timer: base rate (optionally virulence-adjusted),
-                # then scaled by host tolerance (timer-scaling approach)
-                if pe_active:
-                    v_i = float(agents['pathogen_virulence'][idx])
-                    rate_I2D = float(mu_I2D_strain(v_i, T_celsius, cfg, pe_cfg))
-                else:
-                    rate_I2D = mu_I2D
-                # Tolerance reduces effective death rate → longer I₂ timer
-                t_i = float(agents['tolerance'][idx])
-                effective_rate = rate_I2D * (1.0 - t_i * cfg.tau_max)
-                effective_rate = max(effective_rate, rate_I2D * 0.05)  # floor at 5%
-                dt_rem[idx] = sample_stage_duration(effective_rate, K_SHAPE_I2, rng)
-            elif state == DiseaseState.I2:
-                # Timer expired in I₂ → death
-                if pe_active:
-                    node_state.virulence_sum_deaths += float(agents['pathogen_virulence'][idx])
-                    node_state.virulence_count_deaths += 1
-                ds[idx] = DiseaseState.D
-                agents['alive'][idx] = False
-                agents['cause_of_death'][idx] = 1  # DeathCause.DISEASE
-                new_deaths += 1
-        else:
-            # Timer not expired — check for recovery (uses clearance c_i)
-            c_i = float(agents['recovery_ability'][idx])
-            if state == DiseaseState.I2:
-                p_rec = recovery_probability_I2(c_i, cfg.rho_rec)
-                if rng.random() < p_rec:
-                    ds[idx] = DiseaseState.R
-                    dt_rem[idx] = 0
-                    agents['pathogen_virulence'][idx] = 0.0
-                    new_recoveries += 1
-            elif state == DiseaseState.I1:
-                p_early = recovery_probability_I1(c_i, cfg.rho_rec)
-                if rng.random() < p_early:
-                    ds[idx] = DiseaseState.R
-                    dt_rem[idx] = 0
-                    agents['pathogen_virulence'][idx] = 0.0
-                    new_recoveries += 1
+        states = ds[diseased_idx]
+        timers = dt_rem[diseased_idx]
+
+        # Split: expired (transition) vs not-expired (recovery check)
+        expired_mask = timers <= 0
+        not_expired_mask = ~expired_mask
+
+        # ═══ EXPIRED TIMERS: state transitions ═══════════════════════
+
+        exp_idx = diseased_idx[expired_mask]
+        exp_states = states[expired_mask]
+
+        # ── E → I1 ──────────────────────────────────────────────────
+        e_mask = exp_states == DiseaseState.E
+        e_idx = exp_idx[e_mask]
+        if len(e_idx) > 0:
+            ds[e_idx] = DiseaseState.I1
+            if pe_active:
+                v_arr = agents['pathogen_virulence'][e_idx]
+                rates = mu_I1I2_strain(v_arr, T_celsius, cfg, pe_cfg)
+            else:
+                rates = np.full(len(e_idx), mu_I1I2)
+            dt_rem[e_idx] = batch_sample_stage_duration(rates, K_SHAPE_I1, rng)
+
+        # ── I1 → I2 ─────────────────────────────────────────────────
+        i1_mask = exp_states == DiseaseState.I1
+        i1_idx = exp_idx[i1_mask]
+        if len(i1_idx) > 0:
+            ds[i1_idx] = DiseaseState.I2
+            if pe_active:
+                v_arr = agents['pathogen_virulence'][i1_idx]
+                rates = mu_I2D_strain(v_arr, T_celsius, cfg, pe_cfg)
+            else:
+                rates = np.full(len(i1_idx), mu_I2D)
+            # Tolerance → longer I₂ timer
+            t_arr = agents['tolerance'][i1_idx].astype(np.float64)
+            effective_rates = rates * (1.0 - t_arr * cfg.tau_max)
+            effective_rates = np.maximum(effective_rates, rates * 0.05)
+            dt_rem[i1_idx] = batch_sample_stage_duration(
+                effective_rates, K_SHAPE_I2, rng,
+            )
+
+        # ── I2 → D (death) ──────────────────────────────────────────
+        i2d_mask = exp_states == DiseaseState.I2
+        i2d_idx = exp_idx[i2d_mask]
+        if len(i2d_idx) > 0:
+            if pe_active:
+                v_deaths = agents['pathogen_virulence'][i2d_idx]
+                node_state.virulence_sum_deaths += float(np.sum(v_deaths))
+                node_state.virulence_count_deaths += len(i2d_idx)
+            ds[i2d_idx] = DiseaseState.D
+            agents['alive'][i2d_idx] = False
+            agents['cause_of_death'][i2d_idx] = 1  # DeathCause.DISEASE
+            new_deaths += len(i2d_idx)
+
+        # ═══ NOT-EXPIRED TIMERS: recovery checks ════════════════════
+
+        ne_idx = diseased_idx[not_expired_mask]
+        ne_states = states[not_expired_mask]
+
+        # ── I2 recovery ──────────────────────────────────────────────
+        i2_ne_mask = ne_states == DiseaseState.I2
+        i2_ne_idx = ne_idx[i2_ne_mask]
+        if len(i2_ne_idx) > 0:
+            c_arr = agents['recovery_ability'][i2_ne_idx].astype(np.float64)
+            p_rec = cfg.rho_rec * c_arr
+            draws = rng.random(len(i2_ne_idx))
+            rec_mask = draws < p_rec
+            rec_idx = i2_ne_idx[rec_mask]
+            if len(rec_idx) > 0:
+                ds[rec_idx] = DiseaseState.R
+                dt_rem[rec_idx] = 0
+                agents['pathogen_virulence'][rec_idx] = 0.0
+                new_recoveries += len(rec_idx)
+
+        # ── I1 early recovery ────────────────────────────────────────
+        i1_ne_mask = ne_states == DiseaseState.I1
+        i1_ne_idx = ne_idx[i1_ne_mask]
+        if len(i1_ne_idx) > 0:
+            c_arr = agents['recovery_ability'][i1_ne_idx].astype(np.float64)
+            above = c_arr > C_EARLY_THRESH
+            i1_cand = i1_ne_idx[above]
+            if len(i1_cand) > 0:
+                c_cand = c_arr[above]
+                p_early = cfg.rho_rec * 2.0 * (c_cand - C_EARLY_THRESH)
+                draws = rng.random(len(i1_cand))
+                rec_mask = draws < p_early
+                rec_idx = i1_cand[rec_mask]
+                if len(rec_idx) > 0:
+                    ds[rec_idx] = DiseaseState.R
+                    dt_rem[rec_idx] = 0
+                    agents['pathogen_virulence'][rec_idx] = 0.0
+                    new_recoveries += len(rec_idx)
 
     # ── STEP 4: Carcass tracking ─────────────────────────────────────
 
