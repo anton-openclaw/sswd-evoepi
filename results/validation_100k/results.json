@@ -1,0 +1,51 @@
+{
+  "elapsed_s": 2558.4,
+  "seed": 42,
+  "K": 100000,
+  "n_nodes": 5,
+  "Sitka": {
+    "final_pop": 718,
+    "crash_pct": 99.3,
+    "disease_deaths": 109151,
+    "recoveries": 875,
+    "mean_r": 0.1461,
+    "mean_t": 0.1023,
+    "mean_c": 0.0792
+  },
+  "Howe_Sound": {
+    "final_pop": 633,
+    "crash_pct": 99.4,
+    "disease_deaths": 112112,
+    "recoveries": 913,
+    "mean_r": 0.1457,
+    "mean_t": 0.1081,
+    "mean_c": 0.0755
+  },
+  "SJI": {
+    "final_pop": 733,
+    "crash_pct": 99.3,
+    "disease_deaths": 108607,
+    "recoveries": 916,
+    "mean_r": 0.1415,
+    "mean_t": 0.1099,
+    "mean_c": 0.08
+  },
+  "Newport": {
+    "final_pop": 639,
+    "crash_pct": 99.4,
+    "disease_deaths": 110563,
+    "recoveries": 922,
+    "mean_r": 0.1453,
+    "mean_t": 0.1056,
+    "mean_c": 0.0852
+  },
+  "Monterey": {
+    "final_pop": 2904,
+    "crash_pct": 97.1,
+    "disease_deaths": 125061,
+    "recoveries": 1319,
+    "mean_r": 0.1478,
+    "mean_t": 0.1,
+    "mean_c": 0.0949
+  }
+}
