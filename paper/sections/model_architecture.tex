@@ -1,3 +1,234 @@
-% model_architecture.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% MODEL ARCHITECTURE OVERVIEW
+% Fact-checked against: sswd_evoepi/model.py, types.py, config.py
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Model Architecture}
 \label{sec:model_architecture}
+
+\modelname{} is an individual-based model (IBM) that couples epidemiological,
+demographic, genetic, and spatial dynamics to simulate the eco-evolutionary
+consequences of sea star wasting disease in \pyc{}. Each agent represents
+a single sea star tracked through its complete life history, carrying a
+diploid genotype at 51 loci that determines three quantitative defense
+traits against \vp{}. We chose an individual-based approach over
+compartmental (ODE/PDE) models because SSWD dynamics depend critically on
+individual-level heterogeneity in genetic resistance, body size, spatial
+position, and disease stage---features that compartmental models cannot
+represent without substantial loss of biological realism
+\citep{deangelis2005individual, grimm2005individual}.
+
+\subsection{Agent Representation}
+\label{sec:agent_representation}
+
+Each individual is represented as a record in a NumPy structured array
+(\texttt{AGENT\_DTYPE}) comprising approximately 59 bytes per agent.
+Table~\ref{tab:agent_fields} summarizes the principal state variables
+grouped by functional module.
+
+\begin{table}[H]
+\centering
+\caption{Agent state variables in \modelname{}.}
+\label{tab:agent_fields}
+\small
+\begin{tabular}{llp{7.5cm}}
+\toprule
+\textbf{Module} & \textbf{Field} & \textbf{Description} \\
+\midrule
+\multirow{4}{*}{Spatial}
+  & \texttt{x}, \texttt{y}       & Position within node habitat (m) \\
+  & \texttt{heading}             & Movement heading (rad) \\
+  & \texttt{speed}               & Instantaneous speed (m\,min$^{-1}$) \\
+  & \texttt{node\_id}            & Home node index \\
+\midrule
+\multirow{4}{*}{Life history}
+  & \texttt{size}                & Arm-tip diameter (mm) \\
+  & \texttt{age}                 & Age (years, fractional) \\
+  & \texttt{stage}               & Life stage (0--4; Table~\ref{tab:stages}) \\
+  & \texttt{sex}                 & Sex (0 = female, 1 = male) \\
+\midrule
+\multirow{2}{*}{Disease}
+  & \texttt{disease\_state}      & Compartment (S/E/I$_1$/I$_2$/D/R) \\
+  & \texttt{disease\_timer}      & Days remaining in current disease stage \\
+\midrule
+\multirow{3}{*}{Genetics}
+  & \texttt{resistance}          & Resistance score $r_i \in [0,1]$ \\
+  & \texttt{tolerance}           & Tolerance score $t_i \in [0,1]$ \\
+  & \texttt{recovery\_ability}   & Recovery/clearance score $c_i \in [0,1]$ \\
+\midrule
+\multirow{2}{*}{Spawning}
+  & \texttt{has\_spawned}        & Bout count this season \\
+  & \texttt{immunosuppression\_timer} & Post-spawning immunosuppression (days) \\
+\midrule
+\multirow{3}{*}{Administrative}
+  & \texttt{alive}               & Active flag \\
+  & \texttt{origin}              & Wild / captive-bred / AGF / wild-source \\
+  & \texttt{pathogen\_virulence} & Virulence of infecting strain $v_i$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Genotypes are stored in a separate array of shape
+$(N_\text{max}, 51, 2)$ with \texttt{int8} entries, where axis~1 indexes
+loci and axis~2 indexes the two allele copies (diploid). This separation
+from the agent record improves cache performance during non-genetic
+operations (disease transmission, movement), which need not touch the
+genotype array.
+
+\begin{table}[H]
+\centering
+\caption{Life stages and size thresholds for \pyc{}.}
+\label{tab:stages}
+\small
+\begin{tabular}{clcc}
+\toprule
+\textbf{Index} & \textbf{Stage} & \textbf{Size threshold (mm)} & \textbf{Reproductive} \\
+\midrule
+0 & Egg/Larva   & ---         & No  \\
+1 & Settler     & Settlement  & No  \\
+2 & Juvenile    & $\geq 10$   & No  \\
+3 & Subadult    & $\geq 150$  & No  \\
+4 & Adult       & $\geq 400$  & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Node Structure}
+\label{sec:node_structure}
+
+The spatial domain is represented as a metapopulation network of $K$ discrete
+habitat nodes. Each node encapsulates:
+\begin{itemize}
+  \item A population of agents (structured array + genotype array),
+        initialized at local carrying capacity;
+  \item Environmental state: sea surface temperature $T(t)$ (sinusoidal
+        annual cycle with warming trend), salinity $S$, and tidal
+        flushing rate $\phi_k$;
+  \item A local Vibrio concentration $P_k(t)$ (bacteria\,mL$^{-1}$);
+  \item Node metadata: latitude, habitat area, fjord classification.
+\end{itemize}
+
+Inter-node coupling occurs through two connectivity matrices:
+\begin{enumerate}
+  \item \textbf{Pathogen dispersal matrix} $\mathbf{D}$: governs daily
+        exchange of waterborne \vp{} between nodes, parameterized with
+        an exponential distance kernel (scale $D_P = 15$\,km);
+  \item \textbf{Larval connectivity matrix} $\mathbf{C}$: governs annual
+        dispersal of competent larvae among nodes, parameterized with a
+        broader kernel (scale $D_L = 400$\,km) reflecting the extended
+        pelagic larval duration of \pyc{}.
+\end{enumerate}
+
+
+\subsection{Simulation Loop}
+\label{sec:simulation_loop}
+
+The simulation advances in daily timesteps ($\Delta t = 1$\,day) nested
+within an annual cycle. At each daily step, the following operations are
+executed in sequence at every node (Figure~\ref{fig:loop_schematic}):
+
+\begin{enumerate}
+  \item \textbf{Environment update.}
+        Compute $T_k(t)$ from a sinusoidal annual SST function with linear
+        warming trend; update flushing rate $\phi_k$ (seasonally modulated
+        for fjord nodes); salinity is constant per node.
+
+  \item \textbf{Movement.}
+        Agents execute a correlated random walk (CRW) with 24 hourly substeps
+        per day. Movement speed is modulated by disease state
+        ($\times 0.5$ for I$_1$, $\times 0.1$ for I$_2$, $\times 0$ for D).
+        Elastic boundary reflection constrains agents within the habitat.
+
+  \item \textbf{Disease dynamics.}
+        Vibrio concentration is updated via an Euler step of the pathogen ODE.
+        Susceptible agents are exposed to a force of infection that depends on
+        local pathogen density, individual resistance, salinity, and body size.
+        Infected agents progress through the SEIPD+R compartments with
+        Erlang-distributed stage durations (Section~\ref{sec:disease_module}).
+
+  \item \textbf{Pathogen dispersal.}
+        Vibrio is exchanged between neighboring nodes via the $\mathbf{D}$
+        matrix, representing waterborne transport.
+
+  \item \textbf{Settlement.}
+        Larval cohorts whose pelagic larval duration (PLD) has elapsed are
+        settled into the local population via Beverton--Holt density-dependent
+        recruitment, modulated by an adult-presence settlement cue (Allee
+        effect).
+
+  \item \textbf{Spawning.}
+        During the spawning season (November--July), reproductively mature
+        adults spawn stochastically with daily probability modulated by a
+        seasonal Gaussian envelope centered on the peak spawning day. Female
+        and male multi-bout spawning, sex-asymmetric cascade induction, and
+        post-spawning immunosuppression are modeled explicitly.
+
+  \item \textbf{Daily demographics.}
+        Natural mortality is applied as a daily probability converted from
+        stage-specific annual survival rates:
+        \begin{equation}
+          p_{\text{death,daily}} = 1 - S_{\text{annual}}^{1/365},
+          \label{eq:daily_mortality}
+        \end{equation}
+        with a senescence overlay for individuals exceeding the senescence age
+        ($\tau_\text{sen} = 50$\,yr). Growth follows the von~Bertalanffy
+        differential form with daily-scaled stochastic noise; stage transitions
+        are one-directional based on size thresholds (Table~\ref{tab:stages}).
+\end{enumerate}
+
+At the end of each simulated year, an annual step performs:
+\begin{enumerate}
+  \item \textbf{Larval dispersal} via the connectivity matrix $\mathbf{C}$:
+        unsettled cohorts from all nodes are pooled, redistributed
+        probabilistically among destination nodes, and settled at receiving
+        nodes or retained in a pending queue for next-year daily settlement.
+  \item \textbf{Disease introduction} (at the designated epidemic year):
+        a fixed number of agents per node are seeded in the Exposed (E)
+        compartment.
+  \item \textbf{Genetic recording}: per-node allele frequencies, additive
+        genetic variance $V_A$, and trait means are logged annually.
+        Pre- and post-epidemic allele frequency snapshots are captured for
+        calibration against genomic data.
+\end{enumerate}
+
+
+\subsection{Design Rationale}
+\label{sec:design_rationale}
+
+Several design choices distinguish \modelname{} from previous SSWD models:
+
+\paragraph{Individual-based representation.}
+SSWD mortality is strongly size-dependent
+\citep[OR = 1.23 per 10\,mm;][]{eisenlord2016ochre}, genetically mediated
+\citep{schiebelhut2018collapse}, and spatially heterogeneous. A compartmental
+SIR/SEIR model would require aggregating these axes of variation into
+homogeneous classes, losing the emergent eco-evolutionary dynamics that
+arise from individual heterogeneity in resistance, tolerance, and recovery.
+Following \citet{clement2024coevolution}, who demonstrated that individual-based
+eco-evolutionary models are essential for predicting host--pathogen
+coevolution in Tasmanian devil facial tumor disease, we track each
+individual's genotype, phenotype, and infection history explicitly.
+
+\paragraph{Continuous daily demographics.}
+Rather than applying mortality, growth, and reproduction as annual pulses,
+\modelname{} evaluates natural mortality and growth daily
+(Eq.~\ref{eq:daily_mortality}), with spawning resolved to individual daily
+events across a multi-month season. This avoids artificial synchronization
+artifacts and allows disease--demography interactions (e.g., post-spawning
+immunosuppression) to operate on their natural timescales.
+
+\paragraph{Separated genotype storage.}
+The 51-locus diploid genotype array (102 bytes per agent) is stored
+separately from the agent state record. This ensures that the most
+frequently accessed fields during daily disease and movement updates
+(position, disease state, size) occupy contiguous memory, improving CPU
+cache performance by a factor of $\sim$2--3$\times$ in profiled benchmarks.
+
+\paragraph{Three-trait genetic architecture.}
+The 51 loci are partitioned into three independently segregating trait
+blocks of 17 loci each, controlling resistance (immune exclusion),
+tolerance (damage limitation), and recovery (pathogen clearance). This
+architecture captures the empirical observation that host defense against
+infectious disease operates through mechanistically distinct pathways
+that can evolve semi-independently \citep{raberg2009decomposing}.

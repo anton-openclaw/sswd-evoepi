@@ -1,3 +1,504 @@
-% disease_module.tex — to be written
+% ══════════════════════════════════════════════════════════════════════
+% DISEASE MODULE
+% Fact-checked against: sswd_evoepi/disease.py, config.py
+% ══════════════════════════════════════════════════════════════════════
+
 \section{Disease Module}
 \label{sec:disease_module}
+
+The disease module implements a stochastic, environmentally driven
+SEIPD+R (Susceptible--Exposed--Infectious$_1$--Infectious$_2$--Dead,
+plus Recovered) compartmental framework operating at the individual level.
+Each agent carries its own disease state, countdown timer, genetic
+defense traits ($r_i$, $t_i$, $c_i$), and (when pathogen evolution is
+enabled) the virulence phenotype $v_i$ of its infecting strain. Disease
+dynamics are resolved daily at each spatial node, coupled to the
+environmental forcing module for temperature-dependent rates and to the
+genetics module for individual susceptibility.
+
+
+\subsection{Compartmental Structure}
+\label{sec:compartments}
+
+The disease pathway consists of five compartments plus a recovery state
+(Figure~\ref{fig:disease_flow}):
+
+\begin{itemize}
+  \item \textbf{S (Susceptible):} Healthy, at risk of infection.
+  \item \textbf{E (Exposed):} Latently infected; not yet shedding pathogen.
+        Duration is Erlang-distributed with shape $k_E = 3$.
+  \item \textbf{I$_1$ (Early infectious):} Pre-symptomatic shedding at
+        rate $\sigma_1(T)$. Duration is Erlang-distributed with shape
+        $k_{I_1} = 2$. Agents with high clearance ability ($c_i > 0.5$) may
+        recover early.
+  \item \textbf{I$_2$ (Late infectious):} Symptomatic wasting with high
+        shedding rate $\sigma_2(T)$. Duration is Erlang-distributed with
+        shape $k_{I_2} = 2$. Agents may recover with probability
+        $p_\text{rec} = \rho_\text{rec} \times c_i$ per day.
+  \item \textbf{D (Dead from disease):} Carcass continues to shed pathogen
+        saprophytically for a 3-day window at rate $\sigma_D$.
+  \item \textbf{R (Recovered):} Immune; functionally equivalent to S for
+        demographics but not susceptible to reinfection.
+\end{itemize}
+
+
+\subsubsection{Erlang-Distributed Stage Durations}
+\label{sec:erlang}
+
+Durations in compartments E, I$_1$, and I$_2$ are drawn from Erlang
+distributions rather than geometric (exponential) distributions. The
+Erlang distribution with shape parameter $k$ and rate parameter $k \mu$
+has mean $1/\mu$ and coefficient of variation $\text{CV} = 1/\sqrt{k}$,
+producing more realistic, peaked duration distributions compared to the
+memoryless exponential \citep{wearing2005appropriate}. For each
+individual entering a compartment, a duration is sampled as:
+\begin{equation}
+  \tau \sim \text{Erlang}(k,\; k \mu(T)),
+  \quad\text{rounded to}\quad \max(1,\;\text{round}(\tau))
+  \;\text{days},
+  \label{eq:erlang}
+\end{equation}
+where $\mu(T)$ is the temperature-dependent transition rate at the
+current SST (Section~\ref{sec:arrhenius}). The shape parameters are:
+\begin{equation}
+  k_E = 3 \;\;(\text{CV} = 0.58),
+  \quad
+  k_{I_1} = 2 \;\;(\text{CV} = 0.71),
+  \quad
+  k_{I_2} = 2 \;\;(\text{CV} = 0.71).
+  \label{eq:k_shapes}
+\end{equation}
+Timers count down by one each day; when the timer reaches zero, the
+agent transitions to the next compartment.
+
+
+\subsection{Force of Infection}
+\label{sec:force_of_infection}
+
+The per-individual instantaneous hazard rate of infection is:
+\begin{equation}
+  \lambda_i
+  = a_\text{exp}
+    \;\underbrace{\frac{P_k}{K_{1/2} + P_k}}_{\text{dose--response}}
+    \;\underbrace{(1 - r_i)}_{\text{resistance}}
+    \;\underbrace{S_\text{sal}}_{\text{salinity}}
+    \;\underbrace{f_\text{size}(L_i)}_{\text{size}},
+  \label{eq:force_of_infection}
+\end{equation}
+where:
+\begin{itemize}
+  \item $a_\text{exp} = 0.75$\,d$^{-1}$ is the baseline exposure rate;
+  \item $P_k$ is the local Vibrio concentration (bacteria\,mL$^{-1}$) at
+        node $k$;
+  \item $K_{1/2} = 87{,}000$\,bacteria\,mL$^{-1}$ is the half-infective
+        dose (Michaelis--Menten dose--response);
+  \item $r_i \in [0,1]$ is the individual's resistance score (immune
+        exclusion; Section~\ref{sec:genetics_module});
+  \item $S_\text{sal}$ is the salinity modifier
+        (Section~\ref{sec:salinity_mod});
+  \item $f_\text{size}(L_i)$ is the size-dependent susceptibility
+        modifier (Section~\ref{sec:size_suscept}).
+\end{itemize}
+
+The discrete daily probability of infection is:
+\begin{equation}
+  p_\text{inf} = 1 - \exp\!\left(-\lambda_i \,\Delta t\right),
+  \quad \Delta t = 1\;\text{day}.
+  \label{eq:p_infection}
+\end{equation}
+
+
+\subsubsection{Dose--Response Function}
+\label{sec:dose_response}
+
+Pathogen exposure follows a Michaelis--Menten (saturating) dose--response:
+\begin{equation}
+  D(P_k) = \frac{P_k}{K_{1/2} + P_k}.
+  \label{eq:dose_response}
+\end{equation}
+At low concentrations ($P_k \ll K_{1/2}$), infection probability scales
+linearly with pathogen density; at high concentrations ($P_k \gg K_{1/2}$),
+it saturates at $D \to 1$, reflecting physiological limits on pathogen
+uptake.
+
+
+\subsubsection{Salinity Modifier}
+\label{sec:salinity_mod}
+
+Vibrio viability is suppressed at low salinities, providing a mechanistic
+basis for the reduced SSWD prevalence observed in fjord systems:
+\begin{equation}
+  S_\text{sal} =
+  \begin{cases}
+    0 & \text{if } S \leq S_\text{min} = 10\;\text{psu}, \\[4pt]
+    \displaystyle\left(\frac{S - S_\text{min}}{S_\text{full} - S_\text{min}}
+    \right)^{\!\eta} & \text{if } S_\text{min} < S < S_\text{full}, \\[6pt]
+    1 & \text{if } S \geq S_\text{full} = 28\;\text{psu},
+  \end{cases}
+  \label{eq:salinity_mod}
+\end{equation}
+where $\eta = 2$ produces a convex response (low salinity is strongly
+protective).
+
+
+\subsubsection{Size-Dependent Susceptibility}
+\label{sec:size_suscept}
+
+Larger \pyc{} are more susceptible to SSWD, consistent with the
+empirical finding of \citet{eisenlord2016ochre} (odds ratio 1.23 per
+10\,mm increase in radius). The size modifier is:
+\begin{equation}
+  f_\text{size}(L_i)
+  = \exp\!\left(\beta_L \,\frac{L_i - \bar{L}}{\sigma_L}\right),
+  \label{eq:size_suscept}
+\end{equation}
+where $\beta_L = 0.021$\,mm$^{-1}$ (= $\ln 1.23 / 10$), $\bar{L} = 300$\,mm
+is the reference size, and $\sigma_L = 100$\,mm normalizes the deviation.
+An individual of diameter $L_i = 500$\,mm has $\sim$1.5$\times$ the
+infection hazard of a 300\,mm individual.
+
+
+\subsubsection{Post-Spawning Immunosuppression}
+\label{sec:immunosuppression}
+
+Spawning imposes a transient immune cost. Following each spawning event,
+an individual enters a 28-day immunosuppression window during which its
+effective resistance is reduced:
+\begin{equation}
+  r_{i,\text{eff}} = \frac{r_i}{\psi_\text{spawn}},
+  \quad
+  \psi_\text{spawn} = 2.0,
+  \label{eq:immunosuppression}
+\end{equation}
+clamped to $[0, 1]$. This halves effective resistance during the
+immunosuppressed period, creating an evolutionary coupling between
+reproductive investment and disease vulnerability.
+
+
+\subsection{Disease Progression and Recovery}
+\label{sec:progression}
+
+Disease progression rates are temperature-dependent via an Arrhenius
+function (Section~\ref{sec:arrhenius}). At each daily step, disease
+timers are decremented; when a timer reaches zero, the agent transitions
+to the next state. Recovery can occur before timer expiry.
+
+
+\subsubsection{Transition Rates}
+\label{sec:transition_rates}
+
+The base progression rates at reference temperature $T_\text{ref} = 20\,^\circ$C
+are:
+\begin{align}
+  \mu_{E \to I_1}   &= 0.57\;\text{d}^{-1}
+    & (E_a/R &= 4{,}000\;\text{K}), \label{eq:mu_EI1} \\
+  \mu_{I_1 \to I_2} &= 0.40\;\text{d}^{-1}
+    & (E_a/R &= 5{,}000\;\text{K}), \label{eq:mu_I1I2} \\
+  \mu_{I_2 \to D}   &= 0.173\;\text{d}^{-1}
+    & (E_a/R &= 2{,}000\;\text{K}). \label{eq:mu_I2D}
+\end{align}
+The activation energy for I$_2 \to$ D is notably lower ($E_a/R = 2{,}000$\,K
+vs.\ 5,000--6,000\,K for other transitions), reflecting evidence that
+terminal wasting is less temperature-sensitive than earlier disease stages
+(Errata~E1).
+
+
+\subsubsection{Temperature Scaling (Arrhenius)}
+\label{sec:arrhenius}
+
+All temperature-dependent rates are scaled via the Arrhenius equation:
+\begin{equation}
+  k(T) = k_\text{ref} \,\exp\!\left[
+    \frac{E_a}{R}\left(\frac{1}{T_\text{ref}} - \frac{1}{T}\right)
+  \right],
+  \label{eq:arrhenius}
+\end{equation}
+where $T_\text{ref} = 293.15$\,K ($20\,^\circ$C) is the reference
+temperature corresponding to the \vp{} thermal optimum
+\citep{lambert1998virulence}, and $E_a/R$ is the activation energy
+divided by the gas constant. The Arrhenius formulation ensures that
+colder temperatures slow disease progression (longer E, I$_1$, I$_2$
+durations) and reduce shedding rates, consistent with the observed
+latitudinal gradient in SSWD severity.
+
+
+\subsubsection{Tolerance: Extending I$_2$ Duration}
+\label{sec:tolerance}
+
+The tolerance trait $t_i$ operates as a damage-limitation mechanism that
+reduces the effective I$_2 \to$ D mortality rate, extending survival time
+while infected:
+\begin{equation}
+  \mu_{I_2 \to D,\text{eff}} = \mu_{I_2 \to D}(T)
+    \times \left(1 - t_i \,\tau_\text{max}\right),
+  \quad
+  \text{floored at } 0.05 \times \mu_{I_2 \to D}(T),
+  \label{eq:tolerance}
+\end{equation}
+where $\tau_\text{max} = 0.85$ is the maximum mortality reduction at
+$t_i = 1$. The floor prevents biologically implausible indefinite
+survival. The effective rate is used when sampling the I$_2$ timer
+(Eq.~\ref{eq:erlang}), so tolerant individuals spend longer in I$_2$---
+which may prolong both recovery opportunity and pathogen shedding.
+
+
+\subsubsection{Recovery}
+\label{sec:recovery}
+
+Recovery from infection proceeds via the clearance trait $c_i$, which
+represents the host's capacity for pathogen elimination.
+
+\paragraph{Recovery from I$_2$.}
+Each day, an I$_2$ individual has probability:
+\begin{equation}
+  p_{\text{rec},I_2} = \rho_\text{rec} \times c_i,
+  \quad
+  \rho_\text{rec} = 0.05\;\text{d}^{-1},
+  \label{eq:recovery_I2}
+\end{equation}
+of transitioning to the R compartment. At $c_i = 0$ (no clearance
+ability), recovery is impossible; at $c_i = 1$, the daily recovery
+probability is 5\%.
+
+\paragraph{Early recovery from I$_1$.}
+Individuals with exceptionally high clearance ability ($c_i > 0.5$) can
+recover during the pre-symptomatic stage:
+\begin{equation}
+  p_{\text{rec},I_1} =
+  \begin{cases}
+    0 & \text{if } c_i \leq 0.5, \\
+    \rho_\text{rec} \times 2\,(c_i - 0.5) & \text{if } c_i > 0.5.
+  \end{cases}
+  \label{eq:recovery_I1}
+\end{equation}
+At $c_i = 1.0$, the early recovery probability equals $\rho_\text{rec}$,
+identical to I$_2$ recovery at maximum clearance. The threshold at
+$c_i = 0.5$ ensures that only rare, high-clearance individuals can clear
+infection before progressing to the symptomatic stage.
+
+
+\subsection{Vibrio Dynamics}
+\label{sec:vibrio}
+
+The concentration of waterborne \vp{} at node $k$ evolves according to:
+\begin{equation}
+  \frac{dP_k}{dt}
+  = \underbrace{\sigma_1(T)\,n_{I_1} + \sigma_2(T)\,n_{I_2}
+    + \sigma_D\,n_{D,\text{fresh}}}_{\text{shedding}}
+  - \underbrace{\xi(T)\,P_k}_{\text{decay}}
+  - \underbrace{\phi_k\,P_k}_{\text{flushing}}
+  + \underbrace{P_\text{env}(T,S)}_{\text{reservoir}}
+  + \underbrace{\textstyle\sum_j d_{jk}\,P_j}_{\text{dispersal}},
+  \label{eq:vibrio_ode}
+\end{equation}
+integrated via forward Euler with $\Delta t = 1$\,day, subject to
+$P_k \geq 0$.
+
+
+\subsubsection{Shedding}
+\label{sec:shedding}
+
+Pathogen shedding from live infectious hosts is temperature-dependent:
+\begin{align}
+  \sigma_1(T) &= 5.0 \times \text{Arr}(T)
+    \quad\text{(I$_1$: pre-symptomatic)}, \label{eq:shed1} \\
+  \sigma_2(T) &= 50.0 \times \text{Arr}(T)
+    \quad\text{(I$_2$: symptomatic)}, \label{eq:shed2}
+\end{align}
+where $\text{Arr}(T)$ denotes the Arrhenius factor
+(Eq.~\ref{eq:arrhenius}) with $E_a/R = 5{,}000$\,K. The 10-fold
+difference between early and late shedding reflects the dramatic
+increase in tissue degradation and pathogen release during the wasting
+phase. Rates are given in bacteria\,mL$^{-1}$\,d$^{-1}$\,host$^{-1}$
+and represent field-effective values (Errata~E2).
+
+
+\subsubsection{Carcass Shedding}
+\label{sec:carcass}
+
+Dead individuals ($D$ compartment) continue to shed pathogen
+saprophytically for a 3-day window at a constant rate $\sigma_D =
+15$\,bacteria\,mL$^{-1}$\,d$^{-1}$\,carcass$^{-1}$ (field-effective;
+Code~Errata~CE-6). A ring buffer of daily disease death counts over the
+most recent 3~days tracks the number of ``fresh'' carcasses contributing
+to shedding:
+\begin{equation}
+  n_{D,\text{fresh}}(t) = \sum_{\tau=0}^{2} \text{deaths}(t - \tau).
+  \label{eq:carcass_fresh}
+\end{equation}
+
+
+\subsubsection{Vibrio Decay}
+\label{sec:decay}
+
+\vp{} survives longer in warmer water. The natural decay rate $\xi(T)$
+is interpolated log-linearly between empirical estimates:
+\begin{equation}
+  \xi(T) =
+  \begin{cases}
+    1.0\;\text{d}^{-1} & T \leq 10\,^\circ\text{C}
+      \;\;(\text{half-life} \approx 0.7\;\text{d}), \\
+    0.33\;\text{d}^{-1} & T \geq 20\,^\circ\text{C}
+      \;\;(\text{half-life} \approx 2.1\;\text{d}), \\
+    \exp\!\bigl[(1{-}f)\ln\xi_{10} + f\ln\xi_{20}\bigr]
+    & \text{otherwise},
+  \end{cases}
+  \label{eq:decay}
+\end{equation}
+where $f = (T - 10)/10$ and values are clamped outside the
+10--20\,$^\circ$C range. This counter-intuitive pattern (faster decay at
+cold temperatures) reflects the environmental Vibrio literature
+\citep{lupo2020vibrionaceae}.
+
+
+\subsubsection{Environmental Reservoir}
+\label{sec:reservoir}
+
+In the ubiquitous scenario (default), \vp{} is assumed to persist in
+the sediment as viable-but-non-culturable (VBNC) cells that resuscitate
+when SST exceeds a threshold. The background input rate is:
+\begin{equation}
+  P_\text{env}(T, S)
+  = P_\text{env,max}
+    \;\underbrace{\frac{1}{1 + e^{-\kappa_\text{VBNC}\,(T - T_\text{VBNC})}}
+    }_{\text{VBNC sigmoid}}
+    \;\underbrace{g_\text{peak}(T)}_{\text{thermal performance}}
+    \;\underbrace{S_\text{sal}}_{\text{salinity}},
+  \label{eq:P_env}
+\end{equation}
+where:
+\begin{itemize}
+  \item $P_\text{env,max} = 500$\,bacteria\,mL$^{-1}$\,d$^{-1}$ is the
+        maximum input rate;
+  \item $\kappa_\text{VBNC} = 1.0\,^\circ\text{C}^{-1}$ controls the
+        steepness of VBNC resuscitation;
+  \item $T_\text{VBNC} = 12\,^\circ$C is the midpoint temperature;
+  \item $g_\text{peak}(T)$ is a thermal performance curve with Arrhenius
+        increase below $T_\text{opt} = 20\,^\circ$C and quadratic decline
+        above, reaching zero at $T_\text{max} = 30\,^\circ$C.
+\end{itemize}
+
+In the invasion scenario, $P_\text{env} = 0$ everywhere until the
+pathogen is explicitly introduced.
+
+
+\subsection{Pathogen Evolution}
+\label{sec:pathogen_evolution}
+
+When pathogen evolution is enabled, each infectious agent carries a
+continuous virulence phenotype $v_i$ that modulates disease rates via
+mechanistic tradeoff functions.
+
+\subsubsection{Virulence--Tradeoff Curves}
+\label{sec:virulence_tradeoff}
+
+More virulent strains kill faster, shed more, and progress more rapidly,
+but also remove themselves from the host population sooner:
+\begin{align}
+  \sigma_{1,v}(T) &= \sigma_1(T) \times
+    \exp\!\bigl(\alpha_\text{shed}\,\gamma_\text{early}\,(v - v^*)\bigr),
+    \label{eq:sigma1_strain} \\
+  \sigma_{2,v}(T) &= \sigma_2(T) \times
+    \exp\!\bigl(\alpha_\text{shed}\,(v - v^*)\bigr),
+    \label{eq:sigma2_strain} \\
+  \mu_{I_1 \to I_2,v}(T) &= \mu_{I_1 \to I_2}(T) \times
+    \exp\!\bigl(\alpha_\text{prog}\,(v - v^*)\bigr),
+    \label{eq:mu_I1I2_strain} \\
+  \mu_{I_2 \to D,v}(T) &= \mu_{I_2 \to D}(T) \times
+    \exp\!\bigl(\alpha_\text{kill}\,(v - v^*)\bigr),
+    \label{eq:mu_I2D_strain}
+\end{align}
+where $v^* = 0.5$ is the ancestral virulence (identity point),
+$\alpha_\text{shed} = 1.5$, $\alpha_\text{prog} = 1.0$,
+$\alpha_\text{kill} = 2.0$, and $\gamma_\text{early} = 0.3$
+attenuates the shedding effect in the pre-symptomatic stage.
+
+\subsubsection{Transmission and Mutation}
+\label{sec:strain_inheritance}
+
+When a new infection occurs, the infecting strain is inherited either from
+a shedding individual (weighted by shedding rate) or from the environmental
+reservoir (with virulence $v_\text{env} = 0.5$). The probability of
+inheriting from a shedder is proportional to the total host-derived
+shedding relative to total pathogen input:
+\begin{equation}
+  P(\text{from shedder})
+  = \frac{\sum_j \sigma_j(v_j, T)}
+         {\sum_j \sigma_j(v_j, T) + P_\text{env}(T, S)}.
+  \label{eq:p_from_shedder}
+\end{equation}
+
+The inherited virulence is then subject to mutation:
+\begin{equation}
+  v_\text{new} = \text{clip}\!\left(
+    v_\text{parent} + \mathcal{N}(0,\;\sigma_{v,\text{mut}}^2),
+    \;v_\text{min},\;v_\text{max}
+  \right),
+  \label{eq:mutation}
+\end{equation}
+with $\sigma_{v,\text{mut}} = 0.02$, $v_\text{min} = 0$,
+$v_\text{max} = 1$.
+
+
+\subsection{Basic Reproduction Number}
+\label{sec:R0}
+
+The basic reproduction number provides a summary measure of epidemic
+potential at a node:
+\begin{equation}
+  R_0 = \frac{a_\text{exp} \,S_0\,(1 - \bar{r})\,S_\text{sal}}
+             {K_{1/2}\,(\xi(T) + \phi_k)}
+  \left[
+    \frac{\sigma_1(T)}{\mu_{I_1 \to I_2}(T)}
+    + \frac{\sigma_2(T)}{\mu_{I_2 \to D,\text{eff}}(T)
+            + \rho_\text{rec}\,\bar{c}}
+    + \sigma_D \,\tau_D
+  \right],
+  \label{eq:R0}
+\end{equation}
+where $S_0$ is the number of susceptibles, $\bar{r}$ and $\bar{c}$ are
+population-mean resistance and recovery scores, $\mu_{I_2 \to D,\text{eff}}$
+incorporates population-mean tolerance (Eq.~\ref{eq:tolerance}),
+$\rho_\text{rec}\,\bar{c}$ adds the recovery exit rate from I$_2$,
+and $\tau_D = 3$\,days is the carcass shedding duration. The three
+bracketed terms represent the pathogen contribution from each infectious
+compartment (I$_1$, I$_2$, and D carcasses, respectively).
+
+
+\subsection{Daily Update Sequence}
+\label{sec:daily_disease_sequence}
+
+Within each daily timestep, the disease module executes the following
+steps in order:
+
+\begin{enumerate}
+  \item \textbf{Update Vibrio concentration} via Euler integration of
+        Eq.~\ref{eq:vibrio_ode}, using current compartment counts and
+        environmental conditions.
+
+  \item \textbf{Transmission (S $\to$ E):} For each susceptible agent,
+        compute the force of infection $\lambda_i$
+        (Eq.~\ref{eq:force_of_infection}), convert to daily probability
+        (Eq.~\ref{eq:p_infection}), and draw a Bernoulli infection event.
+        Newly exposed agents receive an Erlang-sampled E-stage timer.
+        When pathogen evolution is active, the infecting strain is
+        inherited and mutated (Section~\ref{sec:strain_inheritance}).
+
+  \item \textbf{Disease progression:} Decrement all disease timers.
+        For agents with expired timers: E $\to$ I$_1$, I$_1$ $\to$ I$_2$
+        (with tolerance-adjusted timer), I$_2$ $\to$ D. For agents with
+        active timers: check recovery from I$_2$
+        (Eq.~\ref{eq:recovery_I2}) and early recovery from I$_1$
+        (Eq.~\ref{eq:recovery_I1}).
+
+  \item \textbf{Carcass tracking:} Record today's disease deaths in the
+        3-day ring buffer for saprophytic shedding.
+
+  \item \textbf{Update diagnostics:} Recount compartments, update
+        cumulative statistics (total infections, deaths, recoveries),
+        track peak prevalence and peak Vibrio.
+\end{enumerate}
+
+All operations are vectorized using NumPy batch sampling and
+array-level random draws for computational efficiency, achieving
+$O(N)$ scaling in population size.
