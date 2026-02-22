@@ -1463,12 +1463,18 @@ class TestStrainInheritance:
                 cfg=disease_cfg_hi, rng=rng, pe_cfg=pe_cfg,
             )
 
-        # Check that recovered agents have virulence = 0.0
-        recovered = agents['disease_state'] == DiseaseState.R
-        assert np.sum(recovered) > 0, "No recoveries occurred"
-        recovered_v = agents['pathogen_virulence'][recovered]
-        assert np.all(recovered_v == 0.0), (
-            f"Recovered agents should have v=0.0, got {recovered_v}"
+        # R→S: recovered agents return to Susceptible (echinoderms lack adaptive immunity)
+        # With vibrio_concentration=0, no reinfection occurs, so all S agents should have v=0.
+        assert node_state.cumulative_recoveries > 0, "No recoveries occurred"
+        # No agents should be in R state anymore
+        assert np.sum(agents['disease_state'] == DiseaseState.R) == 0, (
+            "No agents should be in DiseaseState.R after R→S fix"
+        )
+        # All susceptible agents (including recovered) should have virulence reset to 0.0
+        susceptible = agents['disease_state'] == DiseaseState.S
+        susceptible_v = agents['pathogen_virulence'][susceptible]
+        assert np.all(susceptible_v == 0.0), (
+            f"Susceptible agents (including recovered) should have v=0.0, got {susceptible_v}"
         )
 
     def test_strain_disabled_no_virulence(self, disease_cfg):
