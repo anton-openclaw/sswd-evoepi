@@ -109,7 +109,7 @@ class TestArrhenius:
 
     def test_i2d_rate_eisenlord_hr(self):
         """I₂→D hazard ratio at 19°C vs 12°C should be ~1.18 (Eisenlord 2016)."""
-        mu_ref = 0.173  # at 20°C
+        mu_ref = 0.563  # at 20°C (Prentice 2025 calibration)
         Ea_over_R = 2000.0
         mu_12 = arrhenius(mu_ref, Ea_over_R, 12.0)
         mu_19 = arrhenius(mu_ref, Ea_over_R, 19.0)
@@ -452,8 +452,13 @@ class TestR0:
     """Tests for basic reproduction number computation."""
 
     def test_epidemic_at_15C_fjord(self, cfg):
-        """R₀ > 1 at 15°C in a fjord → epidemic possible."""
-        R0 = compute_R0(15.0, 500, 0.02, cfg)
+        """R₀ > 1 at 15°C in a fjord with pre-crash density → epidemic possible.
+
+        Prentice 2025 calibration: shorter I₂ means less shedding time,
+        so R0>1 requires higher density (N≥750). Pre-crash Pycnopodia
+        densities were well above this threshold.
+        """
+        R0 = compute_R0(15.0, 2000, 0.02, cfg)
         assert R0 > 1.0
 
     def test_no_epidemic_at_8C(self, cfg):
@@ -980,8 +985,8 @@ class TestErrataCompliance:
         assert R0 > 0  # Computes without error
 
     def test_mu_i2d_ref_corrected(self, cfg):
-        """μ_I₂D ref at 20°C should be 0.173 (corrected for E_a/R=2000)."""
-        assert cfg.mu_I2D_ref == pytest.approx(0.173, rel=0.01)
+        """μ_I₂D ref at 20°C should be 0.563 (Prentice 2025 calibration)."""
+        assert cfg.mu_I2D_ref == pytest.approx(0.563, rel=0.01)
 
 
 # ═══════════════════════════════════════════════════════════════════════

@@ -221,7 +221,7 @@ class TestSections:
         ds = DiseaseSection()
         assert ds.scenario == "ubiquitous"
         assert ds.Ea_I2D == 2000.0  # ERRATA E1
-        assert ds.mu_I2D_ref == 0.173
+        assert ds.mu_I2D_ref == 0.563
         assert ds.sigma_D == 15.0    # CE-6: reduced from 150
         assert ds.T_ref == 20.0
 

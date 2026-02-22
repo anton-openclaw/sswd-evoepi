@@ -141,9 +141,11 @@ class DiseaseSection:
     Ea_sigma: float = 5000.0      # Shedding E_a/R (K)
 
     # Disease progression rates at T_ref=20°C
-    mu_EI1_ref: float = 0.57      # E→I₁ rate (d⁻¹)
-    mu_I1I2_ref: float = 0.40     # I₁→I₂ rate (d⁻¹)
-    mu_I2D_ref: float = 0.173     # I₂→D rate (d⁻¹; ERRATA E1 corrected)
+    # Calibrated to Prentice et al. 2025 (Nature E&E): mean 11.6d exposure→death,
+    # 5.6d symptoms→death at ~13°C, Arrhenius-corrected to 20°C reference.
+    mu_EI1_ref: float = 0.233     # E→I₁ rate (d⁻¹); 4.3d at 20°C, 6.0d at 13°C
+    mu_I1I2_ref: float = 0.434    # I₁→I₂ rate (d⁻¹); 2.3d at 20°C, 3.5d at 13°C
+    mu_I2D_ref: float = 0.563     # I₂→D rate (d⁻¹); 1.8d at 20°C, 2.1d at 13°C
 
     # Activation energies (E_a/R in K)
     Ea_EI1: float = 4000.0

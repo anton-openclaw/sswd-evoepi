@@ -41,12 +41,12 @@ PARAM_SPEC = OrderedDict([
         "desc": "Recovery rate (d⁻¹)", "confidence": "★☆☆",
     }),
     ("disease.mu_EI1_ref", {
-        "low": 0.20, "high": 1.00, "dist": "uniform",
-        "desc": "E→I1 progression rate at T_ref", "confidence": "★★☆",
+        "low": 0.155, "high": 0.465, "dist": "uniform",
+        "desc": "E→I1 progression rate at T_ref (Prentice 2025)", "confidence": "★★★",
     }),
     ("disease.mu_I2D_ref", {
-        "low": 0.08, "high": 0.35, "dist": "uniform",
-        "desc": "I2→Death rate at T_ref", "confidence": "★★☆",
+        "low": 0.375, "high": 1.125, "dist": "uniform",
+        "desc": "I2→Death rate at T_ref (Prentice 2025)", "confidence": "★★★",
     }),
     ("disease.P_env_max", {
         "low": 50.0, "high": 5000.0, "dist": "loguniform",
@@ -135,8 +135,8 @@ PARAM_SPEC = OrderedDict([
     # ── NEW PARAMS (SA Round 2) ──────────────────────────────────────
     # Disease — missing middle transition + immunosuppression duration
     ("disease.mu_I1I2_ref", {
-        "low": 0.15, "high": 0.80, "dist": "uniform",
-        "desc": "I1→I2 progression rate at T_ref", "confidence": "★★☆",
+        "low": 0.289, "high": 0.867, "dist": "uniform",
+        "desc": "I1→I2 progression rate at T_ref (Prentice 2025)", "confidence": "★★☆",
     }),
     ("disease.immunosuppression_duration", {
         "low": 7, "high": 56, "dist": "uniform",
