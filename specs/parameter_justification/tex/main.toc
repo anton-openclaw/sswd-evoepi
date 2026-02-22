@@ -1,0 +1,237 @@
+\contentsline {section}{Model Background}{4}{section*.2}%
+\contentsline {paragraph}{Disease.}{4}{section*.3}%
+\contentsline {paragraph}{Genetics.}{4}{section*.4}%
+\contentsline {paragraph}{Population ecology.}{4}{section*.5}%
+\contentsline {paragraph}{Scope of this report.}{4}{section*.6}%
+\contentsline {section}{\numberline {1}Disease Progression Rates}{5}{section.1}%
+\contentsline {subsection}{\numberline {1.1}mu\_EI1\_ref ($\mu _{EI_1}$)}{5}{subsection.1.1}%
+\contentsline {paragraph}{First Principles}{5}{section*.7}%
+\contentsline {paragraph}{Literature Evidence}{5}{section*.8}%
+\contentsline {paragraph}{Recommendation}{5}{section*.9}%
+\contentsline {subsection}{\numberline {1.2}mu\_I1I2\_ref ($\mu _{I_1I_2}$)}{5}{subsection.1.2}%
+\contentsline {paragraph}{First Principles}{5}{section*.10}%
+\contentsline {paragraph}{Literature Evidence}{5}{section*.11}%
+\contentsline {paragraph}{Recommendation}{6}{section*.12}%
+\contentsline {subsection}{\numberline {1.3}mu\_I2D\_ref ($\mu _{I_2D}$)}{6}{subsection.1.3}%
+\contentsline {paragraph}{First Principles}{6}{section*.13}%
+\contentsline {paragraph}{Literature Evidence}{6}{section*.14}%
+\contentsline {paragraph}{Recommendation}{6}{section*.15}%
+\contentsline {subsection}{\numberline {1.4}Parameter Interactions and Model Implications}{6}{subsection.1.4}%
+\contentsline {section}{\numberline {2}Pathogen Shedding \& Dose-Response}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}$a_{\text {exposure}}$ — Exposure Rate}{7}{subsection.2.1}%
+\contentsline {paragraph}{First Principles}{7}{section*.16}%
+\contentsline {paragraph}{Literature Evidence}{7}{section*.17}%
+\contentsline {paragraph}{Recommendation}{7}{section*.18}%
+\contentsline {subsection}{\numberline {2.2}$K_{\text {half}}$ — Half-Infective Dose}{7}{subsection.2.2}%
+\contentsline {paragraph}{First Principles}{7}{section*.19}%
+\contentsline {paragraph}{Literature Evidence}{8}{section*.20}%
+\contentsline {paragraph}{Recommendation}{8}{section*.21}%
+\contentsline {subsection}{\numberline {2.3}$\sigma _{1,\text {eff}}$ — $I_1$ Shedding Rate}{8}{subsection.2.3}%
+\contentsline {paragraph}{First Principles}{8}{section*.22}%
+\contentsline {paragraph}{Literature Evidence}{8}{section*.23}%
+\contentsline {paragraph}{Recommendation}{8}{section*.24}%
+\contentsline {subsection}{\numberline {2.4}$\sigma _{2,\text {eff}}$ — $I_2$ Shedding Rate}{9}{subsection.2.4}%
+\contentsline {paragraph}{First Principles}{9}{section*.25}%
+\contentsline {paragraph}{Literature Evidence}{9}{section*.26}%
+\contentsline {paragraph}{Recommendation}{9}{section*.27}%
+\contentsline {subsection}{\numberline {2.5}$\sigma _D$ — Saprophytic Burst from Dead}{9}{subsection.2.5}%
+\contentsline {paragraph}{First Principles}{9}{section*.28}%
+\contentsline {paragraph}{Literature Evidence}{9}{section*.29}%
+\contentsline {paragraph}{Recommendation}{9}{section*.30}%
+\contentsline {subsection}{\numberline {2.6}Synthesis and Interactions}{10}{subsection.2.6}%
+\contentsline {section}{\numberline {3}Environmental Pathogen Dynamics}{10}{section.3}%
+\contentsline {subsection}{\numberline {3.1}P\_env\_max — Background Environmental Vibrio Input}{10}{subsection.3.1}%
+\contentsline {paragraph}{First Principles}{10}{section*.31}%
+\contentsline {paragraph}{Literature Evidence}{10}{section*.32}%
+\contentsline {paragraph}{Recommendation}{10}{section*.33}%
+\contentsline {subsection}{\numberline {3.2}T\_ref — V. pectenicida Optimal Temperature}{11}{subsection.3.2}%
+\contentsline {paragraph}{First Principles}{11}{section*.34}%
+\contentsline {paragraph}{Literature Evidence}{11}{section*.35}%
+\contentsline {paragraph}{Recommendation}{11}{section*.36}%
+\contentsline {subsection}{\numberline {3.3}T\_vbnc — VBNC Midpoint Temperature}{11}{subsection.3.3}%
+\contentsline {paragraph}{First Principles}{11}{section*.37}%
+\contentsline {paragraph}{Literature Evidence}{11}{section*.38}%
+\contentsline {paragraph}{Recommendation}{11}{section*.39}%
+\contentsline {subsection}{\numberline {3.4}s\_min — Minimum Salinity for Vibrio Viability}{11}{subsection.3.4}%
+\contentsline {paragraph}{First Principles}{11}{section*.40}%
+\contentsline {paragraph}{Literature Evidence}{11}{section*.41}%
+\contentsline {paragraph}{Recommendation}{12}{section*.42}%
+\contentsline {section}{\numberline {4}Recovery \& Immunity}{12}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Recovery Rate Scaling (\texttt {rho\_rec})}{12}{subsection.4.1}%
+\contentsline {paragraph}{First Principles}{12}{section*.43}%
+\contentsline {paragraph}{Literature Evidence}{12}{section*.44}%
+\contentsline {paragraph}{Recommendation}{12}{section*.45}%
+\contentsline {subsection}{\numberline {4.2}Post-Spawning Immunosuppression Factor (\texttt {susceptibility\_multiplier})}{12}{subsection.4.2}%
+\contentsline {paragraph}{First Principles}{12}{section*.46}%
+\contentsline {paragraph}{Literature Evidence}{12}{section*.47}%
+\contentsline {paragraph}{Recommendation}{13}{section*.48}%
+\contentsline {subsection}{\numberline {4.3}Immunosuppression Duration (\texttt {immunosuppression\_duration})}{13}{subsection.4.3}%
+\contentsline {paragraph}{First Principles}{13}{section*.49}%
+\contentsline {paragraph}{Literature Evidence}{13}{section*.50}%
+\contentsline {paragraph}{Recommendation}{13}{section*.51}%
+\contentsline {subsection}{\numberline {4.4}Minimum Susceptible Age (\texttt {min\_susceptible\_age\_days})}{13}{subsection.4.4}%
+\contentsline {paragraph}{First Principles}{13}{section*.52}%
+\contentsline {paragraph}{Literature Evidence}{13}{section*.53}%
+\contentsline {paragraph}{Recommendation}{13}{section*.54}%
+\contentsline {subsection}{\numberline {4.5}Research Priorities \& Calibration Strategy}{13}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Growth \& Life History}{14}{section.5}%
+\contentsline {subsection}{\numberline {5.1}k\_growth (Von Bertalanffy Growth Rate)}{14}{subsection.5.1}%
+\contentsline {paragraph}{First Principles}{14}{section*.55}%
+\contentsline {paragraph}{Literature Evidence}{14}{section*.56}%
+\contentsline {paragraph}{Recommendation}{14}{section*.57}%
+\contentsline {subsection}{\numberline {5.2}L\_min\_repro (Minimum Reproductive Size)}{14}{subsection.5.2}%
+\contentsline {paragraph}{First Principles}{14}{section*.58}%
+\contentsline {paragraph}{Literature Evidence}{14}{section*.59}%
+\contentsline {paragraph}{Recommendation}{15}{section*.60}%
+\contentsline {subsection}{\numberline {5.3}senescence\_age (Senescence Onset Age)}{15}{subsection.5.3}%
+\contentsline {paragraph}{First Principles}{15}{section*.61}%
+\contentsline {paragraph}{Literature Evidence}{15}{section*.62}%
+\contentsline {paragraph}{Recommendation}{15}{section*.63}%
+\contentsline {subsection}{\numberline {5.4}alpha\_srs (Size-Recruitment Survival Pareto Shape)}{15}{subsection.5.4}%
+\contentsline {paragraph}{First Principles}{15}{section*.64}%
+\contentsline {paragraph}{Literature Evidence}{16}{section*.65}%
+\contentsline {paragraph}{Recommendation}{16}{section*.66}%
+\contentsline {subsection}{\numberline {5.5}Cross-Parameter Constraints}{16}{subsection.5.5}%
+\contentsline {subsubsection}{\numberline {5.5.1}Growth-Mortality Balance}{16}{subsubsection.5.5.1}%
+\contentsline {subsubsection}{\numberline {5.5.2}Size Structure Effects}{16}{subsubsection.5.5.2}%
+\contentsline {subsubsection}{\numberline {5.5.3}Population Viability}{16}{subsubsection.5.5.3}%
+\contentsline {subsection}{\numberline {5.6}Knowledge Gaps and Research Priorities}{16}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Fecundity \& Recruitment}{16}{section.6}%
+\contentsline {subsection}{\numberline {6.1}F0: Reference Fecundity}{17}{subsection.6.1}%
+\contentsline {paragraph}{First Principles}{17}{section*.67}%
+\contentsline {paragraph}{Literature Evidence}{17}{section*.68}%
+\contentsline {paragraph}{Recommendation}{17}{section*.69}%
+\contentsline {subsection}{\numberline {6.2}gamma\_fert: Fertilization Kinetics Parameter}{17}{subsection.6.2}%
+\contentsline {paragraph}{First Principles}{17}{section*.70}%
+\contentsline {paragraph}{Literature Evidence}{17}{section*.71}%
+\contentsline {paragraph}{Recommendation}{18}{section*.72}%
+\contentsline {subsection}{\numberline {6.3}settler\_survival: Beverton-Holt Settler Survival}{18}{subsection.6.3}%
+\contentsline {paragraph}{First Principles}{18}{section*.73}%
+\contentsline {paragraph}{Literature Evidence}{18}{section*.74}%
+\contentsline {paragraph}{Recommendation}{18}{section*.75}%
+\contentsline {subsection}{\numberline {6.4}Parameter Interactions and Calibration Strategy}{19}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Genetic Architecture}{19}{section.7}%
+\contentsline {subsection}{\numberline {7.1}n\_resistance}{19}{subsection.7.1}%
+\contentsline {paragraph}{Range:}{19}{section*.76}%
+\contentsline {paragraph}{First Principles}{19}{section*.77}%
+\contentsline {paragraph}{Literature Evidence}{19}{section*.78}%
+\contentsline {paragraph}{Recommendation}{20}{section*.79}%
+\contentsline {subsection}{\numberline {7.2}n\_tolerance}{20}{subsection.7.2}%
+\contentsline {paragraph}{Range:}{20}{section*.80}%
+\contentsline {paragraph}{First Principles}{20}{section*.81}%
+\contentsline {paragraph}{Literature Evidence}{20}{section*.82}%
+\contentsline {paragraph}{Recommendation}{20}{section*.83}%
+\contentsline {subsection}{\numberline {7.3}target\_mean\_r}{20}{subsection.7.3}%
+\contentsline {paragraph}{Range:}{20}{section*.84}%
+\contentsline {paragraph}{First Principles}{20}{section*.85}%
+\contentsline {paragraph}{Literature Evidence}{20}{section*.86}%
+\contentsline {paragraph}{Recommendation}{21}{section*.87}%
+\contentsline {subsection}{\numberline {7.4}target\_mean\_t}{21}{subsection.7.4}%
+\contentsline {paragraph}{Range:}{21}{section*.88}%
+\contentsline {paragraph}{First Principles}{21}{section*.89}%
+\contentsline {paragraph}{Literature Evidence}{21}{section*.90}%
+\contentsline {paragraph}{Recommendation}{21}{section*.91}%
+\contentsline {subsection}{\numberline {7.5}target\_mean\_c}{21}{subsection.7.5}%
+\contentsline {paragraph}{Range:}{21}{section*.92}%
+\contentsline {paragraph}{First Principles}{21}{section*.93}%
+\contentsline {paragraph}{Literature Evidence}{21}{section*.94}%
+\contentsline {paragraph}{Recommendation}{21}{section*.95}%
+\contentsline {subsection}{\numberline {7.6}tau\_max}{21}{subsection.7.6}%
+\contentsline {paragraph}{Range:}{21}{section*.96}%
+\contentsline {paragraph}{First Principles}{22}{section*.97}%
+\contentsline {paragraph}{Literature Evidence}{22}{section*.98}%
+\contentsline {paragraph}{Recommendation}{22}{section*.99}%
+\contentsline {subsection}{\numberline {7.7}q\_init\_beta\_a}{22}{subsection.7.7}%
+\contentsline {paragraph}{Range:}{22}{section*.100}%
+\contentsline {paragraph}{First Principles}{22}{section*.101}%
+\contentsline {paragraph}{Literature Evidence}{22}{section*.102}%
+\contentsline {paragraph}{Recommendation}{22}{section*.103}%
+\contentsline {subsection}{\numberline {7.8}q\_init\_beta\_b}{22}{subsection.7.8}%
+\contentsline {paragraph}{Range:}{22}{section*.104}%
+\contentsline {paragraph}{First Principles}{23}{section*.105}%
+\contentsline {paragraph}{Literature Evidence}{23}{section*.106}%
+\contentsline {paragraph}{Recommendation}{23}{section*.107}%
+\contentsline {subsection}{\numberline {7.9}Synthesis}{23}{subsection.7.9}%
+\contentsline {section}{\numberline {8}Spawning Timing Parameters}{23}{section.8}%
+\contentsline {subsection}{\numberline {8.1}p\_spontaneous\_female: Daily Spontaneous Spawning Probability (Females)}{24}{subsection.8.1}%
+\contentsline {paragraph}{First Principles}{24}{section*.108}%
+\contentsline {paragraph}{Literature Evidence}{24}{section*.109}%
+\contentsline {paragraph}{Recommendation}{24}{section*.110}%
+\contentsline {subsection}{\numberline {8.2}p\_spontaneous\_male: Daily Spontaneous Spawning Probability (Males)}{24}{subsection.8.2}%
+\contentsline {paragraph}{First Principles}{24}{section*.111}%
+\contentsline {paragraph}{Literature Evidence}{24}{section*.112}%
+\contentsline {paragraph}{Recommendation}{24}{section*.113}%
+\contentsline {subsection}{\numberline {8.3}peak\_width\_days: Seasonal Peak Standard Deviation}{24}{subsection.8.3}%
+\contentsline {paragraph}{First Principles}{24}{section*.114}%
+\contentsline {paragraph}{Literature Evidence}{25}{section*.115}%
+\contentsline {paragraph}{Recommendation}{25}{section*.116}%
+\contentsline {subsection}{\numberline {8.4}female\_max\_bouts: Maximum Female Spawning Bouts}{25}{subsection.8.4}%
+\contentsline {paragraph}{First Principles}{25}{section*.117}%
+\contentsline {paragraph}{Literature Evidence}{25}{section*.118}%
+\contentsline {paragraph}{Recommendation}{25}{section*.119}%
+\contentsline {subsection}{\numberline {8.5}Research Priorities and Model Implications}{25}{subsection.8.5}%
+\contentsline {section}{\numberline {9}Spawning Induction}{26}{section.9}%
+\contentsline {subsection}{\numberline {9.1}induction\_female\_to\_male ($\kappa _{fm} = 0.80$)}{26}{subsection.9.1}%
+\contentsline {paragraph}{First Principles}{26}{section*.120}%
+\contentsline {paragraph}{Literature Evidence}{26}{section*.121}%
+\contentsline {paragraph}{Recommendation}{26}{section*.122}%
+\contentsline {subsection}{\numberline {9.2}induction\_male\_to\_female ($\kappa _{mf} = 0.60$)}{26}{subsection.9.2}%
+\contentsline {paragraph}{First Principles}{26}{section*.123}%
+\contentsline {paragraph}{Literature Evidence}{26}{section*.124}%
+\contentsline {paragraph}{Recommendation}{27}{section*.125}%
+\contentsline {subsection}{\numberline {9.3}readiness\_induction\_prob (0.50)}{27}{subsection.9.3}%
+\contentsline {paragraph}{First Principles}{27}{section*.126}%
+\contentsline {paragraph}{Literature Evidence}{27}{section*.127}%
+\contentsline {paragraph}{Recommendation}{27}{section*.128}%
+\contentsline {section}{\numberline {10}Larval Dispersal \& Connectivity}{27}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Dispersal Scale Parameter ($D_L$)}{27}{subsection.10.1}%
+\contentsline {paragraph}{First Principles}{27}{section*.129}%
+\contentsline {paragraph}{Literature Evidence}{28}{section*.130}%
+\contentsline {paragraph}{Recommendation}{28}{section*.131}%
+\contentsline {subsection}{\numberline {10.2}Fjord Self-Recruitment ($\alpha _{\text {self,fjord}}$)}{28}{subsection.10.2}%
+\contentsline {paragraph}{First Principles}{28}{section*.132}%
+\contentsline {paragraph}{Literature Evidence}{28}{section*.133}%
+\contentsline {paragraph}{Recommendation}{29}{section*.134}%
+\contentsline {subsection}{\numberline {10.3}Open Coast Self-Recruitment ($\alpha _{\text {self,open}}$)}{29}{subsection.10.3}%
+\contentsline {paragraph}{First Principles}{29}{section*.135}%
+\contentsline {paragraph}{Literature Evidence}{29}{section*.136}%
+\contentsline {paragraph}{Recommendation}{29}{section*.137}%
+\contentsline {subsection}{\numberline {10.4}Model Integration and Sensitivity}{29}{subsection.10.4}%
+\contentsline {section}{\numberline {11}Pathogen Evolution}{29}{section.11}%
+\contentsline {subsection}{\numberline {11.1}alpha\_kill (Mortality Scaling Exponent)}{30}{subsection.11.1}%
+\contentsline {paragraph}{First Principles}{30}{section*.138}%
+\contentsline {paragraph}{Literature Evidence}{30}{section*.139}%
+\contentsline {paragraph}{Recommendation}{30}{section*.140}%
+\contentsline {subsection}{\numberline {11.2}alpha\_shed (Transmission Scaling Exponent)}{30}{subsection.11.2}%
+\contentsline {paragraph}{First Principles}{30}{section*.141}%
+\contentsline {paragraph}{Literature Evidence}{30}{section*.142}%
+\contentsline {paragraph}{Recommendation}{30}{section*.143}%
+\contentsline {subsection}{\numberline {11.3}alpha\_prog (Disease Progression Exponent)}{30}{subsection.11.3}%
+\contentsline {paragraph}{First Principles}{30}{section*.144}%
+\contentsline {paragraph}{Literature Evidence}{30}{section*.145}%
+\contentsline {paragraph}{Recommendation}{30}{section*.146}%
+\contentsline {subsection}{\numberline {11.4}gamma\_early (Early Shedding Fraction)}{31}{subsection.11.4}%
+\contentsline {paragraph}{First Principles}{31}{section*.147}%
+\contentsline {paragraph}{Literature Evidence}{31}{section*.148}%
+\contentsline {paragraph}{Recommendation}{31}{section*.149}%
+\contentsline {subsection}{\numberline {11.5}sigma\_v\_mutation (Virulence Mutation Step Size)}{31}{subsection.11.5}%
+\contentsline {paragraph}{First Principles}{31}{section*.150}%
+\contentsline {paragraph}{Literature Evidence}{31}{section*.151}%
+\contentsline {paragraph}{Recommendation}{31}{section*.152}%
+\contentsline {subsection}{\numberline {11.6}v\_init (Initial Virulence)}{31}{subsection.11.6}%
+\contentsline {paragraph}{First Principles}{31}{section*.153}%
+\contentsline {paragraph}{Literature Evidence}{31}{section*.154}%
+\contentsline {paragraph}{Recommendation}{32}{section*.155}%
+\contentsline {section}{\numberline {12}Summary and Synthesis}{32}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Confidence Assessment Distribution}{32}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Morris Sensitivity Analysis Cross-Reference}{32}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Calibration Priority Matrix}{33}{subsection.12.3}%
+\contentsline {paragraph}{Highest Priority (High Influence + Low Confidence):}{33}{section*.156}%
+\contentsline {paragraph}{High Priority (High Influence + Medium Confidence):}{33}{section*.157}%
+\contentsline {paragraph}{Medium Priority (Lower influence but calibratable):}{33}{section*.158}%
+\contentsline {paragraph}{Deferred (High confidence regardless of influence):}{33}{section*.159}%
+\contentsline {subsection}{\numberline {12.4}Recommended Calibration Strategy}{33}{subsection.12.4}%
+\contentsline {paragraph}{Phase 1: Target validation data fitting}{33}{section*.160}%
+\contentsline {paragraph}{Phase 2: Population dynamics validation}{33}{section*.161}%
+\contentsline {subsection}{\numberline {12.5}Key Data Gaps}{33}{subsection.12.5}%
+\contentsline {section}{References}{34}{section*.162}%

@@ -1,0 +1,171 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+% Confidence colors
+\newcommand{\confhigh}{\textcolor{green!60!black}{\textbf{HIGH}}}
+\newcommand{\confmed}{\textcolor{orange!80!black}{\textbf{MEDIUM}}}
+\newcommand{\conflow}{\textcolor{red!70!black}{\textbf{LOW}}}
+
+\title{SSWD-EvoEpi Parameter Justification Report\\
+\large Literature Review \& First-Principles Analysis for 47 Model Parameters}
+\author{Anton (AI Research Assistant) \& Willem Weertman\\
+University of Washington, Department of Psychology\\
+Friday Harbor Laboratories}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report documents the empirical basis and theoretical justification for all 47 parameters
+in the SSWD-EvoEpi coupled eco-evolutionary epidemiological agent-based model for
+\textit{Pycnopodia helianthoides} and sea star wasting disease (SSWD). For each parameter,
+we present a first-principles analysis of mechanistic constraints, a literature review drawing
+on 103 papers in our local library, recommended values, sensitivity analysis ranges, and
+honest confidence assessments. Parameters are organized into 11 thematic groups spanning
+disease dynamics, population ecology, genetics, spawning biology, larval dispersal, and
+pathogen evolution.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section*{Model Background}
+\addcontentsline{toc}{section}{Model Background}
+
+SSWD-EvoEpi is an individual-based, spatially explicit model coupling epidemiological dynamics with eco-evolutionary genetics for the sunflower sea star \textit{Pycnopodia helianthoides}. The model was built to explore whether captive-bred reintroduction can restore wild populations following the catastrophic die-offs caused by sea star wasting disease (SSWD), now attributed to the marine bacterium \textit{Vibrio pectenicida} \citep{prentice2025}.
+
+\paragraph{Disease.} Individuals progress through an S$\to$E$\to$I\textsubscript{1}$\to$I\textsubscript{2}$\to$D pathway. Exposure is dose-dependent, driven by contact with infected conspecifics and a background environmental pathogen pool ($P_\text{env}$) that abstracts multi-species community maintenance. Infection probability is modulated by an individual's genetic resistance trait. Stage durations are drawn from Gamma distributions parameterized against the laboratory challenge timelines of \citet{prentice2025}. Because echinoderms lack adaptive immunity, recovered individuals return to the susceptible pool (S$\to$E$\to\cdots\to$R$\to$S).
+
+\paragraph{Genetics.} Each individual carries a diploid genome of 51 biallelic loci (after \citealt{schiebelhut2018collapse}), partitioned into three functional groups of 17 loci each:
+\begin{itemize}[nosep]
+  \item \textbf{Resistance ($r_i$)} --- immune exclusion; reduces per-exposure infection probability.
+  \item \textbf{Tolerance ($t_i$)} --- damage limitation; extends I\textsubscript{2} survival time via timer-scaling ($\tau_\text{max}=0.85$), giving more recovery opportunities.
+  \item \textbf{Recovery ($c_i$)} --- pathogen clearance; daily recovery probability $p_\text{rec} = \rho_\text{rec} \times c_i$.
+\end{itemize}
+Traits are inherited with free recombination across loci, and mutation introduces low-frequency novel alleles each generation.
+
+\paragraph{Population ecology.} Nodes represent discrete habitat patches connected by a stepping-stone larval dispersal kernel. Within each node, density-dependent logistic growth governs recruitment. Adults grow continuously, and fecundity scales with body size. Sea surface temperature (SST) drives seasonal spawning phenology and modulates disease transmission; SST values are drawn from NOAA OISST v2.1 satellite climatologies for each node.
+
+\paragraph{Scope of this report.} The 47 parameters reviewed here span all model subsystems. For each, we present (1) a first-principles analysis of hard bounds and mechanistic constraints, (2) evidence from our 103-paper local literature library and targeted web searches, (3) a recommended default value and sensitivity analysis range, and (4) an honest confidence assessment (\confhigh, \confmed, or \conflow). The goal is to ground every parameter as rigorously as the available data allow, and to be transparent about where empirical support is thin.
+
+\newpage
+
+% Include all section files
+\input{01_disease_progression}
+\input{02_pathogen_shedding}
+\input{03_environmental_pathogen}
+\input{04_recovery_immunity}
+\input{05_growth_lifehistory}
+\input{06_fecundity_recruitment}
+\input{07_genetics}
+\input{08_spawning_timing}
+\input{09_spawning_induction}
+\input{10_larval_dispersal}
+\input{11_pathogen_evolution}
+
+\section{Summary and Synthesis}
+
+This comprehensive parameter review has analyzed all 47 parameters in the SSWD-EvoEpi model across 11 thematic groups. Here we synthesize the findings, assess confidence distributions, and provide guidance for model calibration priorities.
+
+\subsection{Confidence Assessment Distribution}
+
+Based on the individual parameter assessments:
+
+\begin{itemize}
+\item \confhigh confidence parameters: 12 (26\%)
+\item \confmed confidence parameters: 22 (47\%)
+\item \conflow confidence parameters: 13 (28\%)
+\end{itemize}
+
+High confidence parameters are primarily concentrated in well-studied aspects of echinoderm biology (growth rates, temperature dependencies) and basic epidemiological constraints. Medium confidence parameters encompass spawning biology and genetic architecture, where theoretical frameworks are strong but empirical validation is limited. Low confidence parameters cluster around pathogen ecology, environmental persistence, and evolutionary rates—areas where \textit{Pycnopodia}-specific data are sparse.
+
+\subsection{Morris Sensitivity Analysis Cross-Reference}
+
+The Morris R4 sensitivity analysis identified the top 10 most influential parameters (ranked by mean $\mu^*$):
+
+\begin{enumerate}
+\item \texttt{rho\_rec} (0.889) — Recovery rate scaling — \conflow confidence
+\item \texttt{k\_growth} (0.633) — Von Bertalanffy growth rate — \confhigh confidence  
+\item \texttt{K\_half} (0.622) — Half-saturation for density dependence — \confmed confidence
+\item \texttt{P\_env\_max} (0.598) — Maximum environmental pathogen density — \conflow confidence
+\item \texttt{n\_resistance} (0.525) — Number of resistance loci — \confmed confidence
+\item \texttt{settler\_survival} (0.509) — Larval settlement survival — \confmed confidence
+\item \texttt{sigma\_2\_eff} (0.431) — Pathogen shedding variance — \conflow confidence
+\item \texttt{mu\_I2D\_ref} (0.419) — Death rate from I$_2$ stage — \confmed confidence
+\item \texttt{peak\_width\_days} (0.392) — Spawning season width — \confmed confidence
+\item \texttt{target\_mean\_c} (0.385) — Mean recovery trait — \conflow confidence
+\end{enumerate}
+
+This creates a concerning pattern: 4 of the top 10 most influential parameters have low confidence, suggesting substantial uncertainty in model predictions. Priority calibration efforts should focus on these high-influence, low-confidence parameters.
+
+\subsection{Calibration Priority Matrix}
+
+Parameters are prioritized for empirical calibration using a 2×2 matrix of Morris sensitivity rank vs. confidence level:
+
+\paragraph{Highest Priority (High Influence + Low Confidence):}
+\begin{itemize}
+\item \texttt{rho\_rec} — Recovery rate scaling (rank \#1)
+\item \texttt{P\_env\_max} — Environmental pathogen density (rank \#4)  
+\item \texttt{sigma\_2\_eff} — Pathogen shedding variance (rank \#7)
+\item \texttt{target\_mean\_c} — Mean recovery trait (rank \#10)
+\end{itemize}
+
+\paragraph{High Priority (High Influence + Medium Confidence):}
+\begin{itemize}
+\item \texttt{K\_half} — Density dependence half-saturation (rank \#3)
+\item \texttt{n\_resistance} — Number of resistance loci (rank \#5)
+\item \texttt{settler\_survival} — Settlement survival (rank \#6)
+\item \texttt{mu\_I2D\_ref} — I$_2$ death rate (rank \#8)
+\item \texttt{peak\_width\_days} — Spawning season width (rank \#9)
+\end{itemize}
+
+\paragraph{Medium Priority (Lower influence but calibratable):}
+Parameters ranked 11-20 in Morris R4 with medium or high confidence.
+
+\paragraph{Deferred (High confidence regardless of influence):}
+\begin{itemize}
+\item \texttt{k\_growth} — Well-established from growth studies (rank \#2)
+\end{itemize}
+
+\subsection{Recommended Calibration Strategy}
+
+Given the sensitivity analysis results and confidence assessments, we recommend a two-phase calibration approach:
+
+\paragraph{Phase 1: Target validation data fitting} Focus calibration on the highest-priority parameters using ABC-SMC to fit disease progression timelines from \citet{prentice2025}. Target metrics should include mean and variance of E$\to$I$_1$, I$_1$$\to$I$_2$, and I$_2$$\to$D transition times.
+
+\paragraph{Phase 2: Population dynamics validation} Once disease parameters are constrained, calibrate growth and recruitment parameters against available abundance and size distribution data from pre-outbreak populations.
+
+\subsection{Key Data Gaps}
+
+Several critical parameters remain poorly constrained due to fundamental data gaps:
+
+\begin{itemize}
+\item \textbf{Environmental pathogen dynamics}: No empirical measurements of \textit{V. pectenicida} persistence in sediments or water column
+\item \textbf{Recovery rates}: Laboratory challenge experiments have not quantified recovery frequencies or recovery trait heritability
+\item \textbf{Spatial pathogen dispersal}: No field studies of pathogen spread rates between sites
+\item \textbf{Genetic architecture validation}: GWAS results need functional validation to confirm resistance/tolerance/recovery trait assignments
+\end{itemize}
+
+These gaps highlight priority areas for future empirical work to support model refinement and validation.
+
+\section*{References}
+\addcontentsline{toc}{section}{References}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+\bibitem{prentice2025} Prentice, F., et al. (2025). Koch's postulates fulfilled for sea star wasting disease: \textit{Vibrio pectenicida} as the confirmed etiological agent. \textit{Nature Ecology \& Evolution}, in press.
+
+\bibitem{schiebelhut2018collapse} Schiebelhut, L.M., et al. (2018). Decimation by sea star wasting disease and rapid genetic change in a keystone species, \textit{Pycnopodia helianthoides}. \textit{Proceedings of the National Academy of Sciences}, 115(27), 7069--7074.
+\end{thebibliography}
+
+\end{document}

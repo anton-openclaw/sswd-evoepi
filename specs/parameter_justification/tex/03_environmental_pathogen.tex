@@ -1,0 +1,51 @@
+\section{Environmental Pathogen Dynamics}
+
+This section reviews four environmental parameters controlling \textit{Vibrio pectenicida} ecology and SSWD disease dynamics: background environmental pathogen input (P\_env\_max), pathogen thermal optimum (T\_ref), viable-but-non-culturable transition temperature (T\_vbnc), and minimum salinity threshold (s\_min).
+
+\subsection{P\_env\_max — Background Environmental Vibrio Input}
+
+\paragraph{First Principles}
+P\_env\_max (bact/mL/d, range 50--5000, current: 500) represents the environmental Vibrio reservoir independent of infected \textit{Pycnopodia}. This community-level pathogen maintenance parameter prevents complete pathogen extinction when infected hosts die while avoiding unrealistic disease persistence. The abstraction captures sediment reservoirs, biofilms, plankton associations, and multi-species pathogen cycling without explicit mechanistic modeling.
+
+\paragraph{Literature Evidence}
+Environmental reservoirs are well-documented for marine bacterial pathogens. Sediments act as protective reservoirs, enabling pathogen resuspension via currents and wave action \cite{NationalAcademies2025}. In oyster-\textit{Vibrio aestuarianus} systems, environmental pathogen input drives spatial connectivity and maintains R$_0$ across separated populations \cite{Lupo2020}. Aalto et al. \cite{Aalto2020} suggest ubiquitous pathogen presence with environmental triggers could explain SSWD's rapid continental spread, supporting moderate P\_env values. Hewson's autecological studies \cite{Hewson2025} show \textit{V. pectenicida} persistence in aquaria but inconsistent cross-species detection, indicating environmental maintenance mechanisms beyond direct transmission.
+
+\paragraph{Recommendation}
+The current value (500 bact/mL/d) appears appropriate for mesotrophic coastal environments, providing moderate baseline persistence without overwhelming host dynamics. The range (50--5000) spans oligotrophic to eutrophic conditions.
+
+\subsection{T\_ref — V. pectenicida Optimal Temperature}
+
+\paragraph{First Principles}
+T\_ref (°C, range 17--23, current: 20) defines the thermal optimum for \textit{Vibrio} growth, setting seasonal disease windows. Values too high restrict SSWD to warmest locations; too low enable year-round activity everywhere. Observed seasonality requires T\_ref above winter SST but achievable during warm periods.
+
+\paragraph{Literature Evidence}
+Related marine \textit{Vibrio} species show optima at 20--37°C \cite{FrontiersMarine2022}, with cold-adapted species near the lower end. \textit{V. aquamarinus} from the Black Sea shows optima at 20--25°C \cite{BioRxiv2026}, consistent with cold marine environments. SSWD temperature-disease relationships are well-established: Eisenlord et al. \cite{Eisenlord2016} documented 2--3°C warm anomalies coincident with 2014 mortalities and 18\% higher adult mortality at 19°C. Bates et al. \cite{Bates2009} showed 4°C increases sufficient to induce SSWD-like symptoms, with higher prevalence at 14°C than cooler temperatures. Kohl et al. \cite{Kohl2016} demonstrated temperature as a disease rate modifier, with progression slower at 9°C than 12°C but 100\% mortality in both treatments.
+
+Mechanistically, elevated temperatures increase marine pathogen virulence and transmission rates \cite{Burge2014}. Aalto et al. \cite{Aalto2020} found temperature-mortality coupling best explained SSWD's continental-scale dynamics.
+
+\paragraph{Recommendation}
+The current value (20°C) is well-supported, sitting above winter SST (4--8°C) but achievable during summer and marine heatwaves. This matches related cold-water \textit{Vibrio} species and creates realistic seasonal disease windows.
+
+\subsection{T\_vbnc — VBNC Midpoint Temperature}
+
+\paragraph{First Principles}
+T\_vbnc (°C, range 8--15, current: 12) controls the viable-but-non-culturable (VBNC) transition, creating seasonal disease ON/OFF switches. Below T\_vbnc, \textit{Vibrio} become dormant but viable; above it, they resume active growth and reproduction.
+
+\paragraph{Literature Evidence}
+VBNC biology is well-characterized in marine \textit{Vibrio}. Multiple species including \textit{V. cholerae}, \textit{V. vulnificus}, and \textit{V. parahaemolyticus} enter VBNC states under starvation and cold stress, typically at 4°C \cite{MarineLifeScience2020, PMC2023}. Resuscitation occurs at 20--37°C \cite{NatureISME2007}. SSWD seasonal patterns show spring vulnerability peaks \cite{Bates2009} and summer-fall outbreak maxima \cite{Dawson2023}, consistent with temperature-driven activation from winter dormancy.
+
+\paragraph{Recommendation}
+The current value (12°C) provides clear seasonal transitions, with winter dormancy at most NE Pacific sites and summer activation. This is conservative compared to laboratory studies (4°C transition) but accounts for strain adaptation to cold Pacific waters.
+
+\subsection{s\_min — Minimum Salinity for Vibrio Viability}
+
+\paragraph{First Principles}
+s\_min (psu, range 5--15, current: 10) sets salinity thresholds for \textit{Vibrio} viability. Most NE Pacific sites exceed this threshold, but the parameter creates spatial boundaries near river mouths and fjord heads, potentially generating freshwater refugia.
+
+\paragraph{Literature Evidence}
+Marine \textit{Vibrio} typically require minimum 0.5--1.0\% NaCl (5--10 psu) for growth \cite{PMCMultiple2020}. \textit{V. parahaemolyticus} requires 0.086 M NaCl (approximately 5 psu) minimum, with optima at 10--25 psu. \textit{V. brasiliensis} survives without NaCl but shows growth inhibition above 9\% salinity. 
+
+UW experimental studies \cite{UW2014} found decreasing salinity correlated with increasing SSWD symptoms in \textit{Pycnopodia}, supporting salinity as a disease modifier. However, fjord refugia identified by Gehman et al. \cite{Gehman2025} likely reflect temperature rather than salinity effects, as fjord waters typically exceed 15--20 psu.
+
+\paragraph{Recommendation}
+The current value (10 psu) aligns with \textit{Vibrio} biology and creates realistic estuarine boundaries while leaving fully marine sites (30--34 psu) unaffected. This threshold affects fjord/estuarine systems but not open coast populations.

@@ -1,0 +1,69 @@
+\section{Pathogen Evolution}
+
+These six parameters define the evolutionary dynamics of \emph{Vibrio pectenicida} virulence in our coupled eco-evolutionary model, implementing the central theorem of evolutionary epidemiology: the virulence-transmission trade-off that governs pathogen evolution.
+
+\subsection{alpha\_kill (Mortality Scaling Exponent)}
+
+\paragraph{First Principles}
+The mortality rate of infected individuals scales as $v^{\alpha_{kill}}$ where $v$ is virulence. Higher exponents create convex trade-offs where mortality costs accelerate faster than linear, favoring intermediate virulence strategies. The ratio $\alpha_{kill}/\alpha_{shed}$ determines the evolutionarily stable strategy (ESS).
+
+\paragraph{Literature Evidence}
+Anderson \& May (1982) established that convex virulence-mortality relationships ($\alpha > 1$) are required to generate intermediate optimal virulence levels. Meta-analysis by Cressler et al. (2019) confirmed convex trade-offs exist across diverse pathogen taxa. For bacterial pathogens, mortality costs often accelerate due to immune system activation and tissue damage from toxin production.
+
+\paragraph{Recommendation}
+\textbf{Current value: 2.0.} This creates moderate convexity in the mortality trade-off, consistent with theoretical predictions and bacterial pathogen studies. Uncertainty: MEDIUM -- reasonable based on theory but no direct empirical validation for \emph{V. pectenicida}.
+
+\subsection{alpha\_shed (Transmission Scaling Exponent)}
+
+\paragraph{First Principles}
+Pathogen shedding rate scales as $v^{\alpha_{shed}}$. This parameter controls how transmission benefits increase with virulence. When $\alpha_{shed} < \alpha_{kill}$, the trade-off favors intermediate virulence. The critical ratio $\alpha_{kill}/\alpha_{shed}$ determines whether evolution proceeds toward high, low, or intermediate virulence.
+
+\paragraph{Literature Evidence}
+Bacterial virulence often increases transmission through higher toxin production and tissue damage, but with diminishing returns due to host immune responses and behavioral changes. Alizon et al. (2009) showed that sub-linear transmission scaling is common in host-pathogen systems. Marine bacterial pathogens like \emph{Vibrio} species show temperature-dependent virulence-transmission coupling (Lupo et al., 2020).
+
+\paragraph{Recommendation}
+\textbf{Current value: 1.5.} This creates sub-linear transmission scaling, generating a convex trade-off when combined with $\alpha_{kill} = 2.0$ (ratio = 1.33). Uncertainty: HIGH -- this is the most critical parameter for determining ESS virulence but has purely theoretical basis.
+
+\subsection{alpha\_prog (Disease Progression Exponent)}
+
+\paragraph{First Principles}
+The rate of progression from asymptomatic (I$_1$) to symptomatic (I$_2$) infection scales as $v^{\alpha_{prog}}$. Linear scaling ($\alpha_{prog} = 1$) assumes disease progression is directly proportional to virulence level.
+
+\paragraph{Literature Evidence}
+Disease progression rates in bacterial infections typically correlate with pathogen load and virulence factor expression. For SSWD, progression from initial infection to visible wasting symptoms varies from days to weeks (Prentice 2025), potentially reflecting virulence variation. \emph{V. pectenicida} produces aerolysin-like toxins (Zhong et al., 2025) that could drive progression through direct tissue damage.
+
+\paragraph{Recommendation}
+\textbf{Current value: 1.0.} Linear scaling represents a parsimonious assumption for the complex physiological process of disease progression. Uncertainty: HIGH -- progression dynamics are poorly understood for SSWD pathophysiology.
+
+\subsection{gamma\_early (Early Shedding Fraction)}
+
+\paragraph{First Principles}
+This parameter controls the relative shedding rate of I$_1$ (asymptomatic) individuals compared to I$_2$ (symptomatic). Values range from 0 (no early shedding) to 1 (equal shedding rates). Intermediate values create a biphasic shedding pattern common in bacterial infections.
+
+\paragraph{Literature Evidence}
+Many bacterial pathogens exhibit reduced shedding during asymptomatic phases due to lower pathogen loads or different tissue tropisms. However, asymptomatic shedding can be epidemiologically important for maintaining transmission chains. The marine disease ecology framework (Lafferty, 2017) emphasizes that waterborne pathogens can maintain transmission even at low shedding rates.
+
+\paragraph{Recommendation}
+\textbf{Current value: 0.3.} I$_1$ individuals shed at 30\% of I$_2$ rate, balancing stealth transmission with symptomatic shedding. This value is consistent with bacterial infections having significant but reduced asymptomatic transmission. Uncertainty: MEDIUM -- reasonable biological assumption but no direct evidence for \emph{V. pectenicida}.
+
+\subsection{sigma\_v\_mutation (Virulence Mutation Step Size)}
+
+\paragraph{First Principles}
+The phenotypic standard deviation of virulence mutations per transmission event. This is NOT the per-base DNA mutation rate but rather the phenotypic effect size of mutations affecting virulence. Controls the speed of evolutionary adaptation: larger values enable faster evolution but increase genetic drift.
+
+\paragraph{Literature Evidence}
+Bacterial experimental evolution studies typically observe phenotypic step sizes of 0.01--0.1 for quantitative traits (Woods et al., 2011). Bacterial pathogens can evolve virulence rapidly due to high mutation rates and large population sizes. Marine bacteria may have additional mutation pressure due to environmental stressors (UV, temperature fluctuations).
+
+\paragraph{Recommendation}
+\textbf{Current value: 0.02.} Conservative 2\% phenotypic step size allows gradual evolution without overwhelming genetic drift. This is within the range observed in bacterial evolution experiments. Uncertainty: MEDIUM -- order of magnitude likely correct based on bacterial evolution literature.
+
+\subsection{v\_init (Initial Virulence)}
+
+\paragraph{First Principles}
+The virulence level of \emph{V. pectenicida} at SSWD outbreak initiation (2013). If SSWD represents a host-shift event from terrestrial or foodborne sources, initial virulence might be suboptimal for sea star hosts. Alternatively, if the pathogen was already adapted to marine environments, initial virulence could be near the ESS.
+
+\paragraph{Literature Evidence}
+Lafferty (2025) suggests potential foodborne origins for SSWD, which would support a host-shift hypothesis. Host-shift events typically involve initially high virulence that then evolves toward intermediate levels as the pathogen adapts to new host biology. The rapid geographic spread of SSWD (2013--2015) suggests high initial transmission rates, possibly indicating high initial virulence.
+
+\paragraph{Recommendation}
+\textbf{Current value: 0.5.} Moderate initial virulence represents a neutral starting point. This allows evolution in either direction depending on trade-off parameters and selection pressures. Uncertainty: HIGH -- no empirical basis for 2013 virulence level. Sensitivity analysis is essential for this parameter.
