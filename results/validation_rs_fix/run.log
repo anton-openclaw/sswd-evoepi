@@ -1,0 +1,80 @@
+======================================================================
+  R→S VALIDATION: Recovered stars return to susceptible
+  Echinoderms lack adaptive immunity — reinfection possible
+======================================================================
+
+======================================================================
+  RUN 1: R→S + Sinusoidal SST
+  K=5,000, 20yr, disease yr 3, seed=42
+  SST source: sinusoidal
+  Config: rho_rec=0.05, target_mean_r=0.15, target_mean_t=0.1, target_mean_c=0.02, tau_max=0.85
+======================================================================
+
+
+Runtime: 97.6s (1.6 min)
+
+Node              Init     Min   Final  Crash%  Deaths  Recov       Δr       Δt       Δc
+----------------------------------------------------------------------------------------------------
+Sitka            4,935      36      36   99.3%   6,872     44 +0.0603 +0.0163 -0.0082
+Howe Sound       4,937      23      23   99.5%   8,114     80 +0.0343 +0.0793 +0.0054
+SJI              4,918       0       0  100.0%   8,013     57 -0.1496 -0.0995 -0.0200
+Newport          4,998       5      63   99.9%   7,059     58 -0.0512 -0.0497 +0.0300
+Monterey         5,000       0       0  100.0%   6,099     37 -0.1493 -0.0990 -0.0205
+
+Total: 24,788 → 122
+Overall crash: 99.7%
+Disease deaths: 36,157, Recoveries: 276 (0.76% of infections)
+
+======================================================================
+  RUN 2: R→S + Satellite SST
+  K=5,000, 20yr, disease yr 3, seed=42
+  SST source: satellite
+  Config: rho_rec=0.05, target_mean_r=0.15, target_mean_t=0.1, target_mean_c=0.02, tau_max=0.85
+======================================================================
+
+
+Runtime: 96.1s (1.6 min)
+
+Node              Init     Min   Final  Crash%  Deaths  Recov       Δr       Δt       Δc
+----------------------------------------------------------------------------------------------------
+Sitka            4,931      10      10   99.8%   6,525     41 +0.0254 -0.0093 -0.0091
+Howe Sound       4,934       7     133   99.9%   7,402     57 +0.0292 +0.0359 +0.0082
+SJI              4,952       3       3   99.9%   7,514     56 +0.0982 +0.0271 -0.0204
+Newport          4,936       0       0  100.0%   6,702     51 -0.1504 -0.1015 -0.0205
+Monterey         5,000       0       0  100.0%   5,766     36 -0.1489 -0.0994 -0.0204
+
+Total: 24,753 → 146
+Overall crash: 99.9%
+Disease deaths: 33,909, Recoveries: 241 (0.71% of infections)
+
+
+======================================================================
+  GENERATING FIGURES
+======================================================================
+Saved: results/validation_rs_fix/pop_trajectories_sinusoidal.png
+Saved: results/validation_rs_fix/trait_evolution_sinusoidal.png
+Saved: results/validation_rs_fix/yearly_recoveries.png
+Saved: results/validation_rs_fix/trait_shifts_sinusoidal.png
+Saved: results/validation_rs_fix/sinusoidal_vs_satellite.png
+Saved: results/validation_rs_fix/pop_trajectories_satellite.png
+
+All figures saved.
+
+Saved: results/validation_rs_fix/results.json
+
+
+======================================================================
+  SUMMARY
+======================================================================
+
+Sinusoidal SST:
+  Overall crash: 99.7%
+  Total deaths:  36,157
+  Total recov:   276 (0.76%)
+
+Satellite SST:
+  Overall crash: 99.9%
+  Total deaths:  33,909
+  Total recov:   241 (0.71%)
+
+Done.
