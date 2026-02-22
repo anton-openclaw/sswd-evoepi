@@ -1,12 +1,16 @@
-"""Disease dynamics module — SEIPD+R compartmental model for SSWD.
+"""Disease dynamics module — SEIPD compartmental model for SSWD.
 
 Implements:
-  - SEIPD+R compartments: S→E→I₁→I₂→D (+ recovery from I₁/I₂ → R)
+  - SEIPD compartments: S→E→I₁→I₂→D (+ recovery from I₁/I₂ → S)
+    Echinoderms lack adaptive immunity; recovered individuals return
+    to susceptible and can be reinfected.
   - Force of infection: λ_i = a × P/(K_half+P) × (1−r_i) × S_sal × f_size(L_i)
   - Three-trait host genetics:
       * Resistance (r_i): reduces force of infection
       * Tolerance (t_i): timer-scales I₂ duration (longer survival while infected)
-      * Recovery (c_i): linear clearance probability from I₁/I₂ → R
+      * Recovery (c_i): linear clearance probability from I₁/I₂ → S
+        (echinoderms lack adaptive immunity; recovered individuals return
+         to susceptible and can be reinfected)
   - Temperature-dependent progression rates (Arrhenius, T_ref=20°C)
   - Environmental pathogen dynamics: shedding − decay − flushing + reservoir
   - VBNC sigmoidal reservoir: P_env(T)
@@ -372,12 +376,13 @@ def batch_sample_stage_duration(
 
 
 def recovery_probability_I2(c_i: float, rho_rec: float = 0.05) -> float:
-    """Daily probability of recovery from I₂ state.
+    """Daily probability of recovery from I₂ → S (return to susceptible).
 
     p_rec = ρ_rec × c_i
 
     Linear in clearance ability. At c_i=0: no recovery possible.
     At c_i=1: p_rec = ρ_rec (base rate, ~5%/day).
+    Recovered individuals return to S (no adaptive immunity in echinoderms).
 
     Args:
         c_i: Individual recovery/clearance score [0, 1].
@@ -387,13 +392,14 @@ def recovery_probability_I2(c_i: float, rho_rec: float = 0.05) -> float:
 
 
 def recovery_probability_I1(c_i: float, rho_rec: float = 0.05) -> float:
-    """Daily probability of early recovery from I₁ state.
+    """Daily probability of early recovery from I₁ → S (return to susceptible).
 
     Only meaningful for high-clearance individuals (c_i > 0.5).
     Linear above threshold:
         p_early = ρ_rec × 2 × (c_i − 0.5)
 
     At c_i ≤ 0.5: 0. At c_i=1.0: ρ_rec.
+    Recovered individuals return to S (no adaptive immunity in echinoderms).
 
     Args:
         c_i: Individual recovery/clearance score [0, 1].
@@ -946,6 +952,7 @@ def daily_disease_update(
         ne_states = states[not_expired_mask]
 
         # ── I2 recovery ──────────────────────────────────────────────
+        # Recovered → S (echinoderms lack adaptive immunity; can be reinfected)
         i2_ne_mask = ne_states == DiseaseState.I2
         i2_ne_idx = ne_idx[i2_ne_mask]
         if len(i2_ne_idx) > 0:
@@ -955,12 +962,13 @@ def daily_disease_update(
             rec_mask = draws < p_rec
             rec_idx = i2_ne_idx[rec_mask]
             if len(rec_idx) > 0:
-                ds[rec_idx] = DiseaseState.R
+                ds[rec_idx] = DiseaseState.S
                 dt_rem[rec_idx] = 0
                 agents['pathogen_virulence'][rec_idx] = 0.0
                 new_recoveries += len(rec_idx)
 
         # ── I1 early recovery ────────────────────────────────────────
+        # Recovered → S (no lasting immunity)
         i1_ne_mask = ne_states == DiseaseState.I1
         i1_ne_idx = ne_idx[i1_ne_mask]
         if len(i1_ne_idx) > 0:
@@ -974,7 +982,7 @@ def daily_disease_update(
                 rec_mask = draws < p_early
                 rec_idx = i1_cand[rec_mask]
                 if len(rec_idx) > 0:
-                    ds[rec_idx] = DiseaseState.R
+                    ds[rec_idx] = DiseaseState.S
                     dt_rem[rec_idx] = 0
                     agents['pathogen_virulence'][rec_idx] = 0.0
                     new_recoveries += len(rec_idx)

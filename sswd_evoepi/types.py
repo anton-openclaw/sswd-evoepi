@@ -50,14 +50,14 @@ class DiseaseState(IntEnum):
     S  → E  (exposure via force of infection)
     E  → I1 (latent period, Erlang-distributed)
     I1 → I2 (early → late infectious)
-    I2 → D  (death from disease) or I2 → R (recovery)
+    I2 → D  (death from disease) or I2 → S (recovery; no lasting immunity)
     """
     S  = 0   # Susceptible
     E  = 1   # Exposed (latent, not shedding)
     I1 = 2   # Early infectious (pre-symptomatic shedding)
     I2 = 3   # Late infectious (wasting, high shedding)
     D  = 4   # Dead from disease
-    R  = 5   # Recovered (immune)
+    R  = 5   # Recovered (returns to S — no adaptive immunity in echinoderms)
 
 
 class DeathCause(IntEnum):
@@ -174,7 +174,7 @@ AGENT_DTYPE = np.dtype([
                                       #         0=wild, 1=captive, 2=agf, 3=wild_source
     ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
                                       #         2=natural, 3=senescence)
-    ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S or R)
+    ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S)
     ('settlement_day', np.int32),     #  4 B — absolute sim day when settled/initialized
                                       #         0 for initial pop (always susceptible)
                                       #         Used for juvenile immunity (Phase 11)

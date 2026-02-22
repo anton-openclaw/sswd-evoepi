@@ -21,6 +21,8 @@ Build target: Phase 9 (Spatial Network).
 
 from __future__ import annotations
 
+import os
+import re
 from typing import Optional
 
 import numpy as np
@@ -106,6 +108,111 @@ def make_sst_timeseries(n_years: int, start_year: int,
     sst = sst_with_trend(
         day_array, year_array, mean_sst, amplitude, trend_per_year, reference_year
     )
+    return sst
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SST FORCING — satellite climatology
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _normalize_node_name(name: str) -> str:
+    """Normalize a node name for climatology filename matching.
+
+    Converts spaces to underscores, strips leading/trailing whitespace.
+    Preserves original case (climatology files use Title_Case).
+
+    Examples:
+        "Howe Sound" → "Howe_Sound"
+        "SJI"        → "SJI"
+        " Fort Bragg " → "Fort_Bragg"
+    """
+    return re.sub(r'\s+', '_', name.strip())
+
+
+def load_sst_climatology(node_name: str,
+                         data_dir: str = 'data/sst') -> np.ndarray:
+    """Load satellite-derived daily SST climatology for a node.
+
+    Expects a CSV file at ``{data_dir}/{normalized_name}_climatology.csv``
+    with columns ``day_of_year`` (1-indexed) and ``sst_mean``.
+
+    Args:
+        node_name: Node name (spaces and case are normalized).
+        data_dir: Directory containing climatology CSV files.
+
+    Returns:
+        1-D array of shape (365,) with daily mean SST (°C).
+
+    Raises:
+        FileNotFoundError: If the climatology CSV does not exist.
+        ValueError: If the file doesn't contain exactly 365 rows.
+    """
+    norm_name = _normalize_node_name(node_name)
+    csv_path = os.path.join(data_dir, f"{norm_name}_climatology.csv")
+
+    if not os.path.isfile(csv_path):
+        raise FileNotFoundError(
+            f"SST climatology file not found: {csv_path} "
+            f"(node '{node_name}', normalized '{norm_name}')"
+        )
+
+    # Read CSV — expects columns: day_of_year, sst_mean, [sst_std, n_years]
+    import csv
+    sst_values = []
+    with open(csv_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            sst_values.append(float(row['sst_mean']))
+
+    if len(sst_values) != 365:
+        raise ValueError(
+            f"SST climatology for '{node_name}' has {len(sst_values)} rows, "
+            f"expected 365"
+        )
+
+    return np.array(sst_values, dtype=np.float64)
+
+
+def generate_satellite_sst_series(
+    n_years: int,
+    start_year: int,
+    node_name: str,
+    trend_per_year: float = 0.0,
+    reference_year: int = 2015,
+    data_dir: str = 'data/sst',
+) -> np.ndarray:
+    """Generate a daily SST time series from satellite climatology.
+
+    Loads the 365-day climatology for the node and tiles it across
+    ``n_years``, optionally applying a linear warming trend.
+
+    Same output interface as ``make_sst_timeseries()``: returns a 1-D
+    array of shape ``(n_years * 365,)``.
+
+    Args:
+        n_years: Number of years.
+        start_year: First calendar year.
+        node_name: Node name (for climatology file lookup).
+        trend_per_year: Linear warming rate (°C/yr) on top of climatology.
+        reference_year: Year at which climatology applies unchanged.
+        data_dir: Directory containing climatology CSV files.
+
+    Returns:
+        1-D array of shape (n_years * 365,) with daily SST values.
+    """
+    clim = load_sst_climatology(node_name, data_dir)  # shape (365,)
+
+    # Tile the 365-day climatology across n_years
+    sst = np.tile(clim, n_years)  # shape (n_years * 365,)
+
+    # Apply linear warming trend if non-zero
+    if trend_per_year != 0.0:
+        year_array = np.repeat(
+            np.arange(start_year, start_year + n_years), 365
+        )
+        sst = sst + trend_per_year * (year_array - reference_year)
+
     return sst
 
 

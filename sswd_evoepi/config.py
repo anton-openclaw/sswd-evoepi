@@ -37,6 +37,8 @@ class SimulationSection:
     spinup_years: int = 100
     seed: int = 42
     checkpoint_interval: int = 10
+    sst_source: str = 'sinusoidal'  # 'sinusoidal' or 'satellite'
+    sst_data_dir: str = 'data/sst'  # directory with *_climatology.csv files
 
 
 @dataclass
@@ -386,6 +388,24 @@ def validate_config(config: SimulationConfig) -> None:
       - Genetic parameters are consistent
       - No cost_of_resistance sneaking in
     """
+    # SST source
+    valid_sst_sources = {"sinusoidal", "satellite"}
+    if config.simulation.sst_source not in valid_sst_sources:
+        raise ValueError(
+            f"simulation.sst_source must be one of {valid_sst_sources}, "
+            f"got '{config.simulation.sst_source}'"
+        )
+    if config.simulation.sst_source == "satellite":
+        import os
+        import warnings
+        if not os.path.isdir(config.simulation.sst_data_dir):
+            warnings.warn(
+                f"simulation.sst_data_dir '{config.simulation.sst_data_dir}' "
+                f"does not exist. Satellite SST loading will fail at runtime.",
+                UserWarning,
+                stacklevel=2,
+            )
+
     # Disease scenario
     valid_scenarios = {"ubiquitous", "invasion"}
     if config.disease.scenario not in valid_scenarios:

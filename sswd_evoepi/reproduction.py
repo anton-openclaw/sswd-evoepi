@@ -533,7 +533,8 @@ def produce_larval_cohort(
     sex = agents['sex']
     disease = agents['disease_state']
 
-    # Spawning requires: alive, ADULT, healthy (S or R)
+    # Spawning requires: alive, ADULT, healthy (S only — R→S means
+    # recovered agents are already S; R check kept for snapshot compat)
     can_spawn = alive & (stage == Stage.ADULT) & (
         (disease == DiseaseState.S) | (disease == DiseaseState.R)
     )

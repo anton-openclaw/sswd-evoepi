@@ -615,7 +615,8 @@ def annual_reproduction(
     sex = agents['sex']
     disease = agents['disease_state']
 
-    # Spawning requires: alive, ADULT, healthy (S or R)
+    # Spawning requires: alive, ADULT, healthy (S only — R→S means
+    # recovered agents are already S; R check kept for snapshot compat)
     can_spawn = alive & (stage == Stage.ADULT) & (
         (disease == DiseaseState.S) | (disease == DiseaseState.R)
     )
@@ -1623,7 +1624,9 @@ def run_spatial_simulation(
         distribute_larvae,
         pathogen_dispersal_step,
     )
-    from sswd_evoepi.environment import sst_with_trend, seasonal_flushing
+    from sswd_evoepi.environment import (
+        sst_with_trend, seasonal_flushing, generate_satellite_sst_series,
+    )
     from sswd_evoepi.movement import daily_movement, InfectedDensityGrid
 
     if config is None:
@@ -1778,6 +1781,23 @@ def run_spatial_simulation(
     node_daily_nat_deaths = np.zeros(N, dtype=np.int32)
     node_daily_senes_deaths = np.zeros(N, dtype=np.int32)
 
+    # ── Pre-generate satellite SST timeseries if configured ────────
+    use_satellite_sst = (
+        config.simulation.sst_source == 'satellite'
+    )
+    satellite_sst_by_node: List[Optional[np.ndarray]] = [None] * N
+    if use_satellite_sst:
+        for i, node in enumerate(network.nodes):
+            nd = node.definition
+            satellite_sst_by_node[i] = generate_satellite_sst_series(
+                n_years=n_years,
+                start_year=2000,  # matches start_year below
+                node_name=nd.name,
+                trend_per_year=nd.sst_trend,
+                reference_year=2015,
+                data_dir=config.simulation.sst_data_dir,
+            )
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
@@ -1799,12 +1819,16 @@ def run_spatial_simulation(
             month = min(day // 30, 11)
 
             # 1. Update environment at each node
+            sim_day = year * DAYS_PER_YEAR + day
             for i, node in enumerate(network.nodes):
                 nd = node.definition
-                node.current_sst = sst_with_trend(
-                    day, cal_year, nd.mean_sst, nd.sst_amplitude,
-                    nd.sst_trend, reference_year=start_year,
-                )
+                if use_satellite_sst and satellite_sst_by_node[i] is not None:
+                    node.current_sst = float(satellite_sst_by_node[i][sim_day])
+                else:
+                    node.current_sst = sst_with_trend(
+                        day, cal_year, nd.mean_sst, nd.sst_amplitude,
+                        nd.sst_trend, reference_year=start_year,
+                    )
                 node.current_flushing = seasonal_flushing(
                     nd.flushing_rate, month, nd.is_fjord,
                 )
