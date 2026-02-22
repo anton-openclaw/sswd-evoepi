@@ -7,8 +7,8 @@
 \label{sec:disease_module}
 
 The disease module implements a stochastic, environmentally driven
-SEIPD+R (Susceptible--Exposed--Infectious$_1$--Infectious$_2$--Dead,
-plus Recovered) compartmental framework operating at the individual level.
+SEIPD compartmental framework (Susceptible--Exposed--Infectious$_1$--Infectious$_2$--Dead,
+with recovery returning individuals to the susceptible pool) operating at the individual level.
 Each agent carries its own disease state, countdown timer, genetic
 defense traits ($r_i$, $t_i$, $c_i$), and (when pathogen evolution is
 enabled) the virulence phenotype $v_i$ of its infecting strain. Disease
@@ -20,7 +20,8 @@ genetics module for individual susceptibility.
 \subsection{Compartmental Structure}
 \label{sec:compartments}
 
-The disease pathway consists of five compartments plus a recovery state
+The disease pathway consists of five compartments with a recovery
+transition back to the susceptible state
 (Figure~\ref{fig:disease_flow}):
 
 \begin{itemize}
@@ -37,8 +38,14 @@ The disease pathway consists of five compartments plus a recovery state
         $p_\text{rec} = \rho_\text{rec} \times c_i$ per day.
   \item \textbf{D (Dead from disease):} Carcass continues to shed pathogen
         saprophytically for a 3-day window at rate $\sigma_D$.
-  \item \textbf{R (Recovered):} Immune; functionally equivalent to S for
-        demographics but not susceptible to reinfection.
+  \item \textbf{Recovery ($\to$ S):} Recovered individuals return to the
+        susceptible pool and may be reinfected. Echinoderms lack adaptive
+        immunity and show no evidence of acquired resistance to SSWD;
+        stars treated for wasting via iodine dip and probiotic protocols
+        have subsequently developed wasting again, confirming absence of
+        immunological memory \citep{mongabay2025seastar}. Heritable genetic
+        traits (resistance, tolerance, recovery) represent the only defense
+        mechanism.
 \end{itemize}
 
 
@@ -256,9 +263,11 @@ Each day, an I$_2$ individual has probability:
   \rho_\text{rec} = 0.05\;\text{d}^{-1},
   \label{eq:recovery_I2}
 \end{equation}
-of transitioning to the R compartment. At $c_i = 0$ (no clearance
-ability), recovery is impossible; at $c_i = 1$, the daily recovery
-probability is 5\%.
+of clearing infection and returning to the susceptible pool ($\text{I}_2 \to \text{S}$).
+At $c_i = 0$ (no clearance ability), recovery is impossible; at $c_i = 1$,
+the daily recovery probability is 5\%. Recovered individuals are immediately
+susceptible to reinfection, reflecting the absence of adaptive immunity
+in echinoderms.
 
 \paragraph{Early recovery from I$_1$.}
 Individuals with exceptionally high clearance ability ($c_i > 0.5$) can

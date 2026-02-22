@@ -1,80 +1,176 @@
-\contentsline {section}{\numberline {1}Introduction}{5}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Sea Star Wasting Disease and the Collapse of \textit {Pycnopodia helianthoides}{}}{5}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}Etiology: A Decade-Long Mystery Resolved}{5}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Conservation Urgency and Active Recovery Efforts}{6}{subsection.1.3}%
-\contentsline {subsection}{\numberline {1.4}The Need for an Eco-Evolutionary Framework}{7}{subsection.1.4}%
-\contentsline {subsection}{\numberline {1.5}Model Overview}{8}{subsection.1.5}%
-\contentsline {subsection}{\numberline {1.6}Paper Outline}{9}{subsection.1.6}%
-\contentsline {section}{\numberline {2}Model Architecture}{9}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Agent Representation}{9}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Node Structure}{11}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Simulation Loop}{11}{subsection.2.3}%
-\contentsline {subsection}{\numberline {2.4}Design Rationale}{12}{subsection.2.4}%
-\contentsline {paragraph}{Individual-based representation.}{12}{section*.4}%
-\contentsline {paragraph}{Continuous daily demographics.}{13}{section*.5}%
-\contentsline {paragraph}{Separated genotype storage.}{13}{section*.6}%
-\contentsline {paragraph}{Three-trait genetic architecture.}{13}{section*.7}%
-\contentsline {section}{\numberline {3}Disease Module}{13}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Compartmental Structure}{13}{subsection.3.1}%
-\contentsline {subsubsection}{\numberline {3.1.1}Erlang-Distributed Stage Durations}{14}{subsubsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.2}Force of Infection}{14}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Dose--Response Function}{15}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Salinity Modifier}{15}{subsubsection.3.2.2}%
-\contentsline {subsubsection}{\numberline {3.2.3}Size-Dependent Susceptibility}{15}{subsubsection.3.2.3}%
-\contentsline {subsubsection}{\numberline {3.2.4}Post-Spawning Immunosuppression}{16}{subsubsection.3.2.4}%
-\contentsline {subsection}{\numberline {3.3}Disease Progression and Recovery}{16}{subsection.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.1}Transition Rates}{16}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Temperature Scaling (Arrhenius)}{16}{subsubsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {3.3.3}Tolerance: Extending I$_2$ Duration}{17}{subsubsection.3.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.4}Recovery}{17}{subsubsection.3.3.4}%
-\contentsline {paragraph}{Recovery from I$_2$.}{17}{section*.8}%
-\contentsline {paragraph}{Early recovery from I$_1$.}{17}{section*.9}%
-\contentsline {subsection}{\numberline {3.4}Vibrio Dynamics}{18}{subsection.3.4}%
-\contentsline {subsubsection}{\numberline {3.4.1}Shedding}{18}{subsubsection.3.4.1}%
-\contentsline {subsubsection}{\numberline {3.4.2}Carcass Shedding}{18}{subsubsection.3.4.2}%
-\contentsline {subsubsection}{\numberline {3.4.3}Vibrio Decay}{18}{subsubsection.3.4.3}%
-\contentsline {subsubsection}{\numberline {3.4.4}Environmental Reservoir}{19}{subsubsection.3.4.4}%
-\contentsline {subsection}{\numberline {3.5}Pathogen Evolution}{19}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}Virulence--Tradeoff Curves}{19}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}Transmission and Mutation}{20}{subsubsection.3.5.2}%
-\contentsline {subsection}{\numberline {3.6}Basic Reproduction Number}{20}{subsection.3.6}%
-\contentsline {subsection}{\numberline {3.7}Daily Update Sequence}{20}{subsection.3.7}%
-\contentsline {section}{\numberline {4}Genetics Module}{21}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Three-Trait Architecture}{21}{subsection.4.1}%
-\contentsline {paragraph}{Removal of EF1A overdominant locus.}{22}{section*.11}%
-\contentsline {subsection}{\numberline {4.2}Trait Score Computation}{22}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Effect Size Distribution}{22}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Coupling to Disease Dynamics}{23}{subsubsection.4.2.2}%
-\contentsline {subsection}{\numberline {4.3}Genotype Initialization}{23}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Mendelian Inheritance and Mutation}{24}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}Sweepstakes Reproductive Success}{24}{subsection.4.5}%
-\contentsline {paragraph}{Effective population size.}{25}{section*.13}%
-\contentsline {subsection}{\numberline {4.6}Genetic Diagnostics and Tracking}{25}{subsection.4.6}%
-\contentsline {paragraph}{No cost of resistance.}{26}{section*.14}%
-\contentsline {subsection}{\numberline {4.7}Genotype Bank (Tier~2 Nodes)}{26}{subsection.4.7}%
-\contentsline {section}{\numberline {5}Population Dynamics}{26}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Life Stages}{26}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Growth}{27}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Natural Mortality}{27}{subsection.5.3}%
-\contentsline {paragraph}{Senescence.}{28}{section*.17}%
-\contentsline {subsection}{\numberline {5.4}Spawning System}{28}{subsection.5.4}%
-\contentsline {subsubsection}{\numberline {5.4.1}Spawning Season and Phenology}{28}{subsubsection.5.4.1}%
-\contentsline {subsubsection}{\numberline {5.4.2}Spontaneous Spawning}{29}{subsubsection.5.4.2}%
-\contentsline {paragraph}{Bout limits and refractory periods.}{29}{section*.18}%
-\contentsline {subsubsection}{\numberline {5.4.3}Cascade Induction}{29}{subsubsection.5.4.3}%
-\contentsline {subsubsection}{\numberline {5.4.4}Post-Spawning Immunosuppression}{30}{subsubsection.5.4.4}%
-\contentsline {subsection}{\numberline {5.5}Fecundity}{30}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Fertilization Kinetics and the Allee Effect}{30}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}Larval Phase}{31}{subsection.5.7}%
-\contentsline {subsection}{\numberline {5.8}Settlement and Recruitment}{31}{subsection.5.8}%
-\contentsline {paragraph}{1. Settlement cue (Allee effect).}{31}{section*.19}%
-\contentsline {paragraph}{2. Density-dependent recruitment (Beverton--Holt).}{31}{section*.20}%
-\contentsline {paragraph}{3. Agent initialization.}{32}{section*.21}%
-\contentsline {paragraph}{Juvenile immunity.}{32}{section*.22}%
-\contentsline {subsection}{\numberline {5.9}Continuous Settlement}{32}{subsection.5.9}%
-\contentsline {subsection}{\numberline {5.10}Demographic--Genetic--Epidemiological Coupling}{32}{subsection.5.10}%
-\contentsline {section}{\numberline {6}Spatial Module}{33}{section.6}%
-\contentsline {section}{\numberline {7}Sensitivity Analysis}{33}{section.7}%
-\contentsline {section}{\numberline {8}Validation}{33}{section.8}%
-\contentsline {section}{\numberline {9}Discussion}{33}{section.9}%
-\contentsline {section}{\numberline {A}Parameter Tables}{39}{appendix.A}%
+\contentsline {section}{\numberline {1}Introduction}{7}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Sea Star Wasting Disease and the Collapse of \textit {Pycnopodia helianthoides}{}}{7}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Etiology: A Decade-Long Mystery Resolved}{7}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Conservation Urgency and Active Recovery Efforts}{8}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}The Need for an Eco-Evolutionary Framework}{9}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Model Overview}{10}{subsection.1.5}%
+\contentsline {subsection}{\numberline {1.6}Paper Outline}{11}{subsection.1.6}%
+\contentsline {section}{\numberline {2}Model Architecture}{11}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Agent Representation}{11}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Node Structure}{13}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Simulation Loop}{13}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Design Rationale}{14}{subsection.2.4}%
+\contentsline {paragraph}{Individual-based representation.}{14}{section*.4}%
+\contentsline {paragraph}{Continuous daily demographics.}{15}{section*.5}%
+\contentsline {paragraph}{Separated genotype storage.}{15}{section*.6}%
+\contentsline {paragraph}{Three-trait genetic architecture.}{15}{section*.7}%
+\contentsline {section}{\numberline {3}Disease Module}{15}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Compartmental Structure}{15}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Erlang-Distributed Stage Durations}{16}{subsubsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.2}Force of Infection}{17}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Dose--Response Function}{17}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Salinity Modifier}{17}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Size-Dependent Susceptibility}{18}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Post-Spawning Immunosuppression}{18}{subsubsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.3}Disease Progression and Recovery}{18}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Transition Rates}{18}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Temperature Scaling (Arrhenius)}{19}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Tolerance: Extending I$_2$ Duration}{19}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Recovery}{19}{subsubsection.3.3.4}%
+\contentsline {paragraph}{Recovery from I$_2$.}{19}{section*.8}%
+\contentsline {paragraph}{Early recovery from I$_1$.}{20}{section*.9}%
+\contentsline {subsection}{\numberline {3.4}Vibrio Dynamics}{20}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Shedding}{20}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Carcass Shedding}{20}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Vibrio Decay}{21}{subsubsection.3.4.3}%
+\contentsline {subsubsection}{\numberline {3.4.4}Environmental Reservoir}{21}{subsubsection.3.4.4}%
+\contentsline {subsection}{\numberline {3.5}Pathogen Evolution}{21}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Virulence--Tradeoff Curves}{22}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Transmission and Mutation}{22}{subsubsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.6}Basic Reproduction Number}{22}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Daily Update Sequence}{23}{subsection.3.7}%
+\contentsline {section}{\numberline {4}Genetics Module}{23}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Three-Trait Architecture}{23}{subsection.4.1}%
+\contentsline {paragraph}{Removal of EF1A overdominant locus.}{24}{section*.11}%
+\contentsline {subsection}{\numberline {4.2}Trait Score Computation}{25}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Effect Size Distribution}{25}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Coupling to Disease Dynamics}{25}{subsubsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.3}Genotype Initialization}{26}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Mendelian Inheritance and Mutation}{26}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Sweepstakes Reproductive Success}{27}{subsection.4.5}%
+\contentsline {paragraph}{Effective population size.}{27}{section*.13}%
+\contentsline {subsection}{\numberline {4.6}Genetic Diagnostics and Tracking}{28}{subsection.4.6}%
+\contentsline {paragraph}{No cost of resistance.}{28}{section*.14}%
+\contentsline {subsection}{\numberline {4.7}Genotype Bank (Tier~2 Nodes)}{28}{subsection.4.7}%
+\contentsline {section}{\numberline {5}Population Dynamics}{29}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Life Stages}{29}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Growth}{29}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Natural Mortality}{30}{subsection.5.3}%
+\contentsline {paragraph}{Senescence.}{30}{section*.17}%
+\contentsline {subsection}{\numberline {5.4}Spawning System}{30}{subsection.5.4}%
+\contentsline {subsubsection}{\numberline {5.4.1}Spawning Season and Phenology}{31}{subsubsection.5.4.1}%
+\contentsline {subsubsection}{\numberline {5.4.2}Spontaneous Spawning}{31}{subsubsection.5.4.2}%
+\contentsline {paragraph}{Bout limits and refractory periods.}{31}{section*.18}%
+\contentsline {subsubsection}{\numberline {5.4.3}Cascade Induction}{31}{subsubsection.5.4.3}%
+\contentsline {subsubsection}{\numberline {5.4.4}Post-Spawning Immunosuppression}{32}{subsubsection.5.4.4}%
+\contentsline {subsection}{\numberline {5.5}Fecundity}{32}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Fertilization Kinetics and the Allee Effect}{33}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Larval Phase}{33}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Settlement and Recruitment}{33}{subsection.5.8}%
+\contentsline {paragraph}{1. Settlement cue (Allee effect).}{34}{section*.19}%
+\contentsline {paragraph}{2. Density-dependent recruitment (Beverton--Holt).}{34}{section*.20}%
+\contentsline {paragraph}{3. Agent initialization.}{34}{section*.21}%
+\contentsline {paragraph}{Juvenile immunity.}{34}{section*.22}%
+\contentsline {subsection}{\numberline {5.9}Continuous Settlement}{34}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Demographic--Genetic--Epidemiological Coupling}{35}{subsection.5.10}%
+\contentsline {section}{\numberline {6}Spatial Module and Environmental Forcing}{35}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Metapopulation Network Structure}{36}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Node Definition}{36}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Internode Distance Computation}{36}{subsubsection.6.1.2}%
+\contentsline {paragraph}{Haversine with tortuosity.}{36}{section*.24}%
+\contentsline {paragraph}{Precomputed overwater distances.}{37}{section*.25}%
+\contentsline {subsection}{\numberline {6.2}Connectivity Matrices}{37}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}Larval Connectivity Matrix $\mathbf {C}$}{37}{subsubsection.6.2.1}%
+\contentsline {subsubsection}{\numberline {6.2.2}Pathogen Dispersal Matrix $\mathbf {D}$}{38}{subsubsection.6.2.2}%
+\contentsline {paragraph}{Sill attenuation.}{38}{section*.26}%
+\contentsline {subsubsection}{\numberline {6.2.3}Dispersal Dynamics}{38}{subsubsection.6.2.3}%
+\contentsline {paragraph}{Pathogen dispersal (daily).}{38}{section*.27}%
+\contentsline {paragraph}{Larval dispersal (annual).}{39}{section*.28}%
+\contentsline {subsection}{\numberline {6.3}Environmental Forcing}{39}{subsection.6.3}%
+\contentsline {subsubsection}{\numberline {6.3.1}Sea Surface Temperature}{39}{subsubsection.6.3.1}%
+\contentsline {paragraph}{Satellite climatology (default for validation).}{39}{section*.29}%
+\contentsline {paragraph}{Sinusoidal approximation (fallback).}{39}{section*.30}%
+\contentsline {subsubsection}{\numberline {6.3.2}Temperature-Dependent Rate Scaling}{40}{subsubsection.6.3.2}%
+\contentsline {subsubsection}{\numberline {6.3.3}Salinity Modifier}{40}{subsubsection.6.3.3}%
+\contentsline {subsubsection}{\numberline {6.3.4}Flushing Rate}{40}{subsubsection.6.3.4}%
+\contentsline {subsection}{\numberline {6.4}Agent Movement}{41}{subsection.6.4}%
+\contentsline {paragraph}{Spatial transmission.}{41}{section*.31}%
+\contentsline {paragraph}{Sensitivity analysis substeps.}{42}{section*.32}%
+\contentsline {subsection}{\numberline {6.5}Network Configurations}{42}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}5-Node Validation Network}{42}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}11-Node Sensitivity Analysis Network}{42}{subsubsection.6.5.2}%
+\contentsline {subsubsection}{\numberline {6.5.3}Full-Range Network (Planned)}{43}{subsubsection.6.5.3}%
+\contentsline {subsection}{\numberline {6.6}Network Construction}{43}{subsection.6.6}%
+\contentsline {section}{\numberline {7}Sensitivity Analysis}{44}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Methods}{44}{subsection.7.1}%
+\contentsline {subsubsection}{\numberline {7.1.1}Morris Elementary Effects Screening}{44}{subsubsection.7.1.1}%
+\contentsline {subsubsection}{\numberline {7.1.2}Sobol Variance Decomposition}{44}{subsubsection.7.1.2}%
+\contentsline {subsubsection}{\numberline {7.1.3}Output Metrics}{45}{subsubsection.7.1.3}%
+\contentsline {subsection}{\numberline {7.2}Progressive Sensitivity Analysis Design}{45}{subsection.7.2}%
+\contentsline {paragraph}{Rounds 1--2 (Pre--Three-Trait Baseline).}{46}{section*.36}%
+\contentsline {paragraph}{Round 3 (Expanded Model, 3-Node).}{46}{section*.37}%
+\contentsline {paragraph}{Round 4 (Full Model, 11-Node).}{47}{section*.38}%
+\contentsline {subsection}{\numberline {7.3}Round 4 Morris Results}{47}{subsection.7.3}%
+\contentsline {subsubsection}{\numberline {7.3.1}Global Parameter Ranking}{47}{subsubsection.7.3.1}%
+\contentsline {subsubsection}{\numberline {7.3.2}Key Rank Shifts from Round 3}{48}{subsubsection.7.3.2}%
+\contentsline {paragraph}{Major rank gains.}{49}{section*.40}%
+\contentsline {paragraph}{Major rank drops.}{49}{section*.41}%
+\contentsline {subsubsection}{\numberline {7.3.3}New Three-Trait Parameters}{51}{subsubsection.7.3.3}%
+\contentsline {subsubsection}{\numberline {7.3.4}Universal Nonlinearity}{51}{subsubsection.7.3.4}%
+\contentsline {subsubsection}{\numberline {7.3.5}Module-Level Sensitivity}{52}{subsubsection.7.3.5}%
+\contentsline {subsection}{\numberline {7.4}Cross-Round Parameter Trajectories}{53}{subsection.7.4}%
+\contentsline {paragraph}{Consistently important.}{53}{section*.46}%
+\contentsline {paragraph}{Structurally contingent.}{53}{section*.47}%
+\contentsline {paragraph}{Emergent with complexity.}{54}{section*.48}%
+\contentsline {subsection}{\numberline {7.5}Sobol Variance Decomposition: Rounds 1--2 and Ongoing}{54}{subsection.7.5}%
+\contentsline {subsubsection}{\numberline {7.5.1}R1--R2 Sobol Results}{54}{subsubsection.7.5.1}%
+\contentsline {subsubsection}{\numberline {7.5.2}Round 4 Sobol (In Progress)}{55}{subsubsection.7.5.2}%
+\contentsline {subsection}{\numberline {7.6}Summary and Implications}{55}{subsection.7.6}%
+\contentsline {section}{\numberline {8}Validation}{60}{section.8}%
+\contentsline {subsection}{\numberline {8.1}K = 5{,}000 Validation}{60}{subsection.8.1}%
+\contentsline {paragraph}{Severe, universal population crashes.}{60}{section*.51}%
+\contentsline {paragraph}{Differential recovery at Monterey.}{61}{section*.52}%
+\contentsline {paragraph}{Recovery is the fastest-evolving trait.}{61}{section*.53}%
+\contentsline {paragraph}{Resistance signal is weak and mixed.}{61}{section*.54}%
+\contentsline {paragraph}{Tolerance is effectively neutral.}{61}{section*.55}%
+\contentsline {subsection}{\numberline {8.2}K = 100{,}000 Scale-Up Validation}{63}{subsection.8.2}%
+\contentsline {paragraph}{Crashes are worse, not better, at larger $N$.}{63}{section*.59}%
+\contentsline {paragraph}{Resistance shifts become uniformly negative.}{63}{section*.60}%
+\contentsline {paragraph}{Recovery dominance is amplified at scale.}{64}{section*.61}%
+\contentsline {paragraph}{Monterey remains anomalous.}{64}{section*.62}%
+\contentsline {subsection}{\numberline {8.3}Cross-Scale Comparison}{64}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Reinfection Dynamics: R$\to $S Validation}{65}{subsection.8.4}%
+\contentsline {paragraph}{Recovery trait no longer evolves upward.}{66}{section*.65}%
+\contentsline {paragraph}{Local extinctions emerge.}{66}{section*.66}%
+\contentsline {paragraph}{Selection shifts from recovery to resistance.}{66}{section*.67}%
+\contentsline {paragraph}{Satellite vs.\ sinusoidal SST.}{66}{section*.68}%
+\contentsline {subsection}{\numberline {8.5}Key Scientific Findings}{67}{subsection.8.5}%
+\contentsline {subsubsection}{\numberline {8.5.1}Evolutionary Rescue Is Insufficient}{67}{subsubsection.8.5.1}%
+\contentsline {subsubsection}{\numberline {8.5.2}Recovery as the Primary Adaptive Pathway}{67}{subsubsection.8.5.2}%
+\contentsline {subsubsection}{\numberline {8.5.3}The Extinction Vortex Persists at Realistic Scales}{68}{subsubsection.8.5.3}%
+\contentsline {subsubsection}{\numberline {8.5.4}Implications for Captive Breeding}{68}{subsubsection.8.5.4}%
+\contentsline {section}{\numberline {9}Discussion}{69}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Summary of Contributions}{69}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Comparison with Clement et al.\ (2024)}{70}{subsection.9.2}%
+\contentsline {paragraph}{Reproductive biology.}{70}{section*.69}%
+\contentsline {paragraph}{Spatial structure.}{70}{section*.70}%
+\contentsline {paragraph}{Pathogen evolution.}{71}{section*.71}%
+\contentsline {paragraph}{Evolutionary rescue prospects.}{71}{section*.72}%
+\contentsline {subsection}{\numberline {9.3}The Environmental Pathogen Reservoir as a Multi-Species Abstraction}{71}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Conservation Implications}{72}{subsection.9.4}%
+\contentsline {subsubsection}{\numberline {9.4.1}Evolutionary Rescue Is Too Slow}{72}{subsubsection.9.4.1}%
+\contentsline {subsubsection}{\numberline {9.4.2}Breeding Target: Resistance over Recovery}{73}{subsubsection.9.4.2}%
+\contentsline {subsubsection}{\numberline {9.4.3}Release Site Selection}{73}{subsubsection.9.4.3}%
+\contentsline {subsection}{\numberline {9.5}Model Limitations}{73}{subsection.9.5}%
+\contentsline {paragraph}{1.\ No multi-species dynamics.}{73}{section*.73}%
+\contentsline {paragraph}{2.\ Environmental pathogen reservoir is unconstrained.}{74}{section*.74}%
+\contentsline {paragraph}{3.\ 47-parameter model with universal nonlinearity.}{74}{section*.75}%
+\contentsline {paragraph}{4.\ Recovery rate has zero empirical basis.}{74}{section*.76}%
+\contentsline {paragraph}{5.\ Spatial resolution.}{74}{section*.77}%
+\contentsline {subsection}{\numberline {9.6}Future Directions}{74}{subsection.9.6}%
+\contentsline {subsubsection}{\numberline {9.6.1}ABC-SMC Calibration}{74}{subsubsection.9.6.1}%
+\contentsline {subsubsection}{\numberline {9.6.2}Conservation Scenario Evaluation}{75}{subsubsection.9.6.2}%
+\contentsline {subsubsection}{\numberline {9.6.3}Full Coastline Network}{75}{subsubsection.9.6.3}%
+\contentsline {subsubsection}{\numberline {9.6.4}Integration with Empirical Data}{75}{subsubsection.9.6.4}%
+\contentsline {subsection}{\numberline {9.7}Conclusions}{76}{subsection.9.7}%
+\contentsline {section}{\numberline {A}Parameter Tables}{83}{appendix.A}%

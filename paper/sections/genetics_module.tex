@@ -41,7 +41,7 @@ configurable (constraint: $n_R + n_T + n_C = 51$); the default
 \midrule
 Resistance & $r_i$ & $n_R = 17$ & $0$--$16$  & Immune exclusion: reduces probability of $\text{S} \to \text{E}$ transition \\
 Tolerance  & $t_i$ & $n_T = 17$ & $17$--$33$ & Damage limitation: extends $\text{I}_2$ survival via mortality rate reduction \\
-Recovery   & $c_i$ & $n_C = 17$ & $34$--$50$ & Pathogen clearance: daily probability of $\text{I}_1$/$\text{I}_2 \to \text{R}$ transition \\
+Recovery   & $c_i$ & $n_C = 17$ & $34$--$50$ & Pathogen clearance: daily probability of $\text{I}_1$/$\text{I}_2 \to \text{S}$ transition (recovery) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -65,8 +65,10 @@ with different epidemiological consequences
 
   \item \textbf{Recovery} ($c_i$) acts \emph{during late infection}
     via coelomocyte phagocytosis and immune effector mobilization.
-    Recovering hosts actively clear the pathogen and transition to an
-    immune state (R), removing a shedding host from the population.
+    Recovering hosts actively clear the pathogen and return to the
+    susceptible pool (S), removing a shedding host from the population.
+    Because echinoderms lack adaptive immunity, recovered individuals
+    may be reinfected.
 \end{itemize}
 
 The locus count of 51 is motivated by \citet{Schiebelhut2018}, who
@@ -168,7 +170,7 @@ The three traits feed into the disease module
     where $\rho_\text{rec} = 0.05$~d$^{-1}$ is the base recovery rate.
     Recovery from I$_1$ requires $c_i > 0.5$ (early clearance); recovery
     from I$_2$ has no threshold. Successful recovery transitions the
-    agent to the R (recovered, immune) compartment.
+    agent to the susceptible pool (S), as echinoderms lack acquired immunity.
 \end{enumerate}
 
 

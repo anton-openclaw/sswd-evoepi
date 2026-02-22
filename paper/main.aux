@@ -5,6 +5,8 @@
 \def\@LN@column{1}
 \def\@LN@column{1}
 \def\@LN@column{1}
+\def\@LN@column{1}
+\def\@LN@column{1}
 \citation{Hewson2014,Montecino-Latorre2016,Harvell2019}
 \citation{Miner2018,Hewson2019}
 \citation{Gravem2021,Heady2022}
@@ -19,10 +21,10 @@
 \citation{Aquino2021,Hewson2021}
 \citation{Prentice2025}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{5}{section.1}\protected@file@percent }
-\newlabel{sec:introduction}{{1}{5}{Introduction}{section.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Sea Star Wasting Disease and the Collapse of \textit  {Pycnopodia helianthoides}{}}{5}{subsection.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Etiology: A Decade-Long Mystery Resolved}{5}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{7}{section.1}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{7}{Introduction}{section.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Sea Star Wasting Disease and the Collapse of \textit  {Pycnopodia helianthoides}{}}{7}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Etiology: A Decade-Long Mystery Resolved}{7}{subsection.1.2}\protected@file@percent }
 \citation{Hewson2025autecology}
 \citation{Hewson2025autecology}
 \citation{Lupo2020}
@@ -31,13 +33,14 @@
 \citation{Lessios2016}
 \citation{Dungan1982}
 \citation{AZA2024}
-\citation{Simon2025}
+\citation{kuow2024seastar}
+\citation{ssl2025outplanting}
 \citation{Heady2022}
 \citation{Hagedorn2021,SSL2025}
 \citation{CAOPC2025}
 \citation{Schiebelhut2024genome}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Conservation Urgency and Active Recovery Efforts}{6}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Conservation Urgency and Active Recovery Efforts}{8}{subsection.1.3}\protected@file@percent }
 \citation{Aalto2020}
 \citation{Tolimieri2022}
 \citation{Arroyo-Esquivel2025}
@@ -47,314 +50,689 @@
 \citation{Vendrami2021}
 \citation{Eldon2024}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}The Need for an Eco-Evolutionary Framework}{7}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}The Need for an Eco-Evolutionary Framework}{9}{subsection.1.4}\protected@file@percent }
 \citation{Clement2024}
 \citation{Hollinger2022}
 \citation{Lupo2020,Gimenez-Romero2021}
 \citation{Hedgecock2011}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Model Overview}{8}{subsection.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Model Overview}{10}{subsection.1.5}\protected@file@percent }
 \citation{deangelis2005individual,grimm2005individual}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Paper Outline}{9}{subsection.1.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Model Architecture}{9}{section.2}\protected@file@percent }
-\newlabel{sec:model_architecture}{{2}{9}{Model Architecture}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Agent Representation}{9}{subsection.2.1}\protected@file@percent }
-\newlabel{sec:agent_representation}{{2.1}{9}{Agent Representation}{subsection.2.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Paper Outline}{11}{subsection.1.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Model Architecture}{11}{section.2}\protected@file@percent }
+\newlabel{sec:model_architecture}{{2}{11}{Model Architecture}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Agent Representation}{11}{subsection.2.1}\protected@file@percent }
+\newlabel{sec:agent_representation}{{2.1}{11}{Agent Representation}{subsection.2.1}{}}
 \def\@LN@column{1}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Agent state variables in SSWD-EvoEpi{}.}}{10}{table.caption.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Agent state variables in SSWD-EvoEpi{}.}}{12}{table.caption.2}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{tab:agent_fields}{{1}{10}{Agent state variables in \modelname {}}{table.caption.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Life stages and size thresholds for \textit  {Pycnopodia helianthoides}{}.}}{10}{table.caption.3}\protected@file@percent }
-\newlabel{tab:stages}{{2}{10}{Life stages and size thresholds for \pyc {}}{table.caption.3}{}}
+\newlabel{tab:agent_fields}{{1}{12}{Agent state variables in \modelname {}}{table.caption.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Life stages and size thresholds for \textit  {Pycnopodia helianthoides}{}.}}{12}{table.caption.3}\protected@file@percent }
+\newlabel{tab:stages}{{2}{12}{Life stages and size thresholds for \pyc {}}{table.caption.3}{}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Node Structure}{11}{subsection.2.2}\protected@file@percent }
-\newlabel{sec:node_structure}{{2.2}{11}{Node Structure}{subsection.2.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Simulation Loop}{11}{subsection.2.3}\protected@file@percent }
-\newlabel{sec:simulation_loop}{{2.3}{11}{Simulation Loop}{subsection.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Node Structure}{13}{subsection.2.2}\protected@file@percent }
+\newlabel{sec:node_structure}{{2.2}{13}{Node Structure}{subsection.2.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Simulation Loop}{13}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:simulation_loop}{{2.3}{13}{Simulation Loop}{subsection.2.3}{}}
 \citation{eisenlord2016ochre}
 \citation{schiebelhut2018collapse}
 \citation{clement2024coevolution}
 \def\@LN@column{1}
-\newlabel{eq:daily_mortality}{{1}{12}{Simulation Loop}{equation.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Design Rationale}{12}{subsection.2.4}\protected@file@percent }
-\newlabel{sec:design_rationale}{{2.4}{12}{Design Rationale}{subsection.2.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Individual-based representation.}{12}{section*.4}\protected@file@percent }
+\newlabel{eq:daily_mortality}{{1}{14}{Simulation Loop}{equation.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Design Rationale}{14}{subsection.2.4}\protected@file@percent }
+\newlabel{sec:design_rationale}{{2.4}{14}{Design Rationale}{subsection.2.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Individual-based representation.}{14}{section*.4}\protected@file@percent }
 \citation{raberg2009decomposing}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {paragraph}{Continuous daily demographics.}{13}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Separated genotype storage.}{13}{section*.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Three-trait genetic architecture.}{13}{section*.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Disease Module}{13}{section.3}\protected@file@percent }
-\newlabel{sec:disease_module}{{3}{13}{Disease Module}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Compartmental Structure}{13}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:compartments}{{3.1}{13}{Compartmental Structure}{subsection.3.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Continuous daily demographics.}{15}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Separated genotype storage.}{15}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Three-trait genetic architecture.}{15}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Disease Module}{15}{section.3}\protected@file@percent }
+\newlabel{sec:disease_module}{{3}{15}{Disease Module}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Compartmental Structure}{15}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:compartments}{{3.1}{15}{Compartmental Structure}{subsection.3.1}{}}
+\citation{mongabay2025seastar}
 \citation{wearing2005appropriate}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Erlang-Distributed Stage Durations}{14}{subsubsection.3.1.1}\protected@file@percent }
-\newlabel{sec:erlang}{{3.1.1}{14}{Erlang-Distributed Stage Durations}{subsubsection.3.1.1}{}}
-\newlabel{eq:erlang}{{2}{14}{Erlang-Distributed Stage Durations}{equation.2}{}}
-\newlabel{eq:k_shapes}{{3}{14}{Erlang-Distributed Stage Durations}{equation.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Force of Infection}{14}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:force_of_infection}{{3.2}{14}{Force of Infection}{subsection.3.2}{}}
-\newlabel{eq:force_of_infection}{{4}{14}{Force of Infection}{equation.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Erlang-Distributed Stage Durations}{16}{subsubsection.3.1.1}\protected@file@percent }
+\newlabel{sec:erlang}{{3.1.1}{16}{Erlang-Distributed Stage Durations}{subsubsection.3.1.1}{}}
+\newlabel{eq:erlang}{{2}{16}{Erlang-Distributed Stage Durations}{equation.2}{}}
+\newlabel{eq:k_shapes}{{3}{16}{Erlang-Distributed Stage Durations}{equation.3}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Force of Infection}{17}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:force_of_infection}{{3.2}{17}{Force of Infection}{subsection.3.2}{}}
+\newlabel{eq:force_of_infection}{{4}{17}{Force of Infection}{equation.4}{}}
+\newlabel{eq:p_infection}{{5}{17}{Force of Infection}{equation.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Dose--Response Function}{17}{subsubsection.3.2.1}\protected@file@percent }
+\newlabel{sec:dose_response}{{3.2.1}{17}{Dose--Response Function}{subsubsection.3.2.1}{}}
+\newlabel{eq:dose_response}{{6}{17}{Dose--Response Function}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Salinity Modifier}{17}{subsubsection.3.2.2}\protected@file@percent }
+\newlabel{sec:salinity_mod}{{3.2.2}{17}{Salinity Modifier}{subsubsection.3.2.2}{}}
+\newlabel{eq:salinity_mod}{{7}{17}{Salinity Modifier}{equation.7}{}}
 \citation{eisenlord2016ochre}
 \def\@LN@column{1}
-\newlabel{eq:p_infection}{{5}{15}{Force of Infection}{equation.5}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Dose--Response Function}{15}{subsubsection.3.2.1}\protected@file@percent }
-\newlabel{sec:dose_response}{{3.2.1}{15}{Dose--Response Function}{subsubsection.3.2.1}{}}
-\newlabel{eq:dose_response}{{6}{15}{Dose--Response Function}{equation.6}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Salinity Modifier}{15}{subsubsection.3.2.2}\protected@file@percent }
-\newlabel{sec:salinity_mod}{{3.2.2}{15}{Salinity Modifier}{subsubsection.3.2.2}{}}
-\newlabel{eq:salinity_mod}{{7}{15}{Salinity Modifier}{equation.7}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Size-Dependent Susceptibility}{15}{subsubsection.3.2.3}\protected@file@percent }
-\newlabel{sec:size_suscept}{{3.2.3}{15}{Size-Dependent Susceptibility}{subsubsection.3.2.3}{}}
-\newlabel{eq:size_suscept}{{8}{15}{Size-Dependent Susceptibility}{equation.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Size-Dependent Susceptibility}{18}{subsubsection.3.2.3}\protected@file@percent }
+\newlabel{sec:size_suscept}{{3.2.3}{18}{Size-Dependent Susceptibility}{subsubsection.3.2.3}{}}
+\newlabel{eq:size_suscept}{{8}{18}{Size-Dependent Susceptibility}{equation.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}Post-Spawning Immunosuppression}{18}{subsubsection.3.2.4}\protected@file@percent }
+\newlabel{sec:immunosuppression}{{3.2.4}{18}{Post-Spawning Immunosuppression}{subsubsection.3.2.4}{}}
+\newlabel{eq:immunosuppression}{{9}{18}{Post-Spawning Immunosuppression}{equation.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Disease Progression and Recovery}{18}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:progression}{{3.3}{18}{Disease Progression and Recovery}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Transition Rates}{18}{subsubsection.3.3.1}\protected@file@percent }
+\newlabel{sec:transition_rates}{{3.3.1}{18}{Transition Rates}{subsubsection.3.3.1}{}}
+\newlabel{eq:mu_EI1}{{10}{18}{Transition Rates}{equation.10}{}}
+\newlabel{eq:mu_I1I2}{{11}{18}{Transition Rates}{equation.11}{}}
+\newlabel{eq:mu_I2D}{{12}{18}{Transition Rates}{equation.12}{}}
 \citation{lambert1998virulence}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}Post-Spawning Immunosuppression}{16}{subsubsection.3.2.4}\protected@file@percent }
-\newlabel{sec:immunosuppression}{{3.2.4}{16}{Post-Spawning Immunosuppression}{subsubsection.3.2.4}{}}
-\newlabel{eq:immunosuppression}{{9}{16}{Post-Spawning Immunosuppression}{equation.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Disease Progression and Recovery}{16}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:progression}{{3.3}{16}{Disease Progression and Recovery}{subsection.3.3}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Transition Rates}{16}{subsubsection.3.3.1}\protected@file@percent }
-\newlabel{sec:transition_rates}{{3.3.1}{16}{Transition Rates}{subsubsection.3.3.1}{}}
-\newlabel{eq:mu_EI1}{{10}{16}{Transition Rates}{equation.10}{}}
-\newlabel{eq:mu_I1I2}{{11}{16}{Transition Rates}{equation.11}{}}
-\newlabel{eq:mu_I2D}{{12}{16}{Transition Rates}{equation.12}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Temperature Scaling (Arrhenius)}{16}{subsubsection.3.3.2}\protected@file@percent }
-\newlabel{sec:arrhenius}{{3.3.2}{16}{Temperature Scaling (Arrhenius)}{subsubsection.3.3.2}{}}
-\newlabel{eq:arrhenius}{{13}{16}{Temperature Scaling (Arrhenius)}{equation.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Temperature Scaling (Arrhenius)}{19}{subsubsection.3.3.2}\protected@file@percent }
+\newlabel{sec:arrhenius}{{3.3.2}{19}{Temperature Scaling (Arrhenius)}{subsubsection.3.3.2}{}}
+\newlabel{eq:arrhenius}{{13}{19}{Temperature Scaling (Arrhenius)}{equation.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Tolerance: Extending I$_2$ Duration}{19}{subsubsection.3.3.3}\protected@file@percent }
+\newlabel{sec:tolerance}{{3.3.3}{19}{Tolerance: Extending I$_2$ Duration}{subsubsection.3.3.3}{}}
+\newlabel{eq:tolerance}{{14}{19}{Tolerance: Extending I$_2$ Duration}{equation.14}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.4}Recovery}{19}{subsubsection.3.3.4}\protected@file@percent }
+\newlabel{sec:recovery}{{3.3.4}{19}{Recovery}{subsubsection.3.3.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Recovery from I$_2$.}{19}{section*.8}\protected@file@percent }
+\newlabel{eq:recovery_I2}{{15}{19}{Recovery from I$_2$}{equation.15}{}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Tolerance: Extending I$_2$ Duration}{17}{subsubsection.3.3.3}\protected@file@percent }
-\newlabel{sec:tolerance}{{3.3.3}{17}{Tolerance: Extending I$_2$ Duration}{subsubsection.3.3.3}{}}
-\newlabel{eq:tolerance}{{14}{17}{Tolerance: Extending I$_2$ Duration}{equation.14}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.4}Recovery}{17}{subsubsection.3.3.4}\protected@file@percent }
-\newlabel{sec:recovery}{{3.3.4}{17}{Recovery}{subsubsection.3.3.4}{}}
-\@writefile{toc}{\contentsline {paragraph}{Recovery from I$_2$.}{17}{section*.8}\protected@file@percent }
-\newlabel{eq:recovery_I2}{{15}{17}{Recovery from I$_2$}{equation.15}{}}
-\@writefile{toc}{\contentsline {paragraph}{Early recovery from I$_1$.}{17}{section*.9}\protected@file@percent }
-\newlabel{eq:recovery_I1}{{16}{17}{Early recovery from I$_1$}{equation.16}{}}
+\@writefile{toc}{\contentsline {paragraph}{Early recovery from I$_1$.}{20}{section*.9}\protected@file@percent }
+\newlabel{eq:recovery_I1}{{16}{20}{Early recovery from I$_1$}{equation.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Vibrio Dynamics}{20}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:vibrio}{{3.4}{20}{Vibrio Dynamics}{subsection.3.4}{}}
+\newlabel{eq:vibrio_ode}{{17}{20}{Vibrio Dynamics}{equation.17}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Shedding}{20}{subsubsection.3.4.1}\protected@file@percent }
+\newlabel{sec:shedding}{{3.4.1}{20}{Shedding}{subsubsection.3.4.1}{}}
+\newlabel{eq:shed1}{{18}{20}{Shedding}{equation.18}{}}
+\newlabel{eq:shed2}{{19}{20}{Shedding}{equation.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Carcass Shedding}{20}{subsubsection.3.4.2}\protected@file@percent }
+\newlabel{sec:carcass}{{3.4.2}{20}{Carcass Shedding}{subsubsection.3.4.2}{}}
+\newlabel{eq:carcass_fresh}{{20}{20}{Carcass Shedding}{equation.20}{}}
 \citation{lupo2020vibrionaceae}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Vibrio Dynamics}{18}{subsection.3.4}\protected@file@percent }
-\newlabel{sec:vibrio}{{3.4}{18}{Vibrio Dynamics}{subsection.3.4}{}}
-\newlabel{eq:vibrio_ode}{{17}{18}{Vibrio Dynamics}{equation.17}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Shedding}{18}{subsubsection.3.4.1}\protected@file@percent }
-\newlabel{sec:shedding}{{3.4.1}{18}{Shedding}{subsubsection.3.4.1}{}}
-\newlabel{eq:shed1}{{18}{18}{Shedding}{equation.18}{}}
-\newlabel{eq:shed2}{{19}{18}{Shedding}{equation.19}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Carcass Shedding}{18}{subsubsection.3.4.2}\protected@file@percent }
-\newlabel{sec:carcass}{{3.4.2}{18}{Carcass Shedding}{subsubsection.3.4.2}{}}
-\newlabel{eq:carcass_fresh}{{20}{18}{Carcass Shedding}{equation.20}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}Vibrio Decay}{18}{subsubsection.3.4.3}\protected@file@percent }
-\newlabel{sec:decay}{{3.4.3}{18}{Vibrio Decay}{subsubsection.3.4.3}{}}
-\newlabel{eq:decay}{{21}{18}{Vibrio Decay}{equation.21}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}Vibrio Decay}{21}{subsubsection.3.4.3}\protected@file@percent }
+\newlabel{sec:decay}{{3.4.3}{21}{Vibrio Decay}{subsubsection.3.4.3}{}}
+\newlabel{eq:decay}{{21}{21}{Vibrio Decay}{equation.21}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.4}Environmental Reservoir}{21}{subsubsection.3.4.4}\protected@file@percent }
+\newlabel{sec:reservoir}{{3.4.4}{21}{Environmental Reservoir}{subsubsection.3.4.4}{}}
+\newlabel{eq:P_env}{{22}{21}{Environmental Reservoir}{equation.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Pathogen Evolution}{21}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:pathogen_evolution}{{3.5}{21}{Pathogen Evolution}{subsection.3.5}{}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.4}Environmental Reservoir}{19}{subsubsection.3.4.4}\protected@file@percent }
-\newlabel{sec:reservoir}{{3.4.4}{19}{Environmental Reservoir}{subsubsection.3.4.4}{}}
-\newlabel{eq:P_env}{{22}{19}{Environmental Reservoir}{equation.22}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Pathogen Evolution}{19}{subsection.3.5}\protected@file@percent }
-\newlabel{sec:pathogen_evolution}{{3.5}{19}{Pathogen Evolution}{subsection.3.5}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.1}Virulence--Tradeoff Curves}{19}{subsubsection.3.5.1}\protected@file@percent }
-\newlabel{sec:virulence_tradeoff}{{3.5.1}{19}{Virulence--Tradeoff Curves}{subsubsection.3.5.1}{}}
-\newlabel{eq:sigma1_strain}{{23}{19}{Virulence--Tradeoff Curves}{equation.23}{}}
-\newlabel{eq:sigma2_strain}{{24}{19}{Virulence--Tradeoff Curves}{equation.24}{}}
-\newlabel{eq:mu_I1I2_strain}{{25}{19}{Virulence--Tradeoff Curves}{equation.25}{}}
-\newlabel{eq:mu_I2D_strain}{{26}{19}{Virulence--Tradeoff Curves}{equation.26}{}}
-\def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.2}Transmission and Mutation}{20}{subsubsection.3.5.2}\protected@file@percent }
-\newlabel{sec:strain_inheritance}{{3.5.2}{20}{Transmission and Mutation}{subsubsection.3.5.2}{}}
-\newlabel{eq:p_from_shedder}{{27}{20}{Transmission and Mutation}{equation.27}{}}
-\newlabel{eq:mutation}{{28}{20}{Transmission and Mutation}{equation.28}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Basic Reproduction Number}{20}{subsection.3.6}\protected@file@percent }
-\newlabel{sec:R0}{{3.6}{20}{Basic Reproduction Number}{subsection.3.6}{}}
-\newlabel{eq:R0}{{29}{20}{Basic Reproduction Number}{equation.29}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Daily Update Sequence}{20}{subsection.3.7}\protected@file@percent }
-\newlabel{sec:daily_disease_sequence}{{3.7}{20}{Daily Update Sequence}{subsection.3.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.1}Virulence--Tradeoff Curves}{22}{subsubsection.3.5.1}\protected@file@percent }
+\newlabel{sec:virulence_tradeoff}{{3.5.1}{22}{Virulence--Tradeoff Curves}{subsubsection.3.5.1}{}}
+\newlabel{eq:sigma1_strain}{{23}{22}{Virulence--Tradeoff Curves}{equation.23}{}}
+\newlabel{eq:sigma2_strain}{{24}{22}{Virulence--Tradeoff Curves}{equation.24}{}}
+\newlabel{eq:mu_I1I2_strain}{{25}{22}{Virulence--Tradeoff Curves}{equation.25}{}}
+\newlabel{eq:mu_I2D_strain}{{26}{22}{Virulence--Tradeoff Curves}{equation.26}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.2}Transmission and Mutation}{22}{subsubsection.3.5.2}\protected@file@percent }
+\newlabel{sec:strain_inheritance}{{3.5.2}{22}{Transmission and Mutation}{subsubsection.3.5.2}{}}
+\newlabel{eq:p_from_shedder}{{27}{22}{Transmission and Mutation}{equation.27}{}}
+\newlabel{eq:mutation}{{28}{22}{Transmission and Mutation}{equation.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Basic Reproduction Number}{22}{subsection.3.6}\protected@file@percent }
+\newlabel{sec:R0}{{3.6}{22}{Basic Reproduction Number}{subsection.3.6}{}}
+\newlabel{eq:R0}{{29}{22}{Basic Reproduction Number}{equation.29}{}}
 \citation{Lynch2010}
 \citation{Hedgecock2011}
-\citation{raberg2009decomposing}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Genetics Module}{21}{section.4}\protected@file@percent }
-\newlabel{sec:genetics_module}{{4}{21}{Genetics Module}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Three-Trait Architecture}{21}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:three_trait}{{4.1}{21}{Three-Trait Architecture}{subsection.4.1}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Three-trait genetic architecture. The partition is configurable (constraint: $n_R + n_T + n_C = 51$); the default 17/17/17 split is used in all analyses reported here.}}{21}{table.caption.10}\protected@file@percent }
-\newlabel{tab:trait_partition}{{3}{21}{Three-trait genetic architecture. The partition is configurable (constraint: $n_R + n_T + n_C = 51$); the default 17/17/17 split is used in all analyses reported here}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Daily Update Sequence}{23}{subsection.3.7}\protected@file@percent }
+\newlabel{sec:daily_disease_sequence}{{3.7}{23}{Daily Update Sequence}{subsection.3.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Genetics Module}{23}{section.4}\protected@file@percent }
+\newlabel{sec:genetics_module}{{4}{23}{Genetics Module}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Three-Trait Architecture}{23}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:three_trait}{{4.1}{23}{Three-Trait Architecture}{subsection.4.1}{}}
+\citation{raberg2009decomposing}
 \citation{Schiebelhut2018}
 \citation{Schiebelhut2024genome}
 \citation{Wares2016}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Three-trait genetic architecture. The partition is configurable (constraint: $n_R + n_T + n_C = 51$); the default 17/17/17 split is used in all analyses reported here.}}{24}{table.caption.10}\protected@file@percent }
+\newlabel{tab:trait_partition}{{3}{24}{Three-trait genetic architecture. The partition is configurable (constraint: $n_R + n_T + n_C = 51$); the default 17/17/17 split is used in all analyses reported here}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{Removal of EF1A overdominant locus.}{24}{section*.11}\protected@file@percent }
 \citation{Lotterhos2015}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {paragraph}{Removal of EF1A overdominant locus.}{22}{section*.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Trait Score Computation}{22}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:trait_scores}{{4.2}{22}{Trait Score Computation}{subsection.4.2}{}}
-\newlabel{eq:trait_score}{{30}{22}{Trait Score Computation}{equation.30}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Effect Size Distribution}{22}{subsubsection.4.2.1}\protected@file@percent }
-\newlabel{sec:effect_sizes}{{4.2.1}{22}{Effect Size Distribution}{subsubsection.4.2.1}{}}
-\def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Coupling to Disease Dynamics}{23}{subsubsection.4.2.2}\protected@file@percent }
-\newlabel{sec:trait_disease_coupling}{{4.2.2}{23}{Coupling to Disease Dynamics}{subsubsection.4.2.2}{}}
-\newlabel{eq:resistance_foi}{{31}{23}{Coupling to Disease Dynamics}{equation.31}{}}
-\newlabel{eq:tolerance_mortality}{{32}{23}{Coupling to Disease Dynamics}{equation.32}{}}
-\newlabel{eq:recovery_prob}{{33}{23}{Coupling to Disease Dynamics}{equation.33}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Genotype Initialization}{23}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:geno_init}{{4.3}{23}{Genotype Initialization}{subsection.4.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Trait Score Computation}{25}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:trait_scores}{{4.2}{25}{Trait Score Computation}{subsection.4.2}{}}
+\newlabel{eq:trait_score}{{30}{25}{Trait Score Computation}{equation.30}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Effect Size Distribution}{25}{subsubsection.4.2.1}\protected@file@percent }
+\newlabel{sec:effect_sizes}{{4.2.1}{25}{Effect Size Distribution}{subsubsection.4.2.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Coupling to Disease Dynamics}{25}{subsubsection.4.2.2}\protected@file@percent }
+\newlabel{sec:trait_disease_coupling}{{4.2.2}{25}{Coupling to Disease Dynamics}{subsubsection.4.2.2}{}}
+\newlabel{eq:resistance_foi}{{31}{25}{Coupling to Disease Dynamics}{equation.31}{}}
+\newlabel{eq:tolerance_mortality}{{32}{25}{Coupling to Disease Dynamics}{equation.32}{}}
 \citation{Lynch2010}
+\def\@LN@column{1}
+\newlabel{eq:recovery_prob}{{33}{26}{Coupling to Disease Dynamics}{equation.33}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Genotype Initialization}{26}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:geno_init}{{4.3}{26}{Genotype Initialization}{subsection.4.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Default target population-mean trait scores at initialization.}}{26}{table.caption.12}\protected@file@percent }
+\newlabel{tab:trait_targets}{{4}{26}{Default target population-mean trait scores at initialization}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Mendelian Inheritance and Mutation}{26}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:inheritance}{{4.4}{26}{Mendelian Inheritance and Mutation}{subsection.4.4}{}}
 \citation{Hedgecock2011}
 \citation{Arnason2023}
 \citation{Eldon2024}
-\def\@LN@column{1}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Default target population-mean trait scores at initialization.}}{24}{table.caption.12}\protected@file@percent }
-\newlabel{tab:trait_targets}{{4}{24}{Default target population-mean trait scores at initialization}{table.caption.12}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Mendelian Inheritance and Mutation}{24}{subsection.4.4}\protected@file@percent }
-\newlabel{sec:inheritance}{{4.4}{24}{Mendelian Inheritance and Mutation}{subsection.4.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Sweepstakes Reproductive Success}{24}{subsection.4.5}\protected@file@percent }
-\newlabel{sec:srs}{{4.5}{24}{Sweepstakes Reproductive Success}{subsection.4.5}{}}
 \citation{Hedgecock2011,Arnason2023}
 \citation{Hedgecock2011}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {paragraph}{Effective population size.}{25}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Genetic Diagnostics and Tracking}{25}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:genetics_diagnostics}{{4.6}{25}{Genetic Diagnostics and Tracking}{subsection.4.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Sweepstakes Reproductive Success}{27}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:srs}{{4.5}{27}{Sweepstakes Reproductive Success}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Effective population size.}{27}{section*.13}\protected@file@percent }
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {paragraph}{No cost of resistance.}{26}{section*.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Genotype Bank (Tier~2 Nodes)}{26}{subsection.4.7}\protected@file@percent }
-\newlabel{sec:genotype_bank}{{4.7}{26}{Genotype Bank (Tier~2 Nodes)}{subsection.4.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Population Dynamics}{26}{section.5}\protected@file@percent }
-\newlabel{sec:population_dynamics}{{5}{26}{Population Dynamics}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Life Stages}{26}{subsection.5.1}\protected@file@percent }
-\newlabel{sec:stages}{{5.1}{26}{Life Stages}{subsection.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Genetic Diagnostics and Tracking}{28}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:genetics_diagnostics}{{4.6}{28}{Genetic Diagnostics and Tracking}{subsection.4.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{No cost of resistance.}{28}{section*.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Genotype Bank (Tier~2 Nodes)}{28}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:genotype_bank}{{4.7}{28}{Genotype Bank (Tier~2 Nodes)}{subsection.4.7}{}}
 \def\@LN@column{1}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Life stages and transition thresholds for \textit  {P.~helianthoides}{}.}}{27}{table.caption.15}\protected@file@percent }
-\newlabel{tab:stages_pop}{{5}{27}{Life stages and transition thresholds for \pycshort {}}{table.caption.15}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Growth}{27}{subsection.5.2}\protected@file@percent }
-\newlabel{sec:growth}{{5.2}{27}{Growth}{subsection.5.2}{}}
-\newlabel{eq:vb_growth}{{39}{27}{Growth}{equation.39}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Natural Mortality}{27}{subsection.5.3}\protected@file@percent }
-\newlabel{sec:mortality}{{5.3}{27}{Natural Mortality}{subsection.5.3}{}}
-\newlabel{eq:daily_mort}{{41}{27}{Natural Mortality}{equation.41}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Population Dynamics}{29}{section.5}\protected@file@percent }
+\newlabel{sec:population_dynamics}{{5}{29}{Population Dynamics}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Life Stages}{29}{subsection.5.1}\protected@file@percent }
+\newlabel{sec:stages}{{5.1}{29}{Life Stages}{subsection.5.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Life stages and transition thresholds for \textit  {P.~helianthoides}{}.}}{29}{table.caption.15}\protected@file@percent }
+\newlabel{tab:stages_pop}{{5}{29}{Life stages and transition thresholds for \pycshort {}}{table.caption.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Growth}{29}{subsection.5.2}\protected@file@percent }
+\newlabel{sec:growth}{{5.2}{29}{Growth}{subsection.5.2}{}}
+\newlabel{eq:vb_growth}{{39}{29}{Growth}{equation.39}{}}
 \def\@LN@column{1}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Stage-specific annual survival rates.}}{28}{table.caption.16}\protected@file@percent }
-\newlabel{tab:survival}{{6}{28}{Stage-specific annual survival rates}{table.caption.16}{}}
-\@writefile{toc}{\contentsline {paragraph}{Senescence.}{28}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Spawning System}{28}{subsection.5.4}\protected@file@percent }
-\newlabel{sec:spawning}{{5.4}{28}{Spawning System}{subsection.5.4}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Spawning Season and Phenology}{28}{subsubsection.5.4.1}\protected@file@percent }
-\newlabel{sec:spawning_season}{{5.4.1}{28}{Spawning Season and Phenology}{subsubsection.5.4.1}{}}
-\newlabel{eq:spawning_envelope}{{43}{28}{Spawning Season and Phenology}{equation.43}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Natural Mortality}{30}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:mortality}{{5.3}{30}{Natural Mortality}{subsection.5.3}{}}
+\newlabel{eq:daily_mort}{{41}{30}{Natural Mortality}{equation.41}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Stage-specific annual survival rates.}}{30}{table.caption.16}\protected@file@percent }
+\newlabel{tab:survival}{{6}{30}{Stage-specific annual survival rates}{table.caption.16}{}}
+\@writefile{toc}{\contentsline {paragraph}{Senescence.}{30}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Spawning System}{30}{subsection.5.4}\protected@file@percent }
+\newlabel{sec:spawning}{{5.4}{30}{Spawning System}{subsection.5.4}{}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Spontaneous Spawning}{29}{subsubsection.5.4.2}\protected@file@percent }
-\newlabel{sec:spontaneous_spawning}{{5.4.2}{29}{Spontaneous Spawning}{subsubsection.5.4.2}{}}
-\@writefile{toc}{\contentsline {paragraph}{Bout limits and refractory periods.}{29}{section*.18}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Cascade Induction}{29}{subsubsection.5.4.3}\protected@file@percent }
-\newlabel{sec:cascade}{{5.4.3}{29}{Cascade Induction}{subsubsection.5.4.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Spawning Season and Phenology}{31}{subsubsection.5.4.1}\protected@file@percent }
+\newlabel{sec:spawning_season}{{5.4.1}{31}{Spawning Season and Phenology}{subsubsection.5.4.1}{}}
+\newlabel{eq:spawning_envelope}{{43}{31}{Spawning Season and Phenology}{equation.43}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Spontaneous Spawning}{31}{subsubsection.5.4.2}\protected@file@percent }
+\newlabel{sec:spontaneous_spawning}{{5.4.2}{31}{Spontaneous Spawning}{subsubsection.5.4.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Bout limits and refractory periods.}{31}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Cascade Induction}{31}{subsubsection.5.4.3}\protected@file@percent }
+\newlabel{sec:cascade}{{5.4.3}{31}{Cascade Induction}{subsubsection.5.4.3}{}}
 \citation{Gascoigne2004,Lundquist2004}
 \citation{Lundquist2004}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.4}Post-Spawning Immunosuppression}{30}{subsubsection.5.4.4}\protected@file@percent }
-\newlabel{sec:post_spawn_immunosuppression}{{5.4.4}{30}{Post-Spawning Immunosuppression}{subsubsection.5.4.4}{}}
-\newlabel{eq:post_spawn_immunosuppression}{{49}{30}{Post-Spawning Immunosuppression}{equation.49}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Fecundity}{30}{subsection.5.5}\protected@file@percent }
-\newlabel{sec:fecundity}{{5.5}{30}{Fecundity}{subsection.5.5}{}}
-\newlabel{eq:fecundity}{{50}{30}{Fecundity}{equation.50}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Fertilization Kinetics and the Allee Effect}{30}{subsection.5.6}\protected@file@percent }
-\newlabel{sec:fertilization}{{5.6}{30}{Fertilization Kinetics and the Allee Effect}{subsection.5.6}{}}
-\newlabel{eq:fertilization}{{51}{30}{Fertilization Kinetics and the Allee Effect}{equation.51}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.4}Post-Spawning Immunosuppression}{32}{subsubsection.5.4.4}\protected@file@percent }
+\newlabel{sec:post_spawn_immunosuppression}{{5.4.4}{32}{Post-Spawning Immunosuppression}{subsubsection.5.4.4}{}}
+\newlabel{eq:post_spawn_immunosuppression}{{49}{32}{Post-Spawning Immunosuppression}{equation.49}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Fecundity}{32}{subsection.5.5}\protected@file@percent }
+\newlabel{sec:fecundity}{{5.5}{32}{Fecundity}{subsection.5.5}{}}
+\newlabel{eq:fecundity}{{50}{32}{Fecundity}{equation.50}{}}
 \citation{Hodin2021}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Larval Phase}{31}{subsection.5.7}\protected@file@percent }
-\newlabel{sec:larval}{{5.7}{31}{Larval Phase}{subsection.5.7}{}}
-\newlabel{eq:pld}{{52}{31}{Larval Phase}{equation.52}{}}
-\newlabel{eq:larval_survival}{{53}{31}{Larval Phase}{equation.53}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}Settlement and Recruitment}{31}{subsection.5.8}\protected@file@percent }
-\newlabel{sec:settlement}{{5.8}{31}{Settlement and Recruitment}{subsection.5.8}{}}
-\@writefile{toc}{\contentsline {paragraph}{1. Settlement cue (Allee effect).}{31}{section*.19}\protected@file@percent }
-\newlabel{eq:settlement_cue}{{54}{31}{1. Settlement cue (Allee effect)}{equation.54}{}}
-\@writefile{toc}{\contentsline {paragraph}{2. Density-dependent recruitment (Beverton--Holt).}{31}{section*.20}\protected@file@percent }
-\newlabel{eq:bh}{{55}{31}{2. Density-dependent recruitment (Beverton--Holt)}{equation.55}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Fertilization Kinetics and the Allee Effect}{33}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:fertilization}{{5.6}{33}{Fertilization Kinetics and the Allee Effect}{subsection.5.6}{}}
+\newlabel{eq:fertilization}{{51}{33}{Fertilization Kinetics and the Allee Effect}{equation.51}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}Larval Phase}{33}{subsection.5.7}\protected@file@percent }
+\newlabel{sec:larval}{{5.7}{33}{Larval Phase}{subsection.5.7}{}}
+\newlabel{eq:pld}{{52}{33}{Larval Phase}{equation.52}{}}
+\newlabel{eq:larval_survival}{{53}{33}{Larval Phase}{equation.53}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}Settlement and Recruitment}{33}{subsection.5.8}\protected@file@percent }
+\newlabel{sec:settlement}{{5.8}{33}{Settlement and Recruitment}{subsection.5.8}{}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {paragraph}{3. Agent initialization.}{32}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Juvenile immunity.}{32}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Continuous Settlement}{32}{subsection.5.9}\protected@file@percent }
-\newlabel{sec:continuous_settlement}{{5.9}{32}{Continuous Settlement}{subsection.5.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.10}Demographic--Genetic--Epidemiological Coupling}{32}{subsection.5.10}\protected@file@percent }
-\newlabel{sec:demo_coupling}{{5.10}{32}{Demographic--Genetic--Epidemiological Coupling}{subsection.5.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{1. Settlement cue (Allee effect).}{34}{section*.19}\protected@file@percent }
+\newlabel{eq:settlement_cue}{{54}{34}{1. Settlement cue (Allee effect)}{equation.54}{}}
+\@writefile{toc}{\contentsline {paragraph}{2. Density-dependent recruitment (Beverton--Holt).}{34}{section*.20}\protected@file@percent }
+\newlabel{eq:bh}{{55}{34}{2. Density-dependent recruitment (Beverton--Holt)}{equation.55}{}}
+\@writefile{toc}{\contentsline {paragraph}{3. Agent initialization.}{34}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Juvenile immunity.}{34}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Continuous Settlement}{34}{subsection.5.9}\protected@file@percent }
+\newlabel{sec:continuous_settlement}{{5.9}{34}{Continuous Settlement}{subsection.5.9}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10}Demographic--Genetic--Epidemiological Coupling}{35}{subsection.5.10}\protected@file@percent }
+\newlabel{sec:demo_coupling}{{5.10}{35}{Demographic--Genetic--Epidemiological Coupling}{subsection.5.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Spatial Module and Environmental Forcing}{35}{section.6}\protected@file@percent }
+\newlabel{sec:spatial_module}{{6}{35}{Spatial Module and Environmental Forcing}{section.6}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Metapopulation Network Structure}{36}{subsection.6.1}\protected@file@percent }
+\newlabel{sec:network_structure}{{6.1}{36}{Metapopulation Network Structure}{subsection.6.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}Node Definition}{36}{subsubsection.6.1.1}\protected@file@percent }
+\newlabel{sec:node_definition}{{6.1.1}{36}{Node Definition}{subsubsection.6.1.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Node definition fields.}}{36}{table.caption.23}\protected@file@percent }
+\newlabel{tab:node_definition}{{7}{36}{Node definition fields}{table.caption.23}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}Internode Distance Computation}{36}{subsubsection.6.1.2}\protected@file@percent }
+\newlabel{sec:distance_matrix}{{6.1.2}{36}{Internode Distance Computation}{subsubsection.6.1.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Haversine with tortuosity.}{36}{section*.24}\protected@file@percent }
+\newlabel{eq:haversine_tortuosity}{{56}{36}{Haversine with tortuosity}{equation.56}{}}
+\citation{strathmann1987reproduction}
+\citation{swearer2002evidence}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Precomputed overwater distances.}{37}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Connectivity Matrices}{37}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:connectivity}{{6.2}{37}{Connectivity Matrices}{subsection.6.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}Larval Connectivity Matrix $\mathbf  {C}$}{37}{subsubsection.6.2.1}\protected@file@percent }
+\newlabel{sec:larval_connectivity}{{6.2.1}{37}{Larval Connectivity Matrix $\mathbf {C}$}{subsubsection.6.2.1}{}}
+\newlabel{eq:C_raw}{{57}{37}{Larval Connectivity Matrix $\mathbf {C}$}{equation.57}{}}
+\newlabel{eq:C_normalize}{{58}{37}{Larval Connectivity Matrix $\mathbf {C}$}{equation.58}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}Pathogen Dispersal Matrix $\mathbf  {D}$}{38}{subsubsection.6.2.2}\protected@file@percent }
+\newlabel{sec:pathogen_dispersal}{{6.2.2}{38}{Pathogen Dispersal Matrix $\mathbf {D}$}{subsubsection.6.2.2}{}}
+\newlabel{eq:D_matrix}{{59}{38}{Pathogen Dispersal Matrix $\mathbf {D}$}{equation.59}{}}
+\@writefile{toc}{\contentsline {paragraph}{Sill attenuation.}{38}{section*.26}\protected@file@percent }
+\newlabel{eq:sill_attenuation}{{60}{38}{Sill attenuation}{equation.60}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.3}Dispersal Dynamics}{38}{subsubsection.6.2.3}\protected@file@percent }
+\newlabel{sec:dispersal_dynamics}{{6.2.3}{38}{Dispersal Dynamics}{subsubsection.6.2.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Pathogen dispersal (daily).}{38}{section*.27}\protected@file@percent }
+\newlabel{eq:pathogen_dispersal_step}{{61}{38}{Pathogen dispersal (daily)}{equation.61}{}}
+\citation{oisstv21}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Larval dispersal (annual).}{39}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Environmental Forcing}{39}{subsection.6.3}\protected@file@percent }
+\newlabel{sec:environmental_forcing}{{6.3}{39}{Environmental Forcing}{subsection.6.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.1}Sea Surface Temperature}{39}{subsubsection.6.3.1}\protected@file@percent }
+\newlabel{sec:sst_forcing}{{6.3.1}{39}{Sea Surface Temperature}{subsubsection.6.3.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Satellite climatology (default for validation).}{39}{section*.29}\protected@file@percent }
+\newlabel{eq:sst_satellite}{{62}{39}{Satellite climatology (default for validation)}{equation.62}{}}
+\@writefile{toc}{\contentsline {paragraph}{Sinusoidal approximation (fallback).}{39}{section*.30}\protected@file@percent }
+\newlabel{eq:sst}{{63}{39}{Sinusoidal approximation (fallback)}{equation.63}{}}
+\citation{lambert1998virulence}
+\citation{montecino2016geographic,harvell2019disease}
+\citation{montecino2016geographic}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.2}Temperature-Dependent Rate Scaling}{40}{subsubsection.6.3.2}\protected@file@percent }
+\newlabel{sec:arrhenius_spatial}{{6.3.2}{40}{Temperature-Dependent Rate Scaling}{subsubsection.6.3.2}{}}
+\newlabel{eq:arrhenius_spatial}{{64}{40}{Temperature-Dependent Rate Scaling}{equation.64}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.3}Salinity Modifier}{40}{subsubsection.6.3.3}\protected@file@percent }
+\newlabel{sec:salinity_spatial}{{6.3.3}{40}{Salinity Modifier}{subsubsection.6.3.3}{}}
+\newlabel{eq:salinity_spatial}{{65}{40}{Salinity Modifier}{equation.65}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.3.4}Flushing Rate}{40}{subsubsection.6.3.4}\protected@file@percent }
+\newlabel{sec:flushing}{{6.3.4}{40}{Flushing Rate}{subsubsection.6.3.4}{}}
+\citation{kay2002emlet}
+\def\@LN@column{1}
+\newlabel{eq:seasonal_flushing}{{66}{41}{Flushing Rate}{equation.66}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Agent Movement}{41}{subsection.6.4}\protected@file@percent }
+\newlabel{sec:movement}{{6.4}{41}{Agent Movement}{subsection.6.4}{}}
+\newlabel{eq:crw_heading}{{67}{41}{Agent Movement}{equation.67}{}}
+\newlabel{eq:crw_x}{{68}{41}{Agent Movement}{equation.68}{}}
+\newlabel{eq:crw_y}{{69}{41}{Agent Movement}{equation.69}{}}
+\@writefile{toc}{\contentsline {paragraph}{Spatial transmission.}{41}{section*.31}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Sensitivity analysis substeps.}{42}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Network Configurations}{42}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:network_configurations}{{6.5}{42}{Network Configurations}{subsection.6.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}5-Node Validation Network}{42}{subsubsection.6.5.1}\protected@file@percent }
+\newlabel{sec:5node}{{6.5.1}{42}{5-Node Validation Network}{subsubsection.6.5.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces 5-node validation network configuration. SST parameters are baseline values at reference year 2000.}}{42}{table.caption.33}\protected@file@percent }
+\newlabel{tab:5node}{{8}{42}{5-node validation network configuration. SST parameters are baseline values at reference year 2000}{table.caption.33}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.2}11-Node Sensitivity Analysis Network}{42}{subsubsection.6.5.2}\protected@file@percent }
+\newlabel{sec:11node}{{6.5.2}{42}{11-Node Sensitivity Analysis Network}{subsubsection.6.5.2}{}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces 11-node stepping-stone network for sensitivity analysis Round~4. All nodes have $K = 5{,}000$ ($\sim $55{,}000 total agents). SST trend = 0.02\,$^\circ $C\,yr$^{-1}$ for all nodes.}}{43}{table.caption.34}\protected@file@percent }
+\newlabel{tab:11node}{{9}{43}{11-node stepping-stone network for sensitivity analysis Round~4. All nodes have $K = 5{,}000$ ($\sim $55{,}000 total agents). SST trend = 0.02\,$^\circ $C\,yr$^{-1}$ for all nodes}{table.caption.34}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.3}Full-Range Network (Planned)}{43}{subsubsection.6.5.3}\protected@file@percent }
+\newlabel{sec:full_range}{{6.5.3}{43}{Full-Range Network (Planned)}{subsubsection.6.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}Network Construction}{43}{subsection.6.6}\protected@file@percent }
+\newlabel{sec:build_network}{{6.6}{43}{Network Construction}{subsection.6.6}{}}
+\citation{Morris1991}
+\citation{Herman2017}
+\citation{Campolongo2007}
+\citation{Saltelli2008}
+\citation{Sobol2001}
+\citation{Saltelli2002}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Sensitivity Analysis}{44}{section.7}\protected@file@percent }
+\newlabel{sec:sensitivity_analysis}{{7}{44}{Sensitivity Analysis}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Methods}{44}{subsection.7.1}\protected@file@percent }
+\newlabel{sec:sa_methods}{{7.1}{44}{Methods}{subsection.7.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.1}Morris Elementary Effects Screening}{44}{subsubsection.7.1.1}\protected@file@percent }
+\newlabel{sec:morris_method}{{7.1.1}{44}{Morris Elementary Effects Screening}{subsubsection.7.1.1}{}}
+\newlabel{eq:elementary_effect}{{70}{44}{Morris Elementary Effects Screening}{equation.70}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.2}Sobol Variance Decomposition}{44}{subsubsection.7.1.2}\protected@file@percent }
+\newlabel{sec:sobol_method}{{7.1.2}{44}{Sobol Variance Decomposition}{subsubsection.7.1.2}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.3}Output Metrics}{45}{subsubsection.7.1.3}\protected@file@percent }
+\newlabel{sec:sa_metrics}{{7.1.3}{45}{Output Metrics}{subsubsection.7.1.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Progressive Sensitivity Analysis Design}{45}{subsection.7.2}\protected@file@percent }
+\newlabel{sec:sa_rounds}{{7.2}{45}{Progressive Sensitivity Analysis Design}{subsection.7.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Summary of sensitivity analysis rounds. Each round incorporates all changes from prior rounds. ``New'' parameters are those added relative to the previous round.}}{46}{table.caption.35}\protected@file@percent }
+\newlabel{tab:sa_rounds}{{10}{46}{Summary of sensitivity analysis rounds. Each round incorporates all changes from prior rounds. ``New'' parameters are those added relative to the previous round}{table.caption.35}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Rounds 1--2 (Pre--Three-Trait Baseline).}{46}{section*.36}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Round 3 (Expanded Model, 3-Node).}{46}{section*.37}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Round 4 (Full Model, 11-Node).}{47}{section*.38}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Round 4 Morris Results}{47}{subsection.7.3}\protected@file@percent }
+\newlabel{sec:r4_results}{{7.3}{47}{Round 4 Morris Results}{subsection.7.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.1}Global Parameter Ranking}{47}{subsubsection.7.3.1}\protected@file@percent }
+\newlabel{sec:r4_ranking}{{7.3.1}{47}{Global Parameter Ranking}{subsubsection.7.3.1}{}}
+\def\@LN@column{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Top 20 parameters by mean normalized $\mu ^*$ in Round~4 Morris screening (47 parameters, 23 metrics, 11-node network, 960 runs). Bars are color-coded by module. Error bars show 95\% bootstrap confidence intervals across 20 trajectories.}}{48}{figure.caption.39}\protected@file@percent }
+\newlabel{fig:morris_top20}{{1}{48}{Top 20 parameters by mean normalized $\mu ^*$ in Round~4 Morris screening (47 parameters, 23 metrics, 11-node network, 960 runs). Bars are color-coded by module. Error bars show 95\% bootstrap confidence intervals across 20 trajectories}{figure.caption.39}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.2}Key Rank Shifts from Round 3}{48}{subsubsection.7.3.2}\protected@file@percent }
+\newlabel{sec:r4_shifts}{{7.3.2}{48}{Key Rank Shifts from Round 3}{subsubsection.7.3.2}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Major rank gains.}{49}{section*.40}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Major rank drops.}{49}{section*.41}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Rank change from Round~3 to Round~4 for the 43 parameters common to both rounds. Positive values (rightward) indicate increased importance in R4; negative values (leftward) indicate decreased importance. Parameters are sorted by R4 rank. Four new R4 parameters (not shown) entered at ranks \#10, \#13, \#23, and~\#24.}}{50}{figure.caption.42}\protected@file@percent }
+\newlabel{fig:morris_vs_r3}{{2}{50}{Rank change from Round~3 to Round~4 for the 43 parameters common to both rounds. Positive values (rightward) indicate increased importance in R4; negative values (leftward) indicate decreased importance. Parameters are sorted by R4 rank. Four new R4 parameters (not shown) entered at ranks \#10, \#13, \#23, and~\#24}{figure.caption.42}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Largest rank shifts from R3 to R4 Morris screening. Positive $\Delta $ indicates increased importance.}}{51}{table.caption.43}\protected@file@percent }
+\newlabel{tab:rank_shifts}{{11}{51}{Largest rank shifts from R3 to R4 Morris screening. Positive $\Delta $ indicates increased importance}{table.caption.43}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.3}New Three-Trait Parameters}{51}{subsubsection.7.3.3}\protected@file@percent }
+\newlabel{sec:r4_new_params}{{7.3.3}{51}{New Three-Trait Parameters}{subsubsection.7.3.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.4}Universal Nonlinearity}{51}{subsubsection.7.3.4}\protected@file@percent }
+\newlabel{sec:universal_nonlinearity}{{7.3.4}{51}{Universal Nonlinearity}{subsubsection.7.3.4}{}}
+\def\@LN@column{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Morris $\mu ^*$ vs.\ $\sigma $ scatter for all 47 parameters (R4). The dashed line shows $\sigma = \mu ^*$ (unit interaction ratio). All parameters fall above this line, indicating universal nonlinearity. Symbol color indicates module; symbol size scales with mean normalized $\mu ^*$.}}{52}{figure.caption.44}\protected@file@percent }
+\newlabel{fig:morris_interaction}{{3}{52}{Morris $\mu ^*$ vs.\ $\sigma $ scatter for all 47 parameters (R4). The dashed line shows $\sigma = \mu ^*$ (unit interaction ratio). All parameters fall above this line, indicating universal nonlinearity. Symbol color indicates module; symbol size scales with mean normalized $\mu ^*$}{figure.caption.44}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.3.5}Module-Level Sensitivity}{52}{subsubsection.7.3.5}\protected@file@percent }
+\newlabel{sec:module_sa}{{7.3.5}{52}{Module-Level Sensitivity}{subsubsection.7.3.5}{}}
+\def\@LN@column{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Module-level sensitivity summary for R4 Morris screening. Bar height shows mean normalized $\mu ^*$ for each module; whiskers show the range from minimum to maximum parameter within each module. Number of parameters per module shown in parentheses.}}{53}{figure.caption.45}\protected@file@percent }
+\newlabel{fig:morris_modules}{{4}{53}{Module-level sensitivity summary for R4 Morris screening. Bar height shows mean normalized $\mu ^*$ for each module; whiskers show the range from minimum to maximum parameter within each module. Number of parameters per module shown in parentheses}{figure.caption.45}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Cross-Round Parameter Trajectories}{53}{subsection.7.4}\protected@file@percent }
+\newlabel{sec:cross_round}{{7.4}{53}{Cross-Round Parameter Trajectories}{subsection.7.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{Consistently important.}{53}{section*.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Structurally contingent.}{53}{section*.47}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Emergent with complexity.}{54}{section*.48}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Parameter--metric sensitivity heatmap (R4 Morris). Cell color indicates normalized $\mu ^*$ for each parameter--metric pair. Parameters (rows) are sorted by global rank; metrics (columns) are grouped by category. White cells indicate $\mu ^*_{\text  {norm}} < 0.05$.}}{54}{figure.caption.49}\protected@file@percent }
+\newlabel{fig:morris_heatmap}{{5}{54}{Parameter--metric sensitivity heatmap (R4 Morris). Cell color indicates normalized $\mu ^*$ for each parameter--metric pair. Parameters (rows) are sorted by global rank; metrics (columns) are grouped by category. White cells indicate $\mu ^*_{\text {norm}} < 0.05$}{figure.caption.49}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Sobol Variance Decomposition: Rounds 1--2 and Ongoing}{54}{subsection.7.5}\protected@file@percent }
+\newlabel{sec:sobol_results}{{7.5}{54}{Sobol Variance Decomposition: Rounds 1--2 and Ongoing}{subsection.7.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.5.1}R1--R2 Sobol Results}{54}{subsubsection.7.5.1}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.5.2}Round 4 Sobol (In Progress)}{55}{subsubsection.7.5.2}\protected@file@percent }
+\newlabel{sec:r4_sobol}{{7.5.2}{55}{Round 4 Sobol (In Progress)}{subsubsection.7.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Summary and Implications}{55}{subsection.7.6}\protected@file@percent }
+\newlabel{sec:sa_summary}{{7.6}{55}{Summary and Implications}{subsection.7.6}{}}
+\def\@LN@column{1}
+\gdef \LT@i {\LT@entry 
+    {1}{37.24933pt}\LT@entry 
+    {5}{141.3489pt}\LT@entry 
+    {5}{67.95993pt}\LT@entry 
+    {1}{38.93272pt}\LT@entry 
+    {1}{36.80336pt}\LT@entry 
+    {1}{28.81535pt}\LT@entry 
+    {5}{23.74716pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Complete Round~4 Morris parameter ranking (47 parameters, 23 metrics, 11-node network, 960 runs). Mean normalized $\mu ^*$ is averaged across all metrics. The $\sigma /\mu ^*$ ratio indicates interaction strength ($> 1$: interaction-dominated). R3 Rank column shows the parameter's position in the 43-parameter R3 analysis; ``---'' indicates a new R4 parameter.}}{57}{table.12}\protected@file@percent }
+\newlabel{tab:r4_morris_full}{{12}{57}{Complete Round~4 Morris parameter ranking (47 parameters, 23 metrics, 11-node network, 960 runs). Mean normalized $\mu ^*$ is averaged across all metrics. The $\sigma /\mu ^*$ ratio indicates interaction strength ($> 1$: interaction-dominated). R3 Rank column shows the parameter's position in the 43-parameter R3 analysis; ``---'' indicates a new R4 parameter}{table.12}{}}
+\def\@LN@column{1}
+\def\@LN@column{1}
+\citation{Hamilton2021,Gravem2021}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Validation}{60}{section.8}\protected@file@percent }
+\newlabel{sec:validation}{{8}{60}{Validation}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}K = 5{,}000 Validation}{60}{subsection.8.1}\protected@file@percent }
+\newlabel{sec:val_5k}{{8.1}{60}{K = 5{,}000 Validation}{subsection.8.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Per-node results for the $K = 5{,}000$ validation run (5~nodes, 20~years, seed~42). $\Delta r_i$, $\Delta t_i$, and $\Delta c_i$ denote changes in mean resistance, tolerance, and recovery trait scores relative to initialization (\(\bar  {r}_0 = 0.15\), \(\bar  {t}_0 = 0.10\), \(\bar  {c}_0 = 0.02\)). Pop\textsubscript  {min} gives the minimum population reached at the indicated year.}}{60}{table.caption.50}\protected@file@percent }
+\newlabel{tab:val_5k}{{13}{60}{Per-node results for the $K = 5{,}000$ validation run (5~nodes, 20~years, seed~42). $\Delta r_i$, $\Delta t_i$, and $\Delta c_i$ denote changes in mean resistance, tolerance, and recovery trait scores relative to initialization (\(\bar {r}_0 = 0.15\), \(\bar {t}_0 = 0.10\), \(\bar {c}_0 = 0.02\)). Pop\textsubscript {min} gives the minimum population reached at the indicated year}{table.caption.50}{}}
+\@writefile{toc}{\contentsline {paragraph}{Severe, universal population crashes.}{60}{section*.51}\protected@file@percent }
+\citation{Hedgecock2011}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Differential recovery at Monterey.}{61}{section*.52}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Recovery is the fastest-evolving trait.}{61}{section*.53}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Resistance signal is weak and mixed.}{61}{section*.54}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Tolerance is effectively neutral.}{61}{section*.55}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Population trajectories for the $K = 5{,}000$ validation run. Disease is introduced at year~3. All nodes crash to $<$2\% of carrying capacity. Monterey (red) shows partial recovery from its nadir of 38 individuals at year~10, driven by elevated recovery trait evolution ($\Delta c_i = +0.154$).}}{62}{figure.caption.56}\protected@file@percent }
+\newlabel{fig:val_5k_pop}{{6}{62}{Population trajectories for the $K = 5{,}000$ validation run. Disease is introduced at year~3. All nodes crash to $<$2\% of carrying capacity. Monterey (red) shows partial recovery from its nadir of 38 individuals at year~10, driven by elevated recovery trait evolution ($\Delta c_i = +0.154$)}{figure.caption.56}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Trait shifts ($\Delta r_i$, $\Delta t_i$, $\Delta c_i$) per node in the $K = 5{,}000$ validation. Recovery (blue) dominates at every node, with Monterey showing the largest shift ($\Delta c_i = +0.154$). Resistance changes are weak and variable in sign; tolerance is near-zero at most nodes.}}{62}{figure.caption.57}\protected@file@percent }
+\newlabel{fig:val_5k_shifts}{{7}{62}{Trait shifts ($\Delta r_i$, $\Delta t_i$, $\Delta c_i$) per node in the $K = 5{,}000$ validation. Recovery (blue) dominates at every node, with Monterey showing the largest shift ($\Delta c_i = +0.154$). Resistance changes are weak and variable in sign; tolerance is near-zero at most nodes}{figure.caption.57}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}K = 100{,}000 Scale-Up Validation}{63}{subsection.8.2}\protected@file@percent }
+\newlabel{sec:val_100k}{{8.2}{63}{K = 100{,}000 Scale-Up Validation}{subsection.8.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces Per-node results for the $K = 100{,}000$ scale-up validation (5~nodes, 20~years, seed~42). Trait values are final means; $\Delta $ values computed relative to initialization targets (\(\bar  {r}_0 = 0.15\), \(\bar  {t}_0 = 0.10\), \(\bar  {c}_0 = 0.02\)).}}{63}{table.caption.58}\protected@file@percent }
+\newlabel{tab:val_100k}{{14}{63}{Per-node results for the $K = 100{,}000$ scale-up validation (5~nodes, 20~years, seed~42). Trait values are final means; $\Delta $ values computed relative to initialization targets (\(\bar {r}_0 = 0.15\), \(\bar {t}_0 = 0.10\), \(\bar {c}_0 = 0.02\))}{table.caption.58}{}}
+\@writefile{toc}{\contentsline {paragraph}{Crashes are worse, not better, at larger $N$.}{63}{section*.59}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Resistance shifts become uniformly negative.}{63}{section*.60}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Recovery dominance is amplified at scale.}{64}{section*.61}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Monterey remains anomalous.}{64}{section*.62}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Cross-Scale Comparison}{64}{subsection.8.3}\protected@file@percent }
+\newlabel{sec:val_cross}{{8.3}{64}{Cross-Scale Comparison}{subsection.8.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Cross-scale comparison of key metrics between $K = 5{,}000$ and $K = 100{,}000$ validation runs. ``Ratio'' column gives the 100K value divided by the 5K value.}}{64}{table.caption.63}\protected@file@percent }
+\newlabel{tab:val_cross}{{15}{64}{Cross-scale comparison of key metrics between $K = 5{,}000$ and $K = 100{,}000$ validation runs. ``Ratio'' column gives the 100K value divided by the 5K value}{table.caption.63}{}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Reinfection Dynamics: R$\to $S Validation}{65}{subsection.8.4}\protected@file@percent }
+\newlabel{sec:val_rs}{{8.4}{65}{Reinfection Dynamics: R$\to $S Validation}{subsection.8.4}{}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Impact of R$\to $S reinfection dynamics on $K = 5{,}000$ validation (5~nodes, 20~years, seed~42). The R$\to $S correction dramatically worsens population outcomes and fundamentally alters the evolutionary trajectory.}}{66}{table.caption.64}\protected@file@percent }
+\newlabel{tab:val_rs}{{16}{66}{Impact of R$\to $S reinfection dynamics on $K = 5{,}000$ validation (5~nodes, 20~years, seed~42). The R$\to $S correction dramatically worsens population outcomes and fundamentally alters the evolutionary trajectory}{table.caption.64}{}}
+\@writefile{toc}{\contentsline {paragraph}{Recovery trait no longer evolves upward.}{66}{section*.65}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Local extinctions emerge.}{66}{section*.66}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Selection shifts from recovery to resistance.}{66}{section*.67}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Satellite vs.\ sinusoidal SST.}{66}{section*.68}\protected@file@percent }
+\citation{Schiebelhut2018}
+\citation{Clement2024}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Key Scientific Findings}{67}{subsection.8.5}\protected@file@percent }
+\newlabel{sec:val_findings}{{8.5}{67}{Key Scientific Findings}{subsection.8.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.5.1}Evolutionary Rescue Is Insufficient}{67}{subsubsection.8.5.1}\protected@file@percent }
+\newlabel{sec:val_evo_rescue}{{8.5.1}{67}{Evolutionary Rescue Is Insufficient}{subsubsection.8.5.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.5.2}Recovery as the Primary Adaptive Pathway}{67}{subsubsection.8.5.2}\protected@file@percent }
+\newlabel{sec:val_recovery}{{8.5.2}{67}{Recovery as the Primary Adaptive Pathway}{subsubsection.8.5.2}{}}
+\citation{Gascoigne2004}
+\citation{Hedgecock2011}
+\citation{Hamilton2021,Gravem2025}
+\citation{SSL2025}
+\citation{Hodin2021,AZA2024}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.5.3}The Extinction Vortex Persists at Realistic Scales}{68}{subsubsection.8.5.3}\protected@file@percent }
+\newlabel{sec:val_vortex}{{8.5.3}{68}{The Extinction Vortex Persists at Realistic Scales}{subsubsection.8.5.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {8.5.4}Implications for Captive Breeding}{68}{subsubsection.8.5.4}\protected@file@percent }
+\newlabel{sec:val_captive}{{8.5.4}{68}{Implications for Captive Breeding}{subsubsection.8.5.4}{}}
+\citation{kuow2024seastar}
+\citation{ssl2025outplanting}
+\citation{Aalto2020}
+\citation{Tolimieri2022}
+\citation{Arroyo-Esquivel2025}
+\citation{raberg2009decomposing}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Discussion}{69}{section.9}\protected@file@percent }
+\newlabel{sec:discussion}{{9}{69}{Discussion}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Summary of Contributions}{69}{subsection.9.1}\protected@file@percent }
+\newlabel{sec:disc_contributions}{{9.1}{69}{Summary of Contributions}{subsection.9.1}{}}
+\citation{clement2024coevolution}
+\citation{Lundquist2004}
+\citation{Hedgecock2011}
+\citation{Eldon2024}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Comparison with Clement et al.\ (2024)}{70}{subsection.9.2}\protected@file@percent }
+\newlabel{sec:disc_clement}{{9.2}{70}{Comparison with Clement et al.\ (2024)}{subsection.9.2}{}}
+\@writefile{toc}{\contentsline {paragraph}{Reproductive biology.}{70}{section*.69}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Spatial structure.}{70}{section*.70}\protected@file@percent }
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{Pathogen evolution.}{71}{section*.71}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Evolutionary rescue prospects.}{71}{section*.72}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}The Environmental Pathogen Reservoir as a Multi-Species Abstraction}{71}{subsection.9.3}\protected@file@percent }
+\newlabel{sec:disc_penv}{{9.3}{71}{The Environmental Pathogen Reservoir as a Multi-Species Abstraction}{subsection.9.3}{}}
+\citation{Miner2018,Hewson2019}
+\citation{Hewson2025autecology}
+\citation{Gehman2025}
+\citation{Clement2024}
+\citation{AZA2024}
+\citation{kuow2024seastar}
+\citation{ssl2025outplanting}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Conservation Implications}{72}{subsection.9.4}\protected@file@percent }
+\newlabel{sec:disc_conservation}{{9.4}{72}{Conservation Implications}{subsection.9.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.4.1}Evolutionary Rescue Is Too Slow}{72}{subsubsection.9.4.1}\protected@file@percent }
+\citation{Schiebelhut2024genome}
+\citation{Rogers-Bennett2019,Galloway2023}
+\citation{Miner2018}
+\citation{Meunier2024}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.4.2}Breeding Target: Resistance over Recovery}{73}{subsubsection.9.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.4.3}Release Site Selection}{73}{subsubsection.9.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}Model Limitations}{73}{subsection.9.5}\protected@file@percent }
+\newlabel{sec:disc_limitations}{{9.5}{73}{Model Limitations}{subsection.9.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{1.\ No multi-species dynamics.}{73}{section*.73}\protected@file@percent }
+\citation{Saltelli2008}
+\citation{Prentice2025}
+\citation{Hamilton2021}
+\citation{Gehman2025}
+\citation{Schiebelhut2018}
+\citation{Prentice2025}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {paragraph}{2.\ Environmental pathogen reservoir is unconstrained.}{74}{section*.74}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{3.\ 47-parameter model with universal nonlinearity.}{74}{section*.75}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{4.\ Recovery rate has zero empirical basis.}{74}{section*.76}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{5.\ Spatial resolution.}{74}{section*.77}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.6}Future Directions}{74}{subsection.9.6}\protected@file@percent }
+\newlabel{sec:disc_future}{{9.6}{74}{Future Directions}{subsection.9.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.6.1}ABC-SMC Calibration}{74}{subsubsection.9.6.1}\protected@file@percent }
+\citation{AZA2024}
+\citation{Hagedorn2021}
+\citation{kuow2024seastar}
+\citation{ssl2025outplanting}
+\citation{Schiebelhut2024genome}
+\citation{Prentice2025}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.6.2}Conservation Scenario Evaluation}{75}{subsubsection.9.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.6.3}Full Coastline Network}{75}{subsubsection.9.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {9.6.4}Integration with Empirical Data}{75}{subsubsection.9.6.4}\protected@file@percent }
 \bibstyle{plainnat}
 \bibdata{references}
 \bibcite{Aalto2020}{{1}{2020}{{Aalto et~al.}}{{Aalto, Lafferty, Sokolow, Grewelle, Ben-Horin, Boch, Raimondi, Bograd, Hazen, Jacox, Micheli, and De~Leo}}}
 \bibcite{Aquino2021}{{2}{2021}{{Aquino et~al.}}{{Aquino, Besemer, DeRito, Kocian, Porter, Raiber, Episale, and Hewson}}}
 \bibcite{Arnason2023}{{3}{2023}{{{\'A}rnason et~al.}}{{{\'A}rnason, Koskela, Halld{\'o}rsd{\'o}ttir, and Eldon}}}
 \bibcite{Arroyo-Esquivel2025}{{4}{2025}{{Arroyo-Esquivel et~al.}}{{Arroyo-Esquivel, Gehman, Collins, and Sanchez}}}
-\def\@LN@column{1}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Spatial Module}{33}{section.6}\protected@file@percent }
-\newlabel{sec:spatial_module}{{6}{33}{Spatial Module}{section.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Sensitivity Analysis}{33}{section.7}\protected@file@percent }
-\newlabel{sec:sensitivity_analysis}{{7}{33}{Sensitivity Analysis}{section.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Validation}{33}{section.8}\protected@file@percent }
-\newlabel{sec:validation}{{8}{33}{Validation}{section.8}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {9}Discussion}{33}{section.9}\protected@file@percent }
-\newlabel{sec:discussion}{{9}{33}{Discussion}{section.9}{}}
 \bibcite{AZA2024}{{5}{2024}{{AZA SAFE}}{{}}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.7}Conclusions}{76}{subsection.9.7}\protected@file@percent }
+\newlabel{sec:disc_conclusions}{{9.7}{76}{Conclusions}{subsection.9.7}{}}
 \bibcite{Burt2018}{{6}{2018}{{Burt et~al.}}{{Burt, Tinker, Okamoto, Demes, Holmes, and Salomon}}}
 \bibcite{CAOPC2025}{{7}{2025}{{California Ocean Protection Council}}{{}}}
-\bibcite{clement2024coevolution}{{8}{2024{}}{{Clement et~al.}}{{Clement, Hamede, Jones, and Hohenlohe}}}
-\bibcite{Clement2024}{{9}{2024{}}{{Clement et~al.}}{{}}}
-\bibcite{deangelis2005individual}{{10}{2005}{{DeAngelis and Mooij}}{{}}}
-\bibcite{Dungan1982}{{11}{1982}{{Dungan et~al.}}{{Dungan, Miller, and Thomson}}}
-\bibcite{eisenlord2016ochre}{{12}{2016}{{Eisenlord et~al.}}{{Eisenlord, Groner, Yoshioka, Elliott, Maynard, Fradkin, Turner, Pyne, Wyllie-Echeverria, Miner, and Harvell}}}
-\bibcite{Eldon2024}{{13}{2024}{{Eldon and Stephan}}{{}}}
-\bibcite{Galloway2023}{{14}{2023}{{Galloway et~al.}}{{Galloway, Gravem, Kobelt, et~al.}}}
+\bibcite{Campolongo2007}{{8}{2007}{{Campolongo et~al.}}{{Campolongo, Cariboni, and Saltelli}}}
+\bibcite{clement2024coevolution}{{9}{2024{}}{{Clement et~al.}}{{Clement, Hamede, Jones, and Hohenlohe}}}
+\bibcite{Clement2024}{{10}{2024{}}{{Clement et~al.}}{{}}}
+\bibcite{deangelis2005individual}{{11}{2005}{{DeAngelis and Mooij}}{{}}}
+\bibcite{Dungan1982}{{12}{1982}{{Dungan et~al.}}{{Dungan, Miller, and Thomson}}}
+\bibcite{eisenlord2016ochre}{{13}{2016}{{Eisenlord et~al.}}{{Eisenlord, Groner, Yoshioka, Elliott, Maynard, Fradkin, Turner, Pyne, Wyllie-Echeverria, Miner, and Harvell}}}
+\bibcite{Eldon2024}{{14}{2024}{{Eldon and Stephan}}{{}}}
+\bibcite{Galloway2023}{{15}{2023}{{Galloway et~al.}}{{Galloway, Gravem, Kobelt, et~al.}}}
 \def\@LN@column{1}
-\bibcite{Gascoigne2004}{{15}{2004}{{Gascoigne and Lipcius}}{{}}}
-\bibcite{Gimenez-Romero2021}{{16}{2021}{{Gim{\'e}nez-Romero et~al.}}{{Gim{\'e}nez-Romero, Grau, Hendriks, and Mat{\'i}as}}}
-\bibcite{Gravem2025}{{17}{2025}{{Gravem and Menge}}{{}}}
-\bibcite{Gravem2021}{{18}{2021}{{Gravem et~al.}}{{Gravem, Heady, Saccomanno, Alvstad, Gehman, Frierson, and Hamilton}}}
-\bibcite{grimm2005individual}{{19}{2005}{{Grimm and Railsback}}{{}}}
-\bibcite{Hagedorn2021}{{20}{2021}{{Hagedorn et~al.}}{{}}}
-\bibcite{Hamilton2021}{{21}{2021}{{Hamilton et~al.}}{{}}}
-\bibcite{Harvell2019}{{22}{2019}{{Harvell et~al.}}{{Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.}}}
-\bibcite{Heady2022}{{23}{2022}{{Heady et~al.}}{{Heady, Beas-Luna, Dawson, et~al.}}}
-\bibcite{Hedgecock2011}{{24}{2011}{{Hedgecock and Pudovkin}}{{}}}
+\bibcite{Gascoigne2004}{{16}{2004}{{Gascoigne and Lipcius}}{{}}}
+\bibcite{Gehman2025}{{17}{2025}{{Gehman et~al.}}{{Gehman, Pontier, Froese, VanMaanen, Blaine, Sadlier-Brown, Olson, Monteith, Bachen, Prentice, Hessing-Lewis, and Jackson}}}
+\bibcite{Gimenez-Romero2021}{{18}{2021}{{Gim{\'e}nez-Romero et~al.}}{{Gim{\'e}nez-Romero, Grau, Hendriks, and Mat{\'i}as}}}
+\bibcite{Gravem2025}{{19}{2025}{{Gravem and Menge}}{{}}}
+\bibcite{Gravem2021}{{20}{2021}{{Gravem et~al.}}{{Gravem, Heady, Saccomanno, Alvstad, Gehman, Frierson, and Hamilton}}}
+\bibcite{grimm2005individual}{{21}{2005}{{Grimm and Railsback}}{{}}}
+\bibcite{Hagedorn2021}{{22}{2021}{{Hagedorn et~al.}}{{}}}
+\bibcite{Hamilton2021}{{23}{2021}{{Hamilton et~al.}}{{}}}
+\bibcite{Harvell2019}{{24}{2019{}}{{Harvell et~al.}}{{Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.}}}
+\bibcite{harvell2019disease}{{25}{2019{}}{{Harvell et~al.}}{{Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.}}}
 \def\@LN@column{1}
-\bibcite{Hewson2021}{{25}{2021}{{Hewson}}{{}}}
-\bibcite{Hewson2025autecology}{{26}{2025}{{Hewson}}{{}}}
-\bibcite{Hewson2014}{{27}{2014}{{Hewson et~al.}}{{Hewson, Button, Gudenkauf, et~al.}}}
-\bibcite{Hewson2025review}{{28}{2025}{{Hewson et~al.}}{{Hewson, Johnson, and Reyes-Chavez}}}
-\bibcite{Hewson2018}{{29}{2018}{{Hewson et~al.}}{{}}}
-\bibcite{Hewson2019}{{30}{2019}{{Hewson et~al.}}{{}}}
-\bibcite{Hodin2021}{{31}{2021}{{Hodin et~al.}}{{Hodin, Pearson-Lund, Anteau, Kitaeff, and Cefalu}}}
-\bibcite{Hollinger2022}{{32}{2022}{{H{\"o}llinger et~al.}}{{H{\"o}llinger, Pennings, and Hermisson}}}
-\bibcite{lambert1998virulence}{{33}{1998}{{Lambert et~al.}}{{Lambert, Nicolas, Cilia, and Corre}}}
-\bibcite{Langendorf2025}{{34}{2025}{{Langendorf et~al.}}{{Langendorf, Estes, Watson, Kenner, Hatfield, Tinker, Waddle, DeMarch, and Doak}}}
-\bibcite{Lessios2016}{{35}{2016}{{Lessios}}{{}}}
+\bibcite{Heady2022}{{26}{2022}{{Heady et~al.}}{{Heady, Beas-Luna, Dawson, et~al.}}}
+\bibcite{Hedgecock2011}{{27}{2011}{{Hedgecock and Pudovkin}}{{}}}
+\bibcite{Herman2017}{{28}{2017}{{Herman and Usher}}{{}}}
+\bibcite{Hewson2021}{{29}{2021}{{Hewson}}{{}}}
+\bibcite{Hewson2025autecology}{{30}{2025}{{Hewson}}{{}}}
+\bibcite{Hewson2014}{{31}{2014}{{Hewson et~al.}}{{Hewson, Button, Gudenkauf, et~al.}}}
+\bibcite{Hewson2025review}{{32}{2025}{{Hewson et~al.}}{{Hewson, Johnson, and Reyes-Chavez}}}
+\bibcite{Hewson2018}{{33}{2018}{{Hewson et~al.}}{{}}}
+\bibcite{Hewson2019}{{34}{2019}{{Hewson et~al.}}{{}}}
+\bibcite{Hodin2021}{{35}{2021}{{Hodin et~al.}}{{Hodin, Pearson-Lund, Anteau, Kitaeff, and Cefalu}}}
+\bibcite{Hollinger2022}{{36}{2022}{{H{\"o}llinger et~al.}}{{H{\"o}llinger, Pennings, and Hermisson}}}
 \def\@LN@column{1}
-\bibcite{Lotterhos2015}{{36}{2015}{{Lotterhos and Whitlock}}{{}}}
-\bibcite{Lowry2022}{{37}{2022}{{Lowry et~al.}}{{Lowry, Wright, Neuman, et~al.}}}
-\bibcite{Lundquist2004}{{38}{2004}{{Lundquist and Botsford}}{{}}}
-\bibcite{lupo2020vibrionaceae}{{39}{2020{}}{{Lupo et~al.}}{{Lupo, Cabello-Yeves, Ferreira, de~Lorgeril, and Vezzulli}}}
-\bibcite{Lupo2020}{{40}{2020{}}{{Lupo et~al.}}{{}}}
-\bibcite{Lynch2010}{{41}{2010}{{Lynch}}{{}}}
-\bibcite{Mancuso2025}{{42}{2025}{{Mancuso et~al.}}{{Mancuso, Gravem, Campbell, Hunter, Raimondi, Galloway, and Kroeker}}}
-\bibcite{Meunier2024}{{43}{2024}{{Meunier et~al.}}{{Meunier, Hacker, and Menge}}}
-\bibcite{Miner2018}{{44}{2018}{{Miner et~al.}}{{Miner, Burnaford, Ambrose, Antrim, et~al.}}}
-\bibcite{Montecino-Latorre2016}{{45}{2016}{{Montecino-Latorre et~al.}}{{Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.}}}
+\bibcite{kay2002emlet}{{37}{2002}{{Kay and Emlet}}{{}}}
+\bibcite{lambert1998virulence}{{38}{1998}{{Lambert et~al.}}{{Lambert, Nicolas, Cilia, and Corre}}}
+\bibcite{Langendorf2025}{{39}{2025}{{Langendorf et~al.}}{{Langendorf, Estes, Watson, Kenner, Hatfield, Tinker, Waddle, DeMarch, and Doak}}}
+\bibcite{Lessios2016}{{40}{2016}{{Lessios}}{{}}}
+\bibcite{Lotterhos2015}{{41}{2015}{{Lotterhos and Whitlock}}{{}}}
+\bibcite{Lowry2022}{{42}{2022}{{Lowry et~al.}}{{Lowry, Wright, Neuman, et~al.}}}
+\bibcite{Lundquist2004}{{43}{2004}{{Lundquist and Botsford}}{{}}}
+\bibcite{lupo2020vibrionaceae}{{44}{2020{}}{{Lupo et~al.}}{{Lupo, Cabello-Yeves, Ferreira, de~Lorgeril, and Vezzulli}}}
+\bibcite{Lupo2020}{{45}{2020{}}{{Lupo et~al.}}{{}}}
+\bibcite{Lynch2010}{{46}{2010}{{Lynch}}{{}}}
+\bibcite{Mancuso2025}{{47}{2025}{{Mancuso et~al.}}{{Mancuso, Gravem, Campbell, Hunter, Raimondi, Galloway, and Kroeker}}}
 \def\@LN@column{1}
-\bibcite{Prentice2025}{{46}{2025}{{Prentice et~al.}}{{Prentice, Aquino, Chan, Davis, Hershberger, Finke, Hodin, McCracken, Kellogg, Clemente-Carvalho, Prentice, Zhong, Harvell, Suttle, and Gehman}}}
-\bibcite{raberg2009decomposing}{{47}{2009}{{R{\r a}berg et~al.}}{{R{\r a}berg, Graham, and Read}}}
-\bibcite{Rogers-Bennett2019}{{48}{2019}{{Rogers-Bennett and Catton}}{{}}}
-\bibcite{Schiebelhut2018}{{49}{2018{}}{{Schiebelhut et~al.}}{{Schiebelhut, Puritz, and Dawson}}}
-\bibcite{schiebelhut2018collapse}{{50}{2018{}}{{Schiebelhut et~al.}}{{Schiebelhut, Puritz, and Dawson}}}
-\bibcite{Schiebelhut2024genome}{{51}{2024}{{Schiebelhut et~al.}}{{}}}
-\bibcite{SSL2025}{{52}{2025}{{Sea Star Lab}}{{}}}
-\bibcite{Simon2025}{{53}{2025}{{Sunflower Star Lab}}{{}}}
-\bibcite{Tolimieri2022}{{54}{2022}{{Tolimieri}}{{}}}
-\bibcite{Vendrami2021}{{55}{2021}{{Vendrami et~al.}}{{Vendrami, Peck, Clark, Eldon, Meredith, and Hoffman}}}
+\bibcite{Meunier2024}{{48}{2024}{{Meunier et~al.}}{{Meunier, Hacker, and Menge}}}
+\bibcite{Miner2018}{{49}{2018}{{Miner et~al.}}{{Miner, Burnaford, Ambrose, Antrim, et~al.}}}
+\bibcite{Montecino-Latorre2016}{{50}{2016{}}{{Montecino-Latorre et~al.}}{{Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.}}}
+\bibcite{montecino2016geographic}{{51}{2016{}}{{Montecino-Latorre et~al.}}{{Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.}}}
+\bibcite{Morris1991}{{52}{1991}{{Morris}}{{}}}
+\bibcite{oisstv21}{{53}{2020}{{NOAA National Centers for Environmental Information}}{{}}}
+\bibcite{Prentice2025}{{54}{2025}{{Prentice et~al.}}{{Prentice, Aquino, Chan, Davis, Hershberger, Finke, Hodin, McCracken, Kellogg, Clemente-Carvalho, Prentice, Zhong, Harvell, Suttle, and Gehman}}}
+\bibcite{raberg2009decomposing}{{55}{2009}{{R{\r a}berg et~al.}}{{R{\r a}berg, Graham, and Read}}}
+\bibcite{Rogers-Bennett2019}{{56}{2019}{{Rogers-Bennett and Catton}}{{}}}
 \def\@LN@column{1}
-\bibcite{Wares2016}{{56}{2016}{{Wares and Schiebelhut}}{{}}}
-\bibcite{wearing2005appropriate}{{57}{2005}{{Wearing et~al.}}{{Wearing, Rohani, and Keeling}}}
+\bibcite{kuow2024seastar}{{57}{2024}{{Ryan}}{{}}}
+\bibcite{Saltelli2002}{{58}{2002}{{Saltelli}}{{}}}
+\bibcite{Saltelli2008}{{59}{2008}{{Saltelli et~al.}}{{Saltelli, Ratto, Andres, Campolongo, Cariboni, Gatelli, Saisana, and Tarantola}}}
+\bibcite{Schiebelhut2018}{{60}{2018{}}{{Schiebelhut et~al.}}{{Schiebelhut, Puritz, and Dawson}}}
+\bibcite{schiebelhut2018collapse}{{61}{2018{}}{{Schiebelhut et~al.}}{{Schiebelhut, Puritz, and Dawson}}}
+\bibcite{Schiebelhut2024genome}{{62}{2024}{{Schiebelhut et~al.}}{{}}}
+\bibcite{SSL2025}{{63}{2025}{{Sea Star Lab}}{{}}}
+\bibcite{Sobol2001}{{64}{2001}{{Sobol'}}{{}}}
+\bibcite{strathmann1987reproduction}{{65}{1987}{{Strathmann}}{{}}}
+\bibcite{ssl2025outplanting}{{66}{2025}{{Sunflower Star Laboratory}}{{}}}
+\bibcite{swearer2002evidence}{{67}{2002}{{Swearer et~al.}}{{Swearer, Shima, Hellberg, Thorrold, Jones, Robertson, Morgan, Selkoe, Ruiz, and Warner}}}
 \def\@LN@column{1}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Parameter Tables}{39}{appendix.A}\protected@file@percent }
-\newlabel{sec:appendix_parameters}{{A}{39}{Parameter Tables}{appendix.A}{}}
-\gdef \@abspage@last{39}
+\bibcite{Tolimieri2022}{{68}{2022}{{Tolimieri}}{{}}}
+\bibcite{Vendrami2021}{{69}{2021}{{Vendrami et~al.}}{{Vendrami, Peck, Clark, Eldon, Meredith, and Hoffman}}}
+\bibcite{mongabay2025seastar}{{70}{2025}{{Vyawahare}}{{}}}
+\bibcite{Wares2016}{{71}{2016}{{Wares and Schiebelhut}}{{}}}
+\bibcite{wearing2005appropriate}{{72}{2005}{{Wearing et~al.}}{{Wearing, Rohani, and Keeling}}}
+\def\@LN@column{1}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Parameter Tables}{83}{appendix.A}\protected@file@percent }
+\newlabel{sec:appendix_parameters}{{A}{83}{Parameter Tables}{appendix.A}{}}
+\gdef \LT@ii {\LT@entry 
+    {5}{122.5576pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {5}{89.11319pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Disease module parameters (16). Default values from \texttt  {config.py}; SA ranges from \texttt  {param\_spec.py}.}}{84}{table.17}\protected@file@percent }
+\newlabel{tab:params_disease}{{17}{84}{Disease module parameters (16). Default values from \texttt {config.py}; SA ranges from \texttt {param\_spec.py}}{table.17}{}}
+\def\@LN@column{1}
+\gdef \LT@iii {\LT@entry 
+    {4}{105.1713pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {4}{79.21964pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces Population dynamics parameters (7).}}{86}{table.18}\protected@file@percent }
+\newlabel{tab:params_population}{{18}{86}{Population dynamics parameters (7)}{table.18}{}}
+\gdef \LT@iv {\LT@entry 
+    {4}{87.5773pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {4}{105.32439pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces Genetics module parameters (8). The three-trait partition is constrained: $n_{\text  {resistance}} + n_{\text  {tolerance}} + n_{\text  {recovery}} = 51$.}}{87}{table.19}\protected@file@percent }
+\newlabel{tab:params_genetics}{{19}{87}{Genetics module parameters (8). The three-trait partition is constrained: $n_{\text {resistance}} + n_{\text {tolerance}} + n_{\text {recovery}} = 51$}{table.19}{}}
+\gdef \LT@v {\LT@entry 
+    {4}{106.63371pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {4}{79.21964pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Spawning module parameters (7).}}{88}{table.20}\protected@file@percent }
+\newlabel{tab:params_spawning}{{20}{88}{Spawning module parameters (7)}{table.20}{}}
+\gdef \LT@vi {\LT@entry 
+    {1}{67.80429pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {4}{88.35628pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces Spatial module parameters (3).}}{89}{table.21}\protected@file@percent }
+\newlabel{tab:params_spatial}{{21}{89}{Spatial module parameters (3)}{table.21}{}}
+\gdef \LT@vii {\LT@entry 
+    {1}{67.80429pt}\LT@entry 
+    {1}{168.49014pt}\LT@entry 
+    {1}{55.68376pt}\LT@entry 
+    {4}{73.34607pt}\LT@entry 
+    {1}{40.41528pt}\LT@entry 
+    {1}{37.86723pt}}
+\def\@LN@column{1}
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Pathogen evolution module parameters (6).}}{90}{table.22}\protected@file@percent }
+\newlabel{tab:params_pathogen}{{22}{90}{Pathogen evolution module parameters (6)}{table.22}{}}
+\gdef \@abspage@last{90}

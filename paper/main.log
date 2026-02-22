@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  21 FEB 2026 01:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  21 FEB 2026 20:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**main.tex
+**main
 (./main.tex
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -381,30 +381,56 @@ Package: appendix 2020/02/08 v1.2c extra appendix facilities
 \c@@pps=\count344
 \c@@ppsavesec=\count345
 \c@@ppsaveapp=\count346
-) (/home/starbot/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+) (/home/starbot/.TinyTeX/texmf-dist/tex/latex/tools/longtable.sty
+Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
+\LTleft=\skip61
+\LTright=\skip62
+\LTpre=\skip63
+\LTpost=\skip64
+\LTchunksize=\count347
+\LTcapwidth=\dimen263
+\LT@head=\box68
+\LT@firsthead=\box69
+\LT@foot=\box70
+\LT@lastfoot=\box71
+\LT@gbox=\box72
+\LT@cols=\count348
+\LT@rows=\count349
+\c@LT@tables=\count350
+\c@LT@chunks=\count351
+\LT@p@ftn=\toks31
+) (/home/starbot/.TinyTeX/texmf-dist/tex/latex/pdflscape/pdflscape.sty
+Package: pdflscape 2025-06-23 v0.14 Display of landscape pages in PDF
+ (/home/starbot/.TinyTeX/texmf-dist/tex/latex/pdflscape/pdflscape-nometadata.sty
+Package: pdflscape-nometadata 2025-06-23 v0.14 Display of landscape pages in PDF (HO)
+ (/home/starbot/.TinyTeX/texmf-dist/tex/latex/graphics/lscape.sty
+Package: lscape 2020/05/28 v3.02 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+)) (/home/starbot/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count347
+\l__color_backend_stack_int=\count352
 ) (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
  (/home/starbot/.TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
@@ -447,81 +473,362 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: hyperref package is loaded.
+Package caption Info: longtable package is loaded.
+(/home/starbot/.TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty
+Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
+)
 Package caption Info: End \AtBeginDocument code.
-Package hyperref Info: Link coloring OFF on input line 51.
-(./main.out) (./main.out)
+Package hyperref Info: Link coloring OFF on input line 53.
+ (./main.out) (./main.out)
 \@outlinefile=\write3
 \openout3 = `main.out'.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 53.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 55.
  (/home/starbot/.TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 53.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 55.
  (/home/starbot/.TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (./sections/abstract.tex) [1
 
-{/home/starbot/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}] [2] (./main.toc [3])
+{/home/starbot/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}] [2] (./main.toc [3] [4] [5])
 \tf@toc=\write4
 \openout4 = `main.toc'.
 
- [4] (./sections/introduction.tex [5]
+ [6] (./sections/introduction.tex [7]
 Overfull \hbox (3.00407pt too wide) in paragraph at lines 18--19
 \T1/cmr/m/n/12 that \T1/cmr/m/it/12 V. pecteni-cida \T1/cmr/m/n/12 FHCF-3 was not con-sis-tently de-tected in non-\T1/cmr/m/it/12 Pycnopodia he-lianthoides
  []
 
-[6{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}] [7]
+[8{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}] [9]
 Overfull \hbox (0.98924pt too wide) in paragraph at lines 42--43
 []\T1/cmr/m/n/12 The model is im-ple-mented in Python with NumPy-vectorized agent op-er-a-tions, achiev-
  []
 
-[8]) (./sections/model_architecture.tex [9] [10]
+[10]) (./sections/model_architecture.tex [11] [12]
 
-LaTeX Warning: Reference `fig:loop_schematic' on page 11 undefined on input line 129.
+LaTeX Warning: Reference `fig:loop_schematic' on page 13 undefined on input line 129.
 
-[11] [12]) (./sections/disease_module.tex
-Overfull \hbox (17.55605pt too wide) in paragraph at lines 9--18
-\T1/cmr/m/n/12 The dis-ease mod-ule im-ple-ments a stochas-tic, en-vi-ron-men-tally driven SEIPD+R (Susceptible--
- []
+[13] [14]) (./sections/disease_module.tex
 
+LaTeX Warning: Reference `fig:disease_flow' on page 15 undefined on input line 25.
 
-LaTeX Warning: Reference `fig:disease_flow' on page 13 undefined on input line 24.
-
-[13]
-Overfull \hbox (5.8796pt too wide) in paragraph at lines 60--63
+[15]
+Overfull \hbox (5.8796pt too wide) in paragraph at lines 67--70
 \T1/cmr/m/n/12 where $\OML/cmm/m/it/12 ^^V\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 T\OT1/cmr/m/n/12 )$ \T1/cmr/m/n/12 is the temperature-dependent tran-si-tion rate at the cur-rent SST (Sec-tion []3.3.2[]).
  []
 
-[14] [15] [16]
+[16] [17] [18]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 225.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 225.
+(hyperref)                removing `math shift' on input line 232.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 225.
+(hyperref)                removing `subscript' on input line 232.
 
-[17] [18] [19] [20]) (./sections/genetics_module.tex [21] [22] [23]
-Overfull \hbox (0.20604pt too wide) in paragraph at lines 242--250
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 232.
+
+[19] [20] [21] [22]) (./sections/genetics_module.tex [23] [24] [25] [26]
+Overfull \hbox (0.20604pt too wide) in paragraph at lines 244--252
 \T1/cmr/m/n/12 Broadcast-spawning ma-rine in-ver-te-brates ex-hibit sweep-stakes re-pro-duc-tive suc-cess (SRS):
  []
 
-[24] [25]) (./sections/population_dynamics.tex [26] [27]
+[27]) (./sections/population_dynamics.tex [28] [29]
 Overfull \hbox (0.85736pt too wide) in paragraph at lines 155--158
 \T1/cmr/m/n/12 tended re-pro-duc-tive sea-son and cas-cad-ing spawn-ing be-hav-ior ob-served in \T1/cmr/m/it/12 P. he-lianthoides\T1/cmr/m/n/12 . 
  []
 
-[28] [29] [30] [31] [32]) (./sections/spatial_module.tex) (./sections/sensitivity_analysis.tex) (./sections/validation.tex) (./sections/discussion.tex) (./main.bbl [33] [34] [35]
-Underfull \hbox (badness 3826) in paragraph at lines 209--213
+[30] [31] [32] [33] [34]) (./sections/spatial_module.tex [35]
+Overfull \hbox (9.07147pt too wide) in paragraph at lines 59--65
+\T1/cmr/m/n/12 ity, flush-ing rate), Vib-rio con-cen-tra-tion, and di-ag-nos-tic flags. The \T1/cmtt/m/n/12 MetapopulationNetwork
+ []
+
+[36]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 105.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 105.
+
+[37]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 148.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 148.
+
+[38] [39]
+Overfull \hbox (9.10681pt too wide) in paragraph at lines 269--274
+[]\T1/cmr/m/n/12 SST time se-ries are pre-com-puted at ini-tial-iza-tion via \T1/cmtt/m/n/12 generate_satellite_sst_series
+ []
+
+[40]
+
+LaTeX Warning: Reference `sec:sensitivity' on page 41 undefined on input line 388.
+
+[41] [42]
+
+LaTeX Warning: Reference `sec:sensitivity' on page 43 undefined on input line 491.
+
+) (./sections/sensitivity_analysis.tex [43] [44] [45]
+Overfull \hbox (41.95088pt too wide) in paragraph at lines 170--184
+\T1/cmr/m/n/12 was the sin-gle most in-flu-en-tial pa-ram-e-ter (mean $\OML/cmm/m/it/12 S[] \OT1/cmr/m/n/12 = 0\OML/cmm/m/it/12 :\OT1/cmr/m/n/12 638$\T1/cmr/m/n/12 ), fol-lowed by $[]$
+ []
+
+[46]
+Overfull \hbox (8.80312pt too wide) in paragraph at lines 209--219
+\T1/cmr/m/n/12 re-cov-ery; Sec-tion []4.1[]), con-tribut-ing four new pa-ram-e-ters ($[]$, $[]$,
+ []
+
+
+Overfull \hbox (15.74557pt too wide) in paragraph at lines 253--259
+[]$\OML/cmm/m/it/12 P[]$ \T1/cmr/m/n/12 (en-vi-ron-men-tal reser-voir; $\OML/cmm/m/it/12 ^^V[] \OT1/cmr/m/n/12 = 0\OML/cmm/m/it/12 :\OT1/cmr/m/n/12 598$\T1/cmr/m/n/12 ) --- back-ground wa-ter-borne \T1/cmr/m/it/12 V. pecteni-
+ []
+
+[47]
+<figures/morris_r4_top20.png, id=1213, 867.24pt x 578.16pt>
+File: figures/morris_r4_top20.png Graphic file (type png)
+<use figures/morris_r4_top20.png>
+Package pdftex.def Info: figures/morris_r4_top20.png  used on input line 286.
+(pdftex.def)             Requested size: 452.9679pt x 301.97705pt.
+ [48 <./figures/morris_r4_top20.png>]
+! Undefined control sequence.
+l.347   \item $p_{\text{spont},\female
+                                      }$ (female spontaneous spawning):
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+<figures/morris_r4_vs_r3.png, id=1228, 722.7pt x 867.24pt>
+File: figures/morris_r4_vs_r3.png Graphic file (type png)
+<use figures/morris_r4_vs_r3.png>
+Package pdftex.def Info: figures/morris_r4_vs_r3.png  used on input line 353.
+(pdftex.def)             Requested size: 452.9679pt x 543.5587pt.
+
+Overfull \hbox (1.88193pt too wide) in paragraph at lines 369--396
+ [][] 
+ []
+
+[49] [50 <./figures/morris_r4_vs_r3.png>] [51]
+<figures/morris_r4_interaction.png, id=1252, 867.24pt x 578.16pt>
+File: figures/morris_r4_interaction.png Graphic file (type png)
+<use figures/morris_r4_interaction.png>
+Package pdftex.def Info: figures/morris_r4_interaction.png  used on input line 466.
+(pdftex.def)             Requested size: 452.9679pt x 301.97705pt.
+ [52 <./figures/morris_r4_interaction.png>]
+<figures/morris_r4_modules.png, id=1260, 722.7pt x 433.62pt>
+File: figures/morris_r4_modules.png Graphic file (type png)
+<use figures/morris_r4_modules.png>
+Package pdftex.def Info: figures/morris_r4_modules.png  used on input line 498.
+(pdftex.def)             Requested size: 385.02547pt x 231.01509pt.
+ [53 <./figures/morris_r4_modules.png>]
+<figures/morris_r4_heatmap.png, id=1270, 1300.86pt x 1011.78pt>
+File: figures/morris_r4_heatmap.png Graphic file (type png)
+<use figures/morris_r4_heatmap.png>
+Package pdftex.def Info: figures/morris_r4_heatmap.png  used on input line 542.
+(pdftex.def)             Requested size: 452.9679pt x 352.30656pt.
+ [54 <./figures/morris_r4_heatmap.png>] [55] [56] [57
+
+] [58] [59]) (./sections/validation.tex
+Overfull \hbox (23.46033pt too wide) in paragraph at lines 52--68
+ [][] 
+ []
+
+[60
+
+]
+<figures/val_5k_pop_trajectories.png, id=1319, 867.24pt x 433.62pt>
+File: figures/val_5k_pop_trajectories.png Graphic file (type png)
+<use figures/val_5k_pop_trajectories.png>
+Package pdftex.def Info: figures/val_5k_pop_trajectories.png  used on input line 126.
+(pdftex.def)             Requested size: 452.9679pt x 226.48279pt.
+ [61]
+<figures/val_5k_trait_shifts.png, id=1329, 722.7pt x 433.62pt>
+File: figures/val_5k_trait_shifts.png Graphic file (type png)
+<use figures/val_5k_trait_shifts.png>
+Package pdftex.def Info: figures/val_5k_trait_shifts.png  used on input line 137.
+(pdftex.def)             Requested size: 452.9679pt x 271.77934pt.
+ [62 <./figures/val_5k_pop_trajectories.png> <./figures/val_5k_trait_shifts.png>] [63]
+Overfull \hbox (7.91122pt too wide) in paragraph at lines 245--249
+\T1/cmr/m/n/12 pat-terns are scale-invariant (and there-fore ro-bust model pre-dic-tions) ver-sus scale-dependent
+ []
+
+[64]
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 320.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\to' on input line 320.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 320.
+
+[65] [66] [67] [68]) (./sections/discussion.tex
+Overfull \hbox (2.11932pt too wide) in paragraph at lines 29--38
+[]\T1/cmr/bx/n/12 Integrated eco-evolutionary frame-work for SSWD. \T1/cmr/m/n/12 Pre-vi-ous mod-els of SSWD
+ []
+
+
+Overfull \hbox (4.4592pt too wide) in paragraph at lines 39--49
+\T1/cmr/m/n/12 mune ex-clu-sion), tol-er-ance (dam-age lim-i-ta-tion), and re-cov-ery (pathogen clearance)---
+ []
+
+[69]
+Overfull \hbox (3.78923pt too wide) in paragraph at lines 62--68
+\T1/cmr/m/n/12 to $\OML/cmm/m/it/12 K \OT1/cmr/m/n/12 = 100[]000$ \T1/cmr/m/n/12 per node demon-strates that catas-trophic pop-u-la-tion crashes ($\OML/cmm/m/it/12 >$\T1/cmr/m/n/12 97%),
+ []
+
+[70] [71] [72] [73] [74] [75]) (./main.bbl [76] [77] [78] [79]
+Underfull \hbox (badness 3826) in paragraph at lines 239--243
 []\T1/cmr/m/n/12 Harilaos A. Lessios.  The great \T1/cmr/m/it/12 Di-adema an-til-larum \T1/cmr/m/n/12 die-off: 30 years
  []
 
-[36] [37] [38]) (./sections/appendix_parameters.tex) [39] (./main.aux)
+[80] [81]
+Underfull \hbox (badness 5008) in paragraph at lines 339--343
+[]\T1/cmr/m/n/12 John Ryan.  San juans' sea stars start long crawl back from near-
+ []
+
+
+Underfull \hbox (badness 1424) in paragraph at lines 339--343
+\T1/cmr/m/n/12 extinction.  KUOW, Au-gust 2024.  URL []$\T1/cmtt/m/n/12 https : / / www . kuow . org / stories /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--395
+[]\T1/cmr/m/n/12 Sunflower Star Lab-o-ra-tory.  First tem-po-rary ex-per-i-men-tal out-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--395
+\T1/cmr/m/n/12 plant-ing of sun-flower stars in Cal-i-for-nia.  SSL Press Re-lease, De-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 391--395
+\T1/cmr/m/n/12 cem-ber 2025.  URL []$\T1/cmtt/m/n/12 https : / / www . sunflowerstarlab . org / news /
+ []
+
+[82]
+Underfull \hbox (badness 10000) in paragraph at lines 413--417
+[]\T1/cmr/m/n/12 Malavika Vyawa-hare.  There's hope for sun-flower sea stars, with
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 413--417
+\T1/cmr/m/n/12 their killer un-masked and rein-tro-duc-tions pend-ing.  Mongabay,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 413--417
+\T1/cmr/m/n/12 Au-gust 2025.  URL []$\T1/cmtt/m/n/12 https : / / news . mongabay . com / 2025 / 08 /
+ []
+
+
+Overfull \hbox (142.23122pt too wide) in paragraph at lines 413--417
+\T1/cmtt/m/n/12 theres-[]hope-[]for-[]sunflower-[]sea-[]stars-[]with-[]their-[]killer-[]unmasked-[]and-[]reintroductions-[]pending/$[]\T1/cmr/m/n/12 . 
+ []
+
+) (./sections/appendix_parameters.tex [83]
+Underfull \hbox (badness 10000) in paragraph at lines 46--46
+[]|\T1/cmr/m/n/12 I$[]$ shed-ding rate (field-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 48--48
+[]|\T1/cmr/m/n/12 I$[]$ shed-ding rate (field-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 50--50
+[]|\T1/cmr/m/n/12 Saprophytic burst (field-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 60--60
+[]|\T1/cmr/m/n/12 Background Vib-rio in-put
+ []
+
+
+Underfull \hbox (badness 7851) in paragraph at lines 62--62
+[]|\T1/cmr/m/it/12 V. pecteni-cida \T1/cmr/m/n/12 tem-per-a-ture
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--68
+[]|\T1/cmr/m/n/12 Post-spawning im-muno-sup-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 70--70
+[]|\T1/cmr/m/n/12 Post-spawning im-muno-sup-
+ []
+
+
+Underfull \hbox (badness 3557) in paragraph at lines 72--72
+[]|\T1/cmr/m/n/12 Days post-settlement be-fore
+ []
+
+[84
+
+] [85]
+Underfull \hbox (badness 1184) in paragraph at lines 106--106
+[]|\T1/cmr/m/n/12 von Berta-lanffy growth rate
+ []
+
+
+Underfull \hbox (badness 7397) in paragraph at lines 108--108
+[]|\T1/cmr/m/n/12 Minimum re-pro-duc-tive size
+ []
+
+[86
+
+
+]
+Underfull \hbox (badness 1418) in paragraph at lines 144--144
+[]|\T1/cmr/m/n/12 Max tol-er-ance mor-tal-ity re-
+ []
+
+[87
+
+
+]
+Underfull \hbox (badness 10000) in paragraph at lines 172--172
+[]|\T1/cmr/m/n/12 Daily spon-ta-neous fe-male
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 174--174
+[]|\T1/cmr/m/n/12 Daily spon-ta-neous male
+ []
+
+[88
+
+
+] [89
+
+
+]
+Underfull \hbox (badness 7613) in paragraph at lines 242--242
+[]|\T1/cmr/m/n/12 Early shed-ding at-ten-u-a-tion
+ []
+
+[90
+
+
+]) (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -531,21 +838,21 @@ L3 programming layer <2026-01-19>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 803064F36B804DD3366BC1B48D87BC49;11520.
+(rerunfilecheck)             Checksum: 07171552A09A27D54F2480B1925B0CAD;23414.
  ) 
 Here is how much of TeX's memory you used:
- 16798 strings out of 469514
- 308170 string characters out of 5469758
- 706376 words of memory out of 5000000
- 44966 multiletter control sequences out of 15000+600000
- 653225 words of font info for 104 fonts, out of 8000000 for 9000
+ 17520 strings out of 469514
+ 321423 string characters out of 5469758
+ 750028 words of memory out of 5000000
+ 45436 multiletter control sequences out of 15000+600000
+ 656604 words of font info for 115 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,14n,79p,1907b,1265s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbi1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbi2074.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm0600.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfss0800.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfti1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfti1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sftt1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb>
-Output written on main.pdf (39 pages, 644032 bytes).
+ 75i,14n,79p,2052b,1289s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbi1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbi2074.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx1728.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfbx2074.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm0600.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfrm1440.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfss0800.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfti1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sfti1200.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sftt1095.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/cm-super/sftt1200.pfb>
+Output written on main.pdf (90 pages, 1684758 bytes).
 PDF statistics:
- 1002 PDF objects out of 1200 (max. 8388607)
- 889 compressed objects within 9 object streams
- 260 named destinations out of 1000 (max. 500000)
- 521 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1836 PDF objects out of 2073 (max. 8388607)
+ 1642 compressed objects within 17 object streams
+ 490 named destinations out of 1000 (max. 500000)
+ 1012 words of extra memory for PDF output out of 10000 (max. 10000000)
 

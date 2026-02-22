@@ -222,8 +222,30 @@ salinity-dependent, and flushing-dependent mechanisms.
 \subsubsection{Sea Surface Temperature}
 \label{sec:sst_forcing}
 
-Daily SST at node~$k$ follows a sinusoidal annual cycle with a linear
-warming trend and optional stochastic perturbation:
+The model supports two SST forcing modes, selected via the
+\texttt{sst\_source} configuration parameter:
+
+\paragraph{Satellite climatology (default for validation).}
+Daily SST forcing uses climatological means derived from the NOAA
+Optimum Interpolation SST v2.1 dataset \citep{oisstv21}, a
+0.25\textdegree{} daily global product spanning 1981--present.
+For each node, the 365-day climatology is computed as the 2002--2025
+day-of-year average, extracted via ERDDAP for the node's geographic
+coordinates. This approach captures real seasonal dynamics including
+asymmetric warming/cooling profiles and coastal upwelling effects
+that a symmetric sinusoidal function cannot represent. A configurable
+linear warming trend $\gamma_k$ ($^\circ$C\,yr$^{-1}$; default 0.02)
+is overlaid for future projection scenarios:
+\begin{equation}
+  T_k(d, y) = T_{k,\text{clim}}(d) + \gamma_k\,(y - y_\text{ref}),
+  \label{eq:sst_satellite}
+\end{equation}
+where $T_{k,\text{clim}}(d)$ is the satellite-derived climatological
+SST for day-of-year $d$ at node $k$.
+
+\paragraph{Sinusoidal approximation (fallback).}
+For nodes lacking satellite data or for rapid prototyping, SST follows
+a sinusoidal annual cycle:
 \begin{equation}
   T_k(d, y) = \underbrace{\bar{T}_k + \gamma_k\,(y - y_\text{ref})}_{%
     \text{trend-adjusted mean}}
@@ -231,28 +253,24 @@ warming trend and optional stochastic perturbation:
     \right)}_{\text{annual cycle}},
   \label{eq:sst}
 \end{equation}
-where:
-\begin{itemize}
-  \item $\bar{T}_k$ is the baseline annual mean SST ($^\circ$C) at
-        reference year $y_\text{ref} = 2000$;
-  \item $A_k$ is the annual cycle half-range ($^\circ$C);
-  \item $\gamma_k$ is the linear warming rate ($^\circ$C\,yr$^{-1}$;
-        default 0.02);
-  \item $d_\text{peak} = 227$ (day of year $\approx$ August~15)
-        corresponds to the late-summer SST maximum characteristic of
-        the NE Pacific.
-\end{itemize}
+where $\bar{T}_k$ is the baseline annual mean SST, $A_k$ the annual
+cycle half-range, and $d_\text{peak} = 227$ (day of year $\approx$
+August~15) corresponds to the late-summer SST maximum characteristic
+of the NE Pacific.
 
-The warming trend shifts the SST climatology upward over time, increasing
-both baseline Vibrio viability and the duration of the high-risk summer
-window. For the 5-node validation network, $\bar{T}_k$ ranges from
-8.0$\,^\circ$C (Sitka) to 14.0$\,^\circ$C (Monterey), producing a
-$\sim$6$\,^\circ$C latitudinal gradient consistent with satellite SST
-climatologies.
+For the 11-node stepping-stone network used in sensitivity analysis,
+satellite climatologies produce a $\sim$6$\,^\circ$C latitudinal
+gradient from Sitka ($\sim$8$\,^\circ$C annual mean) to Monterey
+($\sim$13$\,^\circ$C), consistent with published SST atlases. The
+satellite forcing also captures site-specific features such as the
+narrow summer peak at upwelling-dominated sites (Newport, Crescent City)
+versus the broader warm season at sheltered sites (Howe Sound).
 
 SST time series are precomputed at initialization via
-\texttt{make\_sst\_timeseries} and stored as dense 1-D arrays of shape
-$(n_\text{years} \times 365)$ for efficient daily lookup.
+\texttt{generate\_satellite\_sst\_series} (satellite mode) or
+\texttt{make\_sst\_timeseries} (sinusoidal mode) and stored as dense
+1-D arrays of shape $(n_\text{years} \times 365)$ for efficient
+daily lookup.
 
 
 \subsubsection{Temperature-Dependent Rate Scaling}

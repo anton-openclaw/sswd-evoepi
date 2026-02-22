@@ -317,6 +317,82 @@ Three categories of behavior emerge:
 
 
 % ──────────────────────────────────────────────────────────────────────
+\subsection{Reinfection Dynamics: R$\to$S Validation}
+\label{sec:val_rs}
+
+Echinoderms lack adaptive immunity: there is no evidence of acquired
+resistance to SSWD following recovery, and stars treated for wasting
+have subsequently become reinfected. To reflect this biology, recovered
+individuals in \modelname{} return to the susceptible pool rather than
+entering a permanently immune state. We validate the impact of this
+reinfection dynamic by comparing the $K = 5{,}000$ baseline
+(permanent immunity) with the corrected R$\to$S formulation under
+both sinusoidal and satellite SST forcing.
+
+\begin{table}[H]
+\centering
+\caption{Impact of R$\to$S reinfection dynamics on $K = 5{,}000$
+validation (5~nodes, 20~years, seed~42). The R$\to$S correction
+dramatically worsens population outcomes and fundamentally alters
+the evolutionary trajectory.}
+\label{tab:val_rs}
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Metric} & \textbf{Perm.\ immunity} & \textbf{R$\to$S (sinusoidal)} & \textbf{R$\to$S (satellite)} \\
+\midrule
+Overall crash (\%)    & 98.5    & 99.7    & 99.9 \\
+Final population      & 365     & 122     & 146 \\
+Node extinctions      & 0       & 2       & 2 \\
+Total recoveries      & 365     & 276     & 241 \\
+Recovery rate (\%)    & 0.87    & 0.76    & 0.71 \\
+Mean $\Delta r_i$     & $+$0.015 & $+$0.012 & --- \\
+Mean $\Delta c_i$     & $+$0.070 & $+$0.002 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The R$\to$S correction produces four critical changes:
+
+\paragraph{Recovery trait no longer evolves upward.}
+Under permanent immunity, recovery ($c_i$) was the fastest-evolving
+trait, with Monterey showing $\Delta c_i = +0.154$. With R$\to$S,
+the strongest surviving-node shift is $+$0.030 (Newport)---a 5-fold
+reduction. The mechanism is clear: recovered stars immediately
+re-enter the susceptible pool and face reinfection, so high-recovery
+alleles do not accumulate because their carriers keep getting
+reinfected and dying.
+
+\paragraph{Local extinctions emerge.}
+San Juan Islands and Monterey crash to zero population under R$\to$S
+but maintained small populations (50 and 163, respectively) with
+permanent immunity. Without the ``safe harbor'' of an immune recovered
+class, relentless reinfection cycles drive these nodes to local
+extinction.
+
+\paragraph{Selection shifts from recovery to resistance.}
+In surviving nodes, resistance shows the strongest positive selection
+under R$\to$S: Sitka $\Delta r_i = +0.060$ (vs.\ $+$0.011 baseline,
+a 5.5$\times$ increase). When recovery does not confer lasting
+protection, avoiding infection entirely becomes more valuable than
+clearing infection.
+
+\paragraph{Satellite vs.\ sinusoidal SST.}
+The two SST forcing modes produce qualitatively identical dynamics
+(99.7\% vs.\ 99.9\% crash), but satellite forcing shifts which
+specific nodes persist, reflecting real coastal oceanographic
+heterogeneity captured by the NOAA OISST v2.1 climatology.
+
+These results fundamentally change the model's conservation
+implications: evolutionary rescue via the recovery trait, which
+appeared promising under the (incorrect) permanent immunity
+assumption, is not viable with realistic echinoderm biology.
+This strengthens the case for active intervention through
+captive breeding with selection for resistance ($r_i$) rather
+than recovery alone.
+
+
+% ──────────────────────────────────────────────────────────────────────
 \subsection{Key Scientific Findings}
 \label{sec:val_findings}
 
@@ -452,8 +528,10 @@ predictions support this conclusion:
     enable reproductive success.
 \end{enumerate}
 
-These predictions align with early empirical results from the
-Sunflower Star Laboratory, whose December 2025 pilot outplanting
-achieved 98\% survival (47 of 48 juveniles) over four weeks at
-Monterey Bay \citep{SSL2025}---the same node that shows the
-highest resilience in our simulations.
+These predictions align with early empirical results from
+outplanting trials: the first uncaged release of 20 captive-bred
+juveniles off San Juan Island in July--August 2024
+\citep{kuow2024seastar}, and the Sunflower Star Laboratory's
+December 2025 California outplanting, where 47 of 48 juveniles
+survived four weeks at Monterey Bay \citep{ssl2025outplanting}---the
+same node that shows the highest resilience in our simulations.

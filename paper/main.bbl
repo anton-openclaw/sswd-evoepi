@@ -1,4 +1,4 @@
-\begin{thebibliography}{57}
+\begin{thebibliography}{72}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -44,6 +44,12 @@ Jenn~M. Burt, M.~Tim Tinker, Daniel~K. Okamoto, Kyle~W. Demes, Katie Holmes, and
 {California Ocean Protection Council}.
 \newblock Staff recommendation item 9: Consideration and approval of disbursement of funds to support sunflower sea star reintroduction.
 \newblock Technical report, California Ocean Protection Council, 2025.
+
+\bibitem[Campolongo et~al.(2007)Campolongo, Cariboni, and Saltelli]{Campolongo2007}
+Francesca Campolongo, Jessica Cariboni, and Andrea Saltelli.
+\newblock An effective screening design for sensitivity analysis of large models.
+\newblock \emph{Environmental Modelling \& Software}, 22\penalty0 (10):\penalty0 1509--1518, 2007.
+\newblock \doi{10.1016/j.envsoft.2006.10.004}.
 
 \bibitem[Clement et~al.(2024{\natexlab{a}})Clement, Hamede, Jones, and Hohenlohe]{clement2024coevolution}
 Matthew Clement, Rodrigo Hamede, Menna~E. Jones, and Paul~A. Hohenlohe.
@@ -93,6 +99,12 @@ Joanna~C. Gascoigne and Romuald~N. Lipcius.
 \newblock \emph{Marine Ecology Progress Series}, 269:\penalty0 49--59, 2004.
 \newblock \doi{10.3354/meps269049}.
 
+\bibitem[Gehman et~al.(2025)Gehman, Pontier, Froese, VanMaanen, Blaine, Sadlier-Brown, Olson, Monteith, Bachen, Prentice, Hessing-Lewis, and Jackson]{Gehman2025}
+Alyssa-Lois~M. Gehman, Olivier Pontier, Tanya Froese, Derek VanMaanen, Tristan Blaine, Gillian Sadlier-Brown, Alexis~M. Olson, Zachary~L. Monteith, Kiteria Bachen, Christy Prentice, Margot Hessing-Lewis, and Jennifer~M. Jackson.
+\newblock Fjord oceanographic dynamics provide refuge for critically endangered \textit{{P}ycnopodia helianthoides}.
+\newblock \emph{Proceedings of the Royal Society B}, 292:\penalty0 20242770, 2025.
+\newblock \doi{10.1098/rspb.2024.2770}.
+
 \bibitem[Gim{\'e}nez-Romero et~al.(2021)Gim{\'e}nez-Romero, Grau, Hendriks, and Mat{\'i}as]{Gimenez-Romero2021}
 {\`A}lex Gim{\'e}nez-Romero, Antoni Grau, Iris~E. Hendriks, and Manuel~A. Mat{\'i}as.
 \newblock Modelling parasite-produced marine diseases: The case of the mass mortality event of \textit{{P}inna nobilis}.
@@ -128,10 +140,16 @@ Scott~L. Hamilton et~al.
 \newblock \emph{Proceedings of the Royal Society B}, 288:\penalty0 20211195, 2021.
 \newblock \doi{10.1098/rspb.2021.1195}.
 
-\bibitem[Harvell et~al.(2019)Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.]{Harvell2019}
+\bibitem[Harvell et~al.(2019{\natexlab{a}})Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.]{Harvell2019}
 C.~Drew Harvell, Diego Montecino-Latorre, Joseph~M. Caldwell, Jenn~M. Burt, Kathryn Bosley, et~al.
 \newblock Disease epidemic and a marine heat wave are associated with the continental-scale collapse of a pivotal predator (\textit{{P}ycnopodia helianthoides}).
-\newblock \emph{Science Advances}, 5:\penalty0 eaau7042, 2019.
+\newblock \emph{Science Advances}, 5:\penalty0 eaau7042, 2019{\natexlab{a}}.
+\newblock \doi{10.1126/sciadv.aau7042}.
+
+\bibitem[Harvell et~al.(2019{\natexlab{b}})Harvell, Montecino-Latorre, Caldwell, Burt, Bosley, et~al.]{harvell2019disease}
+C.~Drew Harvell, Diego Montecino-Latorre, Joseph~M. Caldwell, Jenn~M. Burt, Kathryn Bosley, et~al.
+\newblock Disease epidemic and a marine heat wave are associated with the continental-scale collapse of a pivotal predator (\textit{{P}ycnopodia helianthoides}).
+\newblock \emph{Science Advances}, 5:\penalty0 eaau7042, 2019{\natexlab{b}}.
 \newblock \doi{10.1126/sciadv.aau7042}.
 
 \bibitem[Heady et~al.(2022)Heady, Beas-Luna, Dawson, et~al.]{Heady2022}
@@ -144,6 +162,12 @@ Dennis Hedgecock and Alexander~I. Pudovkin.
 \newblock Sweepstakes reproductive success in highly fecund marine fish and shellfish: A review and commentary.
 \newblock \emph{Bulletin of Marine Science}, 87:\penalty0 971--1002, 2011.
 \newblock \doi{10.5343/bms.2010.1051}.
+
+\bibitem[Herman and Usher(2017)]{Herman2017}
+Jon Herman and Will Usher.
+\newblock {SALib}: An open-source {Python} library for sensitivity analysis.
+\newblock \emph{Journal of Open Source Software}, 2\penalty0 (9):\penalty0 97, 2017.
+\newblock \doi{10.21105/joss.00097}.
 
 \bibitem[Hewson(2021)]{Hewson2021}
 Ian Hewson.
@@ -192,6 +216,12 @@ Ilse H{\"o}llinger, Pleuni~S. Pennings, and Joachim Hermisson.
 \newblock Polygenic adaptation: From sweeps to subtle frequency shifts.
 \newblock \emph{eLife}, 11:\penalty0 e66697, 2022.
 \newblock \doi{10.7554/eLife.66697}.
+
+\bibitem[Kay and Emlet(2002)]{kay2002emlet}
+Matthew~C. Kay and Richard~B. Emlet.
+\newblock Laboratory spawning, larval development, and metamorphosis of the lace coral \textit{{S}tylaster roseus}.
+\newblock \emph{Invertebrate Biology}, 121:\penalty0 325--338, 2002.
+\newblock Movement speed reference for \textit{Pycnopodia}: 0.5~m/min.
 
 \bibitem[Lambert et~al.(1998)Lambert, Nicolas, Cilia, and Corre]{lambert1998virulence}
 C.~Lambert, J.-L. Nicolas, V.~Cilia, and S.~Corre.
@@ -264,11 +294,28 @@ C.~Melissa Miner, Jennifer~L. Burnaford, Richard~F. Ambrose, Liam Antrim, et~al.
 \newblock \emph{PLoS ONE}, 13:\penalty0 e0192870, 2018.
 \newblock \doi{10.1371/journal.pone.0192870}.
 
-\bibitem[Montecino-Latorre et~al.(2016)Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.]{Montecino-Latorre2016}
+\bibitem[Montecino-Latorre et~al.(2016{\natexlab{a}})Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.]{Montecino-Latorre2016}
 Diego Montecino-Latorre, Morgan~E. Eisenlord, Morgan Turner, Reyn Yoshioka, C.~Drew Harvell, et~al.
 \newblock Devastating transboundary impacts of sea star wasting disease on subtidal asteroids.
-\newblock \emph{PLoS ONE}, 11:\penalty0 e0163190, 2016.
+\newblock \emph{PLoS ONE}, 11:\penalty0 e0163190, 2016{\natexlab{a}}.
 \newblock \doi{10.1371/journal.pone.0163190}.
+
+\bibitem[Montecino-Latorre et~al.(2016{\natexlab{b}})Montecino-Latorre, Eisenlord, Turner, Yoshioka, Harvell, et~al.]{montecino2016geographic}
+Diego Montecino-Latorre, Morgan~E. Eisenlord, Morgan Turner, Reyn Yoshioka, C.~Drew Harvell, et~al.
+\newblock Devastating transboundary impacts of sea star wasting disease on subtidal asteroids.
+\newblock \emph{PLoS ONE}, 11:\penalty0 e0163190, 2016{\natexlab{b}}.
+\newblock \doi{10.1371/journal.pone.0163190}.
+
+\bibitem[Morris(1991)]{Morris1991}
+Max~D. Morris.
+\newblock Factorial sampling plans for preliminary computational experiments.
+\newblock \emph{Technometrics}, 33\penalty0 (2):\penalty0 161--174, 1991.
+\newblock \doi{10.1080/00401706.1991.10484804}.
+
+\bibitem[{NOAA National Centers for Environmental Information}(2020)]{oisstv21}
+{NOAA National Centers for Environmental Information}.
+\newblock {NOAA} optimum interpolation {SST} ({OISST}) version 2.1, 2020.
+\newblock URL \url{https://www.ncei.noaa.gov/products/optimum-interpolation-sst}.
 
 \bibitem[Prentice et~al.(2025)Prentice, Aquino, Chan, Davis, Hershberger, Finke, Hodin, McCracken, Kellogg, Clemente-Carvalho, Prentice, Zhong, Harvell, Suttle, and Gehman]{Prentice2025}
 Maya~B. Prentice, Citlalli~A. Aquino, Amy~M. Chan, Kalia~M. Davis, Paul~K. Hershberger, Jan~F. Finke, Jason Hodin, Aquiala McCracken, Christina T.~E. Kellogg, Rute B.~G. Clemente-Carvalho, Christy Prentice, Kiana~X. Zhong, C.~Drew Harvell, Curtis~A. Suttle, and Alyssa-Lois~M. Gehman.
@@ -287,6 +334,24 @@ Laura Rogers-Bennett and Cynthia~A. Catton.
 \newblock Marine heat wave and multiple stressors tip bull kelp forest to sea urchin barrens.
 \newblock \emph{Scientific Reports}, 9:\penalty0 15050, 2019.
 \newblock \doi{10.1038/s41598-019-51114-y}.
+
+\bibitem[Ryan(2024)]{kuow2024seastar}
+John Ryan.
+\newblock San juans' sea stars start long crawl back from near-extinction.
+\newblock KUOW, August 2024.
+\newblock URL \url{https://www.kuow.org/stories/san-juans-sea-stars-start-long-crawl-back-from-near-extinction}.
+
+\bibitem[Saltelli(2002)]{Saltelli2002}
+Andrea Saltelli.
+\newblock Making best use of model evaluations to compute sensitivity indices.
+\newblock \emph{Computer Physics Communications}, 145\penalty0 (2):\penalty0 280--297, 2002.
+\newblock \doi{10.1016/S0010-4655(02)00280-1}.
+
+\bibitem[Saltelli et~al.(2008)Saltelli, Ratto, Andres, Campolongo, Cariboni, Gatelli, Saisana, and Tarantola]{Saltelli2008}
+Andrea Saltelli, Marco Ratto, Terry Andres, Francesca Campolongo, Jessica Cariboni, Debora Gatelli, Michaela Saisana, and Stefano Tarantola.
+\newblock \emph{Global Sensitivity Analysis: The Primer}.
+\newblock John Wiley \& Sons, 2008.
+\newblock \doi{10.1002/9780470725184}.
 
 \bibitem[Schiebelhut et~al.(2018{\natexlab{a}})Schiebelhut, Puritz, and Dawson]{Schiebelhut2018}
 Lauren~M. Schiebelhut, Jonathan~B. Puritz, and Michael~N. Dawson.
@@ -311,10 +376,27 @@ Lauren~M. Schiebelhut et~al.
 \newblock Sea star cryopreservation breakthrough inspires hope for sunflower stars, 2025.
 \newblock Press release.
 
-\bibitem[{Sunflower Star Lab}(2025)]{Simon2025}
-{Sunflower Star Lab}.
-\newblock First-ever temporary experimental outplanting of sunflower stars in {C}alifornia, 2025.
-\newblock Press release.
+\bibitem[Sobol'(2001)]{Sobol2001}
+Il'ya~M. Sobol'.
+\newblock Global sensitivity indices for nonlinear mathematical models and their {Monte Carlo} estimates.
+\newblock \emph{Mathematics and Computers in Simulation}, 55\penalty0 (1--3):\penalty0 271--280, 2001.
+\newblock \doi{10.1016/S0378-4754(00)00270-6}.
+
+\bibitem[Strathmann(1987)]{strathmann1987reproduction}
+Megumi~F. Strathmann.
+\newblock \emph{Reproduction and Development of Marine Invertebrates of the Northern {P}acific Coast}.
+\newblock University of Washington Press, Seattle, 1987.
+
+\bibitem[{Sunflower Star Laboratory}(2025)]{ssl2025outplanting}
+{Sunflower Star Laboratory}.
+\newblock First temporary experimental outplanting of sunflower stars in {C}alifornia.
+\newblock SSL Press Release, December 2025.
+\newblock URL \url{https://www.sunflowerstarlab.org/news/sunflower-stars-restoration-research-california}.
+
+\bibitem[Swearer et~al.(2002)Swearer, Shima, Hellberg, Thorrold, Jones, Robertson, Morgan, Selkoe, Ruiz, and Warner]{swearer2002evidence}
+Stephen~E. Swearer, Jeffrey~S. Shima, Michael~E. Hellberg, Simon~R. Thorrold, Geoffrey~P. Jones, D.~Ross Robertson, Steven~G. Morgan, Kimberly~A. Selkoe, Gregory~M. Ruiz, and Robert~R. Warner.
+\newblock Evidence of self-recruitment in demersal marine populations.
+\newblock \emph{Bulletin of Marine Science}, 70:\penalty0 251--271, 2002.
 
 \bibitem[Tolimieri(2022)]{Tolimieri2022}
 Nick Tolimieri.
@@ -326,6 +408,12 @@ David L.~J. Vendrami, Lloyd~S. Peck, Melody~S. Clark, Bjarki Eldon, Michael Mere
 \newblock Sweepstake reproductive success and collective dispersal produce chaotic genetic patchiness in a broadcast spawner.
 \newblock \emph{Science Advances}, 7:\penalty0 eabj4713, 2021.
 \newblock \doi{10.1126/sciadv.abj4713}.
+
+\bibitem[Vyawahare(2025)]{mongabay2025seastar}
+Malavika Vyawahare.
+\newblock There's hope for sunflower sea stars, with their killer unmasked and reintroductions pending.
+\newblock Mongabay, August 2025.
+\newblock URL \url{https://news.mongabay.com/2025/08/theres-hope-for-sunflower-sea-stars-with-their-killer-unmasked-and-reintroductions-pending/}.
 
 \bibitem[Wares and Schiebelhut(2016)]{Wares2016}
 John~P. Wares and Lauren~M. Schiebelhut.
