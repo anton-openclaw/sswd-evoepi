@@ -1,0 +1,262 @@
+% supplementary.tex — Supplementary Material structure
+
+\label{sec:supplementary}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\subsection{S1: Complete Parameter Table}
+\label{sec:supp_params}
+\label{sec:appendix_parameters}
+
+Table~\ref{tab:full_params} provides the complete specification of all
+47~model parameters organized by functional group, including default
+values, sensitivity analysis ranges, confidence tier assignments
+(Tier~1: literature-constrained; Tier~2: informed priors; Tier~3:
+calibration targets), and primary source references. A comprehensive
+parameter justification report---including first-principles derivations,
+literature review of 103~sources, and quantitative interaction chain
+analysis across seven mechanistic pathways---is available as
+Supplementary Document~S1
+(\texttt{specs/parameter\_justification/parameter\_justification\_report.pdf}).
+
+% TODO: Insert condensed 47-parameter table here.
+% Source: specs/parameter_justification/MASTER_PARAMETER_TABLE.md
+% Format: longtable with columns: Group | Parameter | Symbol | Default |
+%   SA Range | Tier | Source
+\begin{longtable}{p{2cm}p{2.5cm}cp{1.5cm}p{2cm}cp{3cm}}
+\caption{Complete parameter specification for \modelname{}. Tiers:
+  1~=~literature-constrained, 2~=~informed prior, 3~=~calibration
+  target. SA ranges define uniform (U) or log-uniform (LU) sampling
+  bounds.}
+\label{tab:full_params} \\
+\toprule
+\textbf{Group} & \textbf{Parameter} & \textbf{Symbol} &
+  \textbf{Default} & \textbf{SA Range} & \textbf{Tier} &
+  \textbf{Source} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Group} & \textbf{Parameter} & \textbf{Symbol} &
+  \textbf{Default} & \textbf{SA Range} & \textbf{Tier} &
+  \textbf{Source} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\textit{Continued on next page}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+% ── Disease Progression ──
+Disease & E$\to$I$_1$ rate & $\mu_{\mathrm{EI1,ref}}$ & 0.233\,d$^{-1}$ &
+  [0.15, 0.35] & 1 & \citet{prentice2025kochs} \\
+Disease & I$_1$$\to$I$_2$ rate & $\mu_{\mathrm{I1I2,ref}}$ & 0.434\,d$^{-1}$ &
+  [0.25, 0.65] & 1 & \citet{prentice2025kochs} \\
+Disease & I$_2$$\to$D rate & $\mu_{\mathrm{I2D,ref}}$ & 0.563\,d$^{-1}$ &
+  [0.30, 0.85] & 1 & \citet{prentice2025kochs} \\
+\addlinespace
+% ── Placeholder rows for remaining parameters ──
+\multicolumn{7}{l}{\textit{[Remaining 44 parameters to be populated
+  from sensitivity analysis parameter specification]}} \\
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\subsection{S2: Sensitivity Analysis Details}
+\label{sec:supp_sa}
+
+\subsubsection*{S2.1: Morris R4 — Full Parameter Ranking}
+
+Table~\ref{tab:morris_full} presents the complete Morris elementary
+effects ranking for all 47~parameters across 23 output metrics, from the
+Round~4 analysis (960 runs, 11-node stepping-stone network,
+$K = 5{,}000$ per node, 20-year horizon).
+
+% TODO: Insert full 47-row Morris ranking table
+% Source: results/sensitivity_r4/MORRIS_R4_ANALYSIS.md
+% Columns: Rank | Parameter | Module | μ*_norm | σ/μ* | Top metrics
+\begin{table}[H]
+\centering
+\caption{Full Morris R4 parameter ranking (47 parameters, 23 metrics).
+  Only the top 10 are shown; see Supplementary Document~S2 for the
+  complete table.}
+\label{tab:morris_full}
+\small
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{1cm}%
+  \textbf{Table placeholder:} Complete Morris ranking table to be
+  generated from \texttt{results/sensitivity\_r4/} analysis
+  outputs.\vspace{1cm}}}
+\end{table}
+
+\subsubsection*{S2.2: Sobol R4 — Variance Decomposition}
+
+% TODO: Sobol R4 analysis in progress (ETA ~Wed Feb 26, 2026).
+% Insert first-order (S1) and total-order (ST) indices here.
+The Sobol variance decomposition ($N = 512$, 25{,}088 model evaluations)
+is in progress at time of writing. Results will include first-order
+($S_1$) and total-order ($S_T$) indices for all 47~parameters across
+23~metrics, with particular attention to the interaction gap
+$S_T - S_1$ and key pairwise interactions identified by the Morris
+screening: $\rho_{\mathrm{rec}} \times \bar{c}_0$,
+$P_{\mathrm{env,max}} \times a_{\mathrm{exposure}}$, and
+$n_{\mathrm{resistance}} \times \sigma_{v,\mathrm{mut}}$.
+
+\subsubsection*{S2.3: Sensitivity Analysis Figures}
+
+% TODO: Insert publication-quality SA figures
+% Source: results/sensitivity_r4/figures/
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}%
+    \textbf{Figure placeholder:} Morris $\mu^*$--$\sigma$ scatter plot
+    for all 47 parameters, showing universal $\sigma/\mu^* > 1.0$
+    interaction dominance.\vspace{2cm}}}
+  \caption{Morris $\mu^*$ vs.\ $\sigma$ for all 47 parameters (R4).}
+  \label{fig:supp_morris_scatter}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}%
+    \textbf{Figure placeholder:} Per-metric Morris importance heatmap
+    (47 parameters $\times$ 23 metrics).\vspace{2cm}}}
+  \caption{Morris importance heatmap across all metrics.}
+  \label{fig:supp_morris_heatmap}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\subsection{S3: Validation Details}
+\label{sec:supp_validation}
+
+\subsubsection*{S3.1: Per-Node Results ($K = 5{,}000$, R$\to$S)}
+
+Detailed per-node trajectories and summary statistics for the baseline
+validation under biologically correct reinfection dynamics (sinusoidal
+and satellite SST forcing).
+
+% TODO: Insert per-node time series and summary tables
+% Source: results/validation_rs_fix/
+\begin{table}[H]
+\centering
+\caption{Detailed per-node statistics under R$\to$S ($K = 5{,}000$,
+  sinusoidal SST): initial and final populations, peak infection
+  prevalence, time to nadir, total infections, recoveries, disease
+  deaths, and trait shifts at simulation end.}
+\label{tab:supp_rs_detail}
+\small
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{1cm}%
+  \textbf{Table placeholder:} Extended per-node validation results
+  from \texttt{results/validation\_rs\_fix/}.\vspace{1cm}}}
+\end{table}
+
+\subsubsection*{S3.2: Scale Dependence ($K = 100{,}000$)}
+
+Per-node results from the $K = 100{,}000$ validation run (permanent
+immunity; the R$\to$S correction at this scale is pending).
+
+% TODO: Insert K=100K per-node table
+% Source: results/validation_100k/results.json
+\begin{table}[H]
+\centering
+\caption{Per-node results at $K = 100{,}000$ (permanent immunity,
+  sinusoidal SST).}
+\label{tab:supp_100k_detail}
+\small
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{1cm}%
+  \textbf{Table placeholder:} Extended $K = 100{,}000$ validation
+  results.\vspace{1cm}}}
+\end{table}
+
+\subsubsection*{S3.3: Validation Figures}
+
+% TODO: Insert population trajectory figures, trait evolution panels
+% Source: results/validation_rs_fix/*.png, results/validation_100k/
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}%
+    \textbf{Figure placeholder:} Side-by-side population trajectories
+    under permanent immunity vs.\ R$\to$S, showing the dramatic impact
+    of the reinfection correction.\vspace{2cm}}}
+  \caption{Population trajectories: permanent immunity vs.\ R$\to$S.}
+  \label{fig:supp_rs_comparison}
+\end{figure}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\subsection{S4: Network Configuration}
+\label{sec:supp_network}
+
+\subsubsection*{S4.1: Node Coordinates and Properties}
+
+\begin{table}[H]
+\centering
+\caption{11-node stepping-stone network configuration. Coordinates are
+  approximate centroids of \pyc{} habitat. SST values are annual means
+  from NOAA OISST v2.1 climatology (2002--2025).}
+\label{tab:supp_nodes}
+\small
+\begin{tabular}{rlrrrrr}
+\toprule
+\textbf{\#} & \textbf{Node} & \textbf{Lat} & \textbf{Lon} &
+  \textbf{$\bar{T}$ (\textdegree C)} & \textbf{$S$ (psu)} &
+  \textbf{$\phi$ (d$^{-1}$)} \\
+\midrule
+1  & Sitka         & 57.06 & $-$135.33 & 8.9  & 30.0 & 0.50 \\
+2  & Ketchikan     & 55.34 & $-$131.64 & 9.2  & 30.5 & 0.50 \\
+3  & Haida Gwaii   & 53.25 & $-$132.07 & 9.5  & 31.0 & 0.60 \\
+4  & Bella Bella   & 52.16 & $-$128.15 & 9.8  & 29.0 & 0.40 \\
+5  & Howe Sound    & 49.38 & $-$123.23 & 10.4 & 22.0 & 0.03 \\
+6  & San Juan Isl. & 48.53 & $-$123.01 & 10.2 & 30.0 & 0.30 \\
+7  & Westport      & 46.89 & $-$124.10 & 11.0 & 33.0 & 0.80 \\
+8  & Newport       & 44.63 & $-$124.05 & 11.5 & 33.5 & 0.70 \\
+9  & Crescent City & 41.75 & $-$124.20 & 12.0 & 33.0 & 0.70 \\
+10 & Fort Bragg    & 39.45 & $-$123.80 & 12.5 & 33.0 & 0.65 \\
+11 & Monterey      & 36.62 & $-$121.90 & 13.3 & 33.5 & 0.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{S4.2: Inter-Node Distances and Connectivity}
+
+% TODO: Insert pairwise distance matrix and connectivity matrix
+% Source: computed from node coordinates via overwater distance
+\begin{table}[H]
+\centering
+\caption{Pairwise overwater distances (km) and larval connectivity
+  coefficients ($C_{jk}$) at $D_L = 400$\,km for adjacent node pairs
+  in the 11-node stepping-stone network.}
+\label{tab:supp_connectivity}
+\small
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{1cm}%
+  \textbf{Table placeholder:} Pairwise distance and connectivity
+  matrix.\vspace{1cm}}}
+\end{table}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\subsection{S5: SST Climatology Data}
+\label{sec:supp_sst}
+
+Sea surface temperature forcing was derived from the NOAA Optimum
+Interpolation SST version~2.1 dataset \citep{oisstv21}, a
+0.25\textdegree{} resolution global daily product. For each of the
+11~network nodes, day-of-year climatological means were computed from
+24~years of monthly data (2002--2025), accessed via the NOAA Physical
+Sciences Laboratory OPeNDAP server, and interpolated to daily
+resolution.
+
+% TODO: Insert per-node SST climatology figure
+% Source: sswd_evoepi/data/sst_climatology/ or environment.py output
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{3cm}%
+    \textbf{Figure placeholder:} Daily SST climatology profiles for
+    all 11 nodes, showing the latitudinal gradient from Sitka
+    ($\bar{T} \approx 8.9$\textdegree C) to Monterey
+    ($\bar{T} \approx 13.3$\textdegree C). Note asymmetric warming
+    profiles and coastal upwelling signatures at exposed
+    sites.\vspace{3cm}}}
+  \caption{NOAA OISST v2.1 daily climatological SST profiles for
+    the 11-node network.}
+  \label{fig:supp_sst_profiles}
+\end{figure}

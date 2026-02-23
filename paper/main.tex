@@ -1,4 +1,4 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[12pt]{article}
 
 % ── Packages ──────────────────────────────────────────────────────────
 \usepackage[utf8]{inputenc}
@@ -21,6 +21,9 @@
 \usepackage{appendix}
 \usepackage{longtable}
 \usepackage{pdflscape}
+\usepackage{authblk}          % cleaner multi-author/affiliation handling
+\usepackage{enumitem}         % flexible list formatting
+\usepackage[normalem]{ulem}   % strikethrough for tracked changes (optional)
 
 % ── Formatting ────────────────────────────────────────────────────────
 \onehalfspacing
@@ -36,48 +39,84 @@
 
 % ── Title ─────────────────────────────────────────────────────────────
 \title{%
-  \textbf{\modelname{}: A Coupled Eco-Evolutionary Epidemiological Model \\
-  for Sea Star Wasting Disease in \pyc{}} \\[0.5em]
-  \large Technical Report — Model Development and Sensitivity Analysis
+  Eco-evolutionary dynamics of sea star wasting disease: \\
+  An individual-based model for \pyc{} conservation%
 }
 
-\author{%
-  Willem Weertman\textsuperscript{1,2} \\[0.3em]
-  \small\textsuperscript{1}Department of Psychology, University of Washington, Seattle, WA \\
-  \small\textsuperscript{2}Friday Harbor Laboratories, University of Washington, Friday Harbor, WA
-}
+\author[1,2]{Willem Weertman}
+\affil[1]{Department of Psychology, University of Washington, Seattle, WA, USA}
+\affil[2]{Friday Harbor Laboratories, University of Washington, Friday Harbor, WA, USA}
 
-\date{\today}
+\date{}  % suppress date for manuscript
 
 % ══════════════════════════════════════════════════════════════════════
 \begin{document}
 \maketitle
 
+% ── Abstract ──────────────────────────────────────────────────────────
 \begin{abstract}
-\input{sections/abstract}
+\input{sections/paper/abstract}
 \end{abstract}
 
-\newpage
-\tableofcontents
-\newpage
+\noindent\textbf{Keywords:} sea star wasting disease, \pyc{}, individual-based model, eco-evolutionary dynamics, conservation, reintroduction
 
-% ── Main sections ─────────────────────────────────────────────────────
-\input{sections/introduction}
-\input{sections/model_architecture}
-\input{sections/disease_module}
-\input{sections/genetics_module}
-\input{sections/population_dynamics}
-\input{sections/spatial_module}
-\input{sections/sensitivity_analysis}
-\input{sections/validation}
-\input{sections/discussion}
+% ── Introduction ──────────────────────────────────────────────────────
+\section{Introduction}\label{sec:introduction}
+\input{sections/paper/introduction}
+
+% ── Methods ───────────────────────────────────────────────────────────
+\section{Methods}
+
+\subsection{Model overview}
+\input{sections/paper/methods_overview}
+
+\subsection{Disease dynamics}
+\input{sections/paper/methods_disease}
+
+\subsection{Genetic architecture}
+\input{sections/paper/methods_genetics}
+
+\subsection{Population ecology}
+\input{sections/paper/methods_population}
+
+\subsection{Spatial structure and dispersal}
+\input{sections/paper/methods_spatial}
+
+\subsection{Parameterization}
+\input{sections/paper/methods_parameterization}
+
+\subsection{Sensitivity analysis}
+\input{sections/paper/methods_sensitivity}
+
+\subsection{Model calibration}
+\input{sections/paper/methods_calibration}
+
+% ── Results ───────────────────────────────────────────────────────────
+\section{Results}\label{sec:results}
+\input{sections/paper/results}
+
+% ── Discussion ────────────────────────────────────────────────────────
+\section{Discussion}\label{sec:discussion}
+\input{sections/paper/discussion}
+
+% ── Data and Code Availability ────────────────────────────────────────
+\section*{Data and Code Availability}
+All model code, configuration files, and analysis scripts are available at
+\url{https://github.com/anton-openclaw/sswd-evoepi}.
+Sea surface temperature data were obtained from the NOAA OISST v2.1 dataset.
+
+% ── Acknowledgements ─────────────────────────────────────────────────
+\section*{Acknowledgements}
+% TODO: Add acknowledgements
 
 % ── References ────────────────────────────────────────────────────────
 \bibliographystyle{plainnat}
 \bibliography{references}
 
-% ── Appendices ────────────────────────────────────────────────────────
+% ── Supplementary Material ────────────────────────────────────────────
+\clearpage
 \appendix
-\input{sections/appendix_parameters}
+\section{Supplementary Material}
+\input{sections/paper/supplementary}
 
 \end{document}

@@ -1,0 +1,70 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — MODEL OVERVIEW
+% Fact-checked against: sswd_evoepi/model.py, config.py, types.py
+% ══════════════════════════════════════════════════════════════════════
+
+\modelname{} is an individual-based, spatially explicit simulation in which
+each agent represents a single \pyc{} tracked through its complete life
+history. Agents are characterized by continuous state variables---body size,
+age, spatial position, disease compartment, and a diploid genotype at 51
+loci encoding three quantitative defense traits (resistance, tolerance,
+recovery)---updated at daily resolution. We chose an individual-based
+approach because SSWD outcomes depend on the joint distribution of body
+size, genotype, and spatial location within each host, and because
+evolutionary rescue requires explicit tracking of heritable genetic
+variation across generations \citep{deangelis2005individual,
+clement2024coevolution}.
+
+The model couples four mechanistic modules (Figure~\ref{fig:conceptual}):
+%
+\begin{enumerate}[nosep]
+  \item \textbf{Disease dynamics} --- a stochastic SEIPD compartmental
+    framework driven by waterborne \vp{} concentration, with
+    temperature-dependent progression rates calibrated to experimental
+    data \citep{prentice2025kochs};
+  \item \textbf{Genetic architecture} --- 51 diploid loci partitioned
+    $17/17/17$ into resistance (immune exclusion), tolerance (damage
+    limitation), and recovery (pathogen clearance) traits, based on the
+    number of loci under selection identified by \citet{schiebelhut2018collapse};
+  \item \textbf{Population ecology} --- von~Bertalanffy growth,
+    stage-structured natural mortality, multi-bout spawning with
+    post-spawning immunosuppression, and Beverton--Holt
+    density-dependent recruitment;
+  \item \textbf{Spatial structure} --- a metapopulation network of
+    habitat nodes connected by distance-dependent larval dispersal
+    ($D_L = 400$\,km kernel) and waterborne pathogen exchange
+    ($D_P = 15$\,km kernel).
+\end{enumerate}
+
+The simulation advances in daily time steps nested within an annual
+cycle. Each day, the following operations execute sequentially at every
+node: (i)~environmental forcing (sea surface temperature from NOAA OISST
+v2.1 climatologies, constant salinity, seasonal flushing); (ii)~agent
+movement via a correlated random walk with disease-state--dependent speed
+modifiers; (iii)~disease transmission, progression, and recovery;
+(iv)~waterborne pathogen dispersal among neighboring nodes; and
+(v)~daily demographics (natural mortality, somatic growth, spawning
+during the November--July season). At the end of each simulated year, a
+dispersal step redistributes competent larvae among nodes via the
+connectivity matrix, and genetic summary statistics (allele frequencies,
+trait means, additive genetic variance) are recorded. Disease is
+introduced at a configurable epidemic year by seeding exposed individuals
+at each node.
+
+\begin{figure}[t]
+  \centering
+  % \includegraphics[width=\textwidth]{figures/conceptual_diagram.pdf}
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}%
+    \textbf{Figure placeholder:} Conceptual diagram showing the four
+    coupled modules, daily simulation loop, and key feedback
+    pathways.\vspace{2cm}}}
+  \caption{Conceptual overview of the \modelname{} framework. Arrows
+    indicate directional coupling between modules. The daily loop
+    (inner ring) resolves disease, movement, and mortality; the annual
+    cycle (outer ring) resolves reproduction, larval dispersal, and
+    genetic recording. Eco-evolutionary feedbacks arise because
+    genetically determined defense traits modulate disease outcomes,
+    which in turn impose selection that shifts allele frequencies
+    across generations.}
+  \label{fig:conceptual}
+\end{figure}

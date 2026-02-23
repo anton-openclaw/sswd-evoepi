@@ -1,0 +1,196 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — POPULATION ECOLOGY
+% Fact-checked against: sswd_evoepi/model.py (daily_growth_and_aging,
+%   daily_natural_mortality, von_bertalanffy, assign_stage),
+%   sswd_evoepi/reproduction.py (fecundity, fertilization_success,
+%   srs_reproductive_lottery, beverton_holt_recruitment,
+%   pelagic_larval_duration, larval_survival, settlement_cue_modifier,
+%   mendelian_inherit_batch), sswd_evoepi/config.py (PopulationSection,
+%   SpawningSection), sswd_evoepi/types.py (Stage enum, AGENT_DTYPE)
+% All parameter values verified against code defaults 2026-02-22
+% ══════════════════════════════════════════════════════════════════════
+
+\label{sec:population}
+
+
+\paragraph{Life stages.}
+Each individual progresses through five size-defined stages: egg/larva
+(planktonic, handled by the larval module), settler (0.5--10\,mm),
+juvenile (10--150\,mm), subadult (150--400\,mm), and adult
+($\geq 400$\,mm, reproductively mature). Transitions are
+unidirectional and evaluated after each daily growth step.
+
+
+\paragraph{Growth.}
+Somatic growth follows the von~Bertalanffy model in differential form,
+resolved at daily resolution:
+%
+\begin{equation}
+  L_i(t + \Delta t)
+  = L_\infty - \bigl(L_\infty - L_i(t)\bigr)
+    \,\exp\!\bigl(-k_\mathrm{growth}\,\Delta t\bigr),
+  \label{eq:vb_paper}
+\end{equation}
+%
+where $L_\infty = 1{,}000$\,mm is the asymptotic arm-tip diameter,
+$k_\mathrm{growth} = 0.08$\,yr$^{-1}$ is the Brody growth coefficient,
+and $\Delta t = 1/365$\,yr. Individual growth variation is introduced
+by applying multiplicative log-normal noise to the daily increment:
+%
+\begin{equation}
+  \Delta L_i
+  = \bigl(L_\mathrm{det}(t + \Delta t) - L_i(t)\bigr)
+    \times \exp(\varepsilon_i),
+  \quad
+  \varepsilon_i \sim \mathcal{N}\!\bigl(0,\;
+    \sigma_g / (365\sqrt{365})\bigr),
+  \label{eq:growth_noise}
+\end{equation}
+%
+with annual growth noise $\sigma_g = 2.0$\,mm. Increments are
+constrained to be non-negative (individuals cannot shrink). Aging
+proceeds at $1/365$\,yr per day, producing fractional ages that drive
+size-at-age trajectories and determine senescence eligibility.
+
+
+\paragraph{Natural mortality.}
+Daily natural mortality converts stage-specific annual survival
+probabilities to daily hazard rates:
+%
+\begin{equation}
+  p_{\mathrm{death},i}
+  = 1 - S_\mathrm{annual}(s_i)^{\,1/365},
+  \label{eq:daily_mort_paper}
+\end{equation}
+%
+where $S_\mathrm{annual}$ is the annual survival rate for
+stage~$s_i$: settler~$= 0.001$, juvenile~$= 0.03$,
+subadult~$= 0.90$, adult~$= 0.95$, and senescent~$= 0.98$ (base).
+This schedule produces a type~III survivorship curve with extreme
+settler and juvenile mortality balanced by high adult survival,
+consistent with demographic patterns in long-lived asteroids
+\citep{Gravem2021}. Individuals exceeding the senescence age
+($a_\mathrm{sen} = 50$\,yr) accumulate additional mortality:
+%
+\begin{equation}
+  m_{\mathrm{total},i}
+  = m_\mathrm{annual}(s_i) +
+    m_\mathrm{sen}\,\frac{a_i - a_\mathrm{sen}}{20},
+  \label{eq:senescence}
+\end{equation}
+%
+where $m_\mathrm{sen} = 0.10$ and $m_\mathrm{annual} = 1 - S_\mathrm{annual}$.
+Natural mortality is applied via a single vectorized random draw across
+all alive agents each day.
+
+
+\paragraph{Reproduction.}
+\label{sec:fecundity_paper}
+The spawning system implements an extended reproductive season from
+November through July ($\sim\!270$\,d), with a latitude-dependent
+seasonal peak centered at day~105 ($\approx$April~15) at $40^\circ$N,
+shifting later by 3\,days per degree northward. During the spawning
+season, mature adults ($\geq 400$\,mm, susceptible or recovered)
+spontaneously spawn with sex-specific daily probabilities ($p_f = 0.012$,
+$p_m = 0.0125$), calibrated to achieve $\geq 80\%$ female participation
+and $\sim\!2.2$ mean male bouts per season. Spawning by one individual
+can trigger cascade spawning in nearby conspecifics via waterborne
+chemical cues (female$\to$male induction probability~$= 0.80$,
+male$\to$female~$= 0.60$, cue persistence~$= 3$\,d, range~$= 200$\,m).
+Females spawn at most 2 bouts per season; males at most 3. Spawning
+induces a 28-day immunosuppression period (susceptibility
+multiplier~$= 2.0$), coupling reproductive investment to disease
+vulnerability.
+
+Female fecundity follows an allometric relationship with body size:
+%
+\begin{equation}
+  F_i
+  = F_0 \left(\frac{L_i}{L_\mathrm{ref}}\right)^{b},
+  \label{eq:fecundity_paper}
+\end{equation}
+%
+where $F_0 = 10^7$\,eggs at reference size
+$L_\mathrm{ref} = 500$\,mm, allometric exponent $b = 2.5$, and minimum
+reproductive size $L_\mathrm{min} = 400$\,mm.
+
+Parental contributions follow a sweepstakes reproductive success (SRS)
+model reflecting the extreme reproductive variance of broadcast-spawning
+marine invertebrates \citep{Hedgecock2011}. Each spawning adult
+receives a Pareto-distributed weight,
+$w_i \sim \mathrm{Pareto}(\alpha_\mathrm{SRS}) + 1$ with
+$\alpha_\mathrm{SRS} = 1.35$; female weights are further multiplied by
+size-dependent fecundity. Parents are sampled with replacement from the
+normalized weight distributions, and offspring inherit Mendelian
+genotypes (Section~\ref{sec:genetics}). The effective population size
+is computed from the realized offspring distribution as
+$N_e = (4N - 2)/(V_k + 2)$ \citep{Hedgecock2011}, with sex-specific
+$N_e$ values combined via harmonic mean.
+
+
+\paragraph{Fertilization Allee effect.}
+Broadcast spawner fertilization success declines at low density due to
+sperm limitation \citep{Gascoigne2004, Lundquist2004}. We model
+fertilization as:
+%
+\begin{equation}
+  \mathcal{F}(\rho_m)
+  = 1 - \exp\!\bigl(-\gamma_\mathrm{fert}
+    \cdot \rho_{m,\mathrm{eff}}\bigr),
+  \label{eq:fert_paper}
+\end{equation}
+%
+where $\gamma_\mathrm{fert} = 4.5$\,m$^2$ is the sperm contact
+parameter and $\rho_{m,\mathrm{eff}}$ is the effective male density,
+enhanced by spawning aggregation. This creates a quadratic Allee
+effect at low density ($\mathrm{zygotes} \propto \rho^2$ as
+$\rho \to 0$).
+
+
+\paragraph{Larval phase and settlement.}
+Fertilized eggs enter a temperature-dependent pelagic phase:
+%
+\begin{equation}
+  \mathrm{PLD}(T)
+  = \mathrm{PLD}_\mathrm{ref}
+    \;\exp\!\bigl(-Q_\mathrm{dev}\,(T - T_\mathrm{ref})\bigr),
+  \label{eq:pld_paper}
+\end{equation}
+%
+with $\mathrm{PLD}_\mathrm{ref} = 63$\,d at
+$T_\mathrm{ref} = 10.5\,^\circ$C \citep{Hodin2021} and
+$Q_\mathrm{dev} = 0.05\,^\circ$C$^{-1}$, clamped to $[30, 150]$\,d.
+Pelagic survival follows constant daily mortality:
+$S_\mathrm{larval} = \exp(-\mu_\mathrm{larva} \times \mathrm{PLD})$
+with $\mu_\mathrm{larva} = 0.05$\,d$^{-1}$ (yielding $\sim\!4.3\%$
+survival at the reference PLD). Larval cohorts carry inherited genotypes
+and, in the spatial simulation, are dispersed among nodes via the
+connectivity matrix before settlement.
+
+Settlement proceeds through two density-dependent filters. First, a
+Michaelis--Menten settlement-cue modifier reflects biofilm-mediated
+settlement induction by conspecific adults:
+%
+\begin{equation}
+  C_\mathrm{settle}(N_\mathrm{adults})
+  = 0.2 + \frac{0.8 \,N_\mathrm{adults}}{5 + N_\mathrm{adults}},
+  \label{eq:settle_cue_paper}
+\end{equation}
+%
+where the baseline of 0.2 represents settlement on coralline algae
+alone and the half-saturation of 5~adults provides strong cues even from
+small remnant populations. Second, a Beverton--Holt stock--recruitment
+relationship governs density-dependent recruitment:
+%
+\begin{equation}
+  R = \frac{K \,s_0 \,S}{K + s_0 \,S},
+  \label{eq:bh_paper}
+\end{equation}
+%
+where $S$ is the number of effective settlers (after cue modulation),
+$K$ is node carrying capacity, and $s_0 = 0.03$ is the
+density-independent per-settler survival. At low settler supply,
+$R \approx s_0 S$ (supply-limited); at high supply, $R \to K$
+(habitat-limited). Recruits are initialized at 0.5\,mm, age~0, settler
+stage, random sex, susceptible disease state, and inherit full
+three-trait genotypes from the SRS lottery.

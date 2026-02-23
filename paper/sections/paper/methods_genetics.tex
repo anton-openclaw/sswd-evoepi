@@ -1,0 +1,146 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — GENETIC ARCHITECTURE
+% Fact-checked against: sswd_evoepi/genetics.py, types.py, config.py
+%   (GeneticsSection), reproduction.py (mendelian_inherit_batch,
+%   srs_reproductive_lottery), three-trait-genetic-architecture-spec.md
+% All parameter values verified against code defaults 2026-02-22
+% ══════════════════════════════════════════════════════════════════════
+
+\label{sec:genetics}
+
+Each individual carries a diploid genotype represented as a
+$(51 \times 2)$ array of biallelic loci, where each allele is either
+ancestral~(0) or derived~(1). The 51 loci are motivated by
+\citet{schiebelhut2018collapse}, who identified $\sim\!51$ loci with
+significant allele frequency shifts in \textit{Pisaster ochraceus}
+survivors of the 2013--2015 SSWD outbreak---the closest available
+genomic proxy for selection response in a wasting-affected asteroid. A
+reference genome for \pycshort{} is now available
+\citep{Schiebelhut2024genome}, but no species-specific GWAS data yet
+distinguish among categories of immune loci.
+
+Loci are partitioned into three contiguous blocks encoding distinct
+defense traits (Table~\ref{tab:trait_partition_paper}):
+
+\begin{table}[H]
+\centering
+\caption{Three-trait genetic architecture. The partition is
+configurable ($n_R + n_T + n_C = 51$); the default $17/17/17$ split
+is used in all analyses.}
+\label{tab:trait_partition_paper}
+\small
+\begin{tabular}{lccl}
+\toprule
+\textbf{Trait} & \textbf{Symbol} & \textbf{Loci (indices)} &
+  \textbf{Mechanistic role} \\
+\midrule
+Resistance & $r_i$ & 17 \;(0--16) &
+  Immune exclusion: reduces infection probability \\
+Tolerance  & $t_i$ & 17 \;(17--33) &
+  Damage limitation: extends I$_2$ survival time \\
+Recovery   & $c_i$ & 17 \;(34--50) &
+  Pathogen clearance: daily recovery probability \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+These three traits represent biologically distinct immune strategies
+operating at different points in the infection process
+\citep{raberg2009decomposing}. Resistance prevents pathogen
+establishment via receptor polymorphisms and barrier defenses, reducing
+both individual risk and population-level transmission. Tolerance
+extends host survival during symptomatic infection through tissue repair
+and metabolic compensation, but does not reduce pathogen shedding---tolerant
+individuals are epidemiological ``silent spreaders.'' Recovery enables
+active pathogen clearance via coelomocyte-mediated phagocytosis,
+returning the host to the susceptible pool. The equal $17/17/17$
+partition is a simplifying assumption; the partition ratio is included
+as a sensitivity analysis parameter
+(Section~\ref{sec:sensitivity_analysis}).
+
+
+\paragraph{Trait score computation.}
+Each locus $\ell$ within a trait block carries a fixed effect size
+$e_\ell > 0$. Effect sizes are drawn independently for each trait from
+an exponential distribution, $e_\ell \sim \mathrm{Exp}(1)$, normalized
+to sum to unity within each block, and sorted in descending order. This
+produces an $L$-shaped effect-size distribution in which a few loci of
+large effect coexist with many loci of small effect, consistent with
+empirical quantitative trait locus architectures
+\citep{Lotterhos2015}. A fixed random seed ensures identical effect
+sizes across replicate simulations.
+
+An individual's score for trait $\theta \in \{r,\, t,\, c\}$ is the
+effect-weighted mean allele dosage across the corresponding locus set
+$\mathcal{L}_\theta$:
+%
+\begin{equation}
+  \theta_i
+  = \sum_{\ell \in \mathcal{L}_\theta}
+    e_\ell \;\frac{g_{\ell,0} + g_{\ell,1}}{2}\,,
+  \label{eq:trait_score_paper}
+\end{equation}
+%
+where $g_{\ell,0}, g_{\ell,1} \in \{0,1\}$ are the two allele copies.
+Because $\sum_\ell e_\ell = 1$ within each block and the mean allele
+dosage per locus is bounded by $[0,1]$, all trait scores satisfy
+$\theta_i \in [0,1]$. Inheritance is purely additive within and across
+loci; there is no dominance or epistasis.
+
+
+\paragraph{Genotype initialization.}
+Initial per-locus allele frequencies are drawn from a Beta distribution,
+$q_\ell \sim \mathrm{Beta}(2,\, 8)$, producing a right-skewed frequency
+spectrum (mean~$0.2$) in which most derived alleles are rare---consistent
+with standing variation in immune genes maintained by mutation--selection
+balance. The raw frequencies are rescaled per trait so that the expected
+population-mean trait score matches a configurable target:
+$\bar{r} = 0.15$, $\bar{t} = 0.10$, $\bar{c} = 0.02$. Recovery is
+initialized with the lowest mean because active pathogen clearance is
+assumed to be the rarest pre-epidemic phenotype. Per-locus frequencies
+are clipped to $[0.001, 0.5]$ to prevent fixation or majority-derived
+states at initialization. Each allele copy is then sampled independently
+as a Bernoulli trial with success probability $q_\ell$, establishing
+Hardy--Weinberg equilibrium at each locus.
+
+
+\paragraph{Mendelian inheritance.}
+At reproduction, offspring receive one randomly chosen allele from each
+parent at every locus, with free recombination (independent assortment,
+no linkage). Allele choices for all $n_\mathrm{offspring} \times 51
+\times 2$ positions are drawn simultaneously and applied via vectorized
+indexing into parental genotype arrays.
+
+
+\paragraph{Mutation.}
+Bidirectional point mutations ($0 \to 1$ or $1 \to 0$) are applied to
+offspring genotypes at a rate of $\mu = 10^{-8}$ per allele per
+generation \citep{Lynch2010}. The total number of mutations per cohort
+is Poisson-distributed,
+$n_\mathrm{mut} \sim \mathrm{Pois}(\mu \times n_\mathrm{offspring}
+\times 51 \times 2)$, and each mutation is placed at a uniformly random
+allele position. At this rate, mutations are negligible over the 20--100
+year simulation horizon ($\sim\!10^{-6}$ expected mutations per
+offspring), and evolution proceeds almost entirely through selection on
+standing genetic variation.
+
+
+\paragraph{Coupling to disease dynamics.}
+Each trait feeds into a single mechanistic point in the disease module
+(Section~\ref{sec:force_of_infection}--\ref{sec:defense_traits}):
+resistance reduces the force of infection via $(1 - r_i)$ in
+Eq.~\ref{eq:foi}; tolerance extends I$_2$ survival by scaling the
+disease mortality rate as
+$\mu_{I_2 D,i}^\mathrm{eff} = \mu_{I_2 D}(T)(1 - t_i\,\tau_\max)$
+with $\tau_\max = 0.85$ and a 5\% floor
+(Eq.~\ref{eq:tolerance}); and recovery determines the daily clearance
+probability $p_{\mathrm{rec}} = \rho_\mathrm{rec} \times c_i$ with
+$\rho_\mathrm{rec} = 0.05$\,d$^{-1}$ (Eq.~\ref{eq:recovery}). Each
+trait does exactly one thing, ensuring clean separation of selective
+pressures.
+
+No cost of resistance is imposed: fecundity depends solely on body
+size (Section~\ref{sec:fecundity_paper}). This decision reflects the
+absence of empirical evidence for a measurable fecundity penalty
+associated with disease-resistance alleles in \pycshort{}.

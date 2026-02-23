@@ -1,0 +1,81 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — PARAMETERIZATION
+% Fact-checked against: specs/parameter_justification/
+%   MASTER_PARAMETER_TABLE.md, GAPS_AND_UNCERTAINTIES.md
+% All parameter counts and tier assignments verified 2026-02-22
+% ══════════════════════════════════════════════════════════════════════
+
+\label{sec:parameterization}
+
+The model requires 47~parameters spanning 11~functional groups: disease
+progression~(3), pathogen shedding and dose--response~(5), environmental
+pathogen dynamics~(4), recovery and immunity~(4), growth and life
+history~(4), fecundity and recruitment~(3), genetic architecture~(8),
+spawning timing~(4), spawning induction~(3), larval dispersal~(3), and
+pathogen evolution~(6). We adopted a three-tier grounding strategy that
+classifies each parameter by the strength of its empirical basis
+(Table~\ref{tab:param_summary}; full justification report in
+Supplementary Material~\ref{sec:supp_params}).
+
+\paragraph{Tier~1: Literature-constrained ($\sim$12~parameters).}
+These parameters are directly informed by species-specific or
+closely related empirical data and were fixed at their published values
+or narrow ranges. Disease progression rates were calibrated to
+controlled infection experiments with \vp{} in asteroids
+\citep{prentice2025kochs}, yielding a total disease course of
+$\sim$11.6\,d at 13\textdegree C. Von~Bertalanffy growth parameters
+draw on echinoderm life-history data \citep{hodin2021roadmap}, and the
+Arrhenius reference temperature $T_{\mathrm{ref}} = 20$\textdegree C
+reflects the thermal optimum of \vp{}
+\citep{eisenlord2016ochre, bates2009sea}. The genetic
+architecture---51 biallelic loci with exponentially distributed effect
+sizes---is grounded in the GWAS of \citet{schiebelhut2018collapse}, who
+identified $\sim$51 loci with significant allele frequency shifts in
+SSWD survivors of a related asteroid species. SST forcing was derived
+from NOAA OISST v2.1 satellite climatologies rather than fitted
+(Section~\ref{sec:spatial}).
+
+\paragraph{Tier~2: Informed priors ($\sim$22~parameters).}
+These parameters lack direct \pycshort{}-specific measurements but are
+constrained by data from related taxa, theoretical bounds, or
+comparative scaling relationships. Examples include larval dispersal
+scale ($D_L = 400$\,km, derived from \pycshort{} PLD estimates and
+NE~Pacific current speeds), self-recruitment fractions (based on
+estuarine retention physics), pathogen shedding ratios (informed by
+marine \textit{Vibrio} literature and decomposition ecology), and
+spawning phenology (constrained to the March--July season documented
+for \pycshort{}). These parameters were assigned informative prior
+distributions for sensitivity analysis and calibration.
+
+\paragraph{Tier~3: Calibration targets ($\sim$13~parameters).}
+These parameters are identifiable only through model fitting against
+emergent population-level patterns. They include the recovery rate
+scaling factor~$\rho_{\mathrm{rec}}$, maximum environmental pathogen
+input~$P_{\mathrm{env,max}}$, settler survival probability~$s_0$,
+and several pathogen evolution parameters (virulence--transmission
+trade-off exponents). These are the primary targets for ABC-SMC
+calibration (Section~\ref{sec:calibration}).
+
+\paragraph{Key uncertainties.}
+We acknowledge substantial uncertainty in several parameter domains.
+Species-specific empirical data for \pycshort{} remain extremely
+limited: no direct measurements exist for pathogen shedding rates,
+virulence--transmission trade-offs, or individual growth trajectories.
+The recovery rate is particularly uncertain---field observations
+indicate $>$99\% mortality, but the genetic basis for resistance
+\citep{pespeni2023insight} implies that rare recovery events are
+biologically plausible. Larval dispersal scale depends on PLD estimates
+that span a wide range (14--70\,d), and the effective dispersal distance
+is typically 10--30\% of maximum transport distance due to eddies
+and retention. We address these uncertainties through comprehensive
+global sensitivity analysis (Section~\ref{sec:sensitivity}), which
+identified the 10~most influential parameters and confirmed that all
+47~parameters exhibit nonlinear effects ($\sigma / \mu^* > 1.0$),
+precluding any simplification by parameter elimination. A complete parameter table with default values, sensitivity analysis
+ranges, confidence ratings, and source literature for all 47~parameters
+is provided in the Supplementary Material
+(Table~\ref{tab:full_params}). The detailed parameter justification
+report accompanying each functional group---including first-principles
+reasoning, direct literature review (103~sources), and quantitative
+interaction chain analysis---is available as Supplementary
+Document~S1.

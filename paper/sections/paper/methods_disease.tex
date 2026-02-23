@@ -1,0 +1,252 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — DISEASE DYNAMICS
+% Fact-checked against: sswd_evoepi/disease.py, config.py
+% All parameter values verified against code defaults 2026-02-22
+% ══════════════════════════════════════════════════════════════════════
+
+Disease dynamics follow a stochastic SEIPD compartmental framework
+embedded within the individual-based model. Each agent occupies one of
+five disease states: Susceptible~(S), Exposed~(E), Infectious stage~1
+(I$_1$, pre-symptomatic), Infectious stage~2 (I$_2$, symptomatic
+wasting), or Dead from disease~(D). Recovery is possible from both I$_1$
+and I$_2$, returning individuals to the susceptible pool (R~$\to$~S).
+We model no acquired immunity because echinoderms lack an adaptive
+immune system; sea stars treated for wasting have subsequently developed
+the disease again, confirming the absence of immunological memory.
+Heritable genetic traits---resistance, tolerance, and recovery---provide
+the only defense mechanism.
+
+
+\subsubsection{Force of infection}
+\label{sec:force_of_infection}
+
+Transmission is environmentally mediated through a waterborne pathogen
+pool rather than direct contact. The per-individual instantaneous hazard
+rate of infection is:
+%
+\begin{equation}
+  \lambda_i
+  = a
+    \;\frac{P_k}{K_{1/2} + P_k}
+    \;(1 - r_i)
+    \;S_{\mathrm{sal}}
+    \;f_{\mathrm{size}}(L_i),
+  \label{eq:foi}
+\end{equation}
+%
+where $a = 0.75$\,d$^{-1}$ is the baseline exposure rate,
+$P_k$~(bacteria\,mL$^{-1}$) is the local \vp{} concentration at
+node~$k$, $K_{1/2} = 87{,}000$\,bacteria\,mL$^{-1}$ is the
+half-saturating dose (Michaelis--Menten dose--response), $r_i \in [0,1]$
+is the individual's genetically determined resistance score
+(Section~\ref{sec:genetics}), $S_{\mathrm{sal}}$ is a salinity modifier,
+and $f_{\mathrm{size}}$ is a size-dependent susceptibility modifier.
+The discrete daily infection probability is
+$p_{\mathrm{inf}} = 1 - \exp(-\lambda_i \,\Delta t)$ with
+$\Delta t = 1$\,d.
+
+The salinity modifier suppresses \vp{} viability in low-salinity
+waters, providing a mechanistic basis for the reduced SSWD prevalence
+observed in fjord systems:
+%
+\begin{equation}
+  S_{\mathrm{sal}} =
+  \begin{cases}
+    0 & S \leq 10\;\text{psu}, \\[3pt]
+    \bigl(\frac{S - 10}{28 - 10}\bigr)^{2} & 10 < S < 28\;\text{psu}, \\[3pt]
+    1 & S \geq 28\;\text{psu}.
+  \end{cases}
+  \label{eq:salinity}
+\end{equation}
+
+Size-dependent susceptibility follows \citet{eisenlord2016ochre}, who
+reported an odds ratio of 1.23 per 10\,mm increase in radius:
+%
+\begin{equation}
+  f_{\mathrm{size}}(L_i) = \exp\!\Bigl(
+    \beta_L \,\frac{L_i - \bar{L}}{\sigma_L}
+  \Bigr),
+  \quad
+  \beta_L = \frac{\ln 1.23}{10} \approx 0.021\;\text{mm}^{-1},
+  \label{eq:size}
+\end{equation}
+%
+with reference size $\bar{L} = 300$\,mm and normalization
+$\sigma_L = 100$\,mm.
+
+Following each spawning event, an individual enters a 28-day
+immunosuppression window during which its effective resistance is halved
+($r_{i,\mathrm{eff}} = r_i / \psi$, $\psi = 2.0$, clamped to
+$[0,1]$), creating an evolutionary coupling between reproductive
+investment and disease vulnerability.
+
+
+\subsubsection{Disease progression}
+\label{sec:progression}
+
+Stage durations are drawn from Erlang distributions rather than
+memoryless exponentials, producing more realistic peaked duration
+profiles \citep{wearing2005appropriate}. When an individual enters
+compartment $X$, a countdown timer is sampled:
+%
+\begin{equation}
+  \tau_X \sim \mathrm{Erlang}(k_X,\; k_X \,\mu_X(T)),
+  \quad \text{rounded to } \max(1, \mathrm{round}(\tau_X)) \;\text{days},
+  \label{eq:erlang}
+\end{equation}
+%
+where $k_X$ is the shape parameter (controlling regularity) and
+$\mu_X(T)$ is the temperature-dependent transition rate. Shape
+parameters are $k_E = 3$ (CV~$= 0.58$), $k_{I_1} = 2$ (CV~$= 0.71$),
+and $k_{I_2} = 2$ (CV~$= 0.71$). Timers decrement by one each day;
+upon reaching zero, the agent transitions to the next compartment.
+
+All transition rates are temperature-scaled via the Arrhenius equation:
+%
+\begin{equation}
+  \mu_X(T) = \mu_{X,\mathrm{ref}} \,\exp\!\left[
+    \frac{E_{a,X}}{R} \left(
+      \frac{1}{T_{\mathrm{ref}}} - \frac{1}{T}
+    \right)
+  \right],
+  \label{eq:arrhenius}
+\end{equation}
+%
+with reference temperature
+$T_{\mathrm{ref}} = 293.15$\,K ($20\,^\circ$C), corresponding to the
+\vp{} thermal growth optimum \citep{lambert1998virulence}. The
+reference rates and activation energies are:
+%
+\begin{align}
+  \mu_{E \to I_1,\mathrm{ref}}   &= 0.233\;\text{d}^{-1},
+    &\quad E_a/R &= 4{,}000\;\text{K},
+    \label{eq:mu_EI1} \\
+  \mu_{I_1 \to I_2,\mathrm{ref}} &= 0.434\;\text{d}^{-1},
+    &\quad E_a/R &= 5{,}000\;\text{K},
+    \label{eq:mu_I1I2} \\
+  \mu_{I_2 \to D,\mathrm{ref}}   &= 0.563\;\text{d}^{-1},
+    &\quad E_a/R &= 2{,}000\;\text{K}.
+    \label{eq:mu_I2D}
+\end{align}
+%
+These values were calibrated to the experimental disease time course of
+\citet{prentice2025kochs}, who established Koch's postulates for \vp{}
+and reported a mean exposure-to-death interval of 11.6\,days and a mean
+symptoms-to-death interval of 5.6\,days at $\sim\!13\,^\circ$C. Our
+Arrhenius-corrected rates reproduce these targets: at $13\,^\circ$C, the
+mean stage durations are 6.0\,d~(E), 3.5\,d~(I$_1$), and
+2.1\,d~(I$_2$), summing to 11.6\,d total with 5.6\,d from first
+symptoms to death. The notably lower activation energy for
+$\mu_{I_2 \to D}$ ($E_a/R = 2{,}000$\,K vs.\ $4{,}000$--$5{,}000$\,K
+for earlier transitions) reflects evidence that terminal tissue
+degradation is less temperature-sensitive than the initial stages of
+infection establishment.
+
+
+\subsubsection{Host defense traits}
+\label{sec:defense_traits}
+
+Three genetically determined traits modulate individual disease
+outcomes, each operating at a distinct point in the infection process:
+
+\paragraph{Resistance ($r_i$).}
+Immune exclusion reduces the force of infection via the $(1 - r_i)$
+term in Eq.~\ref{eq:foi}. An individual with $r_i = 0.5$ has half the
+baseline infection hazard. Resistance acts before infection and therefore
+also reduces population-level pathogen pressure by lowering the number of
+shedding hosts.
+
+\paragraph{Tolerance ($t_i$).}
+Damage limitation extends survival during the terminal I$_2$ stage by
+reducing the effective I$_2 \to$ D rate:
+%
+\begin{equation}
+  \mu_{I_2 \to D,\mathrm{eff}}
+  = \mu_{I_2 \to D}(T)
+    \times (1 - t_i \,\tau_{\max}),
+  \quad
+  \text{floored at}\; 0.05 \times \mu_{I_2 \to D}(T),
+  \label{eq:tolerance}
+\end{equation}
+%
+where $\tau_{\max} = 0.85$ sets the maximum mortality reduction at
+$t_i = 1$. The 5\% floor prevents biologically implausible indefinite
+survival. By extending I$_2$ duration, tolerance provides more
+opportunities for recovery but also prolongs pathogen shedding---a
+key epidemiological tradeoff.
+
+\paragraph{Recovery ($c_i$).}
+Pathogen clearance enables return to the susceptible pool. Each day,
+an I$_2$ individual recovers with probability:
+%
+\begin{equation}
+  p_{\mathrm{rec},I_2} = \rho_{\mathrm{rec}} \times c_i,
+  \qquad
+  \rho_{\mathrm{rec}} = 0.05\;\text{d}^{-1}.
+  \label{eq:recovery}
+\end{equation}
+%
+Early recovery from I$_1$ is possible only for individuals with
+exceptionally high clearance ability ($c_i > 0.5$), at a reduced
+probability $p_{\mathrm{rec},I_1} = \rho_{\mathrm{rec}} \times
+2\,(c_i - 0.5)$. Recovered individuals are immediately susceptible to
+reinfection.
+
+
+\subsubsection{Environmental pathogen dynamics}
+\label{sec:pathogen_dynamics}
+
+The waterborne \vp{} concentration $P_k$ at node~$k$ evolves according
+to:
+%
+\begin{equation}
+  \frac{dP_k}{dt}
+  = \underbrace{\sigma_1(T)\,n_{I_1} + \sigma_2(T)\,n_{I_2}
+    + \sigma_D \,n_{D,\mathrm{fresh}}}_{\text{shedding}}
+  - \underbrace{\xi(T)\,P_k}_{\text{decay}}
+  - \underbrace{\phi_k \,P_k}_{\text{flushing}}
+  + \underbrace{P_{\mathrm{env}}(T, S)}_{\text{reservoir}}
+  + \underbrace{\textstyle\sum_j d_{jk} P_j}_{\text{dispersal}},
+  \label{eq:vibrio}
+\end{equation}
+%
+integrated via forward Euler ($\Delta t = 1$\,d), with $P_k \geq 0$.
+Shedding rates from infectious hosts are temperature-dependent via
+Arrhenius scaling ($E_a/R = 5{,}000$\,K): $\sigma_1 = 5.0$ and
+$\sigma_2 = 50.0$\,bacteria\,mL$^{-1}$\,d$^{-1}$\,host$^{-1}$ at
+$T_{\mathrm{ref}}$. The 10-fold increase from I$_1$ to I$_2$ reflects
+the dramatic escalation of tissue degradation during wasting. Carcasses
+(D~compartment) shed at a constant rate
+$\sigma_D = 15$\,bacteria\,mL$^{-1}$\,d$^{-1}$\,carcass$^{-1}$ for a
+3-day saprophytic window, tracked via a ring buffer of daily disease
+deaths.
+
+The natural decay rate $\xi(T)$ is interpolated log-linearly between
+empirical estimates: $\xi = 1.0$\,d$^{-1}$ (half-life $\approx 0.7$\,d)
+at $10\,^\circ$C and $\xi = 0.33$\,d$^{-1}$ (half-life
+$\approx 2.1$\,d) at $20\,^\circ$C, reflecting the counter-intuitive
+pattern of faster Vibrio decay at lower temperatures
+\citep{lupo2020vibrionaceae}.
+
+In the default \emph{ubiquitous} scenario, a background environmental
+reservoir represents \vp{} persisting as viable-but-non-culturable
+(VBNC) cells in sediments:
+%
+\begin{equation}
+  P_{\mathrm{env}}(T, S)
+  = P_{\mathrm{env,max}}
+    \;\frac{1}{1 + e^{-\kappa(T - T_{\mathrm{VBNC}})}}
+    \;g(T)
+    \;S_{\mathrm{sal}},
+  \label{eq:reservoir}
+\end{equation}
+%
+where $P_{\mathrm{env,max}} = 500$\,bacteria\,mL$^{-1}$\,d$^{-1}$,
+$\kappa = 1.0\,^\circ$C$^{-1}$, and
+$T_{\mathrm{VBNC}} = 12\,^\circ$C. The thermal performance function
+$g(T)$ follows an Arrhenius increase below $T_{\mathrm{opt}} =
+20\,^\circ$C with quadratic decline above, reaching zero at
+$T_{\max} = 30\,^\circ$C. This formulation produces near-zero pathogen
+input during winter and a summer peak that triggers seasonal epidemics,
+consistent with the observed pattern of SSWD outbreaks during warm-water
+anomalies.
