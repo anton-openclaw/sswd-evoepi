@@ -1626,6 +1626,7 @@ def run_spatial_simulation(
     )
     from sswd_evoepi.environment import (
         sst_with_trend, seasonal_flushing, generate_satellite_sst_series,
+        generate_yearly_sst_series,
     )
     from sswd_evoepi.movement import daily_movement, InfectedDensityGrid
 
@@ -1781,22 +1782,31 @@ def run_spatial_simulation(
     node_daily_nat_deaths = np.zeros(N, dtype=np.int32)
     node_daily_senes_deaths = np.zeros(N, dtype=np.int32)
 
-    # ── Pre-generate satellite SST timeseries if configured ────────
-    use_satellite_sst = (
-        config.simulation.sst_source == 'satellite'
-    )
+    # ── Pre-generate SST timeseries if configured (satellite or monthly) ──
+    use_precomputed_sst = config.simulation.sst_source in ('satellite', 'monthly')
     satellite_sst_by_node: List[Optional[np.ndarray]] = [None] * N
-    if use_satellite_sst:
+    if use_precomputed_sst:
         for i, node in enumerate(network.nodes):
             nd = node.definition
-            satellite_sst_by_node[i] = generate_satellite_sst_series(
-                n_years=n_years,
-                start_year=2000,  # matches start_year below
-                node_name=nd.name,
-                trend_per_year=nd.sst_trend,
-                reference_year=2015,
-                data_dir=config.simulation.sst_data_dir,
-            )
+            if config.simulation.sst_source == 'monthly':
+                satellite_sst_by_node[i] = generate_yearly_sst_series(
+                    node_name=nd.name,
+                    start_year=config.simulation.sst_start_year,
+                    n_years=n_years,
+                    data_dir=config.simulation.sst_data_dir,
+                    climatology_dir=config.simulation.sst_data_dir,
+                    trend_per_year=nd.sst_trend,
+                    reference_year=2015,
+                )
+            else:
+                satellite_sst_by_node[i] = generate_satellite_sst_series(
+                    n_years=n_years,
+                    start_year=2000,  # matches start_year below
+                    node_name=nd.name,
+                    trend_per_year=nd.sst_trend,
+                    reference_year=2015,
+                    data_dir=config.simulation.sst_data_dir,
+                )
 
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
@@ -1822,7 +1832,7 @@ def run_spatial_simulation(
             sim_day = year * DAYS_PER_YEAR + day
             for i, node in enumerate(network.nodes):
                 nd = node.definition
-                if use_satellite_sst and satellite_sst_by_node[i] is not None:
+                if use_precomputed_sst and satellite_sst_by_node[i] is not None:
                     node.current_sst = float(satellite_sst_by_node[i][sim_day])
                 else:
                     node.current_sst = sst_with_trend(

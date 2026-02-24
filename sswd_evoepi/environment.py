@@ -174,6 +174,222 @@ def load_sst_climatology(node_name: str,
     return np.array(sst_values, dtype=np.float64)
 
 
+def load_sst_monthly(node_name: str,
+                     data_dir: str = 'data/sst') -> dict:
+    """Load monthly SST data for a node from *_monthly.csv.
+
+    Expects a CSV file at ``{data_dir}/{normalized_name}_monthly.csv``
+    with columns ``year``, ``month``, ``sst``.
+
+    Args:
+        node_name: Node name (spaces and case are normalized).
+        data_dir: Directory containing monthly CSV files.
+
+    Returns:
+        Dict mapping (year, month) → SST value (°C).
+
+    Raises:
+        FileNotFoundError: If the monthly CSV does not exist.
+    """
+    norm_name = _normalize_node_name(node_name)
+    csv_path = os.path.join(data_dir, f"{norm_name}_monthly.csv")
+
+    if not os.path.isfile(csv_path):
+        raise FileNotFoundError(
+            f"SST monthly file not found: {csv_path} "
+            f"(node '{node_name}', normalized '{norm_name}')"
+        )
+
+    import csv
+    monthly = {}
+    with open(csv_path, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            yr = int(row['year'])
+            mo = int(row['month'])
+            monthly[(yr, mo)] = float(row['sst'])
+
+    if len(monthly) == 0:
+        raise ValueError(
+            f"SST monthly file for '{node_name}' contains no data rows"
+        )
+
+    return monthly
+
+
+def interpolate_monthly_to_daily(monthly_values_12: np.ndarray,
+                                  year: int) -> np.ndarray:
+    """Interpolate 12 monthly SST values to daily resolution.
+
+    Places each monthly value at the midpoint of its month, then
+    uses linear interpolation (with wrap-around for continuity)
+    to produce a daily array.
+
+    Args:
+        monthly_values_12: Array of shape (12,) with monthly SST (°C),
+            indexed 0=January .. 11=December.
+        year: Calendar year (used to determine if leap year → 366 days).
+
+    Returns:
+        1-D array of shape (365,) or (366,) with daily SST values.
+    """
+    import calendar
+    is_leap = calendar.isleap(year)
+    n_days = 366 if is_leap else 365
+
+    # Compute midpoint day-of-year (0-indexed) for each month
+    month_midpoints = np.empty(12, dtype=np.float64)
+    cumulative = 0
+    for m in range(12):
+        days_in_month = calendar.monthrange(year, m + 1)[1]
+        month_midpoints[m] = cumulative + (days_in_month - 1) / 2.0
+        cumulative += days_in_month
+
+    # Wrap around for smooth interpolation at year boundaries:
+    # prepend December of "previous year" and append January of "next year"
+    extended_midpoints = np.empty(14, dtype=np.float64)
+    extended_values = np.empty(14, dtype=np.float64)
+
+    # December before: midpoint shifted back by n_days
+    extended_midpoints[0] = month_midpoints[11] - n_days
+    extended_values[0] = monthly_values_12[11]
+
+    # The 12 months
+    extended_midpoints[1:13] = month_midpoints
+    extended_values[1:13] = monthly_values_12
+
+    # January after: midpoint shifted forward by n_days
+    extended_midpoints[13] = month_midpoints[0] + n_days
+    extended_values[13] = monthly_values_12[0]
+
+    # Linear interpolation to daily resolution
+    days = np.arange(n_days, dtype=np.float64)
+    daily_sst = np.interp(days, extended_midpoints, extended_values)
+
+    return daily_sst
+
+
+def generate_yearly_sst_series(
+    node_name: str,
+    start_year: int,
+    n_years: int,
+    data_dir: str = 'data/sst',
+    climatology_dir: Optional[str] = None,
+    trend_per_year: float = 0.0,
+    reference_year: int = 2015,
+) -> np.ndarray:
+    """Generate a full daily SST array for multi-year simulation from monthly data.
+
+    For each year in the range [start_year, start_year + n_years), loads
+    the 12 monthly SST values and interpolates to daily resolution.
+
+    For years beyond the available monthly data (past 2025), falls back
+    to the satellite climatology with a logged warning. If no climatology
+    is available either, the last available year of monthly data is
+    repeated.
+
+    Note: the model uses a fixed 365-day year internally. For leap years,
+    the interpolated array is truncated to 365 days.
+
+    Args:
+        node_name: Node name for file lookup.
+        start_year: First calendar year of the series.
+        n_years: Number of years.
+        data_dir: Directory containing ``*_monthly.csv`` files.
+        climatology_dir: Directory for climatology fallback. If None,
+            defaults to ``data_dir``.
+        trend_per_year: Linear warming rate (°C/yr) applied on top of
+            data (default 0.0 — raw observations).
+        reference_year: Year at which trend contribution is zero.
+
+    Returns:
+        1-D array of shape (n_years * 365,) with daily SST values.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if climatology_dir is None:
+        climatology_dir = data_dir
+
+    # Load monthly data
+    monthly_data = load_sst_monthly(node_name, data_dir)
+
+    # Determine available year range from monthly data
+    available_years = sorted(set(yr for yr, _ in monthly_data.keys()))
+    max_data_year = max(available_years) if available_years else start_year
+
+    # Try loading climatology for fallback
+    climatology = None
+    try:
+        climatology = load_sst_climatology(node_name, climatology_dir)
+    except (FileNotFoundError, ValueError):
+        pass
+
+    # Find last complete year of monthly data (all 12 months present)
+    last_complete_monthly = None
+    for yr in reversed(available_years):
+        if all((yr, m) in monthly_data for m in range(1, 13)):
+            last_complete_monthly = yr
+            break
+
+    sst_chunks = []
+
+    for yr_offset in range(n_years):
+        cal_year = start_year + yr_offset
+
+        # Check if all 12 months available for this year
+        has_all_months = all(
+            (cal_year, m) in monthly_data for m in range(1, 13)
+        )
+
+        if has_all_months:
+            # Use actual monthly data
+            monthly_vals = np.array(
+                [monthly_data[(cal_year, m)] for m in range(1, 13)],
+                dtype=np.float64,
+            )
+            daily = interpolate_monthly_to_daily(monthly_vals, cal_year)
+        elif climatology is not None:
+            # Fall back to climatology
+            if cal_year > max_data_year:
+                logger.warning(
+                    "SST monthly data for '%s' year %d not available; "
+                    "falling back to climatology.",
+                    node_name, cal_year,
+                )
+            daily = climatology.copy()  # already 365 days
+        elif last_complete_monthly is not None:
+            # No climatology — repeat last complete year
+            logger.warning(
+                "SST monthly data for '%s' year %d not available and no "
+                "climatology found; repeating year %d.",
+                node_name, cal_year, last_complete_monthly,
+            )
+            monthly_vals = np.array(
+                [monthly_data[(last_complete_monthly, m)] for m in range(1, 13)],
+                dtype=np.float64,
+            )
+            daily = interpolate_monthly_to_daily(
+                monthly_vals, last_complete_monthly
+            )
+        else:
+            raise ValueError(
+                f"No SST data available for '{node_name}' year {cal_year}: "
+                f"no monthly data, no climatology, no fallback."
+            )
+
+        # Truncate to 365 days (model uses fixed 365-day years)
+        daily_365 = daily[:365]
+
+        # Apply linear trend if requested
+        if trend_per_year != 0.0:
+            daily_365 = daily_365 + trend_per_year * (cal_year - reference_year)
+
+        sst_chunks.append(daily_365)
+
+    return np.concatenate(sst_chunks)
+
+
 def generate_satellite_sst_series(
     n_years: int,
     start_year: int,
