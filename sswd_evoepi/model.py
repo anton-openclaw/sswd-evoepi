@@ -41,6 +41,7 @@ import numpy as np
 from sswd_evoepi.config import (
     DiseaseSection,
     PopulationSection,
+    ReleaseEvent,
     SimulationConfig,
     SpawningSection,
     default_config,
@@ -58,6 +59,8 @@ from sswd_evoepi.genetics import (
     compute_allele_frequencies,
     compute_additive_variance,
     compute_genetic_diagnostics,
+    generate_release_genotypes,
+    genotypes_from_trait_targets,
     initialize_trait_effect_sizes,
     update_all_trait_scores,
     update_resistance_scores,
@@ -93,6 +96,7 @@ from sswd_evoepi.types import (
     N_RESISTANCE_DEFAULT,
     STAGE_SIZE_THRESHOLDS,
     DiseaseState,
+    Origin,
     Stage,
     allocate_agents,
     allocate_genotypes,
@@ -729,6 +733,7 @@ def annual_reproduction(
         agents[slot]['disease_timer'] = 0
         agents[slot]['node_id'] = 0
         agents[slot]['origin'] = 0
+        agents[slot]['release_cohort'] = 0
         agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
         agents[slot]['settlement_day'] = sim_day  # Phase 11: juvenile immunity
 
@@ -892,6 +897,7 @@ def settle_daily_cohorts(
         agents['disease_timer'][slots] = 0
         agents['node_id'][slots] = node_id
         agents['origin'][slots] = 0  # WILD
+        agents['release_cohort'][slots] = 0
         agents['cause_of_death'][slots] = 0  # DeathCause.ALIVE
         agents['settlement_day'][slots] = sim_day  # Phase 11: juvenile immunity
 
@@ -920,6 +926,213 @@ def settle_daily_cohorts(
         total_settled += n_slots
 
     return total_settled
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RELEASE MECHANISM — Captive-bred reintroduction
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _grow_agent_arrays(
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    additional: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Grow agent and genotype arrays by additional slots.
+
+    Creates new arrays with increased capacity and copies existing data.
+    New slots are zeroed (alive=False, all fields default).
+
+    Args:
+        agents: Current agent structured array.
+        genotypes: Current genotype array (max_n, N_LOCI, 2).
+        additional: Number of new slots to add.
+
+    Returns:
+        (new_agents, new_genotypes) with increased capacity.
+    """
+    old_n = len(agents)
+    new_n = old_n + additional
+    new_agents = allocate_agents(new_n)
+    new_agents[:old_n] = agents
+    new_genotypes = allocate_genotypes(new_n)
+    new_genotypes[:old_n] = genotypes
+    return new_agents, new_genotypes
+
+
+def process_release_event(
+    event: ReleaseEvent,
+    event_index: int,
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    effect_sizes: np.ndarray,
+    effects_t: np.ndarray,
+    effects_c: np.ndarray,
+    res_slice: slice,
+    tol_slice: slice,
+    rec_slice: slice,
+    gen_cfg: 'GeneticsSection',
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    habitat_area: float,
+    sim_day: int,
+) -> Tuple[np.ndarray, np.ndarray, Dict]:
+    """Process a single release event, injecting individuals into the population.
+
+    Handles genotype generation (three modes), slot allocation (with array
+    growth if needed), agent field initialization, trait score computation,
+    and release logging.
+
+    Released individuals enter as SUSCEPTIBLE and participate in ALL model
+    processes from their release day onward: disease transmission, mortality,
+    growth, reproduction, dispersal.
+
+    Args:
+        event: ReleaseEvent configuration.
+        event_index: 1-indexed release event number (for release_cohort field).
+        agents: Agent array (may be replaced if growth needed).
+        genotypes: Genotype array (may be replaced if growth needed).
+        effect_sizes: Resistance effect sizes.
+        effects_t: Tolerance effect sizes.
+        effects_c: Recovery effect sizes.
+        res_slice, tol_slice, rec_slice: Trait locus slices.
+        gen_cfg: Genetics configuration section.
+        pop_cfg: Population configuration section.
+        rng: Random generator.
+        habitat_area: Habitat area (m²) for spatial placement.
+        sim_day: Current simulation day.
+
+    Returns:
+        (agents, genotypes, log_entry) — possibly new arrays if grown.
+    """
+    n = event.n_individuals
+
+    # 1. Generate genotypes based on genetics_mode
+    if event.genetics_mode == 'genotypes':
+        if event.genotypes is None or len(event.genotypes) < n:
+            raise ValueError(
+                f"Release event {event_index}: genotypes array must have "
+                f">= {n} rows, got {len(event.genotypes) if event.genotypes is not None else 0}"
+            )
+        release_geno = event.genotypes[:n].copy()
+    elif event.genetics_mode == 'allele_freqs':
+        if event.allele_freqs is None:
+            raise ValueError(
+                f"Release event {event_index}: allele_freqs required"
+            )
+        release_geno = generate_release_genotypes(n, event.allele_freqs, rng)
+    elif event.genetics_mode == 'trait_targets':
+        targets = event.trait_targets or {
+            'resistance': gen_cfg.target_mean_r,
+            'tolerance': gen_cfg.target_mean_t,
+            'recovery': gen_cfg.target_mean_c,
+        }
+        release_geno = genotypes_from_trait_targets(
+            n, targets, effect_sizes, effects_t, effects_c, rng,
+            n_resistance=gen_cfg.n_resistance,
+            n_tolerance=gen_cfg.n_tolerance,
+            n_recovery=gen_cfg.n_recovery,
+            beta_a=gen_cfg.q_init_beta_a,
+            beta_b=gen_cfg.q_init_beta_b,
+        )
+    else:
+        raise ValueError(f"Unknown genetics_mode: {event.genetics_mode}")
+
+    # 2. Find slots — prefer dead slots, grow arrays if needed
+    dead_slots = np.where(~agents['alive'])[0]
+    if len(dead_slots) >= n:
+        slots = dead_slots[:n]
+    else:
+        needed = n - len(dead_slots)
+        growth = max(needed, int(len(agents) * 0.25))  # grow by at least 25%
+        agents, genotypes = _grow_agent_arrays(agents, genotypes, growth)
+        dead_slots = np.where(~agents['alive'])[0]
+        slots = dead_slots[:n]
+
+    # 3. Set agent fields (vectorized)
+    hab_side = np.sqrt(max(habitat_area, 1.0))
+
+    # Ages: uniform in age_range (convert from days to years)
+    min_age_days, max_age_days = event.age_range
+    ages_days = rng.integers(min_age_days, max_age_days + 1, size=n)
+    ages_years = ages_days.astype(np.float32) / 365.0
+
+    # Sizes from VB growth curve at these ages
+    sizes = pop_cfg.L_inf * (
+        1.0 - np.exp(-pop_cfg.k_growth * (ages_years - pop_cfg.t0_growth))
+    )
+    sizes = np.maximum(sizes, 0.5).astype(np.float32)
+
+    # Stages from sizes (one-directional thresholds)
+    stages = np.full(n, Stage.ADULT, dtype=np.int8)
+    stages[sizes < 400.0] = Stage.SUBADULT
+    stages[sizes < 150.0] = Stage.JUVENILE
+    stages[sizes < 10.0] = Stage.SETTLER
+
+    # Vectorized field assignment
+    agents['alive'][slots] = True
+    agents['x'][slots] = rng.uniform(0, hab_side, n).astype(np.float32)
+    agents['y'][slots] = rng.uniform(0, hab_side, n).astype(np.float32)
+    agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n).astype(np.float32)
+    agents['speed'][slots] = 0.1
+    agents['size'][slots] = sizes
+    agents['age'][slots] = ages_years
+    agents['stage'][slots] = stages
+    agents['sex'][slots] = rng.integers(0, 2, n).astype(np.int8)
+    agents['disease_state'][slots] = DiseaseState.S
+    agents['disease_timer'][slots] = 0
+    agents['node_id'][slots] = event.node_id
+    agents['settlement_day'][slots] = sim_day
+    agents['cause_of_death'][slots] = 0  # ALIVE
+    agents['pathogen_virulence'][slots] = 0.0
+
+    # Spawning fields reset
+    agents['spawning_ready'][slots] = 0
+    agents['has_spawned'][slots] = 0
+    agents['spawn_refractory'][slots] = 0
+    agents['spawn_gravity_timer'][slots] = 0
+    agents['immunosuppression_timer'][slots] = 0
+    agents['last_spawn_day'][slots] = 0
+
+    # Origin tracking
+    if event.mark_released:
+        agents['origin'][slots] = Origin.CAPTIVE_BRED
+    else:
+        agents['origin'][slots] = Origin.WILD
+    agents['release_cohort'][slots] = event_index
+
+    # 4. Assign genotypes
+    genotypes[slots] = release_geno[:n]
+
+    # 5. Compute trait scores (vectorized)
+    allele_means_r = (
+        release_geno[:n, res_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['resistance'][slots] = (allele_means_r @ effect_sizes).astype(np.float32)
+
+    allele_means_t = (
+        release_geno[:n, tol_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['tolerance'][slots] = (allele_means_t @ effects_t).astype(np.float32)
+
+    allele_means_c = (
+        release_geno[:n, rec_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['recovery_ability'][slots] = (allele_means_c @ effects_c).astype(np.float32)
+
+    # 6. Log entry
+    log_entry = {
+        'event_index': event_index,
+        'time_step': sim_day,
+        'node_id': event.node_id,
+        'n_released': n,
+        'mean_resistance': float(np.mean(agents['resistance'][slots])),
+        'mean_tolerance': float(np.mean(agents['tolerance'][slots])),
+        'mean_recovery': float(np.mean(agents['recovery_ability'][slots])),
+        'genetics_mode': event.genetics_mode,
+    }
+
+    return agents, genotypes, log_entry
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -964,6 +1177,12 @@ class CoupledSimResult:
     yearly_mean_virulence: Optional[np.ndarray] = None          # (n_years,)
     yearly_virulence_new_infections: Optional[np.ndarray] = None  # (n_years,)
     yearly_virulence_of_deaths: Optional[np.ndarray] = None     # (n_years,)
+
+    # Release tracking
+    release_log: Optional[List[Dict]] = None
+    total_released: int = 0
+    released_surviving: int = 0
+    yearly_released_alive: Optional[np.ndarray] = None
 
     # Summary
     initial_pop: int = 0
@@ -1064,8 +1283,9 @@ def run_coupled_simulation(
         gen_cfg.n_resistance, gen_cfg.n_tolerance, gen_cfg.n_recovery,
     )
 
-    # Allocate arrays — extra capacity for population fluctuation
-    max_agents = max(int(carrying_capacity * 2.5), n_individuals * 3)
+    # Allocate arrays — extra capacity for population fluctuation + releases
+    total_release_n = sum(re.n_individuals for re in config.release_events)
+    max_agents = max(int(carrying_capacity * 2.5), n_individuals * 3) + total_release_n
     agents, genotypes = initialize_population(
         n_individuals=n_individuals,
         max_agents=max_agents,
@@ -1104,6 +1324,12 @@ def run_coupled_simulation(
         'total_larvae': 0,
     }
 
+    # ── Release mechanism ────────────────────────────────────────────
+    release_schedule = {}
+    for _ri, _re in enumerate(config.release_events):
+        release_schedule.setdefault(_re.time_step, []).append((_ri + 1, _re))
+    release_log = []
+
     # ── Allocate result arrays ────────────────────────────────────────
     total_days = n_years * DAYS_PER_YEAR
 
@@ -1126,6 +1352,7 @@ def run_coupled_simulation(
     yearly_va = np.zeros(n_years, dtype=np.float64)
     yearly_va_tolerance = np.zeros(n_years, dtype=np.float64)
     yearly_va_recovery = np.zeros(n_years, dtype=np.float64)
+    yearly_released_alive = np.zeros(n_years, dtype=np.int32)
     pre_epidemic_allele_freq = None
     post_epidemic_allele_freq = None
     epidemic_started_year = None  # track when epidemic begins for snapshot timing
@@ -1171,6 +1398,28 @@ def run_coupled_simulation(
         for day in range(DAYS_PER_YEAR):
             sim_day = year * DAYS_PER_YEAR + day
             global_day = sim_day
+
+            # ── Release events scheduled for today ────────────────
+            if sim_day in release_schedule:
+                for _cohort_idx, _event in release_schedule[sim_day]:
+                    agents, genotypes, _rlog = process_release_event(
+                        event=_event,
+                        event_index=_cohort_idx,
+                        agents=agents,
+                        genotypes=genotypes,
+                        effect_sizes=effect_sizes,
+                        effects_t=effects_t,
+                        effects_c=effects_c,
+                        res_slice=res_slice,
+                        tol_slice=tol_slice,
+                        rec_slice=rec_slice,
+                        gen_cfg=gen_cfg,
+                        pop_cfg=pop_cfg,
+                        rng=rng,
+                        habitat_area=habitat_area,
+                        sim_day=sim_day,
+                    )
+                    release_log.append(_rlog)
 
             # Get today's temperature
             if sst_by_day is not None and sim_day < len(sst_by_day):
@@ -1471,6 +1720,12 @@ def run_coupled_simulation(
                 allele_freq, effects_c, rec_slice
             )
 
+        # Track released alive
+        if config.release_events:
+            yearly_released_alive[year] = int(np.sum(
+                agents['alive'] & (agents['release_cohort'] > 0)
+            ))
+
         # Track minimum population
         if pop_after < min_pop:
             min_pop = pop_after
@@ -1528,6 +1783,13 @@ def run_coupled_simulation(
         total_senescence_deaths=int(np.sum(yearly_senescence_deaths)),
         peak_mortality_fraction=peak_mort_frac,
         recovered=recovered,
+        # Release tracking
+        release_log=release_log if release_log else None,
+        total_released=sum(r['n_released'] for r in release_log) if release_log else 0,
+        released_surviving=int(np.sum(
+            agents['alive'] & (agents['release_cohort'] > 0)
+        )) if release_log else 0,
+        yearly_released_alive=yearly_released_alive if config.release_events else None,
     )
     return result
 
@@ -1574,6 +1836,12 @@ class SpatialSimResult:
     yearly_mean_virulence: Optional[np.ndarray] = None
     # Spawning event tracking (daily, per-node)
     daily_spawning_counts: Optional[np.ndarray] = None  # (n_nodes, total_days)
+    # Release tracking
+    release_log: Optional[List[Dict]] = None
+    total_released: int = 0
+    released_surviving: int = 0
+    yearly_released_alive: Optional[np.ndarray] = None  # (n_nodes, n_years)
+
     # Summary
     initial_total_pop: int = 0
     final_total_pop: int = 0
@@ -1664,7 +1932,11 @@ def run_spatial_simulation(
     for node in network.nodes:
         nd = node.definition
         K = nd.carrying_capacity
-        max_agents = max(int(K * 2.5), K + 500)
+        node_release_n = sum(
+            re.n_individuals for re in config.release_events
+            if re.node_id == nd.node_id
+        )
+        max_agents = max(int(K * 2.5), K + 500) + node_release_n
         agents, geno = initialize_population(
             n_individuals=K,
             max_agents=max_agents,
@@ -1778,6 +2050,13 @@ def run_spatial_simulation(
     previous_in_season = [False] * N
     yearly_recruits_accum = [0] * N  # track daily settlement per node per year
 
+    # ── Release mechanism ─────────────────────────────────────────────
+    release_schedule_spatial = {}
+    for _ri, _re in enumerate(config.release_events):
+        release_schedule_spatial.setdefault(_re.time_step, []).append((_ri + 1, _re))
+    release_log = []
+    yearly_released_alive_spatial = np.zeros((N, n_years), dtype=np.int32)
+
     # ── Per-node daily mortality accumulators ────────────────────────
     node_daily_nat_deaths = np.zeros(N, dtype=np.int32)
     node_daily_senes_deaths = np.zeros(N, dtype=np.int32)
@@ -1846,6 +2125,31 @@ def run_spatial_simulation(
                     nd.flushing_rate, month, nd.is_fjord,
                 )
                 node.current_salinity = nd.salinity
+
+            # 1b. Release events scheduled for today
+            if sim_day in release_schedule_spatial:
+                for _cohort_idx, _event in release_schedule_spatial[sim_day]:
+                    if 0 <= _event.node_id < N:
+                        _node = network.nodes[_event.node_id]
+                        _nd = _node.definition
+                        _node.agents, _node.genotypes, _rlog = process_release_event(
+                            event=_event,
+                            event_index=_cohort_idx,
+                            agents=_node.agents,
+                            genotypes=_node.genotypes,
+                            effect_sizes=effect_sizes,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
+                            gen_cfg=gen_cfg,
+                            pop_cfg=pop_cfg,
+                            rng=rng,
+                            habitat_area=_nd.habitat_area,
+                            sim_day=sim_day,
+                        )
+                        release_log.append(_rlog)
 
             # 2a. Movement (CRW sub-steps within the day)
             if mov_enabled:
@@ -2242,6 +2546,13 @@ def run_spatial_simulation(
                 nds.virulence_sum_daily = 0.0
                 nds.virulence_count_daily = 0
 
+        # Track released alive per node
+        if config.release_events:
+            for i, node in enumerate(network.nodes):
+                yearly_released_alive_spatial[i, year] = int(np.sum(
+                    node.agents['alive'] & (node.agents['release_cohort'] > 0)
+                ))
+
         yearly_total_pop[year] = int(yearly_pop[:, year].sum())
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
 
@@ -2282,4 +2593,14 @@ def run_spatial_simulation(
         disease_year=disease_year,
         seed=seed,
         snapshot_recorder=snapshot_recorder,
+        # Release tracking
+        release_log=release_log if release_log else None,
+        total_released=sum(r['n_released'] for r in release_log) if release_log else 0,
+        released_surviving=sum(
+            int(np.sum(node.agents['alive'] & (node.agents['release_cohort'] > 0)))
+            for node in network.nodes
+        ) if release_log else 0,
+        yearly_released_alive=(
+            yearly_released_alive_spatial if config.release_events else None
+        ),
     )

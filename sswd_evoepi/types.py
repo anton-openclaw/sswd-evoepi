@@ -172,6 +172,8 @@ AGENT_DTYPE = np.dtype([
     ('alive',          np.bool_),     #  1 B — active flag (POP + DIS can set False)
     ('origin',         np.int8),      #  1 B — Origin enum (ERRATA E13)
                                       #         0=wild, 1=captive, 2=agf, 3=wild_source
+    ('release_cohort', np.int16),     #  2 B — release event index (0=wild-born,
+                                      #         1+=release event number)
     ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
                                       #         2=natural, 3=senescence)
     ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S)

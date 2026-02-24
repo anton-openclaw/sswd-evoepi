@@ -33,7 +33,7 @@ Authors: Anton 🔬 & Willem Weertman
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 
@@ -1011,3 +1011,93 @@ def hardy_weinberg_test(
                 chi2[l_idx] += (obs_freq[l_idx, g_idx] * n - expected) ** 2 / expected
 
     return obs_freq, exp_freq, chi2
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RELEASE GENOTYPE GENERATION
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def generate_release_genotypes(
+    n: int,
+    allele_freqs: np.ndarray,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """Generate genotypes with specified per-locus allele frequencies.
+
+    Creates diploid genotypes where each allele copy at locus l is
+    independently drawn with P(allele=1) = allele_freqs[l].  Used for
+    the 'allele_freqs' genetics_mode in release events.
+
+    Args:
+        n: Number of individuals to generate.
+        allele_freqs: (N_LOCI,) allele frequencies, each in [0, 1].
+        rng: Random generator.
+
+    Returns:
+        (n, N_LOCI, 2) int8 genotype array.
+    """
+    n_loci = len(allele_freqs)
+    geno = np.zeros((n, n_loci, 2), dtype=np.int8)
+    q_clipped = np.clip(allele_freqs, 0.0, 1.0)
+    for l in range(n_loci):
+        geno[:, l, 0] = (rng.random(n) < q_clipped[l]).astype(np.int8)
+        geno[:, l, 1] = (rng.random(n) < q_clipped[l]).astype(np.int8)
+    return geno
+
+
+def genotypes_from_trait_targets(
+    n: int,
+    targets: Dict[str, float],
+    effects_r: np.ndarray,
+    effects_t: np.ndarray,
+    effects_c: np.ndarray,
+    rng: np.random.Generator,
+    n_resistance: int = N_RESISTANCE_DEFAULT,
+    n_tolerance: int = N_TOLERANCE_DEFAULT,
+    n_recovery: int = N_RECOVERY_DEFAULT,
+    beta_a: float = 2.0,
+    beta_b: float = 8.0,
+) -> np.ndarray:
+    """Generate genotypes to match target trait means.
+
+    Similar to initialize_genotypes_three_trait but with relaxed allele
+    frequency bounds (up to 0.95) to support high trait targets typical
+    of captive breeding programs.
+
+    Args:
+        n: Number of individuals.
+        targets: {'resistance': float, 'tolerance': float, 'recovery': float}.
+        effects_r, effects_t, effects_c: Per-trait effect size arrays.
+        rng: Random generator.
+        n_resistance, n_tolerance, n_recovery: Trait partition sizes.
+        beta_a, beta_b: Beta distribution shape parameters.
+
+    Returns:
+        (n, N_LOCI, 2) int8 genotype array.
+    """
+    geno = np.zeros((n, N_LOCI, 2), dtype=np.int8)
+    res_s, tol_s, rec_s = trait_slices(n_resistance, n_tolerance, n_recovery)
+
+    for locus_slice, effects, target in [
+        (res_s, effects_r, targets.get('resistance', 0.15)),
+        (tol_s, effects_t, targets.get('tolerance', 0.10)),
+        (rec_s, effects_c, targets.get('recovery', 0.02)),
+    ]:
+        n_trait = effects.shape[0]
+        raw_q = rng.beta(beta_a, beta_b, size=n_trait)
+        current = np.dot(effects, raw_q)
+        if current > 0:
+            scale = target / current
+            # Clip to 0.95 (not 0.5) to allow high trait targets for releases
+            q_vals = np.clip(raw_q * scale, 0.001, 0.95)
+        else:
+            q_vals = np.full(n_trait, 0.01)
+
+        start = locus_slice.start
+        for i in range(n_trait):
+            l_idx = start + i
+            geno[:, l_idx, 0] = (rng.random(n) < q_vals[i]).astype(np.int8)
+            geno[:, l_idx, 1] = (rng.random(n) < q_vals[i]).astype(np.int8)
+
+    return geno

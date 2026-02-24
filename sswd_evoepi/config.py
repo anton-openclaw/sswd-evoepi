@@ -18,7 +18,7 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
@@ -249,6 +249,30 @@ class MovementSection:
 
 
 @dataclass
+class ReleaseEvent:
+    """A captive-bred reintroduction event.
+
+    Specifies when, where, and how many individuals to release,
+    along with their genetic composition and demographics.
+
+    genetics_mode controls genotype assignment:
+      'allele_freqs': Per-locus protective allele frequencies (allele_freqs).
+      'trait_targets': Target mean trait values, internally converted to
+                       allele frequencies (trait_targets dict).
+      'genotypes': Explicit genotype array provided directly.
+    """
+    time_step: int                          # Simulation day (0-indexed from start)
+    node_id: int = 0                        # Target node index
+    n_individuals: int = 100                # Number of individuals to release
+    genetics_mode: str = 'trait_targets'    # 'allele_freqs', 'trait_targets', 'genotypes'
+    allele_freqs: Optional[np.ndarray] = None    # (N_LOCI,) per-locus frequencies
+    trait_targets: Optional[Dict[str, float]] = None  # e.g. {'resistance': 0.3, ...}
+    genotypes: Optional[np.ndarray] = None       # (n_individuals, N_LOCI, 2) int8
+    age_range: Tuple[int, int] = (365, 730)      # (min_days, max_days) for released ages
+    mark_released: bool = True                   # Tag with Origin.CAPTIVE_BRED
+
+
+@dataclass
 class ConservationSection:
     """Conservation intervention parameters."""
     enabled: bool = False
@@ -322,6 +346,7 @@ class SimulationConfig:
     movement: MovementSection = field(default_factory=MovementSection)
     conservation: ConservationSection = field(default_factory=ConservationSection)
     output: OutputSection = field(default_factory=OutputSection)
+    release_events: List[ReleaseEvent] = field(default_factory=list)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -382,6 +407,18 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
             sections[key] = _dict_to_section(cls, data[key])
         else:
             sections[key] = cls()
+
+    # Parse release events (top-level list, not a section)
+    release_events = []
+    if 'release_events' in data and isinstance(data['release_events'], list):
+        for re_dict in data['release_events']:
+            if isinstance(re_dict, dict):
+                re_dict = dict(re_dict)  # don't mutate original
+                if 'age_range' in re_dict and isinstance(re_dict['age_range'], list):
+                    re_dict['age_range'] = tuple(re_dict['age_range'])
+                release_events.append(_dict_to_section(ReleaseEvent, re_dict))
+    sections['release_events'] = release_events
+
     return SimulationConfig(**sections)
 
 
@@ -509,6 +546,41 @@ def validate_config(config: SimulationConfig) -> None:
         raise ValueError("population.L_inf must be positive")
     if config.disease.K_half <= 0:
         raise ValueError("disease.K_half must be positive")
+
+    # Release events
+    valid_genetics_modes = {'allele_freqs', 'trait_targets', 'genotypes'}
+    for i, re in enumerate(config.release_events):
+        if re.time_step < 0:
+            raise ValueError(
+                f"release_events[{i}].time_step must be >= 0, got {re.time_step}"
+            )
+        if re.n_individuals < 1:
+            raise ValueError(
+                f"release_events[{i}].n_individuals must be >= 1, "
+                f"got {re.n_individuals}"
+            )
+        if re.genetics_mode not in valid_genetics_modes:
+            raise ValueError(
+                f"release_events[{i}].genetics_mode must be one of "
+                f"{valid_genetics_modes}, got '{re.genetics_mode}'"
+            )
+        if re.genetics_mode == 'allele_freqs' and re.allele_freqs is None:
+            raise ValueError(
+                f"release_events[{i}]: allele_freqs required when "
+                f"genetics_mode='allele_freqs'"
+            )
+        if re.genetics_mode == 'genotypes' and re.genotypes is None:
+            raise ValueError(
+                f"release_events[{i}]: genotypes required when "
+                f"genetics_mode='genotypes'"
+            )
+        if (len(re.age_range) != 2
+                or re.age_range[0] < 0
+                or re.age_range[0] > re.age_range[1]):
+            raise ValueError(
+                f"release_events[{i}].age_range must be (min, max) with "
+                f"0 <= min <= max, got {re.age_range}"
+            )
 
 
 def load_config(
