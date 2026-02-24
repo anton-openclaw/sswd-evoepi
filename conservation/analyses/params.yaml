@@ -1,0 +1,107 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Conservation Genetics Analysis Parameters
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Central configuration file for all conservation analyses.
+# All analysis scripts load this file for consistent parameterization.
+#
+# After ABC-SMC calibration, update 'calibrated_params_file' to point
+# to the calibrated parameter set. Analyses will then use calibrated
+# values instead of defaults.
+
+# ── Calibration status ───────────────────────────────────────────────
+calibrated_params_file: null  # Set after ABC-SMC calibration
+# Example: calibrated_params_file: "../../results/calibration/abc_smc_posterior.json"
+
+# ── Model genetic parameters ────────────────────────────────────────
+genetics:
+  n_loci: 51
+  n_resistance: 17
+  n_tolerance: 17
+  n_recovery: 17
+  target_mean_r: 0.15
+  target_mean_t: 0.10
+  target_mean_c: 0.02
+
+# ── Disease parameters (Prentice 2025 calibration) ──────────────────
+disease:
+  mu_EI1_ref: 0.233     # E→I₁ rate at T_ref (d⁻¹)
+  mu_I1I2_ref: 0.434    # I₁→I₂ rate at T_ref (d⁻¹)
+  mu_I2D_ref: 0.563     # I₂→D rate at T_ref (d⁻¹)
+  T_ref: 20.0           # Reference temperature (°C)
+  rho_rec: 0.05         # Base recovery rate (d⁻¹)
+  P_env_max: 500.0      # Background Vibrio input (bact/mL/d)
+  K_half: 87000.0       # Half-infective dose (bact/mL)
+
+# ── Population parameters ───────────────────────────────────────────
+population:
+  k_growth: 0.08        # VB growth rate (yr⁻¹)
+  K_per_node: 5000      # Carrying capacity per node (SA default)
+
+# ── Simulation parameters ───────────────────────────────────────────
+simulation:
+  start_year: 2013      # Pre-epidemic baseline
+  end_year: 2026        # Current state endpoint
+  n_seeds: 50           # Replicate seeds for ensemble
+  sst_source: "satellite"  # "satellite" or "sinusoidal"
+
+# ── Breeding program parameters ─────────────────────────────────────
+breeding:
+  n_founders: [50, 100, 200, 500]       # Founder counts to compare
+  n_select: [10, 20, 50]                # Parents selected per generation
+  n_generations: [5, 8, 10, 15]         # Generations to simulate
+  n_offspring_per_pair: 100             # Offspring per cross
+  n_keep_per_family: 2                  # Within-family selection
+  n_replicates: 100                     # Seeds per scenario
+  strategies:
+    - truncation
+    - assortative
+    - complementary
+    - ocs
+  selection_weights:
+    # Weight presets for selection index
+    resistance_only: {w_r: 1.0, w_t: 0.0, w_c: 0.0}
+    balanced:        {w_r: 0.6, w_t: 0.2, w_c: 0.2}
+    multi_trait:     {w_r: 0.8, w_t: 0.1, w_c: 0.1}
+  target_ne: 50.0                       # OCS target effective size
+
+# ── Screening parameters ────────────────────────────────────────────
+screening:
+  resistance_thresholds: [0.20, 0.25, 0.30, 0.35, 0.40]
+  confidence_levels: [0.90, 0.95, 0.99]
+  sample_sizes: [10, 20, 50, 100, 200, 500, 1000]
+  total_budget: 500                     # Total screening budget across sites
+  mc_replicates: 500                    # MC reps for expected max
+
+# ── Reintroduction scenario parameters ──────────────────────────────
+reintroduction:
+  release_sizes: [100, 500, 1000, 2000, 5000]
+  release_generations: [3, 5, 8]        # Breeding generations before release
+  release_timing: ["spring", "fall"]    # Relative to disease season
+  release_frequency: ["one_time", "annual", "biennial"]
+  forward_years: [20, 50]
+  n_seeds: 50
+
+# ── 11-node stepping-stone network ──────────────────────────────────
+sites:
+  - {id: 0,  name: "Sitka",         lat: 57.06, lon: -135.34, mean_sst:  8.0, is_fjord: false}
+  - {id: 1,  name: "Ketchikan",     lat: 55.34, lon: -131.64, mean_sst:  8.5, is_fjord: false}
+  - {id: 2,  name: "Haida Gwaii",   lat: 53.25, lon: -132.07, mean_sst:  9.0, is_fjord: false}
+  - {id: 3,  name: "Bella Bella",   lat: 52.16, lon: -128.15, mean_sst:  9.5, is_fjord: false}
+  - {id: 4,  name: "Howe Sound",    lat: 49.52, lon: -123.25, mean_sst: 10.0, is_fjord: true}
+  - {id: 5,  name: "SJI",           lat: 48.53, lon: -123.02, mean_sst: 10.5, is_fjord: false}
+  - {id: 6,  name: "Westport",      lat: 46.89, lon: -124.10, mean_sst: 11.0, is_fjord: false}
+  - {id: 7,  name: "Newport",       lat: 44.63, lon: -124.05, mean_sst: 11.5, is_fjord: false}
+  - {id: 8,  name: "Crescent City", lat: 41.76, lon: -124.20, mean_sst: 12.0, is_fjord: false}
+  - {id: 9,  name: "Fort Bragg",    lat: 39.45, lon: -123.80, mean_sst: 12.5, is_fjord: false}
+  - {id: 10, name: "Monterey",      lat: 36.62, lon: -121.90, mean_sst: 13.0, is_fjord: false}
+
+# ── Output paths ────────────────────────────────────────────────────
+output:
+  base_dir: "../results"
+  analysis1: "../results/01_genetic_state"
+  analysis2: "../results/02_screening"
+  analysis3: "../results/03_breeding"
+  analysis4: "../results/04_reintroduction"
+  analysis5: "../results/05_recommendations"
+  figures: "../results/figures"
