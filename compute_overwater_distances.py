@@ -30,7 +30,7 @@ LAND_POLYGONS_PATH = Path("data/shorelines/ne_10m_land/ne_10m_land.shp")
 SITES_PATH = Path("data/nodes/all_sites.json")
 OUTPUT_DIR = Path("results/overwater")
 CHECKPOINT_PATH = OUTPUT_DIR / "checkpoint.npz"
-FINAL_PATH = OUTPUT_DIR / "distance_matrix_489.npz"
+FINAL_PATH = OUTPUT_DIR / "distance_matrix.npz"
 
 # Alaska Albers — good equal-area projection for the full NE Pacific
 CRS = "EPSG:3338"
@@ -38,7 +38,7 @@ DEFAULT_RESOLUTION = 2000  # 2 km — good enough, keeps grid manageable
 BUFFER_KM = 100  # buffer around sites
 
 # Clip box for NE Pacific (lat/lon before projection)
-CLIP_BOX_LON = (-180, -110)
+CLIP_BOX_LON = (-190, -110)  # Extended past -180 for dateline-crossing Aleutians
 CLIP_BOX_LAT = (25, 65)
 
 COASTAL_PENALTY = 1.2
@@ -48,10 +48,18 @@ SQRT2 = np.sqrt(2)
 # ── Load sites ────────────────────────────────────────────────────────
 
 def load_sites():
-    """Load all 489 sites, return (N,2) array of (lat, lon) and names."""
+    """Load all sites, return (N,2) array of (lat, lon) and names."""
     with open(SITES_PATH) as f:
         sites = json.load(f)
-    coords = np.array([[s["latitude"], s["longitude"]] for s in sites])
+    coords = []
+    for s in sites:
+        lat = s["latitude"]
+        lon = s["longitude"]
+        # Normalize positive longitudes (western Aleutians crossing dateline)
+        if lon > 0:
+            lon = lon - 360.0
+        coords.append([lat, lon])
+    coords = np.array(coords)
     names = [s["name"] for s in sites]
     regions = [s.get("region", "?") for s in sites]
     return coords, names, regions
