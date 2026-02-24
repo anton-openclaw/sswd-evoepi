@@ -29,56 +29,64 @@
 \contentsline {subsection}{\numberline {4.4}Multi-site screening}{11}{subsection.4.4}%
 \contentsline {subsection}{\numberline {4.5}Screening for complementarity}{11}{subsection.4.5}%
 \contentsline {subsection}{\numberline {4.6}Screening cost model}{12}{subsection.4.6}%
-\contentsline {section}{\numberline {5}Breeding Program Design}{12}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Fitness weights for multi-trait selection}{12}{subsection.5.1}%
-\contentsline {subsubsection}{\numberline {5.1.1}Marginal fitness effects}{12}{subsubsection.5.1.1}%
-\contentsline {subsection}{\numberline {5.2}Crossing strategies}{13}{subsection.5.2}%
-\contentsline {subsubsection}{\numberline {5.2.1}Strategy 1: Random mating}{13}{subsubsection.5.2.1}%
-\contentsline {subsubsection}{\numberline {5.2.2}Strategy 2: Assortative mating}{13}{subsubsection.5.2.2}%
-\contentsline {subsubsection}{\numberline {5.2.3}Strategy 3: Complementary mating}{13}{subsubsection.5.2.3}%
-\contentsline {subsubsection}{\numberline {5.2.4}Strategy 4: Optimal contribution selection}{14}{subsubsection.5.2.4}%
-\contentsline {subsection}{\numberline {5.3}Expected generations to resistance targets}{14}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Family structure and within-family selection}{14}{subsection.5.4}%
-\contentsline {section}{\numberline {6}Inbreeding and Genetic Diversity}{15}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Inbreeding coefficient}{15}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Rate of inbreeding}{15}{subsection.6.2}%
-\contentsline {subsubsection}{\numberline {6.2.1}Effective population size under selection}{15}{subsubsection.6.2.1}%
-\contentsline {subsection}{\numberline {6.3}The 50/500 rule and its application}{15}{subsection.6.3}%
-\contentsline {subsection}{\numberline {6.4}Inbreeding depression}{16}{subsection.6.4}%
-\contentsline {subsection}{\numberline {6.5}Diversity metrics}{16}{subsection.6.5}%
-\contentsline {subsubsection}{\numberline {6.5.1}Expected heterozygosity}{16}{subsubsection.6.5.1}%
-\contentsline {subsubsection}{\numberline {6.5.2}Allelic richness}{16}{subsubsection.6.5.2}%
-\contentsline {subsubsection}{\numberline {6.5.3}Additive genetic variance}{16}{subsubsection.6.5.3}%
-\contentsline {subsection}{\numberline {6.6}Managing the gain--diversity trade-off}{17}{subsection.6.6}%
-\contentsline {subsubsection}{\numberline {6.6.1}Constrained optimization approach}{17}{subsubsection.6.6.1}%
-\contentsline {subsubsection}{\numberline {6.6.2}Practical guideline}{17}{subsubsection.6.6.2}%
-\contentsline {section}{\numberline {7}Reintroduction Genetics}{17}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Allele frequency shift from supplementation}{17}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}Genetic rescue vs.\ genetic swamping}{18}{subsection.7.2}%
-\contentsline {subsection}{\numberline {7.3}Effective migration rate}{18}{subsection.7.3}%
-\contentsline {subsection}{\numberline {7.4}Persistence of introduced alleles}{18}{subsection.7.4}%
-\contentsline {subsection}{\numberline {7.5}Release strategy optimization}{19}{subsection.7.5}%
-\contentsline {subsubsection}{\numberline {7.5.1}Spatial allocation}{19}{subsubsection.7.5.1}%
-\contentsline {subsubsection}{\numberline {7.5.2}Temporal allocation}{19}{subsubsection.7.5.2}%
-\contentsline {subsection}{\numberline {7.6}Monitoring and adaptive management}{19}{subsection.7.6}%
-\contentsline {section}{\numberline {8}\textit {Pycnopodia helianthoides}{}-Specific Considerations}{20}{section.8}%
-\contentsline {subsection}{\numberline {8.1}Reproductive biology}{20}{subsection.8.1}%
-\contentsline {subsubsection}{\numberline {8.1.1}Sexual reproduction}{20}{subsubsection.8.1.1}%
-\contentsline {subsubsection}{\numberline {8.1.2}Implications for breeding}{20}{subsubsection.8.1.2}%
-\contentsline {subsection}{\numberline {8.2}Immune system}{20}{subsection.8.2}%
-\contentsline {subsubsection}{\numberline {8.2.1}Implications for the model}{20}{subsubsection.8.2.1}%
-\contentsline {subsection}{\numberline {8.3}Disease ecology relevant to breeding}{21}{subsection.8.3}%
-\contentsline {subsubsection}{\numberline {8.3.1}Vibrio pectenicida as the causative agent}{21}{subsubsection.8.3.1}%
-\contentsline {subsubsection}{\numberline {8.3.2}Implications for breeding}{21}{subsubsection.8.3.2}%
-\contentsline {subsection}{\numberline {8.4}Population status}{21}{subsection.8.4}%
-\contentsline {subsubsection}{\numberline {8.4.1}Wild populations}{21}{subsubsection.8.4.1}%
-\contentsline {subsubsection}{\numberline {8.4.2}Captive populations}{21}{subsubsection.8.4.2}%
-\contentsline {subsection}{\numberline {8.5}Practical constraints}{21}{subsection.8.5}%
-\contentsline {subsection}{\numberline {8.6}What the model can and cannot predict}{22}{subsection.8.6}%
-\contentsline {section}{\numberline {9}Analysis Plan}{22}{section.9}%
-\contentsline {subsection}{\numberline {9.1}Analysis 1: Current Genetic State}{22}{subsection.9.1}%
-\contentsline {subsection}{\numberline {9.2}Analysis 2: Screening Effort by Site}{23}{subsection.9.2}%
-\contentsline {subsection}{\numberline {9.3}Analysis 3: Breeding Program Optimization}{23}{subsection.9.3}%
-\contentsline {subsection}{\numberline {9.4}Analysis 4: Reintroduction Scenarios}{24}{subsection.9.4}%
-\contentsline {subsection}{\numberline {9.5}Analysis 5: Integrated Recommendations}{25}{subsection.9.5}%
-\contentsline {subsection}{\numberline {9.6}Computational budget estimate}{25}{subsection.9.6}%
+\contentsline {subsection}{\numberline {4.7}Binary phenotyping: the challenge assay problem}{12}{subsection.4.7}%
+\contentsline {subsubsection}{\numberline {4.7.1}The observation model}{12}{subsubsection.4.7.1}%
+\contentsline {subsubsection}{\numberline {4.7.2}Heritability on the observed scale}{13}{subsubsection.4.7.2}%
+\contentsline {subsubsection}{\numberline {4.7.3}Selection differential from binary screening}{13}{subsubsection.4.7.3}%
+\contentsline {subsubsection}{\numberline {4.7.4}The noise problem worsens at higher resistance}{13}{subsubsection.4.7.4}%
+\contentsline {subsubsection}{\numberline {4.7.5}Repeated exposures}{14}{subsubsection.4.7.5}%
+\contentsline {subsubsection}{\numberline {4.7.6}Implications for breeding program design}{14}{subsubsection.4.7.6}%
+\contentsline {subsubsection}{\numberline {4.7.7}Required modification to screening theory}{15}{subsubsection.4.7.7}%
+\contentsline {section}{\numberline {5}Breeding Program Design}{15}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Fitness weights for multi-trait selection}{15}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Marginal fitness effects}{15}{subsubsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.2}Crossing strategies}{16}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Strategy 1: Random mating}{16}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Strategy 2: Assortative mating}{16}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Strategy 3: Complementary mating}{16}{subsubsection.5.2.3}%
+\contentsline {subsubsection}{\numberline {5.2.4}Strategy 4: Optimal contribution selection}{17}{subsubsection.5.2.4}%
+\contentsline {subsection}{\numberline {5.3}Expected generations to resistance targets}{17}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Family structure and within-family selection}{17}{subsection.5.4}%
+\contentsline {section}{\numberline {6}Inbreeding and Genetic Diversity}{18}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Inbreeding coefficient}{18}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Rate of inbreeding}{18}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}Effective population size under selection}{18}{subsubsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.3}The 50/500 rule and its application}{18}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Inbreeding depression}{19}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Diversity metrics}{19}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Expected heterozygosity}{19}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}Allelic richness}{19}{subsubsection.6.5.2}%
+\contentsline {subsubsection}{\numberline {6.5.3}Additive genetic variance}{19}{subsubsection.6.5.3}%
+\contentsline {subsection}{\numberline {6.6}Managing the gain--diversity trade-off}{20}{subsection.6.6}%
+\contentsline {subsubsection}{\numberline {6.6.1}Constrained optimization approach}{20}{subsubsection.6.6.1}%
+\contentsline {subsubsection}{\numberline {6.6.2}Practical guideline}{20}{subsubsection.6.6.2}%
+\contentsline {section}{\numberline {7}Reintroduction Genetics}{20}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Allele frequency shift from supplementation}{20}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Genetic rescue vs.\ genetic swamping}{21}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Effective migration rate}{21}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Persistence of introduced alleles}{21}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Release strategy optimization}{22}{subsection.7.5}%
+\contentsline {subsubsection}{\numberline {7.5.1}Spatial allocation}{22}{subsubsection.7.5.1}%
+\contentsline {subsubsection}{\numberline {7.5.2}Temporal allocation}{22}{subsubsection.7.5.2}%
+\contentsline {subsection}{\numberline {7.6}Monitoring and adaptive management}{22}{subsection.7.6}%
+\contentsline {section}{\numberline {8}\textit {Pycnopodia helianthoides}{}-Specific Considerations}{23}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Reproductive biology}{23}{subsection.8.1}%
+\contentsline {subsubsection}{\numberline {8.1.1}Sexual reproduction}{23}{subsubsection.8.1.1}%
+\contentsline {subsubsection}{\numberline {8.1.2}Implications for breeding}{23}{subsubsection.8.1.2}%
+\contentsline {subsection}{\numberline {8.2}Immune system}{23}{subsection.8.2}%
+\contentsline {subsubsection}{\numberline {8.2.1}Implications for the model}{23}{subsubsection.8.2.1}%
+\contentsline {subsection}{\numberline {8.3}Disease ecology relevant to breeding}{24}{subsection.8.3}%
+\contentsline {subsubsection}{\numberline {8.3.1}Vibrio pectenicida as the causative agent}{24}{subsubsection.8.3.1}%
+\contentsline {subsubsection}{\numberline {8.3.2}Implications for breeding}{24}{subsubsection.8.3.2}%
+\contentsline {subsection}{\numberline {8.4}Population status}{24}{subsection.8.4}%
+\contentsline {subsubsection}{\numberline {8.4.1}Wild populations}{24}{subsubsection.8.4.1}%
+\contentsline {subsubsection}{\numberline {8.4.2}Captive populations}{24}{subsubsection.8.4.2}%
+\contentsline {subsection}{\numberline {8.5}Practical constraints}{24}{subsection.8.5}%
+\contentsline {subsection}{\numberline {8.6}What the model can and cannot predict}{25}{subsection.8.6}%
+\contentsline {section}{\numberline {9}Analysis Plan}{25}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Analysis 1: Current Genetic State}{25}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Analysis 2: Screening Effort by Site}{26}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Analysis 3: Breeding Program Optimization}{26}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Analysis 4: Reintroduction Scenarios}{27}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Analysis 5: Integrated Recommendations}{28}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Computational budget estimate}{28}{subsection.9.6}%
