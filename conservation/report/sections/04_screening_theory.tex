@@ -1,16 +1,9 @@
 \section{Screening Theory: Finding Good Founders}
 \label{sec:screening}
 
-Before a breeding program begins, we must find founders from the 
-wild. This section derives the statistical theory of founder 
-screening — how many individuals must be sampled to find the 
-desired genetic quality.
-
 \subsection{The basic screening problem}
 
-Let $F(\tau)$ be the CDF of a trait in the wild population. We 
-want to find at least one individual with $\tau \geq \tau^*$ 
-(some target threshold). If we sample $n$ individuals independently:
+Let $F(\tau)$ be the trait CDF in the wild population. To find at least one individual with $\tau \geq \tau^*$ from $n$ independent samples:
 
 \begin{equation}
     \Prob(\text{at least one} \geq \tau^*) = 
@@ -36,16 +29,7 @@ $n \approx 0.7/p$.
 
 \subsection{Trait distribution from allele frequencies}
 
-The exceedance probability $p$ requires the trait distribution, 
-which depends on allele frequencies. For $n_R$ biallelic loci 
-with frequencies $q_1, \ldots, q_{n_R}$ and effects 
-$\alpha_1, \ldots, \alpha_{n_R}$:
-
-The trait value is $\tau = \sum_\ell \alpha_\ell x_\ell$ where 
-$x_\ell \sim (1/2) \text{Binomial}(2, q_\ell)$. The exact 
-distribution is a convolution of scaled binomials — tractable 
-numerically via characteristic functions or direct convolution, 
-but unwieldy analytically.
+The exceedance probability $p$ requires the trait distribution. With $\tau = \sum_\ell \alpha_\ell x_\ell$ where $x_\ell \sim (1/2) \text{Binomial}(2, q_\ell)$, the exact distribution is a convolution of scaled binomials — tractable numerically but unwieldy analytically.
 
 \begin{proposition}[Normal approximation]
 By the Lyapunov CLT, for sufficiently many loci with no single 
@@ -67,71 +51,38 @@ The factor of $1/2$ in the variance arises because $x_\ell =
 \end{proposition}
 
 \begin{remark}
-The normal approximation is decent for the bulk of the distribution 
-but underestimates the tail probabilities. Our trait distributions 
-are right-skewed (many loci with low $q$), so the normal 
-approximation \textbf{underestimates} the probability of finding 
-high-trait individuals. For screening calculations, we should use 
-the exact (simulated) distribution rather than the normal 
-approximation.
+The normal approximation underestimates tail probabilities due to right-skewness, making screening predictions conservative. For quantitative planning, use the exact (simulated) distribution.
 \end{remark}
 
 \subsection{Expected best individual from a sample}
 
-When screening $n$ individuals, we care about the \emph{maximum} 
-trait value observed. The expected value of the maximum (the first 
-order statistic of the upper tail) is:
-
+The expected maximum from a sample of $n$:
 \begin{equation}
     \E[\tau_{(n)}] = \int_{-\infty}^{\infty} 
     \tau \cdot n \cdot f(\tau) \cdot [F(\tau)]^{n-1} \, d\tau
     \label{eq:expected_max}
 \end{equation}
-
-For a normal distribution, this is approximately 
-\citep{david2003order}:
+Under normality \citep{david2003order}:
 \begin{equation}
     \E[\tau_{(n)}] \approx \mu_\tau + \sigma_\tau 
     \cdot \left(\Phi^{-1}\!\left(\frac{n}{n+1}\right)\right)
     \label{eq:expected_max_normal}
 \end{equation}
-
-For large $n$, this grows as $\sigma_\tau \sqrt{2 \ln n}$ — 
-logarithmically slow. This is the mathematical basis for the 
-\textbf{diminishing returns} of screening: doubling the sample 
-size does not double the best individual found.
+which grows as $\sigma_\tau \sqrt{2 \ln n}$ — the mathematical basis for \textbf{diminishing returns} of screening.
 
 \subsection{Multi-site screening}
 
-If populations at different sites have different trait 
-distributions $F_k(\tau)$ with different means $\mu_k$ (due to 
-different selection histories), the optimal screening allocation 
-across $K$ sites with budget $N = \sum_k n_k$ maximizes:
+With site-specific distributions $F_k(\tau)$, the optimal screening allocation across $K$ sites with budget $N = \sum_k n_k$ maximizes:
 \begin{equation}
     \E\left[\max_{k} \tau_{(n_k)}^{(k)}\right]
     \label{eq:multisite_max}
 \end{equation}
-
-This is a constrained optimization problem. Intuitively:
-\begin{itemize}
-    \item Sites with higher mean resistance yield better 
-    individuals per sample
-    \item Sites with higher variance (more genetic diversity) 
-    have heavier tails — rare but valuable outliers
-    \item Sites with very small surviving populations may not 
-    be worth sampling (population size limits $n_k$)
-\end{itemize}
-
-The optimal allocation depends on the site-specific trait 
-distributions, which the calibrated model provides.
+Sites with higher mean resistance yield better individuals per sample; sites with higher variance have heavier tails; very small populations may not justify sampling. The calibrated model provides the site-specific distributions needed for optimal allocation.
 
 \subsection{Screening for complementarity}
 \label{subsec:screening_complementarity}
 
-For breeding purposes, we don't just want the single best 
-individual — we want a \emph{set of founders} with 
-complementary genotypes. Two individuals are complementary if 
-they carry protective alleles at different loci.
+For breeding, we need a \emph{set of founders} with complementary genotypes — protective alleles at different loci.
 
 \begin{definition}[Locus union]
 For individuals $i$ and $j$, the \textbf{locus union} is the 
@@ -151,10 +102,7 @@ Maximum value: $n_R$ (every locus covered).
     C(i, j) = U(i, j) - O(i, j)
     \label{eq:complementarity}
 \end{equation}
-where $O(i,j)$ is the overlap (loci where both parents have 
-protective alleles). High $C$ means the parents cover different 
-loci — their offspring can inherit protective alleles from both 
-and achieve higher resistance than either parent.
+where $O(i,j)$ is the overlap. High $C$ means parents cover different loci, so offspring can achieve higher resistance than either parent.
 \end{definition}
 
 \begin{proposition}[Expected union of two random individuals]
@@ -178,17 +126,13 @@ The expected union is:
 \subsection{Screening cost model}
 \label{subsec:screening_cost}
 
-In practice, screening has costs: collection effort, genetic 
-assays, and holding facilities. A simple cost model:
+A simple cost model:
 \begin{equation}
     C_{\text{total}} = c_{\text{collect}} \cdot n + 
     c_{\text{assay}} \cdot n + 
     c_{\text{hold}} \cdot n_{\text{keep}} \cdot T_{\text{hold}}
     \label{eq:screening_cost}
 \end{equation}
-where $n$ is total screened, $n_{\text{keep}}$ is the number 
-retained as founders, and $T_{\text{hold}}$ is the holding 
-duration. This module provides the genetic analysis; the cost 
-parameters must be supplied by conservation practitioners.
+where $n$ is total screened, $n_{\text{keep}}$ retained, and $T_{\text{hold}}$ is holding duration. Cost parameters must be supplied by conservation practitioners.
 
 \input{sections/04b_binary_phenotyping}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One-shot overwater distance matrix computation for SSWD-EvoEpi.
 
-Computes shortest overwater distances between all 489 sites using:
+Computes shortest overwater distances between all 907 sites using:
   1. Coastline rasterization → binary land/sea grid
   2. Vectorized sparse graph construction (fixes the bottleneck)
   3. Single-source Dijkstra, one site at a time, saving incrementally

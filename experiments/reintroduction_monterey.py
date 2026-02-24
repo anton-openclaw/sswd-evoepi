@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Monterey reintroduction experiment on the full 489-node network.
+"""Monterey reintroduction experiment on the full 907-node network.
 
 Factorial design:
   - 3 restoration levels: partial (50), medium (500), full (5000)
@@ -8,17 +8,18 @@ Factorial design:
   - 1 baseline (no intervention)
   → 19 total scenarios
 
-Network: All 489 Pycnopodia habitat sites from Aleutians to Baja
-  California, using precomputed overwater distance matrix.
+Network: All 907 Pycnopodia habitat sites (Aleutians to Baja
+  California) with 18 regions, using precomputed overwater distance
+  matrix at `results/overwater/distance_matrix.npz`.
 
-SST: 11 reference nodes with NOAA OISST + CMIP6 SSP2-4.5 projections.
-  Each of the 489 nodes uses SST from the nearest reference node by
-  latitude (nearest-neighbor interpolation). See SST_INTERPOLATION
-  section below for details and justification.
+SST: Per-site monthly SST from NOAA OISST v2.1 (2002-2025) stored in
+  `data/sst/site_sst/`. Each of the 907 nodes maps to its nearest
+  OISST 0.25° grid cell. For sites without per-site SST (fallback),
+  nearest-latitude interpolation from 11 reference nodes is used.
+  Projections: CMIP6 SSP2-4.5 (2026-2050).
 
-Release site: Node 283 (Sunflower Star Lab - Monterey Outplanting Site,
-  36.62°N, 121.90°W). Release at simulation day corresponding to
-  Jan 1, 2026.
+Release site: CA-C-043 (Monterey outplanting site, 36.62°N, -121.90°W).
+  Release at simulation day corresponding to Jan 1, 2026.
 
 Timeline: 2002-2050 (48 years)
   - 2002-2012: Pre-epidemic spinup (11 years)
@@ -81,7 +82,7 @@ from scripts.genetic_backgrounds import get_all_backgrounds, get_background_by_n
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════
 
-MONTEREY_NODE_IDX = 283
+MONTEREY_SITE_NAME = 'CA-C-043'  # Monterey outplanting site (36.62°N, -121.90°W)
 START_YEAR = 2002
 END_YEAR = 2050
 EPIDEMIC_YEAR = 2013
@@ -98,16 +99,21 @@ RESTORATION_LEVELS = {
     'full': 5000,
 }
 
-# 13 regions for aggregation
+# Site data and distance matrix paths
+SITES_PATH = 'data/nodes/all_sites.json'
+DISTANCE_MATRIX_PATH = 'results/overwater/distance_matrix.npz'
+
+# 18 regions for aggregation (matching assign_regions.py output)
 REGIONS = [
-    'AK-AL', 'AK-EG', 'AK-SE', 'AK-WG',
-    'BC-C', 'BC-N',
+    'AK-WG', 'AK-AL', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS', 'AK-OC',
+    'BC-N', 'BC-C',
+    'JDF', 'SS-N', 'SS-S',
+    'WA-O', 'OR',
+    'CA-N', 'CA-C', 'CA-S',
     'BJ',
-    'CA-C', 'CA-N', 'CA-S',
-    'OR', 'SS', 'WA-O',
 ]
 
-# 11 SST reference nodes (ordered by latitude, descending)
+# 11 SST reference nodes (fallback for sites without per-site SST)
 SST_REFERENCE_NODES = [
     ('Sitka', 57.05),
     ('Ketchikan', 55.34),
@@ -122,32 +128,24 @@ SST_REFERENCE_NODES = [
     ('Monterey', 36.62),
 ]
 
-# SST_INTERPOLATION:
-# We have monthly SST data (OISST v2.1 observations 2002-2025, CMIP6
-# SSP2-4.5 projections 2026-2100) for 11 reference nodes spanning the
-# full latitudinal range (57°N Sitka to 36.6°N Monterey).
+# SST STRATEGY:
+# Primary: Per-site monthly SST from NOAA OISST v2.1 (data/sst/site_sst/).
+#   907 sites → 532 unique OISST 0.25° grid cells. Each site maps to
+#   its nearest grid cell via data/sst/site_sst/site_to_grid.json.
 #
-# For the remaining 478 nodes, we assign each node the SST series of
-# the nearest reference node by latitude. This is justified because:
-#   1. Along the NE Pacific coast, SST varies primarily with latitude
-#      (r² ≈ 0.85 for annual mean SST vs latitude).
-#   2. Maximum latitude gap between any node and its nearest reference
-#      is ~4° (extreme Aleutian/Gulf nodes), but most are <2°.
-#   3. The model's disease dynamics are sensitive to absolute SST
-#      (VBNC threshold at 12°C), so getting the right latitude band
-#      matters more than fine-scale SST differences.
-#   4. Nodes south of Monterey (Baja, 26.7-32.4°N) use Monterey SST,
-#      which underestimates their warmer temperatures — conservative
-#      for disease dynamics (less Vibrio activation than reality).
+# Fallback: If per-site SST not yet available, use nearest-latitude
+#   interpolation from 11 reference nodes (same as old 489-node method).
+#
+# Projections: CMIP6 SSP2-4.5, bias-corrected, 2015-2100.
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 489-NODE NETWORK BUILDER
+# 907-NODE NETWORK BUILDER
 # ═══════════════════════════════════════════════════════════════════════
 
 
 def _nearest_ref_node(lat: float) -> str:
-    """Find the nearest SST reference node by latitude."""
+    """Find the nearest SST reference node by latitude (fallback)."""
     best_name = SST_REFERENCE_NODES[0][0]
     best_dist = abs(lat - SST_REFERENCE_NODES[0][1])
     for name, ref_lat in SST_REFERENCE_NODES[1:]:
@@ -175,36 +173,52 @@ def _estimate_sst_amplitude(lat: float) -> float:
     return max(1.5, min(5.0, 1.0 + 0.06 * lat))
 
 
-def load_489_node_definitions(
-    K: int = K_PER_NODE,
-) -> Tuple[List[NodeDefinition], Dict[int, str]]:
-    """Load all 489 nodes from the distance matrix with SST assignments.
+def _find_monterey_index(names: list) -> int:
+    """Find the index of the Monterey release site by name."""
+    for i, name in enumerate(names):
+        if name == MONTEREY_SITE_NAME:
+            return i
+    # Fallback: find nearest to 36.62, -121.90
+    raise ValueError(
+        f"Release site {MONTEREY_SITE_NAME} not found in site list. "
+        f"Available sites: {names[:5]}..."
+    )
 
-    Uses the precomputed overwater distance matrix as the canonical
-    489-node set (names, coordinates, regions).
+
+def load_node_definitions(
+    K: int = K_PER_NODE,
+) -> Tuple[List[NodeDefinition], Dict[int, str], int]:
+    """Load all 907 nodes from all_sites.json with SST assignments.
+
+    Uses the canonical site list (data/nodes/all_sites.json) as the
+    source of truth for site names, coordinates, and regions.
 
     Args:
         K: Carrying capacity per node.
 
     Returns:
-        (node_defs, sst_mapping) where sst_mapping maps node_id → ref SST name.
+        (node_defs, sst_mapping, monterey_idx) where:
+          - sst_mapping maps node_id → ref SST name (fallback)
+          - monterey_idx is the index of the release site
     """
-    npz_path = PROJECT_ROOT / 'results' / 'overwater' / 'distance_matrix_489.npz'
-    data = np.load(str(npz_path), allow_pickle=True)
-    names = data['names']
-    coords = data['coordinates']  # (489, 2) [lat, lon]
-    regions = data['regions']
+    sites_path = PROJECT_ROOT / SITES_PATH
+    with open(sites_path) as f:
+        sites = json.load(f)
 
     node_defs = []
     sst_mapping = {}
+    monterey_idx = None
 
-    for i in range(len(names)):
-        lat = float(coords[i, 0])
-        lon = float(coords[i, 1])
-        region = str(regions[i])
-        name = str(names[i])
+    for i, site in enumerate(sites):
+        lat = float(site['latitude'])
+        lon = float(site['longitude'])
+        region = site.get('region', '?')
+        name = site['name']
 
-        # Assign nearest SST reference node
+        if name == MONTEREY_SITE_NAME:
+            monterey_idx = i
+
+        # Assign nearest SST reference node (fallback for sites without per-site SST)
         ref_name = _nearest_ref_node(lat)
         sst_mapping[i] = ref_name
 
@@ -212,8 +226,8 @@ def load_489_node_definitions(
         mean_sst = _estimate_mean_sst(lat)
         sst_amp = _estimate_sst_amplitude(lat)
 
-        # Determine if likely fjord (BC-N, some AK-SE, SS)
-        is_fjord = region in ('BC-N',) and lat > 50.0
+        # Determine if likely fjord (BC-N, some AK-PWS, SS-N)
+        is_fjord = region in ('BC-N', 'AK-PWS') and lat > 50.0
 
         nd = NodeDefinition(
             node_id=i,
@@ -234,23 +248,26 @@ def load_489_node_definitions(
         )
         node_defs.append(nd)
 
-    return node_defs, sst_mapping
+    if monterey_idx is None:
+        raise ValueError(f"Release site {MONTEREY_SITE_NAME} not found in {sites_path}")
+
+    return node_defs, sst_mapping, monterey_idx
 
 
-def build_489_network(
+def build_network_907(
     K: int = K_PER_NODE,
     seed: int = 42,
     D_L: float = 400.0,
     D_P: float = 15.0,
-) -> Tuple[MetapopulationNetwork, Dict[int, str]]:
-    """Build the full 489-node network with precomputed overwater distances.
+) -> Tuple[MetapopulationNetwork, Dict[int, str], int]:
+    """Build the full 907-node network with precomputed overwater distances.
 
     Returns:
-        (network, sst_mapping) — MetapopulationNetwork + SST reference assignments.
+        (network, sst_mapping, monterey_idx)
     """
-    node_defs, sst_mapping = load_489_node_definitions(K=K)
+    node_defs, sst_mapping, monterey_idx = load_node_definitions(K=K)
 
-    npz_path = str(PROJECT_ROOT / 'results' / 'overwater' / 'distance_matrix_489.npz')
+    npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
     network = build_network(
         node_defs,
         D_L=D_L,
@@ -259,7 +276,7 @@ def build_489_network(
         overwater_npz=npz_path,
     )
 
-    return network, sst_mapping
+    return network, sst_mapping, monterey_idx
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -329,6 +346,7 @@ def build_scenarios(
 def build_config_for_scenario(
     scenario: ScenarioConfig,
     sst_mapping: Dict[int, str],
+    monterey_idx: int = 0,
 ) -> SimulationConfig:
     """Build a SimulationConfig for a scenario.
 
@@ -336,13 +354,13 @@ def build_config_for_scenario(
       - Monthly SST with SSP2-4.5 projections
       - Full disease dynamics (ubiquitous, Prentice 2025 rates)
       - Three-trait genetics (17/17/17)
-      - Release event at node 283, day 8760 (Jan 2026)
+      - Release event at Monterey (CA-C-043), day 8760 (Jan 2026)
     """
     release_events = []
     if scenario.n_released > 0 and scenario.allele_freqs is not None:
         release_events.append(ReleaseEvent(
             time_step=RELEASE_DAY,
-            node_id=MONTEREY_NODE_IDX,
+            node_id=monterey_idx,
             n_individuals=scenario.n_released,
             genetics_mode='allele_freqs',
             allele_freqs=scenario.allele_freqs,
@@ -378,24 +396,18 @@ def build_config_for_scenario(
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# SST ASSIGNMENT FOR 489 NODES
+# SST ASSIGNMENT FOR 907 NODES
 # ═══════════════════════════════════════════════════════════════════════
 
 def assign_sst_node_names(
     network: MetapopulationNetwork,
     sst_mapping: Dict[int, str],
 ) -> None:
-    """Override node names for SST loading.
+    """Override node names for SST loading (fallback mode).
 
-    The model's generate_yearly_sst_series looks up SST files by node name.
-    For the full 489-node network, we need each node to use the SST
-    series of its nearest reference node. We accomplish this by
-    temporarily overriding node definition names during SST generation.
-
-    This is a design note — the actual override happens in
-    run_spatial_simulation via the node.definition.name field used
-    for SST file lookup. We modify the NodeDefinition names to match
-    their assigned SST reference node.
+    When per-site SST (data/sst/site_sst/) is not available, the model
+    looks up SST files by node name. We override node definition names
+    to match their assigned SST reference node.
 
     IMPORTANT: This means node names in the SST system differ from
     geographic names. The geographic names are preserved in node_names
@@ -423,7 +435,7 @@ def run_single_scenario(
 ) -> Dict[str, Any]:
     """Run a single reintroduction scenario.
 
-    Builds the 489-node network, configures SST, runs the spatial
+    Builds the 907-node network, configures SST, runs the spatial
     simulation, and extracts results.
 
     Args:
@@ -437,7 +449,7 @@ def run_single_scenario(
     print(f"  [{scenario.name} rep={scenario.replicate}] Starting...")
 
     # Build network
-    network, sst_mapping = build_489_network(K=K, seed=scenario.seed)
+    network, sst_mapping, monterey_idx = build_network_907(K=K, seed=scenario.seed)
 
     # Store geographic names before SST override
     geographic_names = [n.definition.name for n in network.nodes]
@@ -447,7 +459,7 @@ def run_single_scenario(
     assign_sst_node_names(network, sst_mapping)
 
     # Build config
-    config = build_config_for_scenario(scenario, sst_mapping)
+    config = build_config_for_scenario(scenario, sst_mapping, monterey_idx=monterey_idx)
 
     # Run simulation
     result = run_spatial_simulation(
@@ -481,25 +493,26 @@ def run_single_scenario(
         # Per-year totals
         'yearly_total_pop': result.yearly_total_pop.tolist() if result.yearly_total_pop is not None else None,
         # Monterey-specific metrics
+        'monterey_idx': monterey_idx,
         'monterey_yearly_pop': (
-            result.yearly_pop[MONTEREY_NODE_IDX].tolist()
+            result.yearly_pop[monterey_idx].tolist()
             if result.yearly_pop is not None else None
         ),
         'monterey_yearly_mean_r': (
-            result.yearly_mean_resistance[MONTEREY_NODE_IDX].tolist()
+            result.yearly_mean_resistance[monterey_idx].tolist()
             if result.yearly_mean_resistance is not None else None
         ),
         'monterey_yearly_mean_t': (
-            result.yearly_mean_tolerance[MONTEREY_NODE_IDX].tolist()
+            result.yearly_mean_tolerance[monterey_idx].tolist()
             if result.yearly_mean_tolerance is not None else None
         ),
         'monterey_yearly_mean_c': (
-            result.yearly_mean_recovery[MONTEREY_NODE_IDX].tolist()
+            result.yearly_mean_recovery[monterey_idx].tolist()
             if result.yearly_mean_recovery is not None else None
         ),
         # Released individual tracking at Monterey
         'monterey_released_alive': (
-            result.yearly_released_alive[MONTEREY_NODE_IDX].tolist()
+            result.yearly_released_alive[monterey_idx].tolist()
             if result.yearly_released_alive is not None else None
         ),
         # Region-aggregated population trajectories
@@ -599,8 +612,8 @@ def run_experiment(
 
     print(f"Reintroduction Experiment: {len(scenarios)} scenarios")
     print(f"  Mode: {mode}, K={K}/node, {n_cores} cores")
-    print(f"  Network: 489 nodes, SST: monthly + SSP2-4.5")
-    print(f"  Release: node {MONTEREY_NODE_IDX} (Monterey), day {RELEASE_DAY} (Jan {RELEASE_YEAR})")
+    print(f"  Network: 907 nodes, 18 regions, SST: monthly + SSP2-4.5")
+    print(f"  Release: {MONTEREY_SITE_NAME} (Monterey), day {RELEASE_DAY} (Jan {RELEASE_YEAR})")
     print()
 
     t0 = time.time()
@@ -675,7 +688,7 @@ def _print_summary(results: List[Dict]) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Monterey reintroduction experiment (489-node network)',
+        description='Monterey reintroduction experiment (907-node network)',
     )
     parser.add_argument(
         '--mode', choices=['demo', 'full', 'single'], default='demo',

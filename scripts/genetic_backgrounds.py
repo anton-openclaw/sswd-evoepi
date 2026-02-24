@@ -144,7 +144,7 @@ def survivors_2019() -> Dict:
       - tolerance: ~0.14 (moderate enrichment)
       - recovery: ~0.03 (slight increase, weak selection signal)
 
-    These are hardcoded approximations — running a full 489-node sim
+    These are hardcoded approximations — running a full 907-node sim
     just for genetic backgrounds would be prohibitively expensive.
     The key insight from validation: resistance evolves fastest under
     R→S biology, recovery barely moves.

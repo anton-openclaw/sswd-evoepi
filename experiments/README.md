@@ -8,40 +8,23 @@ This experiment uses our coupled eco-evolutionary epidemiological ABM to evaluat
 
 ## Network
 
-**Full 489-node network** covering the entire Pycnopodia range from the Aleutian Islands (61°N) to Baja California (27°N). This is NOT the 11-node stepping-stone used for sensitivity analysis — that was designed for SA efficiency with uniform spacing. The full network captures:
+**Full 907-node network** covering the entire Pycnopodia range from the Aleutian Islands (61°N) to Baja California (27°N). This is NOT the 11-node stepping-stone used for sensitivity analysis — that was designed for SA efficiency with uniform spacing. The full network captures:
 
 - Realistic population connectivity (overwater distance-based dispersal)
-- Regional population structure (13 regions: AK-AL, AK-EG, AK-SE, AK-WG, BC-C, BC-N, BJ, CA-C, CA-N, CA-S, OR, SS, WA-O)
-- The actual Monterey outplanting site (node 283: 36.62°N, 121.90°W)
+- Regional population structure (18 regions: AK-WG, AK-AL, AK-EG, AK-PWS, AK-FN, AK-FS, AK-OC, BC-N, BC-C, JDF, SS-N, SS-S, WA-O, OR, CA-N, CA-C, CA-S, BJ)
+- The actual Monterey outplanting site (CA-C-043: 36.62°N, -121.90°W)
 
-Node data: `data/nodes/all_sites.json` (887 candidate sites → 489 selected)
-Distance matrix: `results/overwater/distance_matrix_489.npz` (precomputed overwater distances)
+Site data: `data/nodes/all_sites.json` (907 sites, systematic Region-NNN naming)
+Distance matrix: `results/overwater/distance_matrix.npz` (907×907 precomputed overwater distances)
 Carrying capacity: K = 5,000 per node (SSWD crashes populations to <5% of K within years, so effective agent counts are small)
 
-## SST Interpolation
+## SST Data
 
-We have monthly SST data for 11 reference nodes (NOAA OISST v2.1 observations 2002–2025, bias-corrected CMIP6 SSP2-4.5 projections 2026–2100):
+**Primary**: Per-site monthly SST from NOAA OISST v2.1 (2002–2025). Each of the 907 sites maps to its nearest OISST 0.25° grid cell (532 unique cells). Data stored at `data/sst/site_sst/`.
 
-| Reference Node | Latitude |
-|---|---|
-| Sitka | 57.05°N |
-| Ketchikan | 55.34°N |
-| Haida Gwaii | 53.25°N |
-| Bella Bella | 52.16°N |
-| Howe Sound | 49.38°N |
-| SJI | 48.53°N |
-| Westport | 46.89°N |
-| Newport | 44.63°N |
-| Crescent City | 41.75°N |
-| Fort Bragg | 39.45°N |
-| Monterey | 36.62°N |
+**Fallback**: If per-site SST is not yet available, 11 reference nodes provide nearest-latitude interpolation (same as legacy method).
 
-Each of the 489 nodes uses the SST series from its **nearest reference node by latitude**. This nearest-neighbor interpolation is justified because:
-
-1. NE Pacific coastal SST varies primarily with latitude (r² ≈ 0.85)
-2. Maximum gap to nearest reference is ~4° latitude (some Aleutian/Gulf nodes)
-3. Disease dynamics are most sensitive to absolute SST (VBNC threshold at 12°C)
-4. Nodes south of Monterey (Baja, 27–32°N) use Monterey SST — conservative (underestimates their warmer temperatures)
+**Projections**: Bias-corrected CMIP6 SSP2-4.5 (GFDL-ESM4 + IPSL-CM6A-LR ensemble mean), 2026–2100.
 
 ## Factorial Design
 
@@ -71,7 +54,7 @@ Selective breeding uses truncation selection (top 20%) with weighted index: 0.7 
 
 ## Release Protocol
 
-- **Site**: Node 283 (Sunflower Star Lab – Monterey Outplanting Site)
+- **Site**: CA-C-043 (Monterey outplanting site, 36.62°N, -121.90°W)
 - **Timing**: Simulation day 8760 (January 1, 2026)
 - **Age**: 1–2 year old juveniles (365–730 days)
 - **Genetics mode**: `allele_freqs` (per-locus protective allele frequencies)
@@ -90,20 +73,20 @@ Selective breeding uses truncation selection (top 20%) with weighted index: 0.7 
 ## Tracked Outputs
 
 Per scenario:
-1. **Population trajectory** — yearly total population (all 489 nodes)
+1. **Population trajectory** — yearly total population (all 907 nodes)
 2. **Monterey population** — yearly pop at release site
 3. **Released individual survival** — how many captive-bred survive per year
 4. **Trait evolution at Monterey** — mean resistance, tolerance, recovery
-5. **Region-aggregated population** — yearly pop summed by 13 regions
+5. **Region-aggregated population** — yearly pop summed by 18 regions
 6. **Larval dispersal** — offspring spreading from Monterey to adjacent nodes
 
 ## How to Run
 
 ```bash
-# Demo: 3 replicates, 8 cores (~hours on Ryzen)
+# Demo: 3 replicates, 8 cores
 python3 experiments/reintroduction_monterey.py --mode demo
 
-# Full: 10 replicates (~days on Xeon)
+# Full: 10 replicates on Xeon
 python3 experiments/reintroduction_monterey.py --mode full --cores 48
 
 # Single scenario for testing

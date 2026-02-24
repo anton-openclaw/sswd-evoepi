@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interactive map of all 489 Pycnopodia survey/monitoring sites.
+Interactive map of all 907 Pycnopodia survey/monitoring sites.
 Opens in your default browser. Pan, zoom, click markers for details.
 
 Usage: python3 scripts/site_map.py [--output path/to/map.html] [--open]
@@ -180,7 +180,7 @@ def build_map(sites):
     <div style="position: fixed; top: 10px; left: 60px; z-index: 1000;
                 background: white; padding: 10px 16px; border-radius: 8px;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.2); font-family: -apple-system, sans-serif;">
-        <h3 style="margin: 0; font-size: 16px;">🌊 Pycnopodia Network — 489 Sites</h3>
+        <h3 style="margin: 0; font-size: 16px;">🌊 Pycnopodia Network — 907 Sites</h3>
         <p style="margin: 4px 0 0; font-size: 12px; color: #666;">
             ⭐ = Monterey Outplanting Site (node 283) · Click markers for details · Toggle regions in layer panel
         </p>

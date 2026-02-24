@@ -87,7 +87,7 @@ def make_custom_network(use_overwater: bool = False, haversine_scale: float = 1.
     
     if use_overwater:
         # Use precomputed overwater distances
-        overwater_npz = 'results/overwater/distance_matrix_489.npz'
+        overwater_npz = 'results/overwater/distance_matrix.npz'
         return build_network(node_defs, seed=seed, overwater_npz=overwater_npz)
     else:
         # For now, use the standard build_network and note the limitation

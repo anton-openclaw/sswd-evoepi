@@ -162,15 +162,16 @@ def find_nearest_state(lon, lat, states):
 
 def alaska_subregion(lat, lon):
     """
-    Subdivide Alaska into AK-AL, AK-WG, AK-EG, AK-SE.
+    Subdivide Alaska into AK-AL, AK-WG, AK-PWS, AK-EG, AK-SE.
     
     Geographic rules:
-    - AK-AL: Aleutian Islands chain (lat < 55° AND lon < -164°, 
+    - AK-AL: Aleutian Islands chain (lat < 56° AND lon < -164°, 
               OR positive longitude / crossing dateline)
-    - AK-SE: Southeast panhandle (lat < 58.5° AND lon > -138°,
-              plus Yakutat area)
-    - AK-EG: Eastern Gulf (lon > -150° AND not SE, OR Yakutat corridor)
-    - AK-WG: Western Gulf (everything else: Kodiak, Cook Inlet, Peninsula)
+    - AK-SE: Southeast Alaska panhandle + Glacier Bay + Yakutat
+              (lon > -140° AND lat < 60°, or lon > -138° AND lat < 61°)
+    - AK-PWS: Prince William Sound (enclosed waterway, ~60-61°N, -145 to -149°)
+    - AK-EG: Eastern Gulf outer coast (Cape Fairweather to Kenai, not SE or PWS)
+    - AK-WG: Western Gulf (Kodiak, Cook Inlet, Alaska Peninsula)
     """
     # Normalize positive longitudes (western Aleutians)
     norm_lon = lon if lon < 0 else lon - 360.0
@@ -181,17 +182,58 @@ def alaska_subregion(lat, lon):
     if lon > 0:  # Crossing dateline
         return 'AK-AL'
     
-    # Southeast Alaska panhandle  
-    # The panhandle is roughly: south of Cross Sound (~58.5°N) 
-    # and east of ~-138°W. Glacier Bay / Icy Strait transitions.
-    if lat < 58.5 and lon > -138.0:
-        return 'AK-SE'
-    # Yakutat is at ~59.5°N, -139.7°W — traditionally SE Alaska
-    if lat < 60.0 and lon > -140.5 and lon < -138.0:
-        return 'AK-SE'
+    # Prince William Sound: enclosed waterway
+    # Bounded roughly by Hinchinbrook Entrance (south), Valdez Arm (north),
+    # Montague Island (south), and the Chugach coast.
+    # Approximate box: lat 59.8-61.2, lon -145.5 to -149.0
+    if 59.7 < lat < 61.3 and -149.0 < lon < -145.5:
+        return 'AK-PWS'
     
-    # Eastern Gulf: PWS, Copper River, Kenai east side
-    # Roughly -150° to -138°
+    # Southeast Alaska panhandle — split into 3 sub-regions:
+    #   AK-FN: Inland fjords north (Glacier Bay, Lynn Canal, Icy Strait, 
+    #           Chatham Strait north, Juneau, Haines — above ~57°N)
+    #   AK-FS: Inland fjords south (Inside Passage south, Chatham Strait south,
+    #           Clarence Strait, Ketchikan, Wrangell, Petersburg — below ~57°N)
+    #   AK-OC: Outer coast (Pacific-facing shores of Baranof, Chichagof,
+    #           Kruzof, Dall, Prince of Wales outer coast)
+    #
+    # Outer coast boundary (west of the outer island chain):
+    #   lat < 56°: lon < -133.5° (Dall/PoW outer coast)
+    #   56-57°:    lon < -134.5° (Kuiu/Baranof south)
+    #   57-58°:    lon < -135.5° (Baranof/Chichagof outer coast)
+    #   58-59°:    lon < -136.5° (Chichagof north, Cross Sound outer)
+    #   59+°:      lon < -137.5° (Yakutat area outer coast)
+    
+    is_se_alaska = False
+    if lon > -140.0 and lat < 60.0:
+        is_se_alaska = True
+    elif lon > -138.0 and lat < 61.0:
+        is_se_alaska = True
+    
+    if is_se_alaska:
+        # Determine outer vs inner
+        outer_lon_threshold = -137.5  # default for high latitudes
+        if lat < 56.0:
+            outer_lon_threshold = -133.5
+        elif lat < 57.0:
+            outer_lon_threshold = -134.5
+        elif lat < 58.0:
+            outer_lon_threshold = -135.5
+        elif lat < 59.0:
+            outer_lon_threshold = -136.5
+        
+        if lon < outer_lon_threshold:
+            return 'AK-OC'
+        
+        # Inner fjords: north/south split at ~57°N
+        # (roughly Petersburg/Kupreanof — natural break in Inside Passage)
+        if lat >= 57.0:
+            return 'AK-FN'
+        else:
+            return 'AK-FS'
+    
+    # Eastern Gulf: outer coast from Cape Fairweather to Kenai
+    # Roughly -150° to -140°, excluding PWS
     if lon > -150.0:
         return 'AK-EG'
     
@@ -201,12 +243,12 @@ def alaska_subregion(lat, lon):
 
 def bc_subregion(lat, lon, salish_sea):
     """
-    Subdivide British Columbia into BC-N, BC-C, SS.
+    Subdivide British Columbia into BC-N, BC-C, or Salish Sea sub-regions.
     """
     point = Point(lon, lat)
     
     if salish_sea.contains(point):
-        return 'SS'
+        return salish_sea_subregion(lat, lon)
     
     if lat > 51.5:
         return 'BC-N'
@@ -214,14 +256,42 @@ def bc_subregion(lat, lon, salish_sea):
     return 'BC-C'
 
 
+def salish_sea_subregion(lat, lon):
+    """
+    Subdivide the Salish Sea into three regions:
+      JDF:  Strait of Juan de Fuca (the narrow east-west channel)
+      SS-N: Salish Sea North / BC waters (Georgia Strait, Gulf Islands,
+            Howe Sound, Desolation Sound — north of 49°N)
+      SS-S: Salish Sea South / Puget Sound (Puget Sound, Hood Canal,
+            Admiralty Inlet, San Juan Islands — south of 49°N, 
+            east of JDF)
+    
+    JDF boundary: lat ~48.0-48.6, lon west of ~-122.8
+    (where the strait opens into the main basin at Admiralty Inlet / Haro Strait)
+    """
+    # Strait of Juan de Fuca: the narrow channel
+    # South shore: Port Angeles → Port Townsend (~48.0-48.2°N)
+    # North shore: Victoria → Sooke (~48.4-48.55°N)  
+    # Western limit: our SS polygon entrance (~-124.3°)
+    # Eastern limit: where it opens up (~-122.8° at Admiralty Inlet)
+    if lat < 48.55 and lon < -122.8:
+        return 'JDF'
+    
+    # North/South split at 49°N (US/Canada border)
+    if lat >= 49.0:
+        return 'SS-N'
+    
+    return 'SS-S'
+
+
 def wa_subregion(lat, lon, salish_sea):
     """
-    Subdivide Washington into WA-O or SS.
+    Subdivide Washington into WA-O or Salish Sea sub-regions.
     """
     point = Point(lon, lat)
     
     if salish_sea.contains(point):
-        return 'SS'
+        return salish_sea_subregion(lat, lon)
     
     return 'WA-O'
 

@@ -1,16 +1,12 @@
 \section{Genetic Architecture}
 \label{sec:architecture}
 
-Before deriving population-level predictions, we must formalize the 
-individual-level genetics. Everything downstream depends on getting 
-this right.
-
 \subsection{Locus structure}
 
 The model implements 51 biallelic loci, motivated by the 
-\citet{schiebelhut2018} genome scan which identified 51 loci showing 
+\citet{schiebelhut2018} genome scan identifying 51 loci with 
 significant allele frequency shifts between pre- and post-SSWD 
-\pyc{} populations. These are partitioned into three non-overlapping 
+\pyc{} populations, partitioned into three non-overlapping 
 trait blocks:
 
 \begin{align}
@@ -46,13 +42,7 @@ $\text{Exp}(\lambda)$ and normalized to sum to 1:
     {\sum_{j=1}^{n} \alpha_j^{(\text{raw})}}
     \label{eq:effect_sizes}
 \end{equation}
-so $\sum_{\ell=1}^{n} \alpha_\ell = 1$ exactly. Effect sizes are 
-sorted descending: $\alpha_1 \geq \alpha_2 \geq \cdots \geq \alpha_n$.
-
-This creates a realistic effect-size distribution where a few loci 
-contribute disproportionately — consistent with the observation that 
-complex trait architectures typically show a roughly exponential 
-distribution of effect sizes \citep{barton2002understanding}.
+so $\sum_{\ell=1}^{n} \alpha_\ell = 1$ exactly, sorted descending. This creates a realistic distribution where a few loci contribute disproportionately \citep{barton2002understanding}.
 
 \begin{remark}
 Because $\sum \alpha_\ell = 1$, the trait value of a fully 
@@ -71,16 +61,7 @@ The trait score for individual $i$ in trait block $\mathcal{L}$
     \label{eq:trait_score}
 \end{equation}
 
-This is a \textbf{strictly additive} model: no dominance, no epistasis. 
-The trait value is the weighted sum of allelic dosages. This means:
-\begin{itemize}
-    \item Trait values are continuous on $[0, 1]$
-    \item The distribution is determined entirely by allele frequencies 
-    and effect sizes
-    \item Heterozygotes are exactly intermediate (no dominance deviation)
-    \item Traits from different blocks are genetically independent 
-    (no pleiotropy, no linkage)
-\end{itemize}
+This is \textbf{strictly additive}: no dominance, no epistasis. Trait values are continuous on $[0, 1]$, heterozygotes are exactly intermediate, and traits from different blocks are genetically independent (no pleiotropy, no linkage).
 
 \subsection{Three traits and their phenotypic effects}
 
@@ -93,19 +74,12 @@ Immune exclusion. Reduces the instantaneous infection hazard rate:
     \cdot S_{\text{sal}} \cdot f_{\text{size}}(L_i)
     \label{eq:infection_hazard}
 \end{equation}
-The daily infection probability is $p_{\text{inf}} = 1 - e^{-\lambda_i}$.
-At $r_i = 1$, $\lambda_i = 0$: complete immunity.
-At $r_i = 0$, full susceptibility.
+Daily infection probability: $p_{\text{inf}} = 1 - e^{-\lambda_i}$ ($r_i = 1$: immune; $r_i = 0$: fully susceptible).
 
-\note{Resistance is multiplicative in the hazard rate. This means 
-the fitness benefit of each unit increase in $r$ depends on 
-pathogen pressure. In low-pathogen environments, the marginal 
-value of resistance is small. In high-pathogen environments, 
-resistance is strongly selected.}
+\note{Resistance is multiplicative in the hazard rate, so its marginal fitness benefit scales with pathogen pressure — strongly selected in high-disease environments, nearly neutral in low-disease ones.}
 
 \subsubsection{Tolerance ($t_i$)}
-Damage limitation. Extends survival time in the I$_2$ (symptomatic 
-terminal) stage by reducing the I$_2 \to$ D transition rate:
+Damage limitation. Reduces the I$_2 \to$ D transition rate:
 \begin{equation}
     \mu_{I_2D}^{\text{eff}} = \mu_{I_2D} \cdot 
     \left(1 - t_i \cdot \tau_{\max}\right),
@@ -113,9 +87,7 @@ terminal) stage by reducing the I$_2 \to$ D transition rate:
     0.05 \cdot \mu_{I_2D}
     \label{eq:tolerance}
 \end{equation}
-where $\tau_{\max} = 0.85$. At maximum tolerance ($t_i = 1$), 
-the I$_2$ stage is extended by a factor of 
-$1/(1 - \tau_{\max}) = 6.67$. The 5\% floor prevents immortality.
+where $\tau_{\max} = 0.85$. At $t_i = 1$, I$_2$ survival is extended $6.67\times$; the 5\% floor prevents immortality.
 
 \subsubsection{Recovery ($c_i$)}
 Pathogen clearance. Daily probability of recovery from I$_2$:
@@ -143,13 +115,7 @@ Beta distribution:
     0.001, \; 0.5\right)
     \label{eq:allele_freq_init}
 \end{equation}
-with $a = 2$, $b = 8$ (right-skewed, most loci at low frequency). 
-The scaling ensures $\E[\tau_i] \approx \bar{\tau}_{\text{target}}$.
-
-The clip to $[0.001, 0.5]$ is important: it ensures no locus is 
-fixed (always some variation to select on) and no locus has the 
-protective allele at majority frequency (consistent with the 
-assumption that SSWD-protective alleles were rare pre-epidemic).
+with $a = 2$, $b = 8$ (right-skewed). The scaling ensures $\E[\tau_i] \approx \bar{\tau}_{\text{target}}$. Clipping to $[0.001, 0.5]$ prevents fixation and ensures protective alleles remain below majority frequency (consistent with pre-epidemic rarity).
 
 \subsection{Key properties for breeding}
 

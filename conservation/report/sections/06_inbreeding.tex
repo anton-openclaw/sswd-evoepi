@@ -1,22 +1,15 @@
 \section{Inbreeding and Genetic Diversity}
 \label{sec:inbreeding}
 
-Breeding programs operate on small populations. Small populations 
-lose genetic diversity through drift and accumulate inbreeding. 
-This section develops the theory for tracking and managing both.
-
 \subsection{Inbreeding coefficient}
 
-The inbreeding coefficient $F_i$ of individual $i$ is the 
-probability that the two alleles at a randomly chosen locus 
-are identical by descent (IBD):
+The inbreeding coefficient $F_i$ — probability that two alleles at a random locus are identical by descent (IBD):
 \begin{equation}
     F_i = \Prob(\text{two alleles at a locus are IBD})
     \label{eq:f_definition}
 \end{equation}
 
-In our model, we can estimate $F$ directly from genotype data 
-as excess homozygosity relative to Hardy--Weinberg expectation:
+Estimated from genotype data as excess homozygosity:
 \begin{equation}
     \hat{F}_i = 1 - \frac{H_{\text{obs},i}}{H_{\text{exp}}}
     = 1 - \frac{\frac{1}{L}\sum_\ell 
@@ -24,19 +17,14 @@ as excess homozygosity relative to Hardy--Weinberg expectation:
     {\frac{1}{L}\sum_\ell 2 q_\ell (1 - q_\ell)}
     \label{eq:f_genomic}
 \end{equation}
-where $L$ is the number of loci, $H_{\text{obs},i}$ is individual 
-$i$'s observed heterozygosity, and $H_{\text{exp}}$ is the 
-Hardy--Weinberg expected heterozygosity.
-
 \subsection{Rate of inbreeding}
 
-In a population of effective size $N_e$, inbreeding accumulates 
-at rate:
+Inbreeding accumulates at:
 \begin{equation}
     \Delta F = \frac{1}{2 N_e}
     \label{eq:delta_f}
 \end{equation}
-per generation. After $g$ generations:
+After $g$ generations:
 \begin{equation}
     F_g = 1 - (1 - \Delta F)^g \approx 1 - e^{-g/(2N_e)}
     \label{eq:f_after_g}
@@ -44,39 +32,22 @@ per generation. After $g$ generations:
 
 \subsubsection{Effective population size under selection}
 
-When only $N_s$ of $N$ individuals are selected as parents:
+With $N_m$ male and $N_f$ female parents:
 \begin{equation}
     N_e = \frac{4 N_m N_f}{N_m + N_f}
     \label{eq:ne_unequal_sex}
 \end{equation}
-where $N_m$ and $N_f$ are the numbers of male and female 
-parents. In \pyc{}, sexes are separate (gonochoristic), so 
-equal sex allocation ($N_m = N_f = N_s/2$) gives $N_e = N_s$.
-
-With unequal family sizes (variance in reproductive 
-contribution $\sigma_k^2$):
+Equal sex allocation ($N_m = N_f = N_s/2$) gives $N_e = N_s$. With unequal family sizes ($\sigma_k^2$):
 \begin{equation}
     N_e = \frac{4N - 4}{2 + \sigma_k^2}
     \label{eq:ne_family_size}
 \end{equation}
-Equal family sizes ($\sigma_k^2 = 0$) double $N_e$ compared 
-to random variation ($\sigma_k^2 = 2$ under Poisson).
+Equal family sizes ($\sigma_k^2 = 0$) double $N_e$ vs.\ Poisson.
 
-\subsection{The 50/500 rule and its application}
+\subsection{The 50/500 rule}
 \label{subsec:50_500}
 
-The classic conservation genetics guidelines 
-\citep{franklin1980evolutionary, jamieson2012applicability}:
-
-\begin{itemize}
-    \item $N_e \geq 50$: Avoids severe inbreeding depression 
-    in the short term ($\Delta F \leq 1\%$ per generation)
-    \item $N_e \geq 500$: Maintains sufficient genetic variance 
-    for long-term evolutionary response to selection 
-    ($V_A$ lost at $\sim$0.1\%/generation)
-\end{itemize}
-
-For a captive breeding program with discrete generations:
+Classic conservation thresholds \citep{franklin1980evolutionary, jamieson2012applicability}: $N_e \geq 50$ avoids severe short-term inbreeding ($\Delta F \leq 1\%$); $N_e \geq 500$ maintains long-term evolutionary potential.
 
 \begin{center}
 \begin{tabular}{cccc}
@@ -93,40 +64,21 @@ $N_e$ & $\Delta F$/gen & $F$ after 5 gen & $F$ after 10 gen \\
 \end{center}
 
 \begin{remark}
-A realistic captive program might maintain 50--100 breeding 
-adults. With $N_e \approx 50$--$100$ and a generation time 
-of $\sim$2 years, reaching $F = 10\%$ (a commonly used 
-threshold for significant inbreeding depression) takes 
-5--10 generations (10--20 years). This is a real constraint 
-for multi-generation selective breeding.
+With $N_e \approx 50$--$100$ and 2-year generations, reaching $F = 10\%$ takes 5--10 generations (10--20 years) — a real constraint for multi-generation selective breeding.
 \end{remark}
 
 \subsection{Inbreeding depression}
 \label{subsec:inbreeding_depression}
 
-Inbreeding depression arises from increased homozygosity of 
-deleterious recessive alleles. The expected decline in a fitness 
-trait:
+Expected fitness decline from inbreeding:
 \begin{equation}
     \bar{w}(F) = \bar{w}(0) \cdot e^{-BF}
     \label{eq:inbreeding_depression}
 \end{equation}
-where $B$ is the number of lethal equivalents per diploid 
-genome. For marine invertebrates, $B$ typically ranges 
-from 2--12 \citep{obrien1994genetic, hedrick2002inbreeding}.
+where $B$ is lethal equivalents per diploid genome (2--12 for marine invertebrates; \citealp{obrien1994genetic, hedrick2002inbreeding}).
 
 \begin{remark}
-Our model \textbf{does not currently implement inbreeding 
-depression}. This is a known gap. The 51 modeled loci control 
-disease traits only; we do not track deleterious alleles at 
-other loci. Adding inbreeding depression would require either:
-\begin{enumerate}
-    \item Explicit deleterious loci (adds many parameters)
-    \item A phenotypic penalty proportional to genomic $F$ 
-    (simpler, empirically calibratable)
-\end{enumerate}
-We flag this as a \textbf{priority model extension} for 
-conservation applications.
+Our model \textbf{does not implement inbreeding depression} — the 51 loci control disease traits only. Adding it requires either explicit deleterious loci or a phenotypic $F$-penalty. Flagged as a \textbf{priority extension}.
 \end{remark}
 
 \subsection{Diversity metrics}
@@ -136,12 +88,9 @@ conservation applications.
     H_e = \frac{1}{L} \sum_{\ell=1}^{L} 2 q_\ell (1 - q_\ell)
     \label{eq:he}
 \end{equation}
-Decreases monotonically as alleles fix (either direction).
 
 \subsubsection{Allelic richness}
-For biallelic loci, allelic richness is simply the number of 
-loci that are polymorphic ($0 < q_\ell < 1$). A locus is 
-``lost'' when either allele fixes. Under drift:
+Number of polymorphic loci. Under drift:
 \begin{equation}
     \Prob(\text{allele lost by generation } g) \approx 
     1 - e^{-g/(2N_e)} \quad \text{(for rare alleles)}

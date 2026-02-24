@@ -115,18 +115,19 @@ def compute_distance_matrix(lats: np.ndarray,
 
 def load_overwater_distances(
     node_defs: List[NodeDefinition],
-    npz_path: str = 'results/overwater/distance_matrix_489.npz',
+    npz_path: str = 'results/overwater/distance_matrix.npz',
     max_match_km: float = 50.0,
 ) -> np.ndarray:
     """Load precomputed overwater distances for the given nodes.
 
-    Matches node_defs to the 489-site matrix by nearest lat/lon.
-    If a node is >max_match_km from any site, falls back to Haversine×1.5.
-    Handles inf (disconnected) pairs by setting a large but finite distance.
+    Matches node_defs to the precomputed distance matrix by nearest
+    lat/lon. If a node is >max_match_km from any site, falls back to
+    Haversine×1.5. Handles inf (disconnected) pairs by setting a large
+    but finite distance.
 
     Args:
         node_defs: List of NodeDefinition to match.
-        npz_path: Path to precomputed distance matrix.
+        npz_path: Path to precomputed distance matrix (.npz).
         max_match_km: Maximum distance for matching nodes (km).
 
     Returns:
@@ -140,17 +141,17 @@ def load_overwater_distances(
         lons = np.array([nd.lon for nd in node_defs])
         return compute_distance_matrix(lats, lons, tortuosity=1.5)
     
-    # Load the 489×489 matrix
+    # Load the precomputed matrix
     data = np.load(npz_path)
-    matrix_coords = data['coordinates']  # (489, 2) [lat, lon]
-    matrix_distances = data['distances']  # (489, 489)
-    matrix_names = data['names']  # (489,) for logging
+    matrix_coords = data['coordinates']  # (N_matrix, 2) [lat, lon]
+    matrix_distances = data['distances']  # (N_matrix, N_matrix)
+    matrix_names = data['names']          # (N_matrix,) for logging
     
     N = len(node_defs)
     result = np.zeros((N, N), dtype=np.float64)
     matched_indices = []
     
-    # Match each node to nearest site in the 489-site matrix
+    # Match each node to nearest site in the matrix
     for i, node in enumerate(node_defs):
         node_coord = np.array([node.lat, node.lon])
         
@@ -658,7 +659,7 @@ def make_5node_network(seed: int = 42, use_overwater: bool = False) -> Metapopul
         MetapopulationNetwork ready for simulation.
     """
     node_defs = get_5node_definitions()
-    overwater_npz = 'results/overwater/distance_matrix_489.npz' if use_overwater else None
+    overwater_npz = 'results/overwater/distance_matrix.npz' if use_overwater else None
     return build_network(node_defs, seed=seed, overwater_npz=overwater_npz)
 
 

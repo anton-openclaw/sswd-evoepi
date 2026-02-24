@@ -1,16 +1,7 @@
 \subsection{Phenotyping constraints: the challenge assay}
 \label{subsec:binary_phenotyping}
 
-The screening and breeding theory above assumes we can measure 
-resistance as a continuous value. In practice, we cannot. There 
-is currently no validated genetic marker panel for SSWD resistance 
-in \pyc{}. The primary phenotyping method available is the 
-\textbf{challenge assay}: expose an individual to 
-\textit{Vibrio pectenicida} and observe the outcome 
-\citep{prentice2025koch}. This section develops a framework 
-for understanding what a challenge assay can and cannot tell us 
-about the underlying genetics, and how this constrains breeding 
-program design.
+The theory above assumes continuous resistance measurement. In practice, no validated marker panel exists for SSWD resistance in \pyc{}. The primary phenotyping method is the \textbf{challenge assay}: expose to \textit{Vibrio pectenicida} and observe outcomes \citep{prentice2025koch}. This section develops a framework for what challenge assays reveal about underlying genetics and how this constrains breeding design.
 
 \note{All numerical examples in this section use pre-calibration 
 parameter values as illustrations. The specific ratios and 
@@ -20,85 +11,34 @@ traits, observables, assay design, and selection response.}
 
 \subsubsection{What does a challenge assay actually measure?}
 
-A well-monitored challenge assay produces more than a binary 
-outcome. If individuals are observed regularly (e.g., daily 
-health assessment), the following are observable:
+With regular monitoring (e.g., daily health assessment), a challenge assay produces four observables:
 
 \begin{enumerate}
-    \item \textbf{Whether the individual shows symptoms.} In 
-    the model, visible disease corresponds to reaching the 
-    I$_1$ (early symptomatic) stage. The \emph{only} way to 
-    avoid showing symptoms is to avoid infection entirely, 
-    which depends on resistance $r_i$ and stochastic luck 
-    (the Bernoulli draw in infection probability).
-    
-    \item \textbf{Whether a symptomatic individual recovers 
-    or dies.} Recovery requires pathogen clearance via the 
-    recovery trait $c_i$ (and potentially the extended 
-    survival window from tolerance $t_i$).
-    
-    \item \textbf{Time from symptom onset to death} (for 
-    those who die). In the model, this duration is influenced 
-    by tolerance: high-$t$ individuals have extended I$_2$ 
-    timers (\Cref{eq:tolerance}).
-    
-    \item \textbf{Time from exposure to symptom onset} 
-    (incubation period). In the model, this is governed by 
-    the E $\to$ I$_1$ transition rate, which is 
-    \textbf{not trait-dependent} --- all infected individuals 
-    progress through incubation at the same rate (modulated 
-    only by temperature). This observable is therefore 
-    \textbf{uninformative} for genetic selection.
+    \item \textbf{Whether symptoms appear} — depends on resistance $r_i$ and stochastic luck (infection probability draw).
+    \item \textbf{Whether a symptomatic individual recovers or dies} — depends on recovery $c_i$ and tolerance $t_i$.
+    \item \textbf{Time from symptom onset to death} — influenced by tolerance (\Cref{eq:tolerance}).
+    \item \textbf{Incubation period} — governed by E $\to$ I$_1$ rate, which is \textbf{not trait-dependent} (temperature only) and therefore \textbf{uninformative} for selection.
 \end{enumerate}
 
 \subsubsection{Three survival pathways}
 
-Challenge assay survivors fall into two distinct categories, 
-each reflecting different underlying genetics:
+Survivors fall into two genetically distinct categories:
 
 \begin{description}
-    \item[Pathway A --- Resistant (never infected):] Individual 
-    was exposed to the pathogen but never became infected. 
-    This is gated primarily by resistance $r_i$ 
-    (\Cref{eq:infection_hazard}). These individuals are 
-    enriched for resistance alleles.
-    
-    \item[Pathway B --- Tolerant/Recoverer (infected but 
-    survived):] Individual was infected, progressed through 
-    disease stages, but cleared the pathogen. This requires 
-    sufficient recovery ability $c_i$ 
-    (\Cref{eq:recovery,eq:early_recovery}), potentially 
-    aided by tolerance $t_i$ extending the recovery window 
-    (\Cref{eq:tolerance}). These individuals are enriched 
-    for tolerance and recovery alleles.
+    \item[Pathway A --- Resistant (never infected):] Avoided infection via $r_i$ (\Cref{eq:infection_hazard}). Enriched for resistance alleles.
+    \item[Pathway B --- Tolerant/Recoverer (infected, survived):] Cleared pathogen via $c_i$ (\Cref{eq:recovery,eq:early_recovery}), aided by $t_i$ (\Cref{eq:tolerance}). Enriched for tolerance and recovery alleles.
 \end{description}
 
-Without additional diagnostics (e.g., PCR for pathogen load), 
-these two categories may be indistinguishable in practice: 
-both simply ``survived.'' However, if monitoring reveals that 
-some survivors showed symptoms and others did not, this 
-provides a partial decomposition.
+Without diagnostics (e.g., PCR for pathogen load), both categories appear as ``survived.'' Symptom monitoring provides a partial decomposition.
 
 \begin{remark}
-The relative sizes of Pathway A and Pathway B depend on the 
-model parameters and will change with calibration. What 
-persists is the \emph{structure}: resistance acts before 
-infection, while tolerance and recovery act after. The 
-challenge assay conflates these into a single ``survived'' 
-outcome unless symptom status is tracked.
+The relative sizes of Pathways A and B depend on parameters and will change with calibration. The \emph{structure} persists: resistance acts before infection, tolerance/recovery after. The assay conflates them unless symptom status is tracked.
 \end{remark}
 
 \subsubsection{Dose as a design parameter}
 \label{subsubsec:dose}
 
-The pathogen dose in a challenge assay is not given --- it is 
-a \textbf{design choice} that determines what information the 
-assay provides.
-
-The infection hazard (\Cref{eq:infection_hazard}) includes a 
-dose-response term $P_k / (K_{1/2} + P_k)$. The fraction of 
-individuals who avoid infection depends on both dose and 
-individual resistance:
+Dose is a \textbf{design choice} that determines assay information content. The fraction avoiding infection depends on both dose and resistance:
 \begin{equation}
     p_{\text{avoid}}(r_i, P) = \exp\!\left(-a \cdot 
     \frac{P}{K_{1/2} + P} \cdot (1 - r_i) \cdot S_{\text{sal}} 
@@ -106,47 +46,33 @@ individual resistance:
     \label{eq:avoid_infection}
 \end{equation}
 
-This creates a trade-off:
+This creates a dose trade-off:
 
 \begin{center}
 \begin{tabular}{p{0.28\textwidth}p{0.30\textwidth}p{0.30\textwidth}}
 \toprule
 \textbf{Dose regime} & \textbf{Advantage} & \textbf{Disadvantage} \\
 \midrule
-High dose \newline (high attack rate) & 
-Strong discrimination: survivors are almost certainly 
-genetically resistant & 
-High mortality: kills most stock, including many with 
-moderate resistance \\
+High dose & 
+Strong discrimination: survivors almost certainly resistant & 
+High mortality, loses moderately resistant stock \\
 \addlinespace
 Moderate dose & 
-Balanced: reasonable survival with moderate signal & 
-Mixed signal: luck and genetics both contribute to survival \\
+Balanced survival with moderate signal & 
+Mixed signal: luck + genetics both contribute \\
 \addlinespace
-Low dose \newline (low attack rate) & 
-Preserves stock: most survive & 
-Weak discrimination: most survival is stochastic, 
-not genetic \\
+Low dose & 
+Preserves stock & 
+Weak discrimination: most survival is stochastic \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The optimal dose depends on how many individuals are available, 
-how many founders are needed, and whether the goal is to 
-identify the most resistant few (high dose) or broadly enrich 
-the population (moderate dose). The calibrated model can 
-simulate the outcome of each dose choice, providing 
-quantitative guidance.
+The optimal dose depends on stock availability, founder requirements, and whether the goal is identifying the most resistant few or broadly enriching. The calibrated model simulates each choice.
 
 \subsubsection{Heritability of the binary phenotype}
 
-The binary outcome (survived/died) can be analyzed using the 
-\textbf{threshold model} of quantitative genetics 
-\citep{falconer1996introduction}. The binary phenotype is 
-determined by an underlying continuous ``liability'' (here, 
-$p_{\text{surv}}(r_i, t_i, c_i)$). The heritability on the 
-observed binary scale relates to the heritability on the 
-underlying scale:
+The binary outcome is analyzed via the \textbf{threshold model} \citep{falconer1996introduction}, relating observed-scale heritability to the underlying continuous liability:
 \begin{equation}
     h^2_{\text{obs}} = h^2_{\text{liability}} \cdot 
     \frac{z^2}{P(1 - P)}
@@ -155,93 +81,38 @@ underlying scale:
 where $P$ is the population survival rate and 
 $z = \phi(\Phi^{-1}(P))$ is the standard normal ordinate.
 
-This relationship means:
-\begin{itemize}
-    \item At very low $P$ (stringent challenge): $h^2_{\text{obs}}$ 
-    is moderate. Most variation is between ``always die'' and 
-    ``sometimes survive.''
-    \item At moderate $P$: $h^2_{\text{obs}}$ reaches a minimum 
-    near $P = 0.5$. The binary outcome is maximally noisy.
-    \item At high $P$ (weak challenge): $h^2_{\text{obs}}$ rises 
-    again, but few die, limiting the selection differential.
-\end{itemize}
-
-The key implication: \textbf{the information content of a 
-challenge assay is not fixed} --- it depends on dose, 
-population genetics, and environmental conditions. As a 
-breeding program advances (shifting $P$ upward), the assay 
-must be recalibrated to maintain discrimination.
+At low $P$ (stringent): moderate $h^2_{\text{obs}}$. At $P \approx 0.5$: minimum $h^2_{\text{obs}}$ (maximally noisy). At high $P$ (weak): higher $h^2_{\text{obs}}$ but limited selection differential. Key implication: \textbf{assay information content depends on dose, genetics, and environment}; as breeding advances (shifting $P$ upward), the assay must be recalibrated.
 
 \subsubsection{Repeated exposures}
 
-Re-challenging survivors amplifies discrimination because 
-survival across $k$ independent exposures requires surviving 
-each one:
+Re-challenging survivors amplifies discrimination exponentially:
 \begin{equation}
     p_{\text{surv}}^{(k)} = \left(p_{\text{surv},i}\right)^k
     \label{eq:repeated_exposure}
 \end{equation}
-
-This exponentially amplifies the fitness difference between 
-resistant and susceptible individuals. Two exposures roughly 
-square the survival probability ratio between phenotypic 
-classes.
-
-The biology of \pyc{} facilitates this: because echinoderms 
-lack adaptive immunity, recovered individuals return to the 
-susceptible state (R $\to$ S in the model). Survivors of a 
-first challenge can be re-challenged without waiting for a 
-new generation, enabling sequential screening within a single 
-cohort.
-
-However, repeated exposure is costly --- each round kills a 
-fraction of the stock, including genetically valuable 
-individuals who were unlucky. The optimal number of rounds 
-is a cost--benefit calculation that depends on the value of 
-genetic information versus the cost of losing individuals.
+Two exposures roughly square the survival probability ratio between phenotypic classes. Echinoderm biology facilitates this: lacking adaptive immunity, recovered individuals return to the susceptible state (R $\to$ S), enabling sequential screening within a single cohort. However, each round kills unlucky but genetically valuable individuals, requiring cost--benefit optimization.
 
 \subsubsection{Family-based selection}
 \label{subsubsec:family_selection}
 
-The high fecundity of \pyc{} (millions of larvae per spawn) 
-enables a fundamentally different approach: rather than 
-phenotyping individual founders, challenge \textbf{offspring 
-groups} from controlled crosses and compare \textbf{family 
-survival rates}.
-
-If family $j$ (from cross $i_1 \times i_2$) has $n_j$ 
-offspring challenged and $k_j$ survive, the family survival 
-rate $\hat{p}_j = k_j / n_j$ is an estimator of the parental 
-breeding value. The precision scales with family size:
+High fecundity enables a different approach: challenge \textbf{offspring groups} from controlled crosses and compare \textbf{family survival rates}. For family $j$ with $n_j$ challenged and $k_j$ surviving, $\hat{p}_j = k_j / n_j$ estimates parental breeding value with precision:
 \begin{equation}
     \text{SE}(\hat{p}_j) = \sqrt{\frac{\hat{p}_j(1 - \hat{p}_j)}
     {n_j}}
     \label{eq:family_se}
 \end{equation}
 
-With $n_j = 100$ offspring per family, a family with true 
-survival probability 0.30 has SE $\approx 0.046$, providing 
-reasonable discrimination from the population mean. This 
-converts the noisy individual binary outcome into a 
-\textbf{precise family-level continuous phenotype}.
-
-The heritability of the family mean is:
+With $n_j = 100$, a family with $p = 0.30$ has SE $\approx 0.046$ — converting noisy individual binary outcomes into a \textbf{precise family-level continuous phenotype}. Family-mean heritability:
 \begin{equation}
     h^2_{\text{family}} = \frac{h^2}{1 + (n - 1) r_{ICC}}
     \cdot n \cdot r_{ICC}
     \label{eq:h2_family}
 \end{equation}
-where $r_{ICC}$ is the intraclass correlation (proportion 
-of variance due to between-family differences) and $n$ is 
-family size. For large families, $h^2_{\text{family}}$ 
-approaches 1 --- the family mean becomes a near-perfect 
-predictor of parental breeding value.
+where $r_{ICC}$ is the intraclass correlation and $n$ is family size. For large families, $h^2_{\text{family}} \to 1$.
 
 \subsubsection{Strategic crossing of survival categories}
 
-If Pathway A (never infected) and Pathway B (infected but 
-recovered) survivors can be distinguished, they carry 
-different genetic information:
+If Pathways A and B can be distinguished, strategic crossing exploits their different genetic content:
 
 \begin{center}
 \begin{tabular}{lcc}
@@ -255,54 +126,12 @@ Offspring advantage & Stacked resistance & Resistance + recovery \\
 \end{tabular}
 \end{center}
 
-Crossing Pathway A $\times$ Pathway A maximizes resistance in 
-offspring. Crossing Pathway A $\times$ Pathway B creates 
-offspring that may inherit both resistance alleles and 
-tolerance/recovery alleles --- a hedge against imperfect 
-resistance.
+A$\times$A maximizes resistance; A$\times$B creates offspring hedging with both resistance and tolerance/recovery alleles.
 
 \subsubsection{Genomic markers: the transformative alternative}
 
-If the loci identified by \citet{schiebelhut2018} can be 
-validated as markers for resistance phenotype, non-lethal 
-genotyping could replace challenge assays entirely. This 
-would:
-\begin{itemize}
-    \item Eliminate false negatives (no genetically resistant 
-    stars lost to stochastic disease)
-    \item Provide continuous trait measurement (full 
-    resolution, not binary)
-    \item Enable screening without killing
-    \item Allow within-family selection without sacrificing 
-    offspring
-    \item Make the theoretical framework in 
-    \Cref{sec:screening} directly applicable
-\end{itemize}
-
-Until markers are validated, the challenge assay framework 
-developed here is the operationally relevant one. 
-\textbf{Validating resistance markers should be a high 
-priority for the conservation program.}
+If the \citet{schiebelhut2018} loci can be validated as resistance markers, non-lethal genotyping would replace challenge assays — eliminating false negatives, providing continuous trait measurement, enabling screening without killing, and making the \Cref{sec:screening} framework directly applicable. \textbf{Marker validation should be a high priority for the conservation program.}
 
 \subsubsection{What the model provides}
 
-The calibrated model can simulate the full challenge assay 
-process:
-\begin{enumerate}
-    \item Generate populations with known genetic structure
-    \item Simulate pathogen exposure at a specified dose
-    \item Track individual outcomes (never infected, 
-    recovered, died) with timing
-    \item Compute the trait distribution of each outcome 
-    category
-    \item Evaluate the selection differential achieved by 
-    different assay designs (dose, repeated exposure, 
-    family vs.\ individual selection)
-    \item Predict multi-generation breeding trajectories 
-    under realistic phenotyping constraints
-\end{enumerate}
-
-This makes the model a \textbf{virtual laboratory} for 
-optimizing breeding program design before committing real 
-animals. The framework developed in this section defines the 
-questions; the calibrated model answers them quantitatively.
+The calibrated model serves as a \textbf{virtual laboratory}: generate populations with known genetics, simulate challenge assays at specified doses, track individual outcomes with timing, compute trait distributions per outcome category, evaluate selection differentials across assay designs, and predict multi-generation trajectories under realistic phenotyping constraints.

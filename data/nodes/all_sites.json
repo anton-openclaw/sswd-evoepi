@@ -119,7 +119,7 @@
     "longitude": -172.38647460937503
   },
   {
-    "name": "AK-WG-073",
+    "name": "AK-WG-078",
     "lat": 54.3549556895541,
     "lon": -162.68554687500003,
     "source": "Wikipedia + latitude.to coordinate database",
@@ -136,7 +136,7 @@
     "longitude": -162.68554687500003
   },
   {
-    "name": "AK-WG-069",
+    "name": "AK-WG-073",
     "lat": 54.983918190363234,
     "lon": -159.93896484375,
     "source": "getamap.net + coordinate databases",
@@ -187,7 +187,7 @@
     "longitude": -178.8
   },
   {
-    "name": "AK-WG-071",
+    "name": "AK-WG-076",
     "lat": 54.77534585936449,
     "lon": -163.27880859375003,
     "source": "Geographic databases + Alaska Maritime NWR",
@@ -204,7 +204,7 @@
     "longitude": -163.27880859375003
   },
   {
-    "name": "AK-WG-067",
+    "name": "AK-WG-071",
     "lat": 55.26659815231191,
     "lon": -160.13671875000003,
     "source": "Shumagin Islands geographic data",
@@ -221,7 +221,7 @@
     "longitude": -160.13671875000003
   },
   {
-    "name": "AK-WG-066",
+    "name": "AK-WG-070",
     "lat": 55.35,
     "lon": -160.45,
     "source": "Shumagin Islands geographic data",
@@ -238,7 +238,7 @@
     "longitude": -160.45
   },
   {
-    "name": "AK-WG-072",
+    "name": "AK-WG-077",
     "lat": 54.46684525346424,
     "lon": -162.59216308593753,
     "source": "Sanak Islands geographic data + USGS",
@@ -272,7 +272,7 @@
     "longitude": -176.2
   },
   {
-    "name": "AK-EG-031",
+    "name": "AK-PWS-031",
     "lat": 60.374502414365104,
     "lon": -147.88970947265628,
     "source": "Topozone USGS - Ben Weitzman research site",
@@ -284,12 +284,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "RECOVERING - juvenile sunflower stars observed 2017",
     "notes": "Ben Weitzman (Konar lab) documented juvenile Pycnopodia recovery 2017. Key research site for sea star monitoring.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.374502414365104,
     "longitude": -147.88970947265628
   },
   {
-    "name": "AK-EG-043",
+    "name": "AK-PWS-041",
     "lat": 60.090871552737134,
     "lon": -147.25799560546878,
     "source": "latitude.to coordinates",
@@ -301,12 +301,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "REFUGIUM - reduced impact",
     "notes": "25th largest US island, entrance to Prince William Sound. Gulf Watch Alaska monitoring region.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.090871552737134,
     "longitude": -147.25799560546878
   },
   {
-    "name": "AK-EG-022",
+    "name": "AK-PWS-022",
     "lat": 60.609,
     "lon": -147.1675,
     "source": "Multiple coordinate sources",
@@ -318,12 +318,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "REFUGIUM - population persistence",
     "notes": "Central PWS coordinates. Major Pycnopodia refugium during SSWD outbreak.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.609,
     "longitude": -147.1675
   },
   {
-    "name": "AK-EG-002",
+    "name": "AK-PWS-002",
     "lat": 61.11405946265586,
     "lon": -146.33239746093753,
     "source": "Wikipedia/Multiple sources",
@@ -335,12 +335,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "DOCUMENTED - historical presence",
     "notes": "Trans-Alaska Pipeline terminus. Prince William Sound Science Center nearby in region.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 61.11405946265586,
     "longitude": -146.33239746093753
   },
   {
-    "name": "AK-EG-025",
+    "name": "AK-PWS-025",
     "lat": 60.54377524118842,
     "lon": -145.81604003906253,
     "source": "latitude.to coordinates",
@@ -352,12 +352,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "MONITORING SITE",
     "notes": "Prince William Sound Science Center headquarters. Key research base for Gulf Watch Alaska.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.54377524118842,
     "longitude": -145.81604003906253
   },
   {
-    "name": "AK-EG-034",
+    "name": "AK-PWS-034",
     "lat": 60.33238607249709,
     "lon": -146.59057617187503,
     "source": "latitude.to/topozone",
@@ -369,12 +369,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "DOCUMENTED - entrance guardian",
     "notes": "SE entrance to Prince William Sound, 22 miles long. 37th largest US island.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.33238607249709,
     "longitude": -146.59057617187503
   },
   {
-    "name": "AK-EG-050",
+    "name": "AK-EG-008",
     "lat": 59.85585085709834,
     "lon": -144.33837890625003,
     "source": "Topozone USGS",
@@ -391,7 +391,7 @@
     "longitude": -144.33837890625003
   },
   {
-    "name": "AK-EG-060",
+    "name": "AK-EG-017",
     "lat": 59.4,
     "lon": -146.3,
     "source": "ResearchGate research site/ARLIS",
@@ -408,7 +408,7 @@
     "longitude": -146.3
   },
   {
-    "name": "AK-SE-001",
+    "name": "AK-OC-001",
     "lat": 59.7257,
     "lon": -139.8365,
     "source": "latitude.to coordinates",
@@ -420,12 +420,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "REFUGIUM - northern refuge",
     "notes": "29km wide bay extending from Disenchantment Bay. Glacial influence, likely thermal refuge.",
-    "region": "AK-SE",
+    "region": "AK-OC",
     "latitude": 59.7257,
     "longitude": -139.8365
   },
   {
-    "name": "AK-EG-057",
+    "name": "AK-EG-014",
     "lat": 59.6954703349364,
     "lon": -140.87768554687503,
     "source": "NASA JPL/Malaspina Glacier coordinates",
@@ -442,7 +442,7 @@
     "longitude": -140.87768554687503
   },
   {
-    "name": "AK-EG-007",
+    "name": "AK-PWS-007",
     "lat": 61.0,
     "lon": -146.8,
     "source": "Estimated from NOAA charts/Valdez region",
@@ -454,12 +454,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "FJORD REFUGIUM",
     "notes": "Deep fjord arm of PWS. Protected waters likely refugium habitat.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 61.0,
     "longitude": -146.8
   },
   {
-    "name": "AK-EG-013",
+    "name": "AK-PWS-013",
     "lat": 60.8,
     "lon": -146.7,
     "source": "Estimated from PWS nautical charts",
@@ -471,12 +471,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "DOCUMENTED - chart reference",
     "notes": "NOAA Chart 16708 reference. Part of PWS complex.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.8,
     "longitude": -146.7
   },
   {
-    "name": "AK-EG-030",
+    "name": "AK-PWS-030",
     "lat": 60.40978387276017,
     "lon": -145.53314208984378,
     "source": "Regional estimate near Cordova",
@@ -488,12 +488,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "DOCUMENTED - delta environment",
     "notes": "Major river system. Brackish water influence may affect sea star populations.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.40978387276017,
     "longitude": -145.53314208984378
   },
   {
-    "name": "AK-EG-044",
+    "name": "AK-EG-003",
     "lat": 60.06484046010452,
     "lon": -144.20654296875003,
     "source": "Estimated from regional geography",
@@ -510,7 +510,7 @@
     "longitude": -144.20654296875003
   },
   {
-    "name": "AK-EG-032",
+    "name": "AK-PWS-032",
     "lat": 60.37042901631508,
     "lon": -147.20031738281253,
     "source": "Estimated PWS rocky habitat",
@@ -522,12 +522,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "ROCKY HABITAT",
     "notes": "Rocky substrate ideal for sea star habitat. Seal haul-out areas.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.37042901631508,
     "longitude": -147.20031738281253
   },
   {
-    "name": "AK-EG-018",
+    "name": "AK-PWS-018",
     "lat": 60.7,
     "lon": -147.0,
     "source": "Estimated PWS island cluster",
@@ -539,12 +539,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "ISLAND HABITAT",
     "notes": "Representative PWS island habitat. Multiple small islands in region.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.7,
     "longitude": -147.0
   },
   {
-    "name": "AK-EG-023",
+    "name": "AK-PWS-023",
     "lat": 60.6,
     "lon": -147.9,
     "source": "Estimated western PWS",
@@ -556,12 +556,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "PWS COMPLEX",
     "notes": "Part of western PWS island complex.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.6,
     "longitude": -147.9
   },
   {
-    "name": "AK-EG-011",
+    "name": "AK-PWS-011",
     "lat": 60.84758659536134,
     "lon": -147.32940673828128,
     "source": "Estimated northern PWS",
@@ -573,12 +573,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "NORTHERN PWS",
     "notes": "Northern Prince William Sound island habitat.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.84758659536134,
     "longitude": -147.32940673828128
   },
   {
-    "name": "AK-EG-008",
+    "name": "AK-PWS-008",
     "lat": 60.9,
     "lon": -146.8,
     "source": "Historical mining town estimate",
@@ -590,12 +590,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "HISTORICAL SITE",
     "notes": "Former copper mining town. Rocky nearshore habitat.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.9,
     "longitude": -146.8
   },
   {
-    "name": "AK-EG-009",
+    "name": "AK-PWS-009",
     "lat": 60.88636373891397,
     "lon": -146.72241210937503,
     "source": "Native village estimate",
@@ -607,12 +607,12 @@
     "pycnopodia_documented": true,
     "sswd_status": "VILLAGE WATERS",
     "notes": "Alaska Native village on PWS. Traditional use area.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.88636373891397,
     "longitude": -146.72241210937503
   },
   {
-    "name": "AK-EG-040",
+    "name": "AK-PWS-039",
     "lat": 60.118250509394436,
     "lon": -148.04626464843753,
     "source": "Native village estimate",
@@ -624,13 +624,13 @@
     "pycnopodia_documented": true,
     "sswd_status": "VILLAGE WATERS",
     "notes": "Alaska Native village. Traditional ecological knowledge site.",
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "latitude": 60.118250509394436,
     "longitude": -148.04626464843753
   },
   {
     "site_id": "AKSE001",
-    "name": "AK-SE-045",
+    "name": "AK-FN-038",
     "lat": 57.0531,
     "lon": -135.33,
     "habitat": "rocky reef, kelp forest",
@@ -639,13 +639,13 @@
     "sswd_status": "moderate impact",
     "source": "Sitka Sound Science Center monitoring",
     "notes": "Major research hub, multiple dive sites, kelp forest habitat",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.0531,
     "longitude": -135.33
   },
   {
     "site_id": "AKSE002",
-    "name": "AK-SE-047",
+    "name": "AK-FN-040",
     "lat": 57.038,
     "lon": -135.291,
     "habitat": "fjord, rocky reef",
@@ -654,13 +654,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "BCO-DMO Sitka Sound GPS dataset",
     "notes": "Sheltered fjord environment, potential refugia site",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.038,
     "longitude": -135.291
   },
   {
     "site_id": "AKSE003",
-    "name": "AK-SE-050",
+    "name": "AK-OC-016",
     "lat": 56.8542,
     "lon": -135.3889,
     "habitat": "rocky reef, mixed substrate",
@@ -669,13 +669,13 @@
     "sswd_status": "moderate impact",
     "source": "ADF&G dive surveys",
     "notes": "Thermal springs area, unique habitat conditions",
-    "region": "AK-SE",
+    "region": "AK-OC",
     "latitude": 56.8542,
     "longitude": -135.3889
   },
   {
     "site_id": "AKSE004",
-    "name": "AK-SE-005",
+    "name": "AK-FN-008",
     "lat": 58.3815,
     "lon": -134.6417,
     "habitat": "rocky reef, kelp forest",
@@ -684,13 +684,13 @@
     "sswd_status": "low impact (northern refugia)",
     "source": "NOAA Auke Bay Laboratories monitoring",
     "notes": "NOAA research facility, regular monitoring, northern population",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.3815,
     "longitude": -134.6417
   },
   {
     "site_id": "AKSE005",
-    "name": "AK-SE-011",
+    "name": "AK-FN-013",
     "lat": 58.2845,
     "lon": -134.3892,
     "habitat": "rocky reef, kelp forest",
@@ -699,13 +699,13 @@
     "sswd_status": "low impact (northern refugia)",
     "source": "ADF&G SE Alaska monitoring",
     "notes": "Protected waters near Juneau",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.2845,
     "longitude": -134.3892
   },
   {
     "site_id": "AKSE006",
-    "name": "AK-SE-008",
+    "name": "AK-FN-010",
     "lat": 58.3521,
     "lon": -134.9234,
     "habitat": "rocky reef, kelp forest",
@@ -714,13 +714,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "NOAA nautical chart surveys",
     "notes": "Lynn Canal entrance, fjord protection",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.3521,
     "longitude": -134.9234
   },
   {
     "site_id": "AKSE007",
-    "name": "AK-EG-068",
+    "name": "AK-FN-004",
     "lat": 58.71261556394137,
     "lon": -134.97253417968753,
     "habitat": "fjord, rocky reef",
@@ -729,13 +729,13 @@
     "sswd_status": "very low impact (deep fjord refugia)",
     "source": "ADF&G statistical area maps",
     "notes": "Deep fjord system, excellent refugia habitat",
-    "region": "AK-EG",
+    "region": "AK-FN",
     "latitude": 58.71261556394137,
     "longitude": -134.97253417968753
   },
   {
     "site_id": "AKSE008",
-    "name": "AK-SE-004",
+    "name": "AK-FN-007",
     "lat": 58.43335765926364,
     "lon": -135.93383789062503,
     "habitat": "rocky reef, mixed substrate",
@@ -744,13 +744,13 @@
     "sswd_status": "low impact (glacial fjord refugia)",
     "source": "NPS Glacier Bay monitoring",
     "notes": "National Park monitoring site, visitor center area",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.43335765926364,
     "longitude": -135.93383789062503
   },
   {
     "site_id": "AKSE009",
-    "name": "AK-EG-066",
+    "name": "AK-FN-002",
     "lat": 58.84927949740036,
     "lon": -136.08215332031253,
     "habitat": "fjord, rocky reef",
@@ -759,13 +759,13 @@
     "sswd_status": "very low impact (glacial fjord refugia)",
     "source": "NPS research permits database",
     "notes": "Deep glacial fjord, cold water refugia",
-    "region": "AK-EG",
+    "region": "AK-FN",
     "latitude": 58.84927949740036,
     "longitude": -136.08215332031253
   },
   {
     "site_id": "AKSE010",
-    "name": "AK-EG-063",
+    "name": "AK-OC-004",
     "lat": 58.903227163441926,
     "lon": -136.88690185546878,
     "habitat": "glacial fjord, rocky reef",
@@ -774,13 +774,13 @@
     "sswd_status": "very low impact (glacial refugia)",
     "source": "NPS Glacier Bay research",
     "notes": "Tidewater glacier, extreme refugia conditions",
-    "region": "AK-EG",
+    "region": "AK-OC",
     "latitude": 58.903227163441926,
     "longitude": -136.88690185546878
   },
   {
     "site_id": "AKSE011",
-    "name": "AK-SE-009",
+    "name": "AK-FN-011",
     "lat": 58.33545085930665,
     "lon": -135.43945312500003,
     "habitat": "rocky reef, kelp forest",
@@ -789,13 +789,13 @@
     "sswd_status": "moderate impact",
     "source": "Whale watching survey data",
     "notes": "Strong currents, whale watching area",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.33545085930665,
     "longitude": -135.43945312500003
   },
   {
     "site_id": "AKSE012",
-    "name": "AK-SE-013",
+    "name": "AK-FN-015",
     "lat": 58.25606257596669,
     "lon": -135.05767822265628,
     "habitat": "rocky reef, kelp forest",
@@ -804,13 +804,13 @@
     "sswd_status": "moderate impact",
     "source": "Marine navigation charts",
     "notes": "Island exposure, moderate current flow",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.25606257596669,
     "longitude": -135.05767822265628
   },
   {
     "site_id": "AKSE013",
-    "name": "AK-SE-016",
+    "name": "AK-FN-018",
     "lat": 58.106910441764995,
     "lon": -135.48614501953128,
     "habitat": "rocky reef, mixed substrate",
@@ -819,13 +819,13 @@
     "sswd_status": "low impact (community monitoring)",
     "source": "Hoonah Indian Association monitoring",
     "notes": "Tribal monitoring site, subsistence area",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.106910441764995,
     "longitude": -135.48614501953128
   },
   {
     "site_id": "AKSE014",
-    "name": "AK-SE-028",
+    "name": "AK-FN-026",
     "lat": 57.73641728602591,
     "lon": -135.23620605468753,
     "habitat": "fjord, rocky reef, thermal springs",
@@ -834,13 +834,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "Community dive observations",
     "notes": "Hot springs, unique thermal conditions, fjord protection",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.73641728602591,
     "longitude": -135.23620605468753
   },
   {
     "site_id": "AKSE015",
-    "name": "AK-SE-033",
+    "name": "AK-FN-029",
     "lat": 57.5036,
     "lon": -134.5847,
     "habitat": "rocky reef, kelp forest",
@@ -849,13 +849,13 @@
     "sswd_status": "moderate impact",
     "source": "ADF&G dive fisheries surveys",
     "notes": "Major waterway, moderate exposure",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.5036,
     "longitude": -134.5847
   },
   {
     "site_id": "AKSE016",
-    "name": "AK-SE-042",
+    "name": "AK-FN-035",
     "lat": 57.097468259301586,
     "lon": -133.97827148437503,
     "habitat": "fjord, rocky reef",
@@ -864,13 +864,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "Tongass National Forest monitoring",
     "notes": "Large protected fjord system",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.097468259301586,
     "longitude": -133.97827148437503
   },
   {
     "site_id": "AKSE017",
-    "name": "AK-SE-038",
+    "name": "AK-FN-033",
     "lat": 57.302789656350086,
     "lon": -134.07714843750003,
     "habitat": "fjord, rocky reef",
@@ -879,13 +879,13 @@
     "sswd_status": "very low impact (deep fjord refugia)",
     "source": "Brown bear research site data",
     "notes": "Deep canal system, excellent refugia",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.302789656350086,
     "longitude": -134.07714843750003
   },
   {
     "site_id": "AKSE018",
-    "name": "AK-SE-051",
+    "name": "AK-FS-001",
     "lat": 56.83995912075802,
     "lon": -132.91259765625003,
     "habitat": "rocky reef, strong current",
@@ -894,13 +894,13 @@
     "sswd_status": "moderate impact",
     "source": "ADF&G Petersburg area surveys",
     "notes": "Narrow channel, strong tidal flow",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.83995912075802,
     "longitude": -132.91259765625003
   },
   {
     "site_id": "AKSE019",
-    "name": "AK-SE-048",
+    "name": "AK-FN-041",
     "lat": 57.01830920707354,
     "lon": -132.83569335937503,
     "habitat": "fjord, rocky reef, glacier proximity",
@@ -909,13 +909,13 @@
     "sswd_status": "low impact (glacial fjord refugia)",
     "source": "Wilderness area surveys",
     "notes": "Glacial fjord, cold water refugia",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.01830920707354,
     "longitude": -132.83569335937503
   },
   {
     "site_id": "AKSE020",
-    "name": "AK-SE-062",
+    "name": "AK-FS-009",
     "lat": 56.45642024169009,
     "lon": -132.42095947265628,
     "habitat": "rocky reef, kelp forest",
@@ -924,13 +924,13 @@
     "sswd_status": "moderate impact",
     "source": "ADF&G Wrangell monitoring",
     "notes": "Town proximity, regular monitoring",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.45642024169009,
     "longitude": -132.42095947265628
   },
   {
     "site_id": "AKSE021",
-    "name": "AK-SE-063",
+    "name": "AK-FS-010",
     "lat": 56.35916436114858,
     "lon": -132.15728759765628,
     "habitat": "rocky reef, strong current",
@@ -939,13 +939,13 @@
     "sswd_status": "moderate impact",
     "source": "Navigation chart surveys",
     "notes": "Main shipping channel",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.35916436114858,
     "longitude": -132.15728759765628
   },
   {
     "site_id": "AKSE022",
-    "name": "AK-SE-052",
+    "name": "AK-FS-002",
     "lat": 56.80990057901636,
     "lon": -133.80523681640628,
     "habitat": "rocky reef, exposed",
@@ -954,13 +954,13 @@
     "sswd_status": "high impact (exposed site)",
     "source": "Historic lighthouse surveys",
     "notes": "Exposed site, historic monitoring",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.80990057901636,
     "longitude": -133.80523681640628
   },
   {
     "site_id": "AKSE023",
-    "name": "AK-SE-046",
+    "name": "AK-FN-039",
     "lat": 57.04670638930851,
     "lon": -133.47015380859378,
     "habitat": "fjord, rocky reef",
@@ -969,13 +969,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "ADF&G statistical area monitoring",
     "notes": "Protected bay system",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.04670638930851,
     "longitude": -133.47015380859378
   },
   {
     "site_id": "AKSE024",
-    "name": "AK-SE-096",
+    "name": "AK-FS-035",
     "lat": 55.28537238249355,
     "lon": -131.56951904296878,
     "habitat": "rocky reef, urban proximity",
@@ -984,13 +984,13 @@
     "sswd_status": "high impact (urban exposure)",
     "source": "ADF&G Ketchikan dive team",
     "notes": "Urban waterfront, ferry terminal area",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.28537238249355,
     "longitude": -131.56951904296878
   },
   {
     "site_id": "AKSE025",
-    "name": "AK-SE-093",
+    "name": "AK-FS-032",
     "lat": 55.41498460124224,
     "lon": -131.78375244140628,
     "habitat": "rocky reef, kelp forest",
@@ -999,13 +999,13 @@
     "sswd_status": "moderate impact",
     "source": "Sport fishing surveys",
     "notes": "Popular dive site, kelp forest",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.41498460124224,
     "longitude": -131.78375244140628
   },
   {
     "site_id": "AKSE026",
-    "name": "AK-SE-091",
+    "name": "AK-FS-031",
     "lat": 55.43836325152422,
     "lon": -133.15979003906253,
     "habitat": "fjord, rocky reef",
@@ -1014,13 +1014,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "ADF&G Craig area monitoring",
     "notes": "Protected inlet system",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.43836325152422,
     "longitude": -133.15979003906253
   },
   {
     "site_id": "AKSE027",
-    "name": "AK-SE-088",
+    "name": "AK-FS-028",
     "lat": 55.5497,
     "lon": -133.2073,
     "habitat": "island reef, kelp forest",
@@ -1029,13 +1029,13 @@
     "sswd_status": "moderate impact",
     "source": "Prince of Wales surveys",
     "notes": "Island habitat, tribal monitoring",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.5497,
     "longitude": -133.2073
   },
   {
     "site_id": "AKSE028",
-    "name": "AK-SE-015",
+    "name": "AK-FN-017",
     "lat": 58.16490792851809,
     "lon": -136.35681152343753,
     "habitat": "exposed rocky reef, kelp forest",
@@ -1044,13 +1044,13 @@
     "sswd_status": "high impact (ocean exposure)",
     "source": "Commercial fishing observations",
     "notes": "Ocean entrance, high exposure",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.16490792851809,
     "longitude": -136.35681152343753
   },
   {
     "site_id": "AKSE029",
-    "name": "AK-SE-006",
+    "name": "AK-FN-009",
     "lat": 58.37867853932655,
     "lon": -135.74432373046878,
     "habitat": "rocky reef, glacier proximity",
@@ -1059,13 +1059,13 @@
     "sswd_status": "low impact (glacial influence)",
     "source": "Glacier Bay gateway monitoring",
     "notes": "Gateway community to Glacier Bay",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.37867853932655,
     "longitude": -135.74432373046878
   },
   {
     "site_id": "AKSE030",
-    "name": "AK-SE-019",
+    "name": "AK-OC-008",
     "lat": 57.96004603327342,
     "lon": -136.23870849609378,
     "habitat": "fjord, rocky reef",
@@ -1074,13 +1074,13 @@
     "sswd_status": "very low impact (deep fjord refugia)",
     "source": "Remote community monitoring",
     "notes": "Very protected fjord system, fishing community",
-    "region": "AK-SE",
+    "region": "AK-OC",
     "latitude": 57.96004603327342,
     "longitude": -136.23870849609378
   },
   {
     "site_id": "AKSE031",
-    "name": "AK-SE-044",
+    "name": "AK-FN-037",
     "lat": 57.07806750862629,
     "lon": -134.73083496093753,
     "habitat": "fjord, thermal springs, rocky reef",
@@ -1089,13 +1089,13 @@
     "sswd_status": "low impact (thermal refugia)",
     "source": "Thermal springs monitoring",
     "notes": "Unique thermal environment, potential refugia",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.07806750862629,
     "longitude": -134.73083496093753
   },
   {
     "site_id": "AKSE032",
-    "name": "AK-SE-018",
+    "name": "AK-FN-020",
     "lat": 58.044457747109284,
     "lon": -135.59051513671878,
     "habitat": "rocky reef, kelp forest",
@@ -1104,13 +1104,13 @@
     "sswd_status": "moderate impact",
     "source": "ABC Islands bear research",
     "notes": "Large island system",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.044457747109284,
     "longitude": -135.59051513671878
   },
   {
     "site_id": "AKSE033",
-    "name": "AK-SE-017",
+    "name": "AK-FN-019",
     "lat": 58.1040080876627,
     "lon": -134.16503906250003,
     "habitat": "fjord, glacial influence",
@@ -1119,13 +1119,13 @@
     "sswd_status": "very low impact (glacial fjord refugia)",
     "source": "Taku River research",
     "notes": "Large glacial fjord system",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 58.1040080876627,
     "longitude": -134.16503906250003
   },
   {
     "site_id": "AKSE034",
-    "name": "AK-SE-027",
+    "name": "AK-FN-025",
     "lat": 57.742281477244454,
     "lon": -133.58551025390628,
     "habitat": "glacial fjord, deep water",
@@ -1134,13 +1134,13 @@
     "sswd_status": "very low impact (extreme glacial refugia)",
     "source": "Wilderness monitoring",
     "notes": "Deep glacial fjord, extreme refugia conditions",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.742281477244454,
     "longitude": -133.58551025390628
   },
   {
     "site_id": "AKSE035",
-    "name": "AK-SE-064",
+    "name": "AK-FS-011",
     "lat": 56.34698989490647,
     "lon": -133.66241455078128,
     "habitat": "rocky reef, strong current",
@@ -1149,13 +1149,13 @@
     "sswd_status": "moderate impact",
     "source": "Commercial fishing reports",
     "notes": "Fishing community, current exposure",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.34698989490647,
     "longitude": -133.66241455078128
   },
   {
     "site_id": "AKSE036",
-    "name": "AK-SE-087",
+    "name": "AK-FS-027",
     "lat": 55.575239380091226,
     "lon": -132.27264404296878,
     "habitat": "fjord, rocky reef",
@@ -1164,13 +1164,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "Native corporation monitoring",
     "notes": "Traditional use area, protected bay",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.575239380091226,
     "longitude": -132.27264404296878
   },
   {
     "site_id": "AKSE037",
-    "name": "AK-SE-085",
+    "name": "AK-FS-025",
     "lat": 55.61869112567042,
     "lon": -130.91857910156253,
     "habitat": "fjord, rocky reef",
@@ -1179,13 +1179,13 @@
     "sswd_status": "very low impact (deep fjord refugia)",
     "source": "Misty Fiords monitoring",
     "notes": "National monument, deep protected fjord",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.61869112567042,
     "longitude": -130.91857910156253
   },
   {
     "site_id": "AKSE038",
-    "name": "AK-SE-029",
+    "name": "AK-FN-027",
     "lat": 57.6789,
     "lon": -134.9234,
     "habitat": "rocky reef, kelp forest",
@@ -1194,13 +1194,13 @@
     "sswd_status": "moderate impact",
     "source": "NOAA nautical chart harbor data",
     "notes": "Protected harbor in major strait",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.6789,
     "longitude": -134.9234
   },
   {
     "site_id": "AKSE039",
-    "name": "AK-SE-022",
+    "name": "AK-FN-022",
     "lat": 57.9123,
     "lon": -135.1456,
     "habitat": "rocky reef, narrow strait",
@@ -1209,13 +1209,13 @@
     "sswd_status": "moderate impact",
     "source": "Strait navigation surveys",
     "notes": "Narrow connecting passage",
-    "region": "AK-SE",
+    "region": "AK-FN",
     "latitude": 57.9123,
     "longitude": -135.1456
   },
   {
     "site_id": "AKSE040",
-    "name": "AK-SE-053",
+    "name": "AK-FS-003",
     "lat": 56.73916801839528,
     "lon": -133.88488769531253,
     "habitat": "rocky reef, island passage",
@@ -1224,13 +1224,13 @@
     "sswd_status": "moderate impact",
     "source": "Island ecosystem surveys",
     "notes": "Island complex habitat",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.73916801839528,
     "longitude": -133.88488769531253
   },
   {
     "site_id": "AKSE041",
-    "name": "AK-SE-054",
+    "name": "AK-FS-004",
     "lat": 56.683391113557796,
     "lon": -133.20098876953128,
     "habitat": "saltwater lake, unique habitat",
@@ -1239,13 +1239,13 @@
     "sswd_status": "unknown (unique habitat)",
     "source": "Unique ecosystem studies",
     "notes": "Rare saltwater lake habitat",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.683391113557796,
     "longitude": -133.20098876953128
   },
   {
     "site_id": "AKSE042",
-    "name": "AK-SE-083",
+    "name": "AK-FS-023",
     "lat": 55.688423515539995,
     "lon": -132.38250732421878,
     "habitat": "rocky reef, logging area proximity",
@@ -1254,13 +1254,13 @@
     "sswd_status": "moderate impact",
     "source": "Forest service monitoring",
     "notes": "Logging area, industrial proximity",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.688423515539995,
     "longitude": -132.38250732421878
   },
   {
     "site_id": "AKSE043",
-    "name": "AK-SE-068",
+    "name": "AK-FS-015",
     "lat": 56.24182370942394,
     "lon": -132.92358398437503,
     "habitat": "rocky reef, narrow passage",
@@ -1269,13 +1269,13 @@
     "sswd_status": "moderate impact",
     "source": "Navigation safety surveys",
     "notes": "Island passage, moderate current",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.24182370942394,
     "longitude": -132.92358398437503
   },
   {
     "site_id": "AKSE044",
-    "name": "AK-SE-072",
+    "name": "AK-FS-018",
     "lat": 56.0336912842295,
     "lon": -132.51983642578128,
     "habitat": "fjord, rocky reef",
@@ -1284,13 +1284,13 @@
     "sswd_status": "low impact (fjord refugia)",
     "source": "Wilderness area monitoring",
     "notes": "Protected inlet system",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.0336912842295,
     "longitude": -132.51983642578128
   },
   {
     "site_id": "AKSE045",
-    "name": "AK-SE-055",
+    "name": "AK-FS-005",
     "lat": 56.6789,
     "lon": -132.789,
     "habitat": "estuarine, mixed substrate",
@@ -1299,13 +1299,13 @@
     "sswd_status": "unsuitable (low salinity)",
     "source": "Salmon habitat surveys",
     "notes": "Estuarine environment, marginal habitat",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 56.6789,
     "longitude": -132.789
   },
   {
     "site_id": "AKSE046",
-    "name": "AK-SE-089",
+    "name": "AK-FS-029",
     "lat": 55.53018504177409,
     "lon": -132.51159667968753,
     "habitat": "rocky reef, ferry terminal proximity",
@@ -1314,13 +1314,13 @@
     "sswd_status": "moderate impact",
     "source": "Ferry system environmental monitoring",
     "notes": "Transportation hub, regular disturbance",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 55.53018504177409,
     "longitude": -132.51159667968753
   },
   {
     "site_id": "AKSE047",
-    "name": "AK-SE-107",
+    "name": "AK-FS-045",
     "lat": 54.92082843149136,
     "lon": -133.15155029296878,
     "habitat": "exposed rocky reef, kelp forest",
@@ -1329,7 +1329,7 @@
     "sswd_status": "high impact (ocean exposure)",
     "source": "Outer coast monitoring",
     "notes": "Fully exposed outer coast, highest impact zone",
-    "region": "AK-SE",
+    "region": "AK-FS",
     "latitude": 54.92082843149136,
     "longitude": -133.15155029296878
   },
@@ -1453,7 +1453,7 @@
     "longitude": -151.32019042968753
   },
   {
-    "name": "AK-EG-042",
+    "name": "AK-EG-002",
     "lat": 60.0963491646841,
     "lon": -149.40032958984378,
     "source": "Gulf Watch Alaska (KEFJ), NOAA Seward Line",
@@ -1470,7 +1470,7 @@
     "longitude": -149.40032958984378
   },
   {
-    "name": "AK-EG-048",
+    "name": "AK-EG-006",
     "lat": 59.92474296688904,
     "lon": -149.68872070312503,
     "source": "Gulf Watch Alaska (KEFJ), NPS monitoring",
@@ -1487,7 +1487,7 @@
     "longitude": -149.68872070312503
   },
   {
-    "name": "AK-WG-064",
+    "name": "AK-WG-066",
     "lat": 56.295,
     "lon": -158.4,
     "source": "NOAA commercial fishing surveys, local knowledge",
@@ -1521,7 +1521,7 @@
     "longitude": -151.97387695312503
   },
   {
-    "name": "AK-WG-056",
+    "name": "AK-WG-057",
     "lat": 57.08254550582427,
     "lon": -153.91296386718753,
     "source": "NOAA AFSC bottom trawl surveys",
@@ -1538,7 +1538,7 @@
     "longitude": -153.91296386718753
   },
   {
-    "name": "AK-WG-059",
+    "name": "AK-WG-060",
     "lat": 56.82643576192022,
     "lon": -154.11895751953128,
     "source": "Alaska Maritime NWR surveys",
@@ -1623,7 +1623,7 @@
     "longitude": -154.81658935546878
   },
   {
-    "name": "AK-EG-055",
+    "name": "AK-EG-012",
     "lat": 59.73979022332942,
     "lon": -149.72991943359378,
     "source": "Gulf Watch Alaska (KEFJ), NPS monitoring",
@@ -1759,7 +1759,7 @@
     "longitude": -152.58361816406253
   },
   {
-    "name": "AK-WG-057",
+    "name": "AK-WG-058",
     "lat": 57.057163039818526,
     "lon": -153.16314697265628,
     "source": "Local knowledge, recreational diving",
@@ -2014,7 +2014,7 @@
     "longitude": -153.33618164062503
   },
   {
-    "name": "AK-WG-058",
+    "name": "AK-WG-059",
     "lat": 56.926992558907564,
     "lon": -154.12994384765625,
     "source": "Community knowledge, ADFG monitoring",
@@ -2065,7 +2065,7 @@
     "longitude": -154.125
   },
   {
-    "name": "AK-EG-058",
+    "name": "AK-EG-015",
     "lat": 59.608,
     "lon": -149.557,
     "source": "Gulf Watch Alaska (KEFJ), seabird monitoring",
@@ -2082,7 +2082,7 @@
     "longitude": -149.557
   },
   {
-    "name": "AK-EG-051",
+    "name": "AK-EG-009",
     "lat": 59.85,
     "lon": -149.45,
     "source": "Gulf Watch Alaska (KEFJ), NPS surveys",
@@ -2099,7 +2099,7 @@
     "longitude": -149.45
   },
   {
-    "name": "AK-EG-053",
+    "name": "AK-EG-011",
     "lat": 59.81030377363804,
     "lon": -149.76287841796878,
     "source": "Gulf Watch Alaska (KEFJ), NPS monitoring",
@@ -2116,7 +2116,7 @@
     "longitude": -149.76287841796878
   },
   {
-    "name": "AK-EG-052",
+    "name": "AK-EG-010",
     "lat": 59.81720885147881,
     "lon": -149.70245361328128,
     "source": "Gulf Watch Alaska (KEFJ), NPS surveys",
@@ -2133,7 +2133,7 @@
     "longitude": -149.70245361328128
   },
   {
-    "name": "AK-EG-056",
+    "name": "AK-EG-013",
     "lat": 59.72,
     "lon": -149.92,
     "source": "NPS surveys, Gulf Watch Alaska",
@@ -2321,7 +2321,7 @@
   },
   {
     "site_id": "BC-C-001",
-    "name": "BC-N-078",
+    "name": "BC-N-076",
     "latitude": 51.65,
     "longitude": -128.15,
     "depth_range": "0-5m intertidal to 30m subtidal",
@@ -2335,7 +2335,7 @@
   },
   {
     "site_id": "BC-C-002",
-    "name": "BC-N-077",
+    "name": "BC-N-075",
     "latitude": 51.66,
     "longitude": -128.12,
     "depth_range": "0-5m intertidal to 25m subtidal",
@@ -2349,7 +2349,7 @@
   },
   {
     "site_id": "BC-C-003",
-    "name": "BC-N-080",
+    "name": "BC-N-078",
     "latitude": 51.64,
     "longitude": -128.13,
     "depth_range": "0-20m",
@@ -2363,7 +2363,7 @@
   },
   {
     "site_id": "BC-C-004",
-    "name": "BC-N-070",
+    "name": "BC-N-067",
     "latitude": 51.9167,
     "longitude": -127.8833,
     "depth_range": "10-50m",
@@ -2377,7 +2377,7 @@
   },
   {
     "site_id": "BC-C-005",
-    "name": "BC-N-060",
+    "name": "BC-N-057",
     "latitude": 52.05,
     "longitude": -127.7,
     "depth_range": "5-30m",
@@ -2391,7 +2391,7 @@
   },
   {
     "site_id": "BC-C-006",
-    "name": "BC-N-084",
+    "name": "BC-N-082",
     "latitude": 51.55,
     "longitude": -127.85,
     "depth_range": "50-300m deep fjord",
@@ -2405,7 +2405,7 @@
   },
   {
     "site_id": "BC-C-007",
-    "name": "BC-C-003",
+    "name": "BC-C-002",
     "latitude": 51.48,
     "longitude": -127.95,
     "depth_range": "20-150m",
@@ -2419,7 +2419,7 @@
   },
   {
     "site_id": "BC-C-008",
-    "name": "BC-N-079",
+    "name": "BC-N-077",
     "latitude": 51.65,
     "longitude": -127.65,
     "depth_range": "10-200m",
@@ -2433,7 +2433,7 @@
   },
   {
     "site_id": "BC-C-009",
-    "name": "BC-N-082",
+    "name": "BC-N-080",
     "latitude": 51.58,
     "longitude": -127.72,
     "depth_range": "10-200m",
@@ -2447,9 +2447,9 @@
   },
   {
     "site_id": "BC-C-010",
-    "name": "BC-N-037",
-    "latitude": 52.354,
-    "longitude": -127.6937,
+    "name": "BC-N-034",
+    "latitude": 52.35253797865371,
+    "longitude": -127.72155761718751,
     "depth_range": "0-50m",
     "habitat_type": "Historic townsite with marine access, rocky shores",
     "pycnopodia_status": "Probable present",
@@ -2461,7 +2461,7 @@
   },
   {
     "site_id": "BC-C-011",
-    "name": "BC-N-047",
+    "name": "BC-N-044",
     "latitude": 52.1605,
     "longitude": -128.1456,
     "depth_range": "0-40m",
@@ -2475,7 +2475,7 @@
   },
   {
     "site_id": "BC-C-012",
-    "name": "BC-N-049",
+    "name": "BC-N-046",
     "latitude": 52.15,
     "longitude": -128.08,
     "depth_range": "0-20m",
@@ -2489,7 +2489,7 @@
   },
   {
     "site_id": "BC-C-013",
-    "name": "BC-N-071",
+    "name": "BC-N-068",
     "latitude": 51.85,
     "longitude": -128.0,
     "depth_range": "10-100m",
@@ -2503,7 +2503,7 @@
   },
   {
     "site_id": "BC-C-014",
-    "name": "BC-N-045",
+    "name": "BC-N-042",
     "latitude": 52.2,
     "longitude": -128.15,
     "depth_range": "20-200m",
@@ -2517,9 +2517,9 @@
   },
   {
     "site_id": "BC-C-015",
-    "name": "BC-N-038",
-    "latitude": 52.35,
-    "longitude": -127.95,
+    "name": "BC-N-035",
+    "latitude": 52.35002148336117,
+    "longitude": -127.9351043701172,
     "depth_range": "30-300m",
     "habitat_type": "Deep inlet system",
     "pycnopodia_status": "Confirmed present",
@@ -2531,7 +2531,7 @@
   },
   {
     "site_id": "BC-C-016",
-    "name": "BC-N-057",
+    "name": "BC-N-054",
     "latitude": 52.08,
     "longitude": -127.65,
     "depth_range": "5-150m",
@@ -2545,9 +2545,9 @@
   },
   {
     "site_id": "BC-C-017",
-    "name": "BC-N-042",
-    "latitude": 52.25,
-    "longitude": -127.2,
+    "name": "BC-N-039",
+    "latitude": 52.29168256269092,
+    "longitude": -127.23815917968751,
     "depth_range": "50-400m",
     "habitat_type": "One of the largest coastal fjords",
     "pycnopodia_status": "High potential refugium",
@@ -2559,7 +2559,7 @@
   },
   {
     "site_id": "BC-C-018",
-    "name": "BC-N-061",
+    "name": "BC-N-058",
     "latitude": 52.05,
     "longitude": -128.4,
     "depth_range": "0-50m",
@@ -2573,7 +2573,7 @@
   },
   {
     "site_id": "BC-C-019",
-    "name": "BC-N-067",
+    "name": "BC-N-064",
     "latitude": 51.98,
     "longitude": -128.25,
     "depth_range": "5-80m",
@@ -2587,7 +2587,7 @@
   },
   {
     "site_id": "BC-C-020",
-    "name": "BC-N-052",
+    "name": "BC-N-049",
     "latitude": 52.13,
     "longitude": -128.14,
     "depth_range": "0-30m",
@@ -2601,7 +2601,7 @@
   },
   {
     "site_id": "BC-C-021",
-    "name": "BC-N-058",
+    "name": "BC-N-055",
     "latitude": 52.08,
     "longitude": -128.55,
     "depth_range": "0-40m",
@@ -2615,7 +2615,7 @@
   },
   {
     "site_id": "BC-C-022",
-    "name": "BC-N-053",
+    "name": "BC-N-050",
     "latitude": 52.12,
     "longitude": -128.06,
     "depth_range": "0-25m",
@@ -2629,7 +2629,7 @@
   },
   {
     "site_id": "BC-C-023",
-    "name": "BC-N-065",
+    "name": "BC-N-062",
     "latitude": 52.0,
     "longitude": -128.52,
     "depth_range": "0-35m",
@@ -2643,7 +2643,7 @@
   },
   {
     "site_id": "BC-C-024",
-    "name": "BC-N-068",
+    "name": "BC-N-065",
     "latitude": 51.95,
     "longitude": -128.45,
     "depth_range": "10-100m",
@@ -2657,7 +2657,7 @@
   },
   {
     "site_id": "BC-C-025",
-    "name": "BC-N-043",
+    "name": "BC-N-040",
     "latitude": 52.25,
     "longitude": -128.7,
     "depth_range": "0-30m",
@@ -2671,7 +2671,7 @@
   },
   {
     "site_id": "BC-C-026",
-    "name": "BC-N-050",
+    "name": "BC-N-047",
     "latitude": 52.15,
     "longitude": -128.8,
     "depth_range": "10-60m",
@@ -2685,7 +2685,7 @@
   },
   {
     "site_id": "BC-C-027",
-    "name": "BC-N-039",
+    "name": "BC-N-036",
     "latitude": 52.35,
     "longitude": -128.5,
     "depth_range": "5-100m",
@@ -2699,7 +2699,7 @@
   },
   {
     "site_id": "BC-C-028",
-    "name": "BC-N-055",
+    "name": "BC-N-052",
     "latitude": 52.1,
     "longitude": -128.45,
     "depth_range": "10-120m",
@@ -2713,7 +2713,7 @@
   },
   {
     "site_id": "BC-C-029",
-    "name": "BC-N-073",
+    "name": "BC-N-070",
     "latitude": 51.77,
     "longitude": -127.97,
     "depth_range": "0-25m",
@@ -2727,7 +2727,7 @@
   },
   {
     "site_id": "BC-C-030",
-    "name": "BC-N-076",
+    "name": "BC-N-074",
     "latitude": 51.68,
     "longitude": -128.18,
     "depth_range": "0-15m",
@@ -2741,7 +2741,7 @@
   },
   {
     "site_id": "BC-C-031",
-    "name": "BC-N-075",
+    "name": "BC-N-073",
     "latitude": 51.7,
     "longitude": -128.2,
     "depth_range": "5-40m",
@@ -2755,7 +2755,7 @@
   },
   {
     "site_id": "BC-C-032",
-    "name": "BC-N-074",
+    "name": "BC-N-071",
     "latitude": 51.75,
     "longitude": -128.25,
     "depth_range": "50-150m",
@@ -2769,7 +2769,7 @@
   },
   {
     "site_id": "BC-C-033",
-    "name": "BC-N-069",
+    "name": "BC-N-066",
     "latitude": 51.95,
     "longitude": -128.5,
     "depth_range": "75-200m",
@@ -2783,7 +2783,7 @@
   },
   {
     "site_id": "BC-C-034",
-    "name": "BC-N-051",
+    "name": "BC-N-048",
     "latitude": 52.15,
     "longitude": -128.75,
     "depth_range": "100-300m",
@@ -2797,7 +2797,7 @@
   },
   {
     "site_id": "BC-C-035",
-    "name": "BC-N-081",
+    "name": "BC-N-079",
     "latitude": 51.62,
     "longitude": -128.22,
     "depth_range": "0-10m",
@@ -2811,7 +2811,7 @@
   },
   {
     "site_id": "BC-C-036",
-    "name": "BC-N-083",
+    "name": "BC-N-081",
     "latitude": 51.58,
     "longitude": -128.18,
     "depth_range": "0-25m",
@@ -2825,7 +2825,7 @@
   },
   {
     "site_id": "BC-C-037",
-    "name": "BC-N-059",
+    "name": "BC-N-056",
     "latitude": 52.08,
     "longitude": -128.12,
     "depth_range": "0-15m",
@@ -2839,7 +2839,7 @@
   },
   {
     "site_id": "BC-C-038",
-    "name": "BC-C-002",
+    "name": "BC-C-001",
     "latitude": 51.5,
     "longitude": -128.0,
     "depth_range": "20-400m",
@@ -2853,7 +2853,7 @@
   },
   {
     "site_id": "BC-C-039",
-    "name": "BC-C-006",
+    "name": "BC-C-005",
     "latitude": 51.3,
     "longitude": -128.5,
     "depth_range": "50-500m",
@@ -2867,7 +2867,7 @@
   },
   {
     "site_id": "BC-C-040",
-    "name": "BC-N-072",
+    "name": "BC-N-069",
     "latitude": 51.82,
     "longitude": -128.05,
     "depth_range": "0-20m",
@@ -2881,7 +2881,7 @@
   },
   {
     "site_id": "BC-C-041",
-    "name": "BC-N-064",
+    "name": "BC-N-061",
     "latitude": 52.02,
     "longitude": -128.35,
     "depth_range": "10-80m",
@@ -2895,7 +2895,7 @@
   },
   {
     "site_id": "BC-C-042",
-    "name": "BC-N-054",
+    "name": "BC-N-051",
     "latitude": 52.12,
     "longitude": -128.5,
     "depth_range": "15-100m",
@@ -2909,7 +2909,7 @@
   },
   {
     "site_id": "BC-C-043",
-    "name": "BC-N-066",
+    "name": "BC-N-063",
     "latitude": 52.0,
     "longitude": -128.8,
     "depth_range": "20-200m",
@@ -2923,9 +2923,9 @@
   },
   {
     "site_id": "BC-C-044",
-    "name": "BC-N-041",
-    "latitude": 52.28,
-    "longitude": -127.9,
+    "name": "BC-N-038",
+    "latitude": 52.26815737376817,
+    "longitude": -127.92205810546876,
     "depth_range": "20-150m",
     "habitat_type": "Channel leading to Fitz Hugh Sound",
     "pycnopodia_status": "Probable present",
@@ -2937,7 +2937,7 @@
   },
   {
     "site_id": "BC-C-045",
-    "name": "BC-N-046",
+    "name": "BC-N-043",
     "latitude": 52.18,
     "longitude": -128.2,
     "depth_range": "0-20m",
@@ -2951,7 +2951,7 @@
   },
   {
     "site_id": "BC-C-046",
-    "name": "BC-C-004",
+    "name": "BC-C-003",
     "latitude": 51.4781,
     "longitude": -127.7367,
     "depth_range": "0-30m intertidal and marine waters",
@@ -2965,7 +2965,7 @@
   },
   {
     "site_id": "BC-C-047",
-    "name": "BC-N-062",
+    "name": "BC-N-059",
     "latitude": 52.05,
     "longitude": -128.52,
     "depth_range": "0-25m",
@@ -2979,7 +2979,7 @@
   },
   {
     "id": "BCN001",
-    "name": "BC-N-048",
+    "name": "BC-N-045",
     "latitude": 52.15389,
     "longitude": -127.46333,
     "location_description": "Burke Channel, Central Coast BC - confirmed Pycnopodia refuge",
@@ -3001,7 +3001,7 @@
   },
   {
     "id": "BCN002",
-    "name": "SS-001",
+    "name": "SS-N-001",
     "latitude": 50.7773,
     "longitude": -125.6306,
     "location_description": "Knight Inlet fjord, largest inlet in southern BC Coast",
@@ -3018,11 +3018,11 @@
     "substrate": "Rocky walls, kelp forests",
     "protection_status": "None specified",
     "notes": "113 km long fjord, surrounded by glaciers and high snowfields",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "BCN003",
-    "name": "BC-N-007",
+    "name": "BC-N-004",
     "latitude": 54.3151,
     "longitude": -130.321,
     "location_description": "Prince Rupert major port, end of Highway 16",
@@ -3043,9 +3043,9 @@
   },
   {
     "id": "BCN004",
-    "name": "BC-N-010",
-    "latitude": 54.0533,
-    "longitude": -128.6522,
+    "name": "BC-N-007",
+    "latitude": 53.527247970102465,
+    "longitude": -129.20471191406253,
     "location_description": "Head of Douglas Channel, Kitimat industrial area",
     "depth_range_m": "5-25",
     "habitat_type": "Fjord head, industrial harbor, kelp remnants",
@@ -3064,7 +3064,7 @@
   },
   {
     "id": "BCN005",
-    "name": "BC-N-011",
+    "name": "BC-N-008",
     "latitude": 54.0124,
     "longitude": -132.1452,
     "location_description": "Masset, northern Haida Gwaii (Graham Island)",
@@ -3085,7 +3085,7 @@
   },
   {
     "id": "BCN006",
-    "name": "BC-N-024",
+    "name": "BC-N-021",
     "latitude": 53.15,
     "longitude": -132.3333,
     "location_description": "Skidegate Channel between Graham and Moresby Islands",
@@ -3106,7 +3106,7 @@
   },
   {
     "id": "BCN007",
-    "name": "BC-N-056",
+    "name": "BC-N-053",
     "latitude": 52.095,
     "longitude": -131.22,
     "location_description": "SGang Gwaay (Anthony Island), southern Haida Gwaii",
@@ -3127,7 +3127,7 @@
   },
   {
     "id": "BCN008",
-    "name": "BC-N-031",
+    "name": "BC-N-028",
     "latitude": 52.73,
     "longitude": -131.67,
     "location_description": "Hlk'yah GawGa (Windy Bay), Athlii Gwaii (Lyell Island)",
@@ -3148,7 +3148,7 @@
   },
   {
     "id": "BCN009",
-    "name": "BC-N-008",
+    "name": "BC-N-005",
     "latitude": 54.25,
     "longitude": -133.05,
     "location_description": "Langara Island, northwest Haida Gwaii",
@@ -3169,7 +3169,7 @@
   },
   {
     "id": "BCN010",
-    "name": "SS-019",
+    "name": "SS-N-019",
     "latitude": 49.47,
     "longitude": -123.75,
     "location_description": "Sechelt Inlet, southern tip near Porpoise Bay",
@@ -3186,11 +3186,11 @@
     "substrate": "Rocky, deep inlet",
     "protection_status": "Sechelt Inlets Marine Provincial Park nearby",
     "notes": "Well-documented site, marine provincial park protection nearby",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "BCN011",
-    "name": "BC-N-034",
+    "name": "BC-N-031",
     "latitude": 52.6333,
     "longitude": -129.0833,
     "location_description": "Aristazabal Island, southwest of Princess Royal Island",
@@ -3211,7 +3211,7 @@
   },
   {
     "id": "BCN012",
-    "name": "BC-N-009",
+    "name": "BC-N-006",
     "latitude": 54.0864,
     "longitude": -130.3901,
     "location_description": "Humpback Bay, northern tip of Porcher Island",
@@ -3232,7 +3232,7 @@
   },
   {
     "id": "BCN013",
-    "name": "BC-N-017",
+    "name": "BC-N-014",
     "latitude": 53.4167,
     "longitude": -130.1667,
     "location_description": "Banks Island on Hecate Strait, opposite Haida Gwaii",
@@ -3253,7 +3253,7 @@
   },
   {
     "id": "BCN014",
-    "name": "BC-N-032",
+    "name": "BC-N-029",
     "latitude": 52.7167,
     "longitude": -131.7833,
     "location_description": "Gil Island, west side of Whale Channel entrance to Douglas Channel",
@@ -3274,7 +3274,7 @@
   },
   {
     "id": "BCN015",
-    "name": "BC-N-026",
+    "name": "BC-N-023",
     "latitude": 53.0833,
     "longitude": -129.4167,
     "location_description": "Campania Island, between Banks Island and Princess Royal Island",
@@ -3295,7 +3295,7 @@
   },
   {
     "id": "BCN016",
-    "name": "BC-N-016",
+    "name": "BC-N-013",
     "latitude": 53.47,
     "longitude": -130.6,
     "location_description": "Bonilla Island, Hecate Strait west of Banks Island",
@@ -3316,7 +3316,7 @@
   },
   {
     "id": "BCN017",
-    "name": "BC-C-019",
+    "name": "BC-C-018",
     "latitude": 50.5458,
     "longitude": -126.8332,
     "location_description": "Telegraph Cove, northern terminus of Johnstone Strait",
@@ -3338,7 +3338,7 @@
   },
   {
     "id": "BCN018",
-    "name": "SS-007",
+    "name": "SS-N-007",
     "latitude": 50.0163,
     "longitude": -125.2446,
     "location_description": "Campbell River at south end of Discovery Passage",
@@ -3356,11 +3356,11 @@
     "substrate": "Rocky tidal passage",
     "protection_status": "None specified",
     "notes": "South end of 110 km Johnstone Strait, major tidal flows, salmon runs",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "BCN019",
-    "name": "BC-C-018",
+    "name": "BC-C-017",
     "latitude": 50.5833,
     "longitude": -127.1,
     "location_description": "Port McNeill, access point to Broughton Archipelago",
@@ -3382,7 +3382,7 @@
   },
   {
     "id": "BCN020",
-    "name": "BC-C-016",
+    "name": "BC-C-015",
     "latitude": 50.67,
     "longitude": -126.55,
     "location_description": "Blackfish Sound, northern Johnstone Strait orca habitat",
@@ -3404,7 +3404,7 @@
   },
   {
     "id": "BCN021",
-    "name": "BC-C-017",
+    "name": "BC-C-016",
     "latitude": 50.65,
     "longitude": -126.6,
     "location_description": "Hanson Island at entrance to Blackfish Sound",
@@ -3426,7 +3426,7 @@
   },
   {
     "id": "BCN022",
-    "name": "BC-C-020",
+    "name": "BC-C-019",
     "latitude": 50.53,
     "longitude": -126.7,
     "location_description": "Robson Bight (Michael Bigg) Ecological Reserve",
@@ -3448,7 +3448,7 @@
   },
   {
     "id": "BCN023",
-    "name": "BC-N-021",
+    "name": "BC-N-018",
     "latitude": 53.31,
     "longitude": -130.88,
     "location_description": "Northern Reef, Hecate Strait Glass Sponge Reefs MPA",
@@ -3470,7 +3470,7 @@
   },
   {
     "id": "BCN024",
-    "name": "BC-N-022",
+    "name": "BC-N-019",
     "latitude": 53.2,
     "longitude": -130.7,
     "location_description": "Central Reefs (Zones A & B), Hecate Strait Glass Sponge Reefs MPA",
@@ -3492,7 +3492,7 @@
   },
   {
     "id": "BCN025",
-    "name": "BC-N-025",
+    "name": "BC-N-022",
     "latitude": 53.1,
     "longitude": -130.5,
     "location_description": "Southern Reef, Hecate Strait Glass Sponge Reefs MPA",
@@ -3514,7 +3514,7 @@
   },
   {
     "id": "BCN026",
-    "name": "BC-N-035",
+    "name": "BC-N-032",
     "latitude": 52.5,
     "longitude": -129.0,
     "location_description": "Queen Charlotte Sound eastern half, DFO survey area",
@@ -3536,7 +3536,7 @@
   },
   {
     "id": "BCN027",
-    "name": "BC-N-040",
+    "name": "BC-N-037",
     "latitude": 52.3,
     "longitude": -130.5,
     "location_description": "Queen Charlotte Sound western half, toward Haida Gwaii",
@@ -3558,7 +3558,7 @@
   },
   {
     "id": "BCN028",
-    "name": "BC-C-036",
+    "name": "BC-C-035",
     "latitude": 48.8353,
     "longitude": -125.1355,
     "location_description": "Bamfield Marine Sciences Centre, Barkley Sound research station",
@@ -3581,7 +3581,7 @@
   },
   {
     "id": "BCN029",
-    "name": "SS-004",
+    "name": "SS-N-004",
     "latitude": 50.3,
     "longitude": -125.23,
     "location_description": "Hakai Institute research station, Quadra Island area",
@@ -3599,11 +3599,11 @@
     "substrate": "Multi-habitat research institute",
     "protection_status": "Research station",
     "notes": "Leading institute for SSWD research, discovered BC fjord refuges, V. pectenicida work",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "BCN030",
-    "name": "BC-C-034",
+    "name": "BC-C-033",
     "latitude": 49.0,
     "longitude": -125.67,
     "location_description": "Pacific Rim National Park Reserve, established monitoring sites",
@@ -7185,7 +7185,7 @@
   },
   {
     "id": "SS001",
-    "name": "SS-058",
+    "name": "JDF-001",
     "location": "Friday Harbor, San Juan Island, WA",
     "latitude": 48.5421,
     "longitude": -123.0105,
@@ -7195,13 +7195,13 @@
     "sswd_observations": "Documented SSWD outbreak 2013-2015. Ongoing monitoring for recovery signs. Captive breeding research facility.",
     "data_source": "Friday Harbor Laboratories",
     "notes": "University of Washington marine research station. Key site for sunflower star research and captive breeding program.",
-    "region": "SS",
+    "region": "JDF",
     "sswd_status": "",
     "pycnopodia_documented": true
   },
   {
     "id": "SS002",
-    "name": "SS-044",
+    "name": "SS-S-013",
     "location": "Orcas Island, WA",
     "latitude": 48.7123,
     "longitude": -122.9501,
@@ -7211,11 +7211,11 @@
     "sswd_observations": "Population crash during 2013-2015 SSWD outbreak",
     "data_source": "Emerald Diving dive site records",
     "notes": "Prominent spur extending from northwest Orcas Island. Popular dive site with diverse marine life.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS003",
-    "name": "SS-055",
+    "name": "SS-S-024",
     "location": "Between Shaw and Orcas Islands, WA",
     "latitude": 48.5833,
     "longitude": -122.95,
@@ -7225,11 +7225,11 @@
     "sswd_observations": "SSWD impact reported 2013-2015",
     "data_source": "Dive site surveys and recreational diving reports",
     "notes": "Shallow site between islands, good current protection, accessible from both sides depending on conditions.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS004",
-    "name": "SS-069",
+    "name": "SS-S-030",
     "location": "Fidalgo/Whidbey Islands, WA",
     "latitude": 48.4056,
     "longitude": -122.6547,
@@ -7239,11 +7239,11 @@
     "sswd_observations": "Documented population decline during SSWD outbreak",
     "data_source": "Whidbey Island Dive Center, local dive surveys",
     "notes": "High current site requiring slack water diving. Exceptional marine diversity including anemones, blood stars, and crabs.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS005",
-    "name": "SS-099",
+    "name": "SS-S-052",
     "location": "Edmonds, WA",
     "latitude": 47.8135,
     "longitude": -122.3828,
@@ -7253,11 +7253,11 @@
     "sswd_observations": "Severe population decline 2013-2015. Ongoing monitoring for recovery.",
     "data_source": "Edmonds Underwater Park monitoring, dive club surveys",
     "notes": "Most popular diving site in Seattle area. Extensive pre-SSWD baseline data. Protected marine area with artificial structures.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS006",
-    "name": "SS-126",
+    "name": "JDF-023",
     "location": "Hood Canal, WA",
     "latitude": 47.432267829811025,
     "longitude": -123.1175994873047,
@@ -7267,11 +7267,11 @@
     "sswd_observations": "Population crash during SSWD outbreak. Protected status aids monitoring.",
     "data_source": "Washington State Marine Preserve monitoring",
     "notes": "Crown jewel of Hood Canal diving. Easy entry, protected cove, diverse marine life including lingcod, giant Pacific octopus, wolf eel.",
-    "region": "SS"
+    "region": "JDF"
   },
   {
     "id": "SS007",
-    "name": "SS-116",
+    "name": "SS-S-066",
     "location": "West Seattle, WA",
     "latitude": 47.58752590027122,
     "longitude": -122.37533569335939,
@@ -7281,11 +7281,11 @@
     "sswd_observations": "Population decline during 2013-2015 outbreak",
     "data_source": "Seattle dive club surveys, citizen science observations",
     "notes": "Most popular Seattle diving location. Training site with artificial features hosting marine life.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS008",
-    "name": "SS-040",
+    "name": "SS-S-009",
     "location": "Bellingham Bay, WA",
     "latitude": 48.7519,
     "longitude": -122.49,
@@ -7295,11 +7295,11 @@
     "sswd_observations": "Active SSWD monitoring site. First systematic Bellingham sea star dataset outside citizen science.",
     "data_source": "Western Washington University internship program 2025",
     "notes": "WWU student scuba diving site for tracking SSWD. Regular monitoring throughout summer seasons.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS009",
-    "name": "SS-061",
+    "name": "SS-S-027",
     "location": "Anacortes, WA",
     "latitude": 48.5067,
     "longitude": -122.6833,
@@ -7309,11 +7309,11 @@
     "sswd_observations": "SSWD research and monitoring location",
     "data_source": "Western Washington University Marine Science Program",
     "notes": "78-acre coastal research center. Student-centered research with ongoing marine monitoring programs.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS010",
-    "name": "SS-015",
+    "name": "SS-N-015",
     "location": "Howe Sound, BC",
     "latitude": 49.56530586102153,
     "longitude": -123.26797485351564,
@@ -7323,11 +7323,11 @@
     "sswd_observations": "Howe Sound population monitoring during SSWD outbreak",
     "data_source": "BC Parks, Canadian dive surveys",
     "notes": "Popular BC dive site with sunken ship artificial reef. Easy access, protected cove in southernmost North American fjord.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS011",
-    "name": "SS-020",
+    "name": "SS-N-020",
     "location": "West Vancouver, BC",
     "latitude": 49.380584708211565,
     "longitude": -123.30230712890625,
@@ -7337,11 +7337,11 @@
     "sswd_observations": "BC monitoring during SSWD outbreak period",
     "data_source": "District of West Vancouver, BC dive club surveys",
     "notes": "Designated Marine Protected Area. Close to Vancouver, excellent training site, diverse invertebrate communities.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS012",
-    "name": "SS-085",
+    "name": "SS-S-038",
     "location": "Port Townsend area, WA",
     "latitude": 48.1167,
     "longitude": -122.75,
@@ -7351,11 +7351,11 @@
     "sswd_observations": "Documented SSWD impact in deeper populations",
     "data_source": "WDFW dive surveys, recreational dive reports",
     "notes": "Major entrance to Puget Sound. Deep water habitat with historical sea star populations.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS013",
-    "name": "SS-051",
+    "name": "SS-S-020",
     "location": "Between Orcas Island and Fidalgo Island, WA",
     "latitude": 48.6,
     "longitude": -122.7167,
@@ -7365,11 +7365,11 @@
     "sswd_observations": "Strait populations affected by SSWD outbreak",
     "data_source": "Marine surveys, REEF monitoring",
     "notes": "Major waterway between islands with diverse depth ranges and habitats.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS014",
-    "name": "SS-138",
+    "name": "SS-S-082",
     "location": "Tacoma, WA",
     "latitude": 47.30053680794518,
     "longitude": -122.44829177856447,
@@ -7379,11 +7379,11 @@
     "sswd_observations": "Urban population monitoring during SSWD",
     "data_source": "WDFW urban bay monitoring",
     "notes": "Urban marine environment with ongoing habitat restoration efforts.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS015",
-    "name": "SS-080",
+    "name": "SS-S-035",
     "location": "Whidbey Island, WA",
     "latitude": 48.1556,
     "longitude": -122.6756,
@@ -7393,11 +7393,11 @@
     "sswd_observations": "Monitored during SSWD outbreak",
     "data_source": "Whidbey Island diving community, WDFW surveys",
     "notes": "Ferry terminal dive site popular with local divers. Jetty structure provides habitat for marine life.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS016",
-    "name": "SS-139",
+    "name": "SS-S-083",
     "location": "Tacoma, WA",
     "latitude": 47.295,
     "longitude": -122.545,
@@ -7407,11 +7407,11 @@
     "sswd_observations": "South Sound SSWD monitoring location",
     "data_source": "Local dive clubs, WDFW surveys",
     "notes": "Popular training site in south Puget Sound with predictable but mild currents.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS017",
-    "name": "SS-125",
+    "name": "SS-S-072",
     "location": "Burien, WA",
     "latitude": 47.44353048551141,
     "longitude": -122.36915588378906,
@@ -7421,11 +7421,11 @@
     "sswd_observations": "SSWD impact monitoring site",
     "data_source": "Puget Sound dive surveys",
     "notes": "Consistent current pattern, popular advanced dive site with diverse marine life.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS018",
-    "name": "SS-128",
+    "name": "SS-S-074",
     "location": "Des Moines, WA",
     "latitude": 47.4016026187529,
     "longitude": -122.33774185180664,
@@ -7435,11 +7435,11 @@
     "sswd_observations": "Urban SSWD monitoring",
     "data_source": "Local dive club surveys",
     "notes": "Marina diving with artificial habitat structures supporting marine communities.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS019",
-    "name": "SS-129",
+    "name": "SS-S-075",
     "location": "Des Moines, WA",
     "latitude": 47.38475238552698,
     "longitude": -122.33104705810548,
@@ -7449,11 +7449,11 @@
     "sswd_observations": "Park monitoring during SSWD outbreak",
     "data_source": "Washington State Parks, dive surveys",
     "notes": "Only saltwater state park in King County. Popular diving and training location.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS020",
-    "name": "SS-093",
+    "name": "SS-S-046",
     "location": "Mukilteo, WA",
     "latitude": 47.9442,
     "longitude": -122.3042,
@@ -7463,11 +7463,11 @@
     "sswd_observations": "Ferry terminal area SSWD observations",
     "data_source": "Local dive community surveys",
     "notes": "Ferry terminal diving location with accessible entry and diverse marine habitat.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS021",
-    "name": "SS-136",
+    "name": "SS-S-081",
     "location": "Vashon Island, WA",
     "latitude": 47.3108,
     "longitude": -122.5089,
@@ -7477,11 +7477,11 @@
     "sswd_observations": "Early SSWD signs documented March 2013",
     "data_source": "Early SSWD outbreak reports, MARINe updates",
     "notes": "One of early SSWD observation locations. Ferry terminal access to diverse habitat.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS022",
-    "name": "SS-053",
+    "name": "SS-S-022",
     "location": "Victoria area, BC",
     "latitude": 48.592050872804194,
     "longitude": -123.51379394531251,
@@ -7491,11 +7491,11 @@
     "sswd_observations": "BC SSWD monitoring in inlet system",
     "data_source": "DFO monitoring, Ocean Networks Canada",
     "notes": "Research inlet with extreme depth gradient. Shallow areas support diverse invertebrate communities.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS023",
-    "name": "SS-028",
+    "name": "SS-N-028",
     "location": "Gulf Islands, BC",
     "latitude": 49.15,
     "longitude": -123.8,
@@ -7505,11 +7505,11 @@
     "sswd_observations": "BC Gulf Islands SSWD monitoring",
     "data_source": "BC marine monitoring programs",
     "notes": "Gulf Islands marine diversity. Important habitat for multiple sea star species.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS024",
-    "name": "SS-036",
+    "name": "SS-S-005",
     "location": "Gulf Islands, BC",
     "latitude": 48.85,
     "longitude": -123.5,
@@ -7519,11 +7519,11 @@
     "sswd_observations": "SSWD outbreak monitoring in Gulf Islands",
     "data_source": "BC marine surveys, citizen science",
     "notes": "Largest Gulf Island with extensive shoreline and diverse marine habitats.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS025",
-    "name": "SS-039",
+    "name": "SS-S-008",
     "location": "Gulf Islands, BC",
     "latitude": 48.7833,
     "longitude": -123.25,
@@ -7533,11 +7533,11 @@
     "sswd_observations": "BC monitoring network coverage",
     "data_source": "Gulf Islands marine monitoring",
     "notes": "North and South Pender Islands with protected inter-island waters.",
-    "region": "SS"
+    "region": "SS-S"
   },
   {
     "id": "SS026",
-    "name": "SS-031",
+    "name": "SS-N-031",
     "location": "US-Canada border, Puget Sound/Fraser River",
     "latitude": 49.0167,
     "longitude": -123.0333,
@@ -7547,11 +7547,11 @@
     "sswd_observations": "Cross-border SSWD monitoring",
     "data_source": "Cross-border marine monitoring",
     "notes": "International boundary waters with Fraser River influence. Unique brackish habitat conditions.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS027",
-    "name": "SS-022",
+    "name": "SS-N-022",
     "location": "North Vancouver, BC",
     "latitude": 49.3734,
     "longitude": -122.8811,
@@ -7561,13 +7561,13 @@
     "sswd_observations": "BC fjord system SSWD monitoring",
     "data_source": "BC marine monitoring programs",
     "notes": "Deep glacial fjord extending into North Shore mountains. Steep underwater topography.",
-    "region": "SS",
+    "region": "SS-N",
     "sswd_status": "",
     "pycnopodia_documented": true
   },
   {
     "id": "SS028",
-    "name": "SS-024",
+    "name": "SS-N-024",
     "location": "Vancouver, BC",
     "latitude": 49.3,
     "longitude": -123.0,
@@ -7577,11 +7577,11 @@
     "sswd_observations": "Urban harbor SSWD monitoring",
     "data_source": "Vancouver Aquarium, urban marine monitoring",
     "notes": "Major urban harbor and shipping channel. Habitat restoration and monitoring programs active.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS029",
-    "name": "SS-027",
+    "name": "SS-N-027",
     "location": "Vancouver Island, BC",
     "latitude": 49.1667,
     "longitude": -123.9333,
@@ -7591,11 +7591,11 @@
     "sswd_observations": "Vancouver Island SSWD monitoring",
     "data_source": "BC marine monitoring, ferry terminal surveys",
     "notes": "Major Vancouver Island center with harbor and open coast access. Ferry connection to mainland.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS030",
-    "name": "SS-017",
+    "name": "SS-N-017",
     "location": "Vancouver Island area, BC",
     "latitude": 49.5167,
     "longitude": -124.6667,
@@ -7605,11 +7605,11 @@
     "sswd_observations": "REEF monitoring program SSWD tracking",
     "data_source": "REEF Environmental Education Foundation",
     "notes": "REEF monitoring expansion site 2019. Outer Gulf Islands location with more exposed conditions.",
-    "region": "SS"
+    "region": "SS-N"
   },
   {
     "id": "SS031",
-    "name": "SS-072",
+    "name": "JDF-011",
     "location": "Southern Vancouver Island, BC",
     "latitude": 48.2969,
     "longitude": -123.5319,
@@ -7619,11 +7619,11 @@
     "sswd_observations": "Protected area SSWD monitoring",
     "data_source": "BC Parks Ecological Reserve monitoring",
     "notes": "Race Rocks Ecological Reserve. High current, high diversity marine environment.",
-    "region": "SS"
+    "region": "JDF"
   },
   {
     "id": "SS032",
-    "name": "SS-068",
+    "name": "JDF-008",
     "location": "Victoria, BC",
     "latitude": 48.40914931221878,
     "longitude": -123.39157104492189,
@@ -7633,7 +7633,7 @@
     "sswd_observations": "Urban BC SSWD monitoring",
     "data_source": "Victoria area dive clubs, marine monitoring",
     "notes": "Inner harbor artificial breakwater structure. Popular urban diving location.",
-    "region": "SS"
+    "region": "JDF"
   },
   {
     "name": "WA-O-001",
@@ -7704,7 +7704,7 @@
     "longitude": -124.62066650390626
   },
   {
-    "name": "WA-O-007",
+    "name": "WA-O-006",
     "lat": 48.275424532187756,
     "lon": -124.68933105468751,
     "source": "Trailforks GPS coordinates + Olympic NP documentation",
@@ -7721,7 +7721,7 @@
     "longitude": -124.68933105468751
   },
   {
-    "name": "WA-O-009",
+    "name": "WA-O-008",
     "lat": 48.167917284047974,
     "lon": -124.73876953125001,
     "source": "Olympic National Park + MARINe monitoring network",
@@ -7738,7 +7738,7 @@
     "longitude": -124.73876953125001
   },
   {
-    "name": "WA-O-006",
+    "name": "WA-O-005",
     "lat": 48.33251726168281,
     "lon": -124.6776580810547,
     "source": "Bull kelp habitat documentation + geographic references",
@@ -7755,7 +7755,7 @@
     "longitude": -124.6776580810547
   },
   {
-    "name": "WA-O-013",
+    "name": "WA-O-012",
     "lat": 47.904,
     "lon": -124.636,
     "source": "NWFSC monitoring access point + Quileute tribal area",
@@ -7772,7 +7772,7 @@
     "longitude": -124.636
   },
   {
-    "name": "WA-O-014",
+    "name": "WA-O-013",
     "lat": 47.89701002596689,
     "lon": -124.63474273681642,
     "source": "Olympic National Park + tide pooling guides",
@@ -7789,7 +7789,7 @@
     "longitude": -124.63474273681642
   },
   {
-    "name": "WA-O-015",
+    "name": "WA-O-014",
     "lat": 47.879512933970524,
     "lon": -124.6168899536133,
     "source": "Olympic National Park tide pool documentation",
@@ -7806,7 +7806,7 @@
     "longitude": -124.6168899536133
   },
   {
-    "name": "WA-O-016",
+    "name": "WA-O-015",
     "lat": 47.86200993068552,
     "lon": -124.58599090576173,
     "source": "Olympic Coast wilderness area documentation",
@@ -7823,7 +7823,7 @@
     "longitude": -124.58599090576173
   },
   {
-    "name": "WA-O-018",
+    "name": "WA-O-017",
     "lat": 47.75502125407674,
     "lon": -124.4575881958008,
     "source": "Olympic National Park + visitor documentation",
@@ -7840,7 +7840,7 @@
     "longitude": -124.4575881958008
   },
   {
-    "name": "WA-O-019",
+    "name": "WA-O-018",
     "lat": 47.70398579157171,
     "lon": -124.42428588867189,
     "source": "Olympic National Park official site + tide pool guides",
@@ -7857,7 +7857,7 @@
     "longitude": -124.42428588867189
   },
   {
-    "name": "WA-O-023",
+    "name": "WA-O-022",
     "lat": 47.59690318115471,
     "lon": -124.37484741210939,
     "source": "Olympic National Park tide pool documentation + visitor guides",
@@ -7874,7 +7874,7 @@
     "longitude": -124.37484741210939
   },
   {
-    "name": "WA-O-022",
+    "name": "WA-O-021",
     "lat": 47.623752267682875,
     "lon": -124.38446044921875,
     "source": "Olympic National Park + Whale Trail documentation",
@@ -7891,7 +7891,7 @@
     "longitude": -124.38446044921875
   },
   {
-    "name": "WA-O-024",
+    "name": "WA-O-023",
     "lat": 47.53481981995956,
     "lon": -124.36317443847656,
     "source": "Olympic National Park southern boundary documentation",
@@ -7908,7 +7908,7 @@
     "longitude": -124.36317443847656
   },
   {
-    "name": "WA-O-020",
+    "name": "WA-O-019",
     "lat": 47.65983792850961,
     "lon": -124.39819335937501,
     "source": "NOAA buoy station + lighthouse coordinates",
@@ -7925,7 +7925,7 @@
     "longitude": -124.39819335937501
   },
   {
-    "name": "WA-O-026",
+    "name": "WA-O-025",
     "lat": 47.3248614517268,
     "lon": -124.29794311523439,
     "source": "Quinault Indian Nation traditional fishing areas",
@@ -7942,7 +7942,7 @@
     "longitude": -124.29794311523439
   },
   {
-    "name": "WA-O-027",
+    "name": "WA-O-026",
     "lat": 47.18224592701491,
     "lon": -124.21691894531251,
     "source": "OCNMS southern boundary + clam digging area documentation",
@@ -7959,7 +7959,7 @@
     "longitude": -124.21691894531251
   },
   {
-    "name": "WA-O-028",
+    "name": "WA-O-027",
     "lat": 47.05889641405164,
     "lon": -124.18533325195314,
     "source": "Grays Harbor region coastal documentation",
@@ -7976,7 +7976,7 @@
     "longitude": -124.18533325195314
   },
   {
-    "name": "WA-O-029",
+    "name": "WA-O-028",
     "lat": 46.973693454655916,
     "lon": -124.19494628906251,
     "source": "Washington State Parks + Grays Harbor documentation",
@@ -7993,7 +7993,7 @@
     "longitude": -124.19494628906251
   },
   {
-    "name": "WA-O-031",
+    "name": "WA-O-030",
     "lat": 46.88460024993555,
     "lon": -124.14550781250001,
     "source": "WDFW Marine Area documentation + fishing port",
@@ -8010,7 +8010,7 @@
     "longitude": -124.14550781250001
   },
   {
-    "name": "WA-O-032",
+    "name": "WA-O-031",
     "lat": 46.82731489926434,
     "lon": -124.11941528320314,
     "source": "Washington State Parks coastal areas",
@@ -8027,7 +8027,7 @@
     "longitude": -124.11941528320314
   },
   {
-    "name": "WA-O-034",
+    "name": "WA-O-033",
     "lat": 46.683,
     "lon": -124.048,
     "source": "NOAA charts + estuary documentation",
@@ -8044,7 +8044,7 @@
     "longitude": -124.048
   },
   {
-    "name": "WA-O-036",
+    "name": "WA-O-035",
     "lat": 46.5,
     "lon": -124.02,
     "source": "Washington State Parks + Long Beach tourism",
@@ -8061,7 +8061,7 @@
     "longitude": -124.02
   },
   {
-    "name": "WA-O-037",
+    "name": "WA-O-036",
     "lat": 46.29855980566551,
     "lon": -124.08782958984375,
     "source": "Washington State Parks GPS coordinates + lighthouse location",
@@ -8078,10 +8078,10 @@
     "longitude": -124.08782958984375
   },
   {
-    "name": "SS-132",
+    "name": "JDF-024",
     "latitude": 47.3565,
     "longitude": -123.1313,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8090,10 +8090,10 @@
     "notes": ""
   },
   {
-    "name": "SS-124",
+    "name": "JDF-022",
     "latitude": 47.4748,
     "longitude": -123.063,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8102,10 +8102,10 @@
     "notes": ""
   },
   {
-    "name": "SS-123",
+    "name": "JDF-021",
     "latitude": 47.523,
     "longitude": -123.0335,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8114,10 +8114,10 @@
     "notes": ""
   },
   {
-    "name": "SS-119",
+    "name": "JDF-020",
     "latitude": 47.571,
     "longitude": -122.9913,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8126,10 +8126,10 @@
     "notes": ""
   },
   {
-    "name": "SS-109",
+    "name": "JDF-019",
     "latitude": 47.6242,
     "longitude": -122.9315,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8138,10 +8138,10 @@
     "notes": ""
   },
   {
-    "name": "SS-105",
+    "name": "JDF-018",
     "latitude": 47.673,
     "longitude": -122.8591,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8150,10 +8150,10 @@
     "notes": ""
   },
   {
-    "name": "SS-101",
+    "name": "JDF-017",
     "latitude": 47.7578,
     "longitude": -122.8265,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8162,10 +8162,10 @@
     "notes": ""
   },
   {
-    "name": "SS-104",
+    "name": "SS-S-056",
     "latitude": 47.6841,
     "longitude": -122.7616,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8174,10 +8174,10 @@
     "notes": ""
   },
   {
-    "name": "SS-100",
+    "name": "SS-S-053",
     "latitude": 47.8127,
     "longitude": -122.6933,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8186,10 +8186,10 @@
     "notes": ""
   },
   {
-    "name": "SS-095",
+    "name": "SS-S-048",
     "latitude": 47.9251,
     "longitude": -122.6404,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8198,10 +8198,10 @@
     "notes": ""
   },
   {
-    "name": "SS-091",
+    "name": "SS-S-044",
     "latitude": 47.9945,
     "longitude": -122.6781,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8210,10 +8210,10 @@
     "notes": ""
   },
   {
-    "name": "SS-090",
+    "name": "SS-S-043",
     "latitude": 47.9977,
     "longitude": -122.5662,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8222,10 +8222,10 @@
     "notes": ""
   },
   {
-    "name": "SS-096",
+    "name": "SS-S-049",
     "latitude": 47.9214,
     "longitude": -122.455,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8234,10 +8234,10 @@
     "notes": ""
   },
   {
-    "name": "SS-098",
+    "name": "SS-S-051",
     "latitude": 47.8514,
     "longitude": -122.5017,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8246,10 +8246,10 @@
     "notes": ""
   },
   {
-    "name": "SS-102",
+    "name": "SS-S-054",
     "latitude": 47.7222,
     "longitude": -122.3808,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8258,10 +8258,10 @@
     "notes": ""
   },
   {
-    "name": "SS-117",
+    "name": "SS-S-067",
     "latitude": 47.585,
     "longitude": -122.4035,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8270,10 +8270,10 @@
     "notes": ""
   },
   {
-    "name": "SS-114",
+    "name": "SS-S-064",
     "latitude": 47.607,
     "longitude": -122.3462,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8282,10 +8282,10 @@
     "notes": ""
   },
   {
-    "name": "SS-110",
+    "name": "SS-S-060",
     "latitude": 47.6228,
     "longitude": -122.3786,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8294,10 +8294,10 @@
     "notes": ""
   },
   {
-    "name": "SS-108",
+    "name": "SS-S-059",
     "latitude": 47.6347,
     "longitude": -122.4097,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8306,10 +8306,10 @@
     "notes": ""
   },
   {
-    "name": "SS-115",
+    "name": "SS-S-065",
     "latitude": 47.5951,
     "longitude": -122.4941,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8318,10 +8318,10 @@
     "notes": ""
   },
   {
-    "name": "SS-111",
+    "name": "SS-S-061",
     "latitude": 47.6187,
     "longitude": -122.4928,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8330,10 +8330,10 @@
     "notes": ""
   },
   {
-    "name": "SS-107",
+    "name": "SS-S-058",
     "latitude": 47.6529,
     "longitude": -122.5044,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8342,10 +8342,10 @@
     "notes": ""
   },
   {
-    "name": "SS-103",
+    "name": "SS-S-055",
     "latitude": 47.6857,
     "longitude": -122.5793,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8354,10 +8354,10 @@
     "notes": ""
   },
   {
-    "name": "SS-106",
+    "name": "SS-S-057",
     "latitude": 47.6603,
     "longitude": -122.6033,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8366,10 +8366,10 @@
     "notes": ""
   },
   {
-    "name": "SS-113",
+    "name": "SS-S-063",
     "latitude": 47.6099,
     "longitude": -122.5827,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8378,10 +8378,10 @@
     "notes": ""
   },
   {
-    "name": "SS-118",
+    "name": "SS-S-068",
     "latitude": 47.5733,
     "longitude": -122.5951,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8390,10 +8390,10 @@
     "notes": ""
   },
   {
-    "name": "SS-112",
+    "name": "SS-S-062",
     "latitude": 47.6159,
     "longitude": -122.6836,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8402,10 +8402,10 @@
     "notes": ""
   },
   {
-    "name": "SS-120",
+    "name": "SS-S-069",
     "latitude": 47.5469,
     "longitude": -122.6397,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8414,10 +8414,10 @@
     "notes": ""
   },
   {
-    "name": "SS-122",
+    "name": "SS-S-071",
     "latitude": 47.5283,
     "longitude": -122.5333,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8426,10 +8426,10 @@
     "notes": ""
   },
   {
-    "name": "SS-121",
+    "name": "SS-S-070",
     "latitude": 47.5362,
     "longitude": -122.4804,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8438,10 +8438,10 @@
     "notes": ""
   },
   {
-    "name": "SS-127",
+    "name": "SS-S-073",
     "latitude": 47.4258,
     "longitude": -122.5257,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8450,10 +8450,10 @@
     "notes": ""
   },
   {
-    "name": "SS-130",
+    "name": "SS-S-076",
     "latitude": 47.3732,
     "longitude": -122.4735,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8462,10 +8462,10 @@
     "notes": ""
   },
   {
-    "name": "SS-131",
+    "name": "SS-S-077",
     "latitude": 47.3593,
     "longitude": -122.4323,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8474,10 +8474,10 @@
     "notes": ""
   },
   {
-    "name": "SS-134",
+    "name": "SS-S-079",
     "latitude": 47.3444,
     "longitude": -122.3602,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8486,10 +8486,10 @@
     "notes": ""
   },
   {
-    "name": "SS-135",
+    "name": "SS-S-080",
     "latitude": 47.3318,
     "longitude": -122.4055,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8498,10 +8498,10 @@
     "notes": ""
   },
   {
-    "name": "SS-141",
+    "name": "SS-S-085",
     "latitude": 47.2754,
     "longitude": -122.455,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8510,10 +8510,10 @@
     "notes": ""
   },
   {
-    "name": "SS-133",
+    "name": "SS-S-078",
     "latitude": 47.3467,
     "longitude": -122.6823,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8522,10 +8522,10 @@
     "notes": ""
   },
   {
-    "name": "SS-142",
+    "name": "SS-S-086",
     "latitude": 47.2592,
     "longitude": -122.604,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8534,10 +8534,10 @@
     "notes": ""
   },
   {
-    "name": "SS-143",
+    "name": "SS-S-087",
     "latitude": 47.1902,
     "longitude": -122.7331,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8546,10 +8546,10 @@
     "notes": ""
   },
   {
-    "name": "SS-147",
+    "name": "SS-S-090",
     "latitude": 47.1061,
     "longitude": -122.696,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8558,10 +8558,10 @@
     "notes": ""
   },
   {
-    "name": "SS-145",
+    "name": "SS-S-088",
     "latitude": 47.1813,
     "longitude": -122.6012,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8570,10 +8570,10 @@
     "notes": ""
   },
   {
-    "name": "SS-140",
+    "name": "SS-S-084",
     "latitude": 47.2811,
     "longitude": -122.7468,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8582,10 +8582,10 @@
     "notes": ""
   },
   {
-    "name": "SS-144",
+    "name": "JDF-026",
     "latitude": 47.1836,
     "longitude": -122.8388,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8594,10 +8594,10 @@
     "notes": ""
   },
   {
-    "name": "SS-137",
+    "name": "JDF-025",
     "latitude": 47.3025,
     "longitude": -122.8258,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8606,10 +8606,10 @@
     "notes": ""
   },
   {
-    "name": "SS-087",
+    "name": "SS-S-040",
     "latitude": 48.0556,
     "longitude": -122.5319,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8618,10 +8618,10 @@
     "notes": ""
   },
   {
-    "name": "SS-088",
+    "name": "SS-S-041",
     "latitude": 48.0547,
     "longitude": -122.4255,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8630,10 +8630,10 @@
     "notes": ""
   },
   {
-    "name": "SS-084",
+    "name": "SS-S-037",
     "latitude": 48.118,
     "longitude": -122.4831,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8642,10 +8642,10 @@
     "notes": ""
   },
   {
-    "name": "SS-079",
+    "name": "SS-S-034",
     "latitude": 48.1624,
     "longitude": -122.5607,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8654,10 +8654,10 @@
     "notes": ""
   },
   {
-    "name": "SS-075",
+    "name": "SS-S-032",
     "latitude": 48.2338,
     "longitude": -122.6733,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8666,10 +8666,10 @@
     "notes": ""
   },
   {
-    "name": "SS-073",
+    "name": "SS-S-031",
     "latitude": 48.2594,
     "longitude": -122.5518,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8678,10 +8678,10 @@
     "notes": ""
   },
   {
-    "name": "SS-081",
+    "name": "JDF-015",
     "latitude": 48.1368,
     "longitude": -123.2803,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8690,10 +8690,10 @@
     "notes": ""
   },
   {
-    "name": "SS-082",
+    "name": "JDF-016",
     "latitude": 48.1313,
     "longitude": -123.0469,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8702,10 +8702,10 @@
     "notes": ""
   },
   {
-    "name": "SS-078",
+    "name": "JDF-014",
     "latitude": 48.1734,
     "longitude": -123.6099,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8714,10 +8714,10 @@
     "notes": ""
   },
   {
-    "name": "SS-077",
+    "name": "JDF-013",
     "latitude": 48.1881,
     "longitude": -123.8983,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8726,10 +8726,10 @@
     "notes": ""
   },
   {
-    "name": "SS-074",
+    "name": "JDF-012",
     "latitude": 48.2576,
     "longitude": -124.1565,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8738,10 +8738,10 @@
     "notes": ""
   },
   {
-    "name": "SS-071",
+    "name": "JDF-010",
     "latitude": 48.3143,
     "longitude": -124.39,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -8750,7 +8750,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-008",
+    "name": "WA-O-007",
     "latitude": 48.2027,
     "longitude": -124.7003,
     "region": "WA-O",
@@ -8762,7 +8762,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-010",
+    "name": "WA-O-009",
     "latitude": 48.1001,
     "longitude": -124.7168,
     "region": "WA-O",
@@ -8774,7 +8774,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-011",
+    "name": "WA-O-010",
     "latitude": 48.0308,
     "longitude": -124.6886,
     "region": "WA-O",
@@ -8786,7 +8786,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-012",
+    "name": "WA-O-011",
     "latitude": 47.9554,
     "longitude": -124.6811,
     "region": "WA-O",
@@ -8798,7 +8798,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-017",
+    "name": "WA-O-016",
     "latitude": 47.8136,
     "longitude": -124.5142,
     "region": "WA-O",
@@ -8810,7 +8810,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-025",
+    "name": "WA-O-024",
     "latitude": 47.4513,
     "longitude": -124.3494,
     "region": "WA-O",
@@ -8822,7 +8822,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-030",
+    "name": "WA-O-029",
     "latitude": 46.9484,
     "longitude": -123.9738,
     "region": "WA-O",
@@ -8834,7 +8834,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-035",
+    "name": "WA-O-034",
     "latitude": 46.5041,
     "longitude": -124.0741,
     "region": "WA-O",
@@ -10178,10 +10178,10 @@
     "notes": ""
   },
   {
-    "name": "SS-089",
+    "name": "SS-S-042",
     "latitude": 48.012,
     "longitude": -122.33,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10190,10 +10190,10 @@
     "notes": ""
   },
   {
-    "name": "SS-094",
+    "name": "SS-S-047",
     "latitude": 47.9292,
     "longitude": -122.3657,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10202,10 +10202,10 @@
     "notes": ""
   },
   {
-    "name": "SS-097",
+    "name": "SS-S-050",
     "latitude": 47.8749,
     "longitude": -122.341,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10214,10 +10214,10 @@
     "notes": ""
   },
   {
-    "name": "SS-092",
+    "name": "SS-S-045",
     "latitude": 47.9936,
     "longitude": -122.2284,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10226,10 +10226,10 @@
     "notes": ""
   },
   {
-    "name": "SS-086",
+    "name": "SS-S-039",
     "latitude": 48.0625,
     "longitude": -122.3012,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10238,10 +10238,10 @@
     "notes": ""
   },
   {
-    "name": "SS-083",
+    "name": "SS-S-036",
     "latitude": 48.1212,
     "longitude": -122.3657,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10250,10 +10250,10 @@
     "notes": ""
   },
   {
-    "name": "SS-076",
+    "name": "SS-S-033",
     "latitude": 48.2073,
     "longitude": -122.4358,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10262,10 +10262,10 @@
     "notes": ""
   },
   {
-    "name": "SS-066",
+    "name": "JDF-006",
     "latitude": 48.4492,
     "longitude": -122.9837,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10274,10 +10274,10 @@
     "notes": ""
   },
   {
-    "name": "SS-062",
+    "name": "JDF-004",
     "latitude": 48.4957,
     "longitude": -123.0029,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10286,10 +10286,10 @@
     "notes": ""
   },
   {
-    "name": "SS-065",
+    "name": "JDF-005",
     "latitude": 48.4584,
     "longitude": -123.0441,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10298,10 +10298,10 @@
     "notes": ""
   },
   {
-    "name": "SS-146",
+    "name": "SS-S-089",
     "latitude": 47.13181932754414,
     "longitude": -122.76397705078126,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10310,10 +10310,10 @@
     "notes": ""
   },
   {
-    "name": "SS-059",
+    "name": "JDF-002",
     "latitude": 48.5148,
     "longitude": -123.1664,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10322,10 +10322,10 @@
     "notes": ""
   },
   {
-    "name": "SS-056",
+    "name": "SS-S-025",
     "latitude": 48.5811,
     "longitude": -123.1856,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10334,10 +10334,10 @@
     "notes": ""
   },
   {
-    "name": "SS-049",
+    "name": "SS-S-018",
     "latitude": 48.6229,
     "longitude": -123.1622,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10346,10 +10346,10 @@
     "notes": ""
   },
   {
-    "name": "SS-050",
+    "name": "SS-S-019",
     "latitude": 48.6075,
     "longitude": -123.0949,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10358,10 +10358,10 @@
     "notes": ""
   },
   {
-    "name": "SS-046",
+    "name": "SS-S-015",
     "latitude": 48.6864,
     "longitude": -123.0524,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10370,10 +10370,10 @@
     "notes": ""
   },
   {
-    "name": "SS-043",
+    "name": "SS-S-012",
     "latitude": 48.7254,
     "longitude": -123.0469,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10382,10 +10382,10 @@
     "notes": ""
   },
   {
-    "name": "SS-048",
+    "name": "SS-S-017",
     "latitude": 48.6583,
     "longitude": -123.1622,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10394,10 +10394,10 @@
     "notes": ""
   },
   {
-    "name": "SS-045",
+    "name": "SS-S-014",
     "latitude": 48.6973,
     "longitude": -123.2281,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10406,10 +10406,10 @@
     "notes": ""
   },
   {
-    "name": "SS-057",
+    "name": "SS-S-026",
     "latitude": 48.5503,
     "longitude": -122.6569,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10418,10 +10418,10 @@
     "notes": ""
   },
   {
-    "name": "SS-063",
+    "name": "SS-S-028",
     "latitude": 48.4738,
     "longitude": -122.5209,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10430,10 +10430,10 @@
     "notes": ""
   },
   {
-    "name": "SS-064",
+    "name": "SS-S-029",
     "latitude": 48.4647,
     "longitude": -122.6761,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10442,10 +10442,10 @@
     "notes": ""
   },
   {
-    "name": "SS-042",
+    "name": "SS-S-011",
     "latitude": 48.7335,
     "longitude": -122.6308,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10454,10 +10454,10 @@
     "notes": ""
   },
   {
-    "name": "SS-052",
+    "name": "SS-S-021",
     "latitude": 48.593,
     "longitude": -122.4605,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10466,10 +10466,10 @@
     "notes": ""
   },
   {
-    "name": "SS-054",
+    "name": "SS-S-023",
     "latitude": 48.5839,
     "longitude": -123.3614,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10478,10 +10478,10 @@
     "notes": ""
   },
   {
-    "name": "SS-047",
+    "name": "SS-S-016",
     "latitude": 48.6656,
     "longitude": -123.382,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10490,10 +10490,10 @@
     "notes": ""
   },
   {
-    "name": "SS-041",
+    "name": "SS-S-010",
     "latitude": 48.7354,
     "longitude": -123.5687,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10502,10 +10502,10 @@
     "notes": ""
   },
   {
-    "name": "SS-038",
+    "name": "SS-S-007",
     "latitude": 48.7987,
     "longitude": -123.3833,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10514,10 +10514,10 @@
     "notes": ""
   },
   {
-    "name": "SS-037",
+    "name": "SS-S-006",
     "latitude": 48.8177,
     "longitude": -123.1567,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10526,10 +10526,10 @@
     "notes": ""
   },
   {
-    "name": "SS-034",
+    "name": "SS-S-003",
     "latitude": 48.9144,
     "longitude": -123.4946,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10538,10 +10538,10 @@
     "notes": ""
   },
   {
-    "name": "SS-033",
+    "name": "SS-S-002",
     "latitude": 48.9568,
     "longitude": -123.7184,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10550,10 +10550,10 @@
     "notes": ""
   },
   {
-    "name": "SS-029",
+    "name": "SS-N-029",
     "latitude": 49.0999,
     "longitude": -123.7733,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10562,10 +10562,10 @@
     "notes": ""
   },
   {
-    "name": "SS-035",
+    "name": "SS-S-004",
     "latitude": 48.8792,
     "longitude": -123.5934,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10574,10 +10574,10 @@
     "notes": ""
   },
   {
-    "name": "SS-032",
+    "name": "SS-S-001",
     "latitude": 48.991,
     "longitude": -122.823,
-    "region": "SS",
+    "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10586,10 +10586,10 @@
     "notes": ""
   },
   {
-    "name": "SS-030",
+    "name": "SS-N-030",
     "latitude": 49.0721,
     "longitude": -123.1938,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10598,10 +10598,10 @@
     "notes": ""
   },
   {
-    "name": "SS-026",
+    "name": "SS-N-026",
     "latitude": 49.2391,
     "longitude": -123.2666,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10610,10 +10610,10 @@
     "notes": ""
   },
   {
-    "name": "SS-023",
+    "name": "SS-N-023",
     "latitude": 49.3081,
     "longitude": -123.213,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10622,10 +10622,10 @@
     "notes": ""
   },
   {
-    "name": "SS-021",
+    "name": "SS-N-021",
     "latitude": 49.3752,
     "longitude": -123.5042,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10634,10 +10634,10 @@
     "notes": ""
   },
   {
-    "name": "SS-025",
+    "name": "SS-N-025",
     "latitude": 49.2759,
     "longitude": -124.0755,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10646,10 +10646,10 @@
     "notes": ""
   },
   {
-    "name": "SS-070",
+    "name": "JDF-009",
     "latitude": 48.3453,
     "longitude": -123.8269,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10658,10 +10658,10 @@
     "notes": ""
   },
   {
-    "name": "SS-067",
+    "name": "JDF-007",
     "latitude": 48.4438,
     "longitude": -124.1785,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10670,10 +10670,10 @@
     "notes": ""
   },
   {
-    "name": "SS-060",
+    "name": "JDF-003",
     "latitude": 48.513,
     "longitude": -124.4614,
-    "region": "SS",
+    "region": "JDF",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10682,7 +10682,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-038",
+    "name": "BC-C-037",
     "latitude": 48.6202,
     "longitude": -124.8322,
     "region": "BC-C",
@@ -10694,7 +10694,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-037",
+    "name": "BC-C-036",
     "latitude": 48.7109,
     "longitude": -125.1288,
     "region": "BC-C",
@@ -10706,7 +10706,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-035",
+    "name": "BC-C-034",
     "latitude": 48.9117,
     "longitude": -125.4584,
     "region": "BC-C",
@@ -10718,7 +10718,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-033",
+    "name": "BC-C-032",
     "latitude": 49.0883,
     "longitude": -125.95,
     "region": "BC-C",
@@ -10730,7 +10730,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-031",
+    "name": "BC-C-030",
     "latitude": 49.2284,
     "longitude": -126.1697,
     "region": "BC-C",
@@ -10742,7 +10742,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-030",
+    "name": "BC-C-029",
     "latitude": 49.3359,
     "longitude": -126.3977,
     "region": "BC-C",
@@ -10754,7 +10754,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-029",
+    "name": "BC-C-028",
     "latitude": 49.5252,
     "longitude": -126.6202,
     "region": "BC-C",
@@ -10766,7 +10766,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-028",
+    "name": "BC-C-027",
     "latitude": 49.665850145713975,
     "longitude": -126.9085693359375,
     "region": "BC-C",
@@ -10778,7 +10778,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-026",
+    "name": "BC-C-025",
     "latitude": 49.9565,
     "longitude": -127.3563,
     "region": "BC-C",
@@ -10790,7 +10790,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-027",
+    "name": "BC-C-026",
     "latitude": 49.8575,
     "longitude": -126.925,
     "region": "BC-C",
@@ -10802,7 +10802,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-025",
+    "name": "BC-C-024",
     "latitude": 50.1118,
     "longitude": -127.6804,
     "region": "BC-C",
@@ -10814,7 +10814,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-024",
+    "name": "BC-C-023",
     "latitude": 50.3157,
     "longitude": -127.8809,
     "region": "BC-C",
@@ -10826,7 +10826,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-022",
+    "name": "BC-C-021",
     "latitude": 50.4977,
     "longitude": -127.7161,
     "region": "BC-C",
@@ -10838,7 +10838,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-014",
+    "name": "BC-C-013",
     "latitude": 50.7729,
     "longitude": -128.4824,
     "region": "BC-C",
@@ -10850,10 +10850,10 @@
     "notes": ""
   },
   {
-    "name": "SS-002",
+    "name": "SS-N-002",
     "latitude": 50.5693,
     "longitude": -124.9557,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10862,10 +10862,10 @@
     "notes": ""
   },
   {
-    "name": "SS-003",
+    "name": "SS-N-003",
     "latitude": 50.3735,
     "longitude": -124.7086,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10874,10 +10874,10 @@
     "notes": ""
   },
   {
-    "name": "SS-005",
+    "name": "SS-N-005",
     "latitude": 50.1787,
     "longitude": -124.6536,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -10886,7 +10886,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-023",
+    "name": "BC-C-022",
     "latitude": 50.3717,
     "longitude": -125.7083,
     "region": "BC-C",
@@ -10898,7 +10898,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-011",
+    "name": "BC-C-010",
     "latitude": 50.929,
     "longitude": -126.5323,
     "region": "BC-C",
@@ -10910,7 +10910,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-010",
+    "name": "BC-C-009",
     "latitude": 50.9307,
     "longitude": -127.7985,
     "region": "BC-C",
@@ -10922,7 +10922,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-015",
+    "name": "BC-C-014",
     "latitude": 50.7486,
     "longitude": -127.4689,
     "region": "BC-C",
@@ -10934,7 +10934,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-013",
+    "name": "BC-C-012",
     "latitude": 50.8649,
     "longitude": -128.1528,
     "region": "BC-C",
@@ -10946,7 +10946,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-007",
+    "name": "BC-C-006",
     "latitude": 51.2877,
     "longitude": -127.7435,
     "region": "BC-C",
@@ -10958,7 +10958,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-008",
+    "name": "BC-C-007",
     "latitude": 51.1725,
     "longitude": -127.804,
     "region": "BC-C",
@@ -10970,7 +10970,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-044",
+    "name": "BC-N-041",
     "latitude": 52.2143,
     "longitude": -127.8246,
     "region": "BC-N",
@@ -10982,7 +10982,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-063",
+    "name": "BC-N-060",
     "latitude": 52.0348,
     "longitude": -127.9152,
     "region": "BC-N",
@@ -10994,10 +10994,10 @@
     "notes": ""
   },
   {
-    "name": "SS-016",
+    "name": "SS-N-016",
     "latitude": 49.5484,
     "longitude": -124.0302,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11006,10 +11006,10 @@
     "notes": ""
   },
   {
-    "name": "SS-013",
+    "name": "SS-N-013",
     "latitude": 49.6374,
     "longitude": -124.1208,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11018,10 +11018,10 @@
     "notes": ""
   },
   {
-    "name": "SS-018",
+    "name": "SS-N-018",
     "latitude": 49.5074,
     "longitude": -124.4119,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11030,10 +11030,10 @@
     "notes": ""
   },
   {
-    "name": "SS-011",
+    "name": "SS-N-011",
     "latitude": 49.6552,
     "longitude": -124.5053,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11042,10 +11042,10 @@
     "notes": ""
   },
   {
-    "name": "SS-010",
+    "name": "SS-N-010",
     "latitude": 49.8114,
     "longitude": -124.0356,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11054,10 +11054,10 @@
     "notes": ""
   },
   {
-    "name": "SS-006",
+    "name": "SS-N-006",
     "latitude": 50.0959,
     "longitude": -123.7912,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11066,10 +11066,10 @@
     "notes": ""
   },
   {
-    "name": "SS-014",
+    "name": "SS-N-014",
     "latitude": 49.6214,
     "longitude": -123.7967,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11078,10 +11078,10 @@
     "notes": ""
   },
   {
-    "name": "SS-008",
+    "name": "SS-N-008",
     "latitude": 49.9282,
     "longitude": -124.7058,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11090,10 +11090,10 @@
     "notes": ""
   },
   {
-    "name": "SS-009",
+    "name": "SS-N-009",
     "latitude": 49.8628,
     "longitude": -125.0574,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11102,10 +11102,10 @@
     "notes": ""
   },
   {
-    "name": "SS-012",
+    "name": "SS-N-012",
     "latitude": 49.6481,
     "longitude": -124.8843,
-    "region": "SS",
+    "region": "SS-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11114,7 +11114,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-012",
+    "name": "BC-C-011",
     "latitude": 50.8753,
     "longitude": -127.2766,
     "region": "BC-C",
@@ -11126,7 +11126,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-030",
+    "name": "BC-N-027",
     "latitude": 52.7429,
     "longitude": -129.3036,
     "region": "BC-N",
@@ -11138,7 +11138,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-027",
+    "name": "BC-N-024",
     "latitude": 53.028,
     "longitude": -129.7485,
     "region": "BC-N",
@@ -11150,7 +11150,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-020",
+    "name": "BC-N-017",
     "latitude": 53.321,
     "longitude": -129.7375,
     "region": "BC-N",
@@ -11162,7 +11162,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-014",
+    "name": "BC-N-011",
     "latitude": 53.7292,
     "longitude": -130.4956,
     "region": "BC-N",
@@ -11174,7 +11174,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-012",
+    "name": "BC-N-009",
     "latitude": 53.9916,
     "longitude": -130.7153,
     "region": "BC-N",
@@ -11186,7 +11186,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-006",
+    "name": "BC-N-003",
     "latitude": 54.4221,
     "longitude": -130.8691,
     "region": "BC-N",
@@ -11198,7 +11198,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-019",
+    "name": "BC-N-016",
     "latitude": 53.3571,
     "longitude": -131.8799,
     "region": "BC-N",
@@ -11210,7 +11210,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-013",
+    "name": "BC-N-010",
     "latitude": 53.7747,
     "longitude": -131.8579,
     "region": "BC-N",
@@ -11222,7 +11222,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-023",
+    "name": "BC-N-020",
     "latitude": 53.1995,
     "longitude": -131.7206,
     "region": "BC-N",
@@ -11234,7 +11234,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-015",
+    "name": "BC-N-012",
     "latitude": 53.7032,
     "longitude": -133.1104,
     "region": "BC-N",
@@ -11246,7 +11246,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-029",
+    "name": "BC-N-026",
     "latitude": 52.8492,
     "longitude": -132.3413,
     "region": "BC-N",
@@ -11258,7 +11258,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-033",
+    "name": "BC-N-030",
     "latitude": 52.6431,
     "longitude": -128.9355,
     "region": "BC-N",
@@ -11270,7 +11270,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-028",
+    "name": "BC-N-025",
     "latitude": 52.9089,
     "longitude": -129.2651,
     "region": "BC-N",
@@ -11282,7 +11282,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-036",
+    "name": "BC-N-033",
     "latitude": 52.4292,
     "longitude": -131.6382,
     "region": "BC-N",
@@ -11294,7 +11294,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-003",
+    "name": "BC-N-001",
     "latitude": 54.7912,
     "longitude": -130.3143,
     "region": "BC-N",
@@ -11306,10 +11306,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-098",
+    "name": "AK-FS-036",
     "latitude": 55.2729,
     "longitude": -131.0559,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11318,10 +11318,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-109",
+    "name": "AK-FS-046",
     "latitude": 54.8829,
     "longitude": -131.4459,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11330,10 +11330,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-105",
+    "name": "AK-FS-043",
     "latitude": 55.0689,
     "longitude": -131.2866,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11342,10 +11342,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-110",
+    "name": "AK-FS-047",
     "latitude": 54.8766,
     "longitude": -132.4567,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11354,10 +11354,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-106",
+    "name": "AK-FS-044",
     "latitude": 54.9934,
     "longitude": -132.8137,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11366,10 +11366,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-111",
+    "name": "AK-FS-048",
     "latitude": 54.6675,
     "longitude": -132.7423,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11378,10 +11378,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-097",
+    "name": "AK-OC-027",
     "latitude": 55.276,
     "longitude": -133.5278,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11390,7 +11390,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-004",
+    "name": "BC-N-002",
     "latitude": 54.588,
     "longitude": -131.0504,
     "region": "BC-N",
@@ -11402,10 +11402,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-084",
+    "name": "AK-FS-024",
     "latitude": 55.6435,
     "longitude": -133.4729,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11414,10 +11414,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-092",
+    "name": "AK-OC-026",
     "latitude": 55.429,
     "longitude": -133.7201,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11426,10 +11426,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-074",
+    "name": "AK-OC-021",
     "latitude": 55.947661905375085,
     "longitude": -133.54431152343753,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11438,10 +11438,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-100",
+    "name": "AK-FS-038",
     "latitude": 55.2071,
     "longitude": -131.7096,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11450,10 +11450,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-104",
+    "name": "AK-FS-042",
     "latitude": 55.0799,
     "longitude": -131.6382,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11462,10 +11462,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-099",
+    "name": "AK-FS-037",
     "latitude": 55.2102,
     "longitude": -131.8442,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11474,10 +11474,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-075",
-    "latitude": 55.9338,
-    "longitude": -131.1795,
-    "region": "AK-SE",
+    "name": "AK-FS-020",
+    "latitude": 55.91766029399856,
+    "longitude": -131.1643981933594,
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11486,10 +11486,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-094",
+    "name": "AK-FS-033",
     "latitude": 55.4072,
     "longitude": -130.957,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11498,10 +11498,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-073",
+    "name": "AK-FS-019",
     "latitude": 55.98455508140472,
     "longitude": -132.08862304687503,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11510,10 +11510,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-095",
+    "name": "AK-FS-034",
     "latitude": 55.3526,
     "longitude": -132.1326,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11522,10 +11522,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-079",
+    "name": "AK-FS-021",
     "latitude": 55.8244,
     "longitude": -132.2369,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11534,10 +11534,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-086",
+    "name": "AK-FS-026",
     "latitude": 55.5783,
     "longitude": -131.8552,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11546,10 +11546,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-090",
+    "name": "AK-FS-030",
     "latitude": 55.4399,
     "longitude": -133.4015,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11558,10 +11558,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-101",
+    "name": "AK-FS-039",
     "latitude": 55.1898,
     "longitude": -133.0362,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11570,10 +11570,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-102",
+    "name": "AK-FS-040",
     "latitude": 55.1616,
     "longitude": -132.627,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11582,10 +11582,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-103",
+    "name": "AK-FS-041",
     "latitude": 55.1349,
     "longitude": -133.2779,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11594,10 +11594,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-065",
+    "name": "AK-FS-012",
     "latitude": 56.3424,
     "longitude": -132.388,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11606,10 +11606,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-071",
+    "name": "AK-FS-017",
     "latitude": 56.0782,
     "longitude": -132.9483,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11618,10 +11618,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-080",
+    "name": "AK-FS-022",
     "latitude": 55.8105,
     "longitude": -133.4207,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11630,10 +11630,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-082",
+    "name": "AK-OC-024",
     "latitude": 55.7534,
     "longitude": -133.7173,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11642,10 +11642,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-078",
+    "name": "AK-OC-023",
     "latitude": 55.8476,
     "longitude": -133.9481,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11654,10 +11654,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-076",
+    "name": "AK-OC-022",
     "latitude": 55.8753,
     "longitude": -134.3518,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11666,10 +11666,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-061",
+    "name": "AK-FS-008",
     "latitude": 56.467,
     "longitude": -134.1843,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11678,10 +11678,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-070",
+    "name": "AK-FS-016",
     "latitude": 56.1532,
     "longitude": -134.0826,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11690,10 +11690,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-066",
+    "name": "AK-FS-013",
     "latitude": 56.3181,
     "longitude": -133.9453,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11702,10 +11702,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-060",
+    "name": "AK-FS-007",
     "latitude": 56.4943,
     "longitude": -133.8684,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11714,10 +11714,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-058",
+    "name": "AK-FS-006",
     "latitude": 56.5443,
     "longitude": -133.7283,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11726,10 +11726,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-067",
+    "name": "AK-FS-014",
     "latitude": 56.2662,
     "longitude": -134.3106,
-    "region": "AK-SE",
+    "region": "AK-FS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11738,10 +11738,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-041",
+    "name": "AK-FN-034",
     "latitude": 57.1288,
     "longitude": -133.2422,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11750,10 +11750,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-043",
+    "name": "AK-FN-036",
     "latitude": 57.09,
     "longitude": -134.3628,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11762,10 +11762,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-059",
+    "name": "AK-OC-018",
     "latitude": 56.5247,
     "longitude": -134.6539,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11774,10 +11774,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-069",
+    "name": "AK-OC-020",
     "latitude": 56.2082,
     "longitude": -134.7144,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11786,10 +11786,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-057",
+    "name": "AK-OC-017",
     "latitude": 56.5686,
     "longitude": -135.1099,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11798,10 +11798,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-037",
+    "name": "AK-FN-032",
     "latitude": 57.3236,
     "longitude": -133.385,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11810,10 +11810,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-026",
+    "name": "AK-FN-024",
     "latitude": 57.7525,
     "longitude": -134.0826,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11822,10 +11822,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-032",
+    "name": "AK-FN-028",
     "latitude": 57.5306,
     "longitude": -133.8602,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11834,10 +11834,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-024",
+    "name": "AK-FN-023",
     "latitude": 57.8667,
     "longitude": -133.9481,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11846,10 +11846,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-020",
+    "name": "AK-FN-021",
     "latitude": 57.9571,
     "longitude": -133.8931,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11858,10 +11858,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-010",
+    "name": "AK-FN-012",
     "latitude": 58.3153,
     "longitude": -134.0469,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11870,10 +11870,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-014",
+    "name": "AK-FN-016",
     "latitude": 58.1823,
     "longitude": -134.6896,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11882,10 +11882,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-030",
+    "name": "AK-OC-011",
     "latitude": 57.5748,
     "longitude": -135.5273,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11894,10 +11894,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-035",
+    "name": "AK-FN-031",
     "latitude": 57.4435,
     "longitude": -134.8489,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11906,10 +11906,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-039",
+    "name": "AK-OC-014",
     "latitude": 57.1437,
     "longitude": -135.8102,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11918,10 +11918,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-049",
+    "name": "AK-OC-015",
     "latitude": 56.9989,
     "longitude": -135.7169,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11930,10 +11930,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-036",
+    "name": "AK-OC-013",
     "latitude": 57.3695,
     "longitude": -135.8432,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11942,10 +11942,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-034",
+    "name": "AK-FN-030",
     "latitude": 57.4981,
     "longitude": -135.2417,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11954,10 +11954,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-031",
+    "name": "AK-OC-012",
     "latitude": 57.5645,
     "longitude": -136.1014,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11966,10 +11966,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-025",
+    "name": "AK-OC-010",
     "latitude": 57.7789,
     "longitude": -136.3843,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11978,10 +11978,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-021",
+    "name": "AK-OC-009",
     "latitude": 57.944,
     "longitude": -135.769,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -11990,10 +11990,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-067",
+    "name": "AK-FN-003",
     "latitude": 58.7853,
     "longitude": -135.217,
-    "region": "AK-EG",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12002,10 +12002,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-062",
+    "name": "AK-FN-001",
     "latitude": 59.0617,
     "longitude": -135.3461,
-    "region": "AK-EG",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12014,10 +12014,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-069",
+    "name": "AK-FN-005",
     "latitude": 58.7026,
     "longitude": -136.2772,
-    "region": "AK-EG",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12026,10 +12026,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-071",
+    "name": "AK-FN-006",
     "latitude": 58.574,
     "longitude": -136.0574,
-    "region": "AK-EG",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12038,10 +12038,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-012",
+    "name": "AK-FN-014",
     "latitude": 58.26617643077586,
     "longitude": -136.47216796875003,
-    "region": "AK-SE",
+    "region": "AK-FN",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12050,10 +12050,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-007",
+    "name": "AK-OC-007",
     "latitude": 58.3643,
     "longitude": -136.9748,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12062,10 +12062,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-070",
+    "name": "AK-OC-005",
     "latitude": 58.6369,
     "longitude": -137.7466,
-    "region": "AK-EG",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12074,10 +12074,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-003",
+    "name": "AK-OC-003",
     "latitude": 59.1365,
     "longitude": -138.7793,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12086,7 +12086,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-045",
+    "name": "AK-EG-004",
     "latitude": 60.0374,
     "longitude": -142.5476,
     "region": "AK-EG",
@@ -12098,7 +12098,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-037",
+    "name": "AK-EG-001",
     "latitude": 60.2562,
     "longitude": -144.9371,
     "region": "AK-EG",
@@ -12110,10 +12110,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-033",
+    "name": "AK-PWS-033",
     "latitude": 60.3405,
     "longitude": -145.7117,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12122,10 +12122,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-035",
+    "name": "AK-PWS-035",
     "latitude": 60.2984,
     "longitude": -146.4505,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12134,10 +12134,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-054",
+    "name": "AK-PWS-043",
     "latitude": 59.7744,
     "longitude": -147.7798,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12146,10 +12146,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-038",
+    "name": "AK-PWS-037",
     "latitude": 60.233,
     "longitude": -147.5107,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12158,10 +12158,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-036",
+    "name": "AK-PWS-036",
     "latitude": 60.2834,
     "longitude": -148.1973,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12170,10 +12170,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-028",
+    "name": "AK-PWS-028",
     "latitude": 60.4681,
     "longitude": -148.6725,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12182,10 +12182,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-024",
+    "name": "AK-PWS-024",
     "latitude": 60.5546,
     "longitude": -148.4747,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12194,10 +12194,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-026",
+    "name": "AK-PWS-026",
     "latitude": 60.5289,
     "longitude": -148.277,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12206,10 +12206,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-012",
+    "name": "AK-PWS-012",
     "latitude": 60.8034,
     "longitude": -148.6615,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12218,10 +12218,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-016",
+    "name": "AK-PWS-016",
     "latitude": 60.7457,
     "longitude": -148.6066,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12230,10 +12230,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-014",
+    "name": "AK-PWS-014",
     "latitude": 60.786,
     "longitude": -148.3649,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12242,10 +12242,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-015",
+    "name": "AK-PWS-015",
     "latitude": 60.7779,
     "longitude": -148.1342,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12254,10 +12254,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-005",
+    "name": "AK-PWS-005",
     "latitude": 61.0304,
     "longitude": -148.1424,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12266,10 +12266,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-001",
+    "name": "AK-PWS-001",
     "latitude": 61.1896,
     "longitude": -147.8293,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12278,10 +12278,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-003",
+    "name": "AK-PWS-003",
     "latitude": 61.057,
     "longitude": -148.3401,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12290,10 +12290,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-006",
+    "name": "AK-PWS-006",
     "latitude": 61.0011,
     "longitude": -147.5711,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12302,10 +12302,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-010",
+    "name": "AK-PWS-010",
     "latitude": 60.877,
     "longitude": -147.7359,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12314,10 +12314,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-004",
+    "name": "AK-PWS-004",
     "latitude": 61.049,
     "longitude": -147.0685,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12326,10 +12326,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-017",
+    "name": "AK-PWS-017",
     "latitude": 60.7041,
     "longitude": -146.2582,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12338,10 +12338,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-019",
+    "name": "AK-PWS-019",
     "latitude": 60.6866,
     "longitude": -146.6071,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12350,10 +12350,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-020",
+    "name": "AK-PWS-020",
     "latitude": 60.6718,
     "longitude": -147.4969,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12362,10 +12362,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-029",
+    "name": "AK-PWS-029",
     "latitude": 60.4328,
     "longitude": -146.3324,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12374,10 +12374,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-021",
+    "name": "AK-PWS-021",
     "latitude": 60.6449,
     "longitude": -146.066,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12386,10 +12386,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-027",
+    "name": "AK-PWS-027",
     "latitude": 60.5113,
     "longitude": -147.4146,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12398,10 +12398,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-039",
+    "name": "AK-PWS-038",
     "latitude": 60.2153,
     "longitude": -147.8787,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12410,10 +12410,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-041",
+    "name": "AK-PWS-040",
     "latitude": 60.1169,
     "longitude": -148.3209,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12422,10 +12422,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-047",
+    "name": "AK-PWS-042",
     "latitude": 59.933,
     "longitude": -148.7357,
-    "region": "AK-EG",
+    "region": "AK-PWS",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12542,7 +12542,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-061",
+    "name": "AK-WG-063",
     "latitude": 56.5716,
     "longitude": -154.5007,
     "region": "AK-WG",
@@ -12554,7 +12554,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-063",
+    "name": "AK-WG-065",
     "latitude": 56.4154,
     "longitude": -154.7919,
     "region": "AK-WG",
@@ -12566,7 +12566,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-062",
+    "name": "AK-WG-064",
     "latitude": 56.5095,
     "longitude": -153.8992,
     "region": "AK-WG",
@@ -12590,7 +12590,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-060",
+    "name": "AK-WG-061",
     "latitude": 56.7286,
     "longitude": -157.2693,
     "region": "AK-WG",
@@ -12602,7 +12602,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-065",
+    "name": "AK-WG-069",
     "latitude": 55.7766,
     "longitude": -159.2249,
     "region": "AK-WG",
@@ -12614,7 +12614,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-070",
+    "name": "AK-WG-075",
     "latitude": 54.86396293985479,
     "longitude": -162.68005371093753,
     "region": "AK-WG",
@@ -12782,7 +12782,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-021",
+    "name": "BC-C-020",
     "latitude": 50.4995,
     "longitude": -128.2983,
     "region": "BC-C",
@@ -12794,7 +12794,7 @@
     "notes": ""
   },
   {
-    "name": "BC-N-018",
+    "name": "BC-N-015",
     "latitude": 53.3702,
     "longitude": -133.0005,
     "region": "BC-N",
@@ -12806,10 +12806,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-002",
+    "name": "AK-OC-002",
     "latitude": 59.322,
     "longitude": -139.3945,
-    "region": "AK-SE",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12818,7 +12818,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-046",
+    "name": "AK-EG-005",
     "latitude": 59.944,
     "longitude": -141.5259,
     "region": "AK-EG",
@@ -12830,7 +12830,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-049",
+    "name": "AK-EG-007",
     "latitude": 59.922,
     "longitude": -143.5474,
     "region": "AK-EG",
@@ -12842,7 +12842,7 @@
     "notes": ""
   },
   {
-    "name": "AK-WG-068",
+    "name": "AK-WG-072",
     "latitude": 55.028,
     "longitude": -161.8066,
     "region": "AK-WG",
@@ -12854,7 +12854,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-059",
+    "name": "AK-EG-016",
     "latitude": 59.5009,
     "longitude": -144.668,
     "region": "AK-EG",
@@ -12866,7 +12866,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-061",
+    "name": "AK-EG-018",
     "latitude": 59.3332,
     "longitude": -142.0313,
     "region": "AK-EG",
@@ -12878,7 +12878,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-064",
+    "name": "AK-EG-019",
     "latitude": 58.8706,
     "longitude": -140.5811,
     "region": "AK-EG",
@@ -12890,10 +12890,10 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-072",
+    "name": "AK-OC-006",
     "latitude": 58.3672,
     "longitude": -138.7134,
-    "region": "AK-EG",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12902,7 +12902,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-065",
+    "name": "AK-EG-020",
     "latitude": 58.8706,
     "longitude": -147.3706,
     "region": "AK-EG",
@@ -12914,7 +12914,7 @@
     "notes": ""
   },
   {
-    "name": "AK-EG-073",
+    "name": "AK-EG-021",
     "latitude": 58.1127,
     "longitude": -148.0518,
     "region": "AK-EG",
@@ -12926,10 +12926,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-040",
+    "name": "AK-WG-056",
     "latitude": 57.1362,
     "longitude": -150.3589,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12938,10 +12938,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-023",
+    "name": "AK-EG-022",
     "latitude": 57.8681,
     "longitude": -149.4141,
-    "region": "AK-SE",
+    "region": "AK-EG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12950,10 +12950,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-056",
+    "name": "AK-WG-062",
     "latitude": 56.5958,
     "longitude": -152.3145,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12962,10 +12962,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-081",
+    "name": "AK-WG-068",
     "latitude": 55.7889,
     "longitude": -154.7095,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12974,10 +12974,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-077",
+    "name": "AK-WG-067",
     "latitude": 55.8753,
     "longitude": -155.918,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12986,10 +12986,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-108",
+    "name": "AK-WG-074",
     "latitude": 54.9145,
     "longitude": -157.0605,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -12998,10 +12998,10 @@
     "notes": ""
   },
   {
-    "name": "AK-SE-112",
+    "name": "AK-WG-079",
     "latitude": 54.2781,
     "longitude": -159.4336,
-    "region": "AK-SE",
+    "region": "AK-WG",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -13010,10 +13010,10 @@
     "notes": ""
   },
   {
-    "name": "BC-N-005",
+    "name": "AK-OC-028",
     "latitude": 54.5083,
     "longitude": -133.9233,
-    "region": "BC-N",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -13022,10 +13022,10 @@
     "notes": ""
   },
   {
-    "name": "BC-N-002",
+    "name": "AK-OC-025",
     "latitude": 55.5286,
     "longitude": -135.0659,
-    "region": "BC-N",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -13034,10 +13034,10 @@
     "notes": ""
   },
   {
-    "name": "BC-N-001",
+    "name": "AK-OC-019",
     "latitude": 56.4017,
     "longitude": -135.769,
-    "region": "BC-N",
+    "region": "AK-OC",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -13046,7 +13046,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-005",
+    "name": "BC-C-004",
     "latitude": 51.3306,
     "longitude": -130.188,
     "region": "BC-C",
@@ -13118,7 +13118,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-033",
+    "name": "WA-O-032",
     "latitude": 46.7399,
     "longitude": -124.7607,
     "region": "WA-O",
@@ -13130,7 +13130,7 @@
     "notes": ""
   },
   {
-    "name": "WA-O-021",
+    "name": "WA-O-020",
     "latitude": 47.6506,
     "longitude": -125.1123,
     "region": "WA-O",
@@ -13142,10 +13142,10 @@
     "notes": ""
   },
   {
-    "name": "WA-O-005",
+    "name": "BC-C-038",
     "latitude": 48.3562,
     "longitude": -125.7935,
-    "region": "WA-O",
+    "region": "BC-C",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
@@ -13154,7 +13154,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-032",
+    "name": "BC-C-031",
     "latitude": 49.0955,
     "longitude": -126.6943,
     "region": "BC-C",
@@ -13166,7 +13166,7 @@
     "notes": ""
   },
   {
-    "name": "BC-C-009",
+    "name": "BC-C-008",
     "latitude": 51.0138,
     "longitude": -129.4629,
     "region": "BC-C",
@@ -13178,10 +13178,10 @@
     "notes": ""
   },
   {
-    "name": "BC-C-001",
+    "name": "BC-N-072",
     "latitude": 51.7406,
     "longitude": -130.3857,
-    "region": "BC-C",
+    "region": "BC-N",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
     "sswd_status": "population severely impacted by SSWD starting 2013",
