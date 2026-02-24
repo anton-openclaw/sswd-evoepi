@@ -1,0 +1,228 @@
+\section{Quantitative Genetics of Selection Response}
+\label{sec:quant_gen}
+
+Given the genetic architecture defined in \Cref{sec:architecture}, 
+we now derive the expected response to selection — the central 
+quantity for breeding program design.
+
+\subsection{The breeder's equation}
+
+The fundamental prediction tool in quantitative genetics is the 
+breeder's equation \citep{lush1937animal, falconer1996introduction}:
+\begin{equation}
+    R = h^2 \cdot S
+    \label{eq:breeders}
+\end{equation}
+where:
+\begin{itemize}
+    \item $R = \bar{\tau}_{t+1} - \bar{\tau}_t$ is the 
+    response to selection (change in population mean trait 
+    value per generation)
+    \item $h^2 = V_A / V_P$ is the narrow-sense heritability
+    \item $S = \bar{\tau}_{\text{selected}} - \bar{\tau}_t$ 
+    is the selection differential (difference between the mean 
+    of selected parents and the population mean)
+\end{itemize}
+
+\subsection{Heritability in our model}
+
+In the SSWD-EvoEpi model, traits are purely genetically determined 
+with no environmental variance:
+\begin{equation}
+    V_P = V_A + \underbrace{V_D}_{= 0} + \underbrace{V_E}_{= 0} = V_A
+    \label{eq:heritability_model}
+\end{equation}
+
+Under strict additivity (no dominance), $V_D = 0$. We impose no 
+environmental stochasticity on trait expression, so $V_E = 0$. 
+Therefore:
+\begin{equation}
+    h^2 = 1.0 \quad \text{(in the model)}
+    \label{eq:h2_model}
+\end{equation}
+
+\begin{remark}
+This is an idealization. In real \pyc{}, heritability of disease 
+resistance is unknown but certainly $< 1$. Environmental factors 
+(nutritional state, temperature stress, prior infections, microbiome 
+composition) would add $V_E > 0$, reducing $h^2$. However, for the 
+purpose of \emph{relative} comparisons between breeding strategies 
+within the model, $h^2 = 1$ simplifies the analysis without 
+affecting ranking of strategies. When interpreting absolute 
+generation counts, we should apply a correction factor 
+$h^2_{\text{real}} / 1.0$ to account for this.
+\end{remark}
+
+\subsection{Selection differential from truncation selection}
+
+In a breeding program, truncation selection retains the top 
+fraction $p$ of individuals. The selection differential is:
+\begin{equation}
+    S = i \cdot \sigma_P
+    \label{eq:selection_differential}
+\end{equation}
+where $i$ is the \textbf{selection intensity}, a function of $p$ alone.
+
+For a normal distribution (approximately valid for polygenic traits 
+with many loci):
+\begin{equation}
+    i = \frac{\phi(z_p)}{1 - \Phi(z_p)} = \frac{\phi(z_p)}{p}
+    \label{eq:selection_intensity}
+\end{equation}
+where $\Phi$ is the standard normal CDF, $\phi$ is the PDF, and 
+$z_p = \Phi^{-1}(1 - p)$ is the truncation point.
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+Fraction selected ($p$) & Selection intensity ($i$) & Practical meaning \\
+\midrule
+0.50 & 0.80 & Keep top half \\
+0.20 & 1.40 & Keep top fifth \\
+0.10 & 1.76 & Keep top tenth \\
+0.05 & 2.06 & Intensive selection \\
+0.01 & 2.67 & Extreme selection \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Predicted gain per generation}
+
+Combining \Cref{eq:breeders,eq:selection_differential} with 
+$h^2 = 1$:
+\begin{equation}
+    R = i \cdot \sigma_A = i \cdot \sqrt{V_A}
+    \label{eq:gain_per_gen}
+\end{equation}
+
+For resistance with $n_R = 17$ loci, the additive standard deviation is:
+\begin{equation}
+    \sigma_A = \sqrt{\sum_{\ell=1}^{17} 2 q_\ell (1 - q_\ell) 
+    \alpha_\ell^2}
+    \label{eq:sigma_a_resistance}
+\end{equation}
+
+\begin{remark}
+$V_A$ is \textbf{not constant} across generations. As selection 
+pushes allele frequencies toward fixation ($q \to 1$), the term 
+$q(1-q) \to 0$ and $V_A$ decreases. This means the breeder's 
+equation predicts diminishing returns over generations — the 
+response slows as the population approaches fixation.
+\end{remark}
+
+\subsection{Multi-generation prediction}
+
+For generation $g$, the allele frequency at locus $\ell$ after 
+selection is:
+\begin{equation}
+    q_\ell^{(g+1)} = q_\ell^{(g)} + \Delta q_\ell^{(g)}
+    \label{eq:allele_freq_update}
+\end{equation}
+
+Under truncation selection on an additive trait, the single-locus 
+allele frequency change is approximately \citep{barton2000multilocus}:
+\begin{equation}
+    \Delta q_\ell \approx i \cdot 
+    \frac{\alpha_\ell \cdot q_\ell(1-q_\ell)}{\sigma_P}
+    \label{eq:delta_q}
+\end{equation}
+
+This gives us a system of coupled difference equations — one per 
+locus — that we can iterate forward numerically.
+
+\begin{definition}[Fixation]
+Locus $\ell$ is \textbf{fixed} for the protective allele when 
+$q_\ell = 1$ (all individuals homozygous derived). The trait 
+reaches its maximum when all loci are fixed.
+\end{definition}
+
+\begin{proposition}[Time to fixation scales with initial frequency]
+\label{prop:fixation_time}
+Loci with initially high $q_\ell$ fix first. Loci with very low 
+$q_\ell$ and small $\alpha_\ell$ take the longest — they contribute 
+little to the trait and experience weak selection. The ``last loci'' 
+to fix determine the total generations needed to reach $\tau \approx 1$.
+\end{proposition}
+
+\subsection{The selection--variance trade-off}
+\label{subsec:sel_var_tradeoff}
+
+Intensive selection (small $p$) increases $S$ but reduces the 
+effective population size of the breeding pool:
+\begin{equation}
+    N_e \approx \frac{4 N_{\text{selected}} \cdot N_{\text{total}}}
+    {N_{\text{selected}} + N_{\text{total}}}
+    \label{eq:ne_selection}
+\end{equation}
+
+For $N_{\text{selected}} \ll N_{\text{total}}$:
+$N_e \approx 4 N_{\text{selected}}$.
+
+Small $N_e$ means:
+\begin{enumerate}
+    \item Faster genetic drift (random loss of alleles)
+    \item Faster inbreeding ($\Delta F = 1/(2N_e)$ per generation)
+    \item Risk of losing rare but valuable alleles at small-effect loci
+\end{enumerate}
+
+This creates a fundamental tension in breeding program design: 
+\textbf{selecting harder gives faster genetic gain but erodes 
+the genetic diversity needed for long-term adaptation.} The 
+optimal strategy balances these forces 
+(see \Cref{sec:inbreeding}).
+
+\subsection{Response in non-normal distributions}
+
+Our trait distributions are \emph{not} normal — they are 
+right-skewed (see \Cref{sec:architecture}, the allele 
+frequencies are Beta-distributed and many loci have low $q$). 
+The standard breeder's equation assumes normality.
+
+For non-normal distributions, the selection differential must 
+be computed directly:
+\begin{equation}
+    S = \E[\tau_i \mid \tau_i \geq \tau^*] - \E[\tau_i]
+    \label{eq:s_nonnormal}
+\end{equation}
+where $\tau^*$ is the truncation threshold. This requires the 
+full trait distribution, which we compute numerically from the 
+allele frequency vector and effect sizes.
+
+\subsection{Multi-trait selection}
+\label{subsec:multi_trait}
+
+When selecting on multiple traits simultaneously, the Smith--Hazel 
+selection index \citep{smith1936discriminant, hazel1943genetic} 
+provides the optimal linear combination:
+\begin{equation}
+    I_i = \mathbf{b}^T \boldsymbol{\tau}_i, \qquad
+    \mathbf{b} = \mathbf{G}^{-1} \mathbf{w}
+    \label{eq:selection_index}
+\end{equation}
+where $\mathbf{G}$ is the genetic variance--covariance matrix and 
+$\mathbf{w}$ is the vector of economic (or fitness) weights.
+
+In our model, because traits are genetically independent 
+(\Cref{prop:independence}), $\mathbf{G}$ is diagonal:
+\begin{equation}
+    \mathbf{G} = \begin{pmatrix}
+        V_A^{(r)} & 0 & 0 \\
+        0 & V_A^{(t)} & 0 \\
+        0 & 0 & V_A^{(c)}
+    \end{pmatrix}
+    \label{eq:g_matrix}
+\end{equation}
+
+and the index simplifies to:
+\begin{equation}
+    I_i = \frac{w_r}{V_A^{(r)}} r_i + 
+    \frac{w_t}{V_A^{(t)}} t_i + 
+    \frac{w_c}{V_A^{(c)}} c_i
+    \label{eq:index_simplified}
+\end{equation}
+
+The fitness weights $\mathbf{w}$ should reflect the marginal 
+fitness contribution of each trait. From \Cref{eq:infection_hazard,%
+eq:tolerance,eq:recovery}, resistance has by far the largest effect 
+on survival per exposure event. We derive appropriate weights in 
+\Cref{sec:breeding}.

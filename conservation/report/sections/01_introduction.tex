@@ -1,0 +1,69 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Sea star wasting disease (SSWD) has caused one of the largest documented 
+mass mortality events in a marine invertebrate, reducing \pyc{} populations 
+by an estimated 90--99\% across its range from Alaska to Baja California 
+\citep{harvell2019disease, montecino2020sunflower}. As a keystone predator 
+of urchins, the loss of \pyc{} has triggered trophic cascades leading to 
+kelp forest collapse in multiple regions \citep{schultz2016urchin}.
+
+Conservation efforts now center on captive breeding and reintroduction 
+\citep{seastarlab2024}. The first caged outplanting trials were conducted 
+at Friday Harbor Laboratories in 2023, followed by the first open release 
+of 20 captive-bred juveniles in July 2024, and a California release of 
+47 juveniles in December 2025 (with 46/47 surviving the first month). 
+These programs face a fundamental question: \textbf{how do we design a 
+breeding program that maximizes disease resistance in released stock while 
+maintaining sufficient genetic diversity for long-term population viability?}
+
+\subsection{What this module provides}
+
+The SSWD-EvoEpi model tracks individual genotypes at 51 biallelic loci 
+controlling three disease-related traits (resistance, tolerance, recovery). 
+This individual-level genetic resolution enables analyses that 
+population-level models cannot:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Predicted genetic state.} What do the trait distributions 
+    of surviving wild populations look like at each site, right now?
+    
+    \item \textbf{Screening effort.} How many wild individuals must be 
+    sampled to find founders with desired resistance levels?
+    
+    \item \textbf{Breeding optimization.} Which crossing strategy 
+    (random, assortative, complementary) maximizes resistance gain per 
+    generation, and at what cost to genetic diversity?
+    
+    \item \textbf{Reintroduction design.} How many captive-bred 
+    individuals, released where and when, shift the evolutionary 
+    trajectory of wild populations?
+\end{enumerate}
+
+\subsection{Approach}
+
+Each section of this document follows the same structure:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{First-principles derivation} of the relevant 
+    quantitative genetics or population genetics theory
+    \item \textbf{Mapping to our model} — how the general theory 
+    specializes to 51 loci, 3 traits, and biallelic architecture
+    \item \textbf{Computable predictions} — equations that take model 
+    parameters as input and produce conservation-relevant output
+    \item \textbf{Implementation notes} — pointers to the code that 
+    implements each result
+\end{itemize}
+
+All derivations assume the calibrated model is available. Until then, 
+we use validation-run parameters as placeholders and note where results 
+will change.
+
+\subsection{Scope and limitations}
+
+This module addresses the \emph{genetics} of conservation. It does not 
+address habitat restoration, water quality management, or disease 
+treatment — only the question of which individuals to breed, how to 
+cross them, and where to release their offspring. The model does not 
+currently include inbreeding depression (reduced fitness from 
+homozygosity of deleterious recessives), which we flag as a known gap 
+throughout.

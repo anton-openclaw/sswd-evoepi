@@ -1,0 +1,220 @@
+\section{Analysis Plan}
+\label{sec:analysis_plan}
+
+This section specifies the concrete analyses to execute once 
+the model is calibrated. Each analysis maps to a code template 
+in \texttt{conservation/analyses/}.
+
+\subsection{Analysis 1: Current Genetic State}
+\label{subsec:analysis1}
+
+\textbf{Goal:} Predict the trait distributions and genetic 
+diversity of surviving \pyc{} at each of the 11 stepping-stone 
+sites in 2026.
+
+\textbf{Method:}
+\begin{enumerate}
+    \item Initialize the model with calibrated parameters, 
+    pre-epidemic population sizes and allele frequencies
+    \item Run from 2013 (pre-epidemic) to 2026 using actual 
+    satellite SST time series
+    \item At the 2026 endpoint, extract full genotype arrays 
+    for all surviving individuals at each node
+    \item Compute per-site: trait distributions 
+    ($r$, $t$, $c$), $V_A$, $H_e$, $N_e$, allele frequencies 
+    per locus
+    \item Repeat for 50 random seeds to characterize 
+    stochastic variation
+\end{enumerate}
+
+\textbf{Output:}
+\begin{itemize}
+    \item Site $\times$ trait mean matrix (11 sites $\times$ 3 traits)
+    \item Per-site screening effort tables (\Cref{eq:required_n})
+    \item Latitude $\times$ year heatmap of resistance evolution
+    \item Genetic diversity gradient (north--south)
+    \item Confidence intervals from seed ensemble
+\end{itemize}
+
+\textbf{Code:} \texttt{analyses/01\_current\_genetic\_state.py}
+
+\textbf{Requirements:}
+\begin{itemize}
+    \item[$\square$] Calibrated model parameters
+    \item[$\square$] Satellite SST time series 2013--2026 
+    (extend current climatology)
+    \item[$\square$] Genotype snapshot capability in recorder 
+    (model extension needed)
+    \item[$\square$] Pre-epidemic population size estimates by site
+\end{itemize}
+
+\subsection{Analysis 2: Screening Effort by Site}
+\label{subsec:analysis2}
+
+\textbf{Goal:} For each site's predicted 2026 population, 
+compute the number of individuals to screen for various 
+resistance thresholds.
+
+\textbf{Method:}
+\begin{enumerate}
+    \item From Analysis 1 endpoints, compute empirical trait 
+    CDFs per site
+    \item Apply \Cref{eq:required_n} for thresholds 
+    $r^* \in \{0.20, 0.25, 0.30, 0.35, 0.40\}$
+    \item Compute expected best-of-$n$ (\Cref{eq:expected_max}) 
+    for practical sample sizes
+    \item Compute complementarity statistics 
+    (\Cref{eq:locus_union,eq:complementarity}) for top 
+    individuals
+    \item Derive multi-site optimal sampling allocation 
+    (\Cref{eq:multisite_max})
+\end{enumerate}
+
+\textbf{Output:}
+\begin{itemize}
+    \item Per-site screening effort tables (threshold $\times$ 
+    required $n$ $\times$ confidence)
+    \item Cross-site comparison: which sites have the best 
+    screening return?
+    \item Optimal sampling allocation across sites for a 
+    fixed total budget
+    \item Complementarity analysis of top founders
+\end{itemize}
+
+\textbf{Code:} \texttt{analyses/02\_screening\_effort.py}
+
+\subsection{Analysis 3: Breeding Program Optimization}
+\label{subsec:analysis3}
+
+\textbf{Goal:} Compare breeding strategies and determine 
+optimal program design.
+
+\textbf{Method:}
+\begin{enumerate}
+    \item Draw founders from Analysis 1 endpoint populations
+    \item Simulate 8--15 generations of breeding under each 
+    strategy:
+    \begin{itemize}
+        \item Random mating (baseline)
+        \item Assortative mating by resistance
+        \item Complementary mating (maximize locus union)
+        \item Optimal contribution selection 
+        (resistance gain constrained by $\Delta F$)
+        \item Selection index (weighted multi-trait)
+    \end{itemize}
+    \item Track per generation: $\bar{r}$, $\max(r)$, $V_A$, 
+    $H_e$, $F$, $N_e$, loci fixed, alleles lost
+    \item Vary: number of founders (50--500), selection 
+    intensity ($p = 0.01$--$0.50$), family structure
+    \item 100 replicate seeds per scenario
+\end{enumerate}
+
+\textbf{Output:}
+\begin{itemize}
+    \item Strategy $\times$ generation trajectory plots
+    \item Generations to resistance targets by strategy
+    \item Gain--diversity frontier (Pareto plot of $\Delta r$ 
+    vs.\ $\Delta F$ per generation)
+    \item Optimal program design recommendation
+    \item Sensitivity to number of founders
+\end{itemize}
+
+\textbf{Code:} \texttt{analyses/03\_breeding\_optimization.py}
+
+\textbf{Requirements:}
+\begin{itemize}
+    \item[$\square$] Inbreeding tracking in breeding simulator
+    \item[$\square$] Optimal contribution selection algorithm
+    \item[$\square$] Genomic relationship matrix computation
+\end{itemize}
+
+\subsection{Analysis 4: Reintroduction Scenarios}
+\label{subsec:analysis4}
+
+\textbf{Goal:} Predict outcomes of different reintroduction 
+strategies using the full spatial model.
+
+\textbf{Method:}
+\begin{enumerate}
+    \item From Analysis 3, generate captive-bred populations 
+    at different resistance levels (3, 5, 8 generations of 
+    breeding)
+    \item Inject these into the spatial model at specified 
+    nodes and times
+    \item Run 20--50 years forward
+    \item Vary: release size (100--5000), release location 
+    (single node, multiple nodes, stepping-stone), release 
+    timing (relative to disease season), release frequency 
+    (one-time, annual, every 2 years), genetic composition 
+    of released stock
+    \item Track: population trajectories, allele frequency 
+    trajectories, persistence probability, mean resistance 
+    at 10/20/50 years
+\end{enumerate}
+
+\textbf{Output:}
+\begin{itemize}
+    \item Scenario comparison table (success metrics by strategy)
+    \item Critical release size threshold (below which release 
+    has no lasting effect)
+    \item Optimal release node(s) — considering connectivity
+    \item Time to population recovery under best strategies
+    \item Allele spread maps (how introduced alleles propagate 
+    via larval dispersal)
+\end{itemize}
+
+\textbf{Code:} \texttt{analyses/04\_reintroduction\_scenarios.py}
+
+\textbf{Requirements:}
+\begin{itemize}
+    \item[$\square$] Release mechanism in model (introduce 
+    individuals at specified node/time)
+    \item[$\square$] Calibrated model parameters
+    \item[$\square$] Computational budget (many scenarios 
+    $\times$ many seeds $\times$ long runs)
+\end{itemize}
+
+\subsection{Analysis 5: Integrated Recommendations}
+\label{subsec:analysis5}
+
+\textbf{Goal:} Synthesize Analyses 1--4 into actionable 
+conservation recommendations.
+
+\textbf{Deliverables:}
+\begin{enumerate}
+    \item Recommended sampling protocol (which sites, how 
+    many, what to genotype)
+    \item Recommended breeding program design (strategy, 
+    founder count, generations, selection intensity)
+    \item Recommended release strategy (where, when, how 
+    many, how often)
+    \item Timeline from program initiation to population 
+    recovery targets
+    \item Key uncertainties and decision points for 
+    adaptive management
+\end{enumerate}
+
+\textbf{Code:} \texttt{analyses/05\_recommendations.py} 
+(generates summary tables and figures for the paper)
+
+\subsection{Computational budget estimate}
+
+\begin{center}
+\begin{tabular}{lccr}
+\toprule
+Analysis & Runs & Wall time (est.) & Platform \\
+\midrule
+1. Genetic state & $50 \times 11 \times 13\text{yr}$ & 
+4--8 hours & Xeon \\
+2. Screening & analytical + sampling & minutes & Local \\
+3. Breeding & $5 \times 100 \times 15\text{gen}$ & 
+1--2 hours & Local \\
+4. Reintroduction & $\sim$500 $\times$ 50 $\times$ 20yr & 
+2--5 days & Xeon \\
+5. Recommendations & analytical & minutes & Local \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Total: $\sim$3--6 days of Xeon time for the full suite, 
+comparable to the current Sobol R4 run.

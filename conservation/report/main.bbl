@@ -1,0 +1,116 @@
+\begin{thebibliography}{21}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Barton and Keightley(2002)]{barton2002understanding}
+Nick~H Barton and Peter~D Keightley.
+\newblock Understanding quantitative genetic variation.
+\newblock \emph{Nature Reviews Genetics}, 3\penalty0 (1):\penalty0 11--21, 2002.
+
+\bibitem[Barton and Turelli(1989)]{barton2000multilocus}
+Nick~H Barton and Michael Turelli.
+\newblock Evolutionary quantitative genetics: how little do we know?
+\newblock \emph{Annual Review of Genetics}, 23:\penalty0 337--370, 1989.
+\newblock Multi-locus selection theory.
+
+\bibitem[David and Nagaraja(2003)]{david2003order}
+Herbert~A David and Haikady~N Nagaraja.
+\newblock \emph{Order Statistics}.
+\newblock Wiley, 3rd edition, 2003.
+
+\bibitem[Falconer and Mackay(1996)]{falconer1996introduction}
+Douglas~S Falconer and Trudy~FC Mackay.
+\newblock \emph{Introduction to Quantitative Genetics}.
+\newblock Longman, 4th edition, 1996.
+
+\bibitem[Franklin(1980)]{franklin1980evolutionary}
+Ian~R Franklin.
+\newblock Evolutionary change in small populations.
+\newblock pages 135--149, 1980.
+
+\bibitem[Harvell et~al.(2019)]{harvell2019disease}
+C~Drew Harvell et~al.
+\newblock Disease epidemic and a marine heat wave are associated with the continental-scale collapse of a pivotal predator (\textit{Pycnopodia helianthoides}).
+\newblock \emph{Science Advances}, 5\penalty0 (1):\penalty0 eaau7042, 2019.
+
+\bibitem[Hazel(1943)]{hazel1943genetic}
+L~N Hazel.
+\newblock The genetic basis for constructing selection indexes.
+\newblock \emph{Genetics}, 28\penalty0 (6):\penalty0 476--490, 1943.
+
+\bibitem[Hedrick and Kalinowski(2000)]{hedrick2002inbreeding}
+Philip~W Hedrick and Steven~T Kalinowski.
+\newblock Inbreeding depression in conservation biology.
+\newblock \emph{Annual Review of Ecology and Systematics}, 31:\penalty0 139--162, 2000.
+
+\bibitem[Jamieson and Allendorf(2012)]{jamieson2012applicability}
+Ian~G Jamieson and Fred~W Allendorf.
+\newblock How does the 50/500 rule apply to {MVPs}?
+\newblock \emph{Trends in Ecology \& Evolution}, 27\penalty0 (10):\penalty0 578--584, 2012.
+
+\bibitem[Lush(1937)]{lush1937animal}
+Jay~L Lush.
+\newblock Animal breeding plans.
+\newblock \emph{Iowa State College Press}, 1937.
+
+\bibitem[Meuwissen(1997)]{meuwissen1997maximizing}
+Theo~HE Meuwissen.
+\newblock Maximizing the response of selection with a predefined rate of inbreeding.
+\newblock \emph{Journal of Animal Science}, 75\penalty0 (4):\penalty0 934--940, 1997.
+
+\bibitem[Montecino-Latorre et~al.(2020)]{montecino2020sunflower}
+Diego Montecino-Latorre et~al.
+\newblock Revisiting the decline and recovery of the sunflower sea star: the need for a multi-regional approach to management.
+\newblock \emph{Biological Conservation}, 248:\penalty0 108684, 2020.
+
+\bibitem[O'Brien(1994)]{obrien1994genetic}
+Stephen~J O'Brien.
+\newblock A role for molecular genetics in biological conservation.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 91:\penalty0 5748--5755, 1994.
+
+\bibitem[Prentice et~al.(2025)]{prentice2025koch}
+Melanie Prentice et~al.
+\newblock Koch's postulates for sea star wasting disease fulfilled by \textit{Vibrio pectenicida}.
+\newblock \emph{Nature Ecology \& Evolution}, 2025.
+\newblock Experimental challenge: 92\% attack rate, 11.6d exposure-to-death at 13°C.
+
+\bibitem[Rhymer and Simberloff(1996)]{rhymer1996extinction}
+Judith~M Rhymer and Daniel Simberloff.
+\newblock Extinction by hybridization and introgression.
+\newblock \emph{Annual Review of Ecology and Systematics}, 27:\penalty0 83--109, 1996.
+
+\bibitem[Schiebelhut et~al.(2018)Schiebelhut, Puritz, and Dawson]{schiebelhut2018}
+Lauren~M Schiebelhut, Jonathan~B Puritz, and Michael~N Dawson.
+\newblock Decimation by sea star wasting disease and rapid genetic change in a keystone species, \textit{Pisaster ochraceus}.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 115\penalty0 (27):\penalty0 7069--7074, 2018.
+\newblock 51 loci with allele frequency shifts; basis for our genetic architecture.
+
+\bibitem[Schultz et~al.(2016)Schultz, Cloutier, and Côté]{schultz2016urchin}
+Jennifer~A Schultz, Ryan~N Cloutier, and Isabelle~M Côté.
+\newblock Evidence for a trophic cascade on rocky reefs following sea star mass mortality in british columbia.
+\newblock \emph{PeerJ}, 4:\penalty0 e1980, 2016.
+
+\bibitem[{Sea Star Lab, Friday Harbor Laboratories}(2024)]{seastarlab2024}
+{Sea Star Lab, Friday Harbor Laboratories}.
+\newblock Sunflower star conservation program.
+\newblock \url{https://fridayharborlabs.org}, 2024.
+
+\bibitem[Smith(1936)]{smith1936discriminant}
+H~Fairfield Smith.
+\newblock A discriminant function for plant selection.
+\newblock \emph{Annals of Eugenics}, 7\penalty0 (3):\penalty0 240--250, 1936.
+
+\bibitem[Whiteley et~al.(2015)Whiteley, Fitzpatrick, Funk, and Tallmon]{whiteley2015genetic}
+Andrew~R Whiteley, Sarah~W Fitzpatrick, W~Chris Funk, and David~A Tallmon.
+\newblock Genetic rescue to the rescue.
+\newblock \emph{Trends in Ecology \& Evolution}, 30\penalty0 (1):\penalty0 42--49, 2015.
+
+\bibitem[Woolliams et~al.(2015)Woolliams, Berg, Dagnachew, and Meuwissen]{woolliams2015genetic}
+John~A Woolliams, Peer Berg, Binyam~S Dagnachew, and Theo~HE Meuwissen.
+\newblock \emph{Genetic contributions and their optimization}, volume 132.
+\newblock 2015.
+
+\end{thebibliography}

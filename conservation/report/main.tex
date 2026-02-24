@@ -1,0 +1,37 @@
+\input{preamble}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document develops the theoretical framework for using the SSWD-EvoEpi 
+agent-based model to inform conservation breeding and reintroduction of 
+\pyc{} (sunflower sea star). We derive from first principles the 
+quantitative genetics of polygenic disease resistance, the statistical 
+theory of founder screening, optimal breeding program design under 
+inbreeding constraints, and the population genetics of genetic rescue 
+through reintroduction. Each section connects mathematical theory to 
+the specific genetic architecture implemented in the model (51 biallelic 
+loci across three traits), generating concrete predictions that become 
+testable once the model is calibrated. The module includes code 
+implementations of all theoretical results and analysis templates 
+ready for execution with final model parameters.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/01_introduction}
+\input{sections/02_genetic_architecture}
+\input{sections/03_quantitative_genetics}
+\input{sections/04_screening_theory}
+\input{sections/05_breeding_programs}
+\input{sections/06_inbreeding}
+\input{sections/07_reintroduction}
+\input{sections/08_pycnopodia_biology}
+\input{sections/09_analysis_plan}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
