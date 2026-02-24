@@ -47,27 +47,45 @@ def log_edit(action, index, before=None, after=None, note=""):
         f.write(json.dumps(entry) + '\n')
 
 
+# tab20 dark (even indices) and light (odd indices)
+_tab20_dark = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+]
+_tab20_light = [
+    '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5',
+    '#c49c94', '#f7b6d2', '#c7c7c7', '#dbdb8d', '#9edae5',
+]
+# Interleave dark/light so geographic neighbors contrast
 REGION_COLORS = {
-    'AK-WG': '#4363d8',  # royal blue
-    'AK-AL': '#3cb44b',  # green
-    'AK-EG': '#42d4f4',  # cyan
-    'AK-SE': '#911eb4',  # purple
-    'BC-N': '#f58231',   # orange
-    'BC-C': '#e6194b',   # crimson
-    'SS':   '#469990',   # teal
-    'WA-O': '#f032e6',   # magenta
-    'OR':   '#9A6324',   # brown
-    'CA-N': '#bfef45',   # lime
-    'CA-C': '#ffe119',   # yellow
-    'CA-S': '#dcbeff',   # lavender
-    'BJ':   '#800000',   # maroon
+    'AK-WG':  _tab20_dark[0],   # blue
+    'AK-AL':  _tab20_light[1],  # light orange
+    'AK-EG':  _tab20_dark[1],   # orange
+    'AK-PWS': _tab20_light[4],  # light purple
+    'AK-FN':  _tab20_dark[3],   # red
+    'AK-FS':  _tab20_light[0],  # light blue
+    'AK-OC':  _tab20_dark[4],   # purple
+    'BC-N':   _tab20_light[3],  # light red
+    'BC-C':   _tab20_dark[5],   # brown
+    'JDF':    _tab20_light[6],  # light pink
+    'SS-N':   _tab20_dark[2],   # green
+    'SS-S':   _tab20_light[8],  # light olive
+    'WA-O':   _tab20_dark[6],   # pink
+    'OR':     _tab20_light[5],  # light brown
+    'CA-N':   _tab20_dark[8],   # olive
+    'CA-C':   _tab20_light[9],  # light cyan
+    'CA-S':   _tab20_dark[9],   # cyan
+    'BJ':     _tab20_dark[7],   # gray
 }
 
 REGION_NAMES = {
     'AK-WG': 'Alaska - Western Gulf', 'AK-AL': 'Alaska - Aleutians',
-    'AK-EG': 'Alaska - Eastern Gulf', 'AK-SE': 'Alaska - Southeast',
+    'AK-EG': 'Alaska - Eastern Gulf', 'AK-PWS': 'Alaska - Prince William Sound',
+    'AK-FN': 'Alaska - Far North', 'AK-FS': 'Alaska - Far South',
+    'AK-OC': 'Alaska - Outer Coast',
     'BC-N': 'British Columbia - North', 'BC-C': 'British Columbia - Central',
-    'SS': 'Salish Sea', 'WA-O': 'Washington - Outer Coast',
+    'JDF': 'Juan de Fuca Strait', 'SS-N': 'Salish Sea - North', 'SS-S': 'Salish Sea - South',
+    'WA-O': 'Washington - Outer Coast',
     'OR': 'Oregon', 'CA-N': 'California - North',
     'CA-C': 'California - Central', 'CA-S': 'California - South',
     'BJ': 'Baja California',
