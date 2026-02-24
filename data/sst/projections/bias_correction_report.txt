@@ -1,0 +1,33 @@
+CMIP6 Bias Correction Report
+Overlap period: 2015-2025
+======================================================================
+
+Scenario: ssp245
+----------------------------------------
+
+  Model: GFDL-ESM4
+    Sitka: mean bias = +0.07°C (range -2.08 to +2.19)
+    Ketchikan: mean bias = -1.38°C (range -3.03 to -0.04)
+    Haida_Gwaii: mean bias = +0.20°C (range -1.78 to +2.74)
+    Bella_Bella: mean bias = +0.41°C (range -2.11 to +3.15)
+    Howe_Sound: mean bias = -0.13°C (range -4.80 to +4.12)
+    SJI: mean bias = +1.24°C (range -0.27 to +3.43)
+    Westport: mean bias = +1.06°C (range -1.03 to +4.11)
+    Newport: mean bias = +1.49°C (range -1.32 to +5.32)
+    Crescent_City: mean bias = +1.82°C (range -0.89 to +5.09)
+    Fort_Bragg: mean bias = +1.88°C (range -0.31 to +4.46)
+    Monterey: mean bias = +2.23°C (range +0.03 to +4.26)
+
+  Model: IPSL-CM6A-LR
+    Sitka: mean bias = -0.03°C (range -3.23 to +3.30)
+    Ketchikan: mean bias = -0.47°C (range -4.27 to +2.69)
+    Haida_Gwaii: mean bias = +0.46°C (range -2.84 to +4.46)
+    Bella_Bella: mean bias = -1.24°C (range -5.63 to +3.30)
+    Howe_Sound: mean bias = +1.27°C (range -0.31 to +2.49)
+    SJI: mean bias = +2.78°C (range -0.12 to +6.17)
+    Westport: mean bias = +1.61°C (range -0.77 to +5.28)
+    Newport: mean bias = +1.35°C (range -0.46 to +4.07)
+    Crescent_City: mean bias = +2.44°C (range +0.90 to +4.78)
+    Fort_Bragg: mean bias = +2.52°C (range +1.49 to +3.70)
+    Monterey: mean bias = +3.82°C (range +1.86 to +5.69)
+

@@ -803,48 +803,61 @@ class TestGeneticsDiseaseCoupling:
         We test that the resistance increase is larger in the first
         2 years post-epidemic than in subsequent years.
         Uses low-resistance uniform init for strong selection signal.
+
+        Note: at N=1000, individual seed outcomes are noisy (~40% of
+        seeds can drift negative), so we average across 5 independent
+        replicates to detect the expected positive mean shift.
         """
         config = default_config()
         config.genetics.target_mean_r = 0.10
         config.genetics.q_init_mode = "uniform"
-        result = run_coupled_simulation(
-            n_individuals=1000,
-            carrying_capacity=1000,
-            habitat_area=20000.0,
-            T_celsius=11.0,
-            salinity=30.0,
-            phi_k=0.3,
-            n_years=10,
-            disease_year=2,
-            initial_infected=5,
-            seed=42,
-            config=config,
-        )
-        # Phase 1: rapid shift (years 2-4, during/just after epidemic)
-        r_pre = result.yearly_mean_resistance[1]
-        r_phase1 = result.yearly_mean_resistance[4]
-        delta_phase1 = r_phase1 - r_pre
 
-        # Phase 2: slower change (years 4-7)
-        r_phase2 = result.yearly_mean_resistance[7]
-        delta_phase2 = r_phase2 - r_phase1
+        deltas_phase1 = []
+        rates_phase1 = []
+        rates_phase2 = []
 
-        # Phase 1 shift should be positive
-        assert delta_phase1 > 0, \
-            f"Phase 1 (rapid) should increase r̄: Δ = {delta_phase1:+.4f}"
+        for seed in [42, 123, 456, 789, 13]:
+            result = run_coupled_simulation(
+                n_individuals=1000,
+                carrying_capacity=1000,
+                habitat_area=20000.0,
+                T_celsius=11.0,
+                salinity=30.0,
+                phi_k=0.3,
+                n_years=10,
+                disease_year=2,
+                initial_infected=5,
+                seed=seed,
+                config=config,
+            )
+            # Phase 1: rapid shift (years 2-4, during/just after epidemic)
+            r_pre = result.yearly_mean_resistance[1]
+            r_phase1 = result.yearly_mean_resistance[4]
+            delta_p1 = r_phase1 - r_pre
 
-        # Phase 1 should be at least as large as Phase 2 per year
-        # Phase 1: 3 years, Phase 2: 3 years
-        rate_phase1 = delta_phase1 / 3.0 if delta_phase1 > 0 else 0
-        rate_phase2 = delta_phase2 / 3.0
+            # Phase 2: slower change (years 4-7)
+            r_phase2 = result.yearly_mean_resistance[7]
+            delta_p2 = r_phase2 - r_phase1
+
+            deltas_phase1.append(delta_p1)
+            rates_phase1.append(delta_p1 / 3.0)
+            rates_phase2.append(delta_p2 / 3.0)
+
+        mean_delta = np.mean(deltas_phase1)
+        mean_rate1 = np.mean(rates_phase1)
+        mean_rate2 = np.mean(rates_phase2)
+
+        # Mean Phase 1 shift should be positive across replicates
+        assert mean_delta > 0, \
+            f"Mean Phase 1 should increase r̄: Δ = {mean_delta:+.4f} " \
+            f"(individual: {[f'{d:+.4f}' for d in deltas_phase1]})"
 
         # Phase 1 rate should be >= Phase 2 rate (rapid then slow)
-        # Allow some tolerance for stochasticity
         # Allow wider tolerance: spawning overhaul (Phase 12) increases
         # reproductive variance, which can amplify stochastic selection signals.
-        assert rate_phase1 > rate_phase2 - 0.015, \
-            f"Phase 1 should be faster: rate1={rate_phase1:.4f}/yr, " \
-            f"rate2={rate_phase2:.4f}/yr"
+        assert mean_rate1 > mean_rate2 - 0.015, \
+            f"Phase 1 should be faster: rate1={mean_rate1:.4f}/yr, " \
+            f"rate2={mean_rate2:.4f}/yr"
 
     def test_additive_variance_tracked(self):
         """Additive genetic variance should be tracked and non-zero."""
