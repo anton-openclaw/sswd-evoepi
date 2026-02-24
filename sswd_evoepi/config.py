@@ -40,6 +40,9 @@ class SimulationSection:
     sst_source: str = 'sinusoidal'  # 'sinusoidal', 'satellite', or 'monthly'
     sst_data_dir: str = 'data/sst'  # directory with *_climatology.csv / *_monthly.csv files
     sst_start_year: int = 2002     # start calendar year for 'monthly' SST source
+    sst_scenario: str = 'observed_only'  # 'observed_only', 'ssp245', 'ssp585', etc.
+    sst_projection_dir: str = 'data/sst/projections'  # directory with *_{scenario}_monthly.csv
+    sst_obs_end_year: int = 2025   # last year of OISST observations
 
 
 @dataclass
@@ -405,6 +408,26 @@ def validate_config(config: SimulationConfig) -> None:
             warnings.warn(
                 f"simulation.sst_data_dir '{config.simulation.sst_data_dir}' "
                 f"does not exist. SST loading will fail at runtime.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    # SST scenario validation
+    valid_sst_scenarios = {"observed_only", "ssp126", "ssp245", "ssp370", "ssp585"}
+    if config.simulation.sst_scenario not in valid_sst_scenarios:
+        raise ValueError(
+            f"simulation.sst_scenario must be one of {valid_sst_scenarios}, "
+            f"got '{config.simulation.sst_scenario}'"
+        )
+    # If scenario != observed_only and sim extends beyond obs, projection dir must exist
+    if config.simulation.sst_scenario != 'observed_only':
+        import os
+        import warnings
+        if not os.path.isdir(config.simulation.sst_projection_dir):
+            warnings.warn(
+                f"simulation.sst_projection_dir "
+                f"'{config.simulation.sst_projection_dir}' does not exist. "
+                f"SST projection loading will fail at runtime.",
                 UserWarning,
                 stacklevel=2,
             )

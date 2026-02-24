@@ -269,6 +269,62 @@ def interpolate_monthly_to_daily(monthly_values_12: np.ndarray,
     return daily_sst
 
 
+def load_sst_projection_monthly(node_name: str, scenario: str,
+                                 data_dir: str = 'data/sst/projections') -> dict:
+    """Load CMIP6 projection monthly data for a node and scenario.
+
+    Tries exact scenario first (e.g., ``{Node}_ssp245_monthly.csv``),
+    then placeholder variant (e.g., ``{Node}_ssp585_placeholder_monthly.csv``).
+
+    Args:
+        node_name: Node name (spaces normalized to underscores).
+        scenario: SSP scenario label (e.g., 'ssp245', 'ssp585').
+        data_dir: Directory containing projection CSV files.
+
+    Returns:
+        Dict mapping (year, month) → SST value (°C).
+
+    Raises:
+        FileNotFoundError: If no projection file found for this node/scenario.
+    """
+    norm_name = _normalize_node_name(node_name)
+
+    # Try exact match first, then placeholder
+    candidates = [
+        os.path.join(data_dir, f"{norm_name}_{scenario}_monthly.csv"),
+        os.path.join(data_dir, f"{norm_name}_{scenario}_placeholder_monthly.csv"),
+    ]
+
+    csv_path = None
+    for path in candidates:
+        if os.path.isfile(path):
+            csv_path = path
+            break
+
+    if csv_path is None:
+        raise FileNotFoundError(
+            f"SST projection file not found for '{node_name}' scenario "
+            f"'{scenario}'. Tried: {candidates}"
+        )
+
+    import csv as csv_module
+    monthly = {}
+    with open(csv_path, 'r') as f:
+        reader = csv_module.DictReader(f)
+        for row in reader:
+            yr = int(row['year'])
+            mo = int(row['month'])
+            monthly[(yr, mo)] = float(row['sst'])
+
+    if len(monthly) == 0:
+        raise ValueError(
+            f"SST projection file for '{node_name}' scenario '{scenario}' "
+            f"contains no data rows"
+        )
+
+    return monthly
+
+
 def generate_yearly_sst_series(
     node_name: str,
     start_year: int,
@@ -277,16 +333,24 @@ def generate_yearly_sst_series(
     climatology_dir: Optional[str] = None,
     trend_per_year: float = 0.0,
     reference_year: int = 2015,
+    scenario: str = 'observed_only',
+    projection_dir: str = 'data/sst/projections',
+    obs_end_year: int = 2025,
 ) -> np.ndarray:
     """Generate a full daily SST array for multi-year simulation from monthly data.
 
     For each year in the range [start_year, start_year + n_years), loads
     the 12 monthly SST values and interpolates to daily resolution.
 
-    For years beyond the available monthly data (past 2025), falls back
-    to the satellite climatology with a logged warning. If no climatology
-    is available either, the last available year of monthly data is
-    repeated.
+    SST source priority per year:
+      1. OISST observations (start_year through obs_end_year)
+      2. CMIP6 projections (obs_end_year+1 onward, if scenario != 'observed_only')
+      3. Satellite climatology fallback
+      4. Repeat last complete monthly year
+
+    If ``scenario='observed_only'`` and the simulation extends beyond
+    ``obs_end_year``, years beyond observations use climatology/repeat
+    fallback (no projections loaded).
 
     Note: the model uses a fixed 365-day year internally. For leap years,
     the interpolated array is truncated to 365 days.
@@ -295,12 +359,17 @@ def generate_yearly_sst_series(
         node_name: Node name for file lookup.
         start_year: First calendar year of the series.
         n_years: Number of years.
-        data_dir: Directory containing ``*_monthly.csv`` files.
+        data_dir: Directory containing ``*_monthly.csv`` files (observations).
         climatology_dir: Directory for climatology fallback. If None,
             defaults to ``data_dir``.
         trend_per_year: Linear warming rate (°C/yr) applied on top of
             data (default 0.0 — raw observations).
         reference_year: Year at which trend contribution is zero.
+        scenario: SST scenario for projections ('observed_only', 'ssp245',
+            'ssp585', etc.). Default 'observed_only'.
+        projection_dir: Directory containing ``*_{scenario}_monthly.csv``
+            projection files.
+        obs_end_year: Last year of OISST observations (inclusive).
 
     Returns:
         1-D array of shape (n_years * 365,) with daily SST values.
@@ -311,12 +380,33 @@ def generate_yearly_sst_series(
     if climatology_dir is None:
         climatology_dir = data_dir
 
-    # Load monthly data
+    # Load observational monthly data
     monthly_data = load_sst_monthly(node_name, data_dir)
 
     # Determine available year range from monthly data
     available_years = sorted(set(yr for yr, _ in monthly_data.keys()))
     max_data_year = max(available_years) if available_years else start_year
+
+    # Load projection data if scenario is not observed_only
+    projection_data = None
+    end_year = start_year + n_years - 1
+    if scenario != 'observed_only' and end_year > obs_end_year:
+        try:
+            projection_data = load_sst_projection_monthly(
+                node_name, scenario, projection_dir
+            )
+            proj_years = sorted(set(yr for yr, _ in projection_data.keys()))
+            logger.info(
+                "Loaded %s projections for '%s': %d-%d (%d months)",
+                scenario, node_name, min(proj_years), max(proj_years),
+                len(projection_data),
+            )
+        except FileNotFoundError as e:
+            logger.warning(
+                "Could not load %s projections for '%s': %s. "
+                "Falling back to climatology/repeat.",
+                scenario, node_name, e,
+            )
 
     # Try loading climatology for fallback
     climatology = None
@@ -337,15 +427,36 @@ def generate_yearly_sst_series(
     for yr_offset in range(n_years):
         cal_year = start_year + yr_offset
 
-        # Check if all 12 months available for this year
-        has_all_months = all(
+        # Check if all 12 months available in OISST observations
+        has_all_obs_months = all(
             (cal_year, m) in monthly_data for m in range(1, 13)
         )
 
-        if has_all_months:
-            # Use actual monthly data
+        # Check if all 12 months available in projections
+        has_all_proj_months = (
+            projection_data is not None
+            and all((cal_year, m) in projection_data for m in range(1, 13))
+        )
+
+        if has_all_obs_months and cal_year <= obs_end_year:
+            # Use observational data (within observation period)
             monthly_vals = np.array(
                 [monthly_data[(cal_year, m)] for m in range(1, 13)],
+                dtype=np.float64,
+            )
+            daily = interpolate_monthly_to_daily(monthly_vals, cal_year)
+        elif has_all_obs_months and cal_year > obs_end_year:
+            # Observations exist but we're past obs_end_year — still use them
+            # (this handles the edge case of partial-year obs updates)
+            monthly_vals = np.array(
+                [monthly_data[(cal_year, m)] for m in range(1, 13)],
+                dtype=np.float64,
+            )
+            daily = interpolate_monthly_to_daily(monthly_vals, cal_year)
+        elif has_all_proj_months:
+            # Use CMIP6 projection data
+            monthly_vals = np.array(
+                [projection_data[(cal_year, m)] for m in range(1, 13)],
                 dtype=np.float64,
             )
             daily = interpolate_monthly_to_daily(monthly_vals, cal_year)
@@ -353,15 +464,15 @@ def generate_yearly_sst_series(
             # Fall back to climatology
             if cal_year > max_data_year:
                 logger.warning(
-                    "SST monthly data for '%s' year %d not available; "
-                    "falling back to climatology.",
-                    node_name, cal_year,
+                    "SST data for '%s' year %d not available in obs or "
+                    "%s projections; falling back to climatology.",
+                    node_name, cal_year, scenario,
                 )
             daily = climatology.copy()  # already 365 days
         elif last_complete_monthly is not None:
             # No climatology — repeat last complete year
             logger.warning(
-                "SST monthly data for '%s' year %d not available and no "
+                "SST data for '%s' year %d not available and no "
                 "climatology found; repeating year %d.",
                 node_name, cal_year, last_complete_monthly,
             )
@@ -375,7 +486,8 @@ def generate_yearly_sst_series(
         else:
             raise ValueError(
                 f"No SST data available for '{node_name}' year {cal_year}: "
-                f"no monthly data, no climatology, no fallback."
+                f"no observations, no {scenario} projections, no climatology, "
+                f"no fallback."
             )
 
         # Truncate to 365 days (model uses fixed 365-day years)

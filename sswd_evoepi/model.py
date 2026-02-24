@@ -1797,6 +1797,9 @@ def run_spatial_simulation(
                     climatology_dir=config.simulation.sst_data_dir,
                     trend_per_year=nd.sst_trend,
                     reference_year=2015,
+                    scenario=config.simulation.sst_scenario,
+                    projection_dir=config.simulation.sst_projection_dir,
+                    obs_end_year=config.simulation.sst_obs_end_year,
                 )
             else:
                 satellite_sst_by_node[i] = generate_satellite_sst_series(
