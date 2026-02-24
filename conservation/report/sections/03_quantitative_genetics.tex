@@ -97,10 +97,19 @@ $h^2 = 1$:
 
 For resistance with $n_R = 17$ loci, the additive standard deviation is:
 \begin{equation}
-    \sigma_A = \sqrt{\sum_{\ell=1}^{17} 2 q_\ell (1 - q_\ell) 
-    \alpha_\ell^2}
+    \sigma_A = \sqrt{\sum_{\ell=1}^{17} \frac{\alpha_\ell^2}{2}\, 
+    q_\ell (1 - q_\ell)}
     \label{eq:sigma_a_resistance}
 \end{equation}
+
+\begin{remark}[Scaling factor]
+The factor $\alpha_\ell^2 / 2$ (rather than the classical $2\alpha_\ell^2$) 
+arises because the model encodes traits as $\tau = \sum_\ell \alpha_\ell 
+(a_1 + a_2)/2$, making the allele substitution effect $\alpha_\ell/2$ 
+rather than $\alpha_\ell$. Then $V_A = 2 \sum (\alpha_\ell/2)^2 q(1-q) 
+= \sum \alpha_\ell^2 q(1-q) / 2$. This was confirmed by simulation 
+validation (\Cref{sec:validation}).
+\end{remark}
 
 \begin{remark}
 $V_A$ is \textbf{not constant} across generations. As selection 
@@ -123,9 +132,14 @@ Under truncation selection on an additive trait, the single-locus
 allele frequency change is approximately \citep{barton2000multilocus}:
 \begin{equation}
     \Delta q_\ell \approx i \cdot 
-    \frac{\alpha_\ell \cdot q_\ell(1-q_\ell)}{\sigma_P}
+    \frac{(\alpha_\ell / 2) \cdot q_\ell(1-q_\ell)}{\sigma_P}
     \label{eq:delta_q}
 \end{equation}
+where the factor $\alpha_\ell / 2$ reflects the mean-of-alleles trait 
+encoding (see \Cref{eq:sigma_a_resistance}). One can verify consistency: 
+$\Delta\E[\tau] = \sum_\ell \alpha_\ell \Delta q_\ell = (i/\sigma_P) 
+\sum_\ell (\alpha_\ell^2/2)\,q_\ell(1-q_\ell) = i \cdot \sigma_P = R$, 
+recovering the breeder's equation.
 
 This gives us a system of coupled difference equations — one per 
 locus — that we can iterate forward numerically.

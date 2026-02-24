@@ -98,12 +98,17 @@ Offspring variance comes from Mendelian segregation:
 \end{equation}
 where segregation variance is:
 \begin{equation}
-    V_{\text{seg}} = \sum_{\ell} \frac{\alpha_\ell^2}{4} 
+    V_{\text{seg}} = \sum_{\ell} \frac{\alpha_\ell^2}{16} 
     \cdot h_\ell^{(p_1)} \cdot h_\ell^{(p_2)}
     \label{eq:segregation_var}
 \end{equation}
 with $h_\ell^{(p)} = \mathbf{1}[\text{parent } p 
 \text{ is heterozygous at locus } \ell]$.
+The factor $\alpha_\ell^2/16$ arises from the mean-of-alleles encoding: 
+$x_\ell = \alpha_\ell(a_1+a_2)/2$, so the allele substitution effect is 
+$\alpha_\ell/2$, and segregation at a heterozygous locus contributes 
+$(\alpha_\ell/2)^2 \times 1/4 = \alpha_\ell^2/16$ per parent. 
+This was confirmed by simulation validation (\Cref{sec:validation}).
 
 \subsubsection{Strategy 2: Assortative mating}
 

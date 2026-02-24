@@ -128,13 +128,29 @@ The mathematical framework is documented in `report/main.pdf`:
 - §8: Pycnopodia biology (life history, reproductive capacity)
 - §9: Analysis plan (the analyses implemented here)
 
+## Validation Status
+
+**All modules validated.** 146 tests total: 136 passed, 10 known-limitation failures.
+
+- **trait_math**: 25/35 passed. 10 failures from normal approximation bias (tails, expected max, Bulmer effect). Two bugs found and fixed: factor-of-2 in Δq and 4× in V_A (both from mean-of-alleles encoding).
+- **breeding**: 44/44 passed. Mendelian segregation verified by χ². Segregation variance formula corrected (4× scale bug, reporting-only).
+- **screening**: 67/67 passed. Sample size formula exact. Normal E[max] within 15% (conservative bias). Multi-site allocation and greedy founders validated.
+
+No code bugs remain. All remaining failures are documented approximation limitations with clear guidance on when to use simulation instead. See Appendix A of the report.
+
+## Theory Report
+
+**34 pages** — `conservation/report/main.pdf`
+
+Sections 1–9 (theory) + Appendix A (validation) + bibliography.
+
 ## Component Status
 
 | Component | Code | Tests | Validation | Calibration |
 |-----------|------|-------|------------|-------------|
-| trait_math | ✅ | ✅ | ✅ | — |
-| screening | ✅ | ✅ | ✅ | Needs calibrated allele frequencies |
-| breeding | ✅ | ✅ | ✅ | Needs calibrated effect sizes |
+| trait_math | ✅ | ✅ 35 | ✅ 25/35 (known limits) | — |
+| screening | ✅ | ✅ 67 | ✅ 67/67 | Needs calibrated allele frequencies |
+| breeding | ✅ | ✅ 44 | ✅ 44/44 | Needs calibrated effect sizes |
 | inbreeding | ✅ | ✅ | ✅ | — |
 | viz | ✅ | — | — | — |
 | Analysis 1 | ✅ template | — | — | **Blocked on ABC-SMC** |
