@@ -48,14 +48,15 @@ def trait_variance(effects: np.ndarray, freqs: np.ndarray) -> float:
 def additive_variance(effects: np.ndarray, freqs: np.ndarray) -> float:
     """Additive genetic variance V_A.
     
-    V_A = Σ 2 q_ℓ(1-q_ℓ) α_ℓ²  (Eq. 2.12)
+    V_A = Σ 2 q_ℓ(1-q_ℓ) (α_ℓ/2)²  =  Σ (α_ℓ²/2) q_ℓ(1-q_ℓ)
     
-    Note: V_A = 4 × trait_variance because the trait uses allele means
-    (x = (a₁+a₂)/2) while V_A uses allelic values directly.
-    In our model with h²=1: V_P = trait_variance, and the 
-    selection-relevant variance is trait_variance.
+    The allele substitution effect is α_ℓ/2 because the trait uses
+    diploid allele means: x_ℓ = (a₁+a₂)/2.  One allele flip changes
+    the trait by α_ℓ/2.
+    
+    With h²=1 (no environmental variance): V_A = V_P = trait_variance.
     """
-    return float(np.sum(2 * freqs * (1 - freqs) * effects**2))
+    return float(np.sum(effects**2 / 2 * freqs * (1 - freqs)))
 
 
 def selection_response(effects: np.ndarray, freqs: np.ndarray,
@@ -87,7 +88,13 @@ def delta_q_per_locus(effects: np.ndarray, freqs: np.ndarray,
                       fraction_selected: float) -> np.ndarray:
     """Per-locus allele frequency change under truncation selection.
     
-    Δq_ℓ ≈ i × α_ℓ × q_ℓ(1-q_ℓ) / σ_P  (Eq. 3.8)
+    Δq_ℓ ≈ i × (α_ℓ/2) × q_ℓ(1-q_ℓ) / σ_P  (corrected Eq. 3.8)
+    
+    The factor of 1/2 arises because the allele substitution effect
+    is α_ℓ/2 (trait uses diploid means x_ℓ = (a₁+a₂)/2).
+    
+    Verification: ΔE[τ] = Σ α_ℓ × Δq_ℓ = i/σ × Σ α_ℓ²/2 × q(1-q)
+                         = i/σ × σ² = i×σ = R  (matches breeder's eq.)
     
     Args:
         effects: (n_loci,) effect sizes.
@@ -102,7 +109,7 @@ def delta_q_per_locus(effects: np.ndarray, freqs: np.ndarray,
         return np.zeros_like(freqs)
     z = stats.norm.ppf(1 - fraction_selected)
     i = stats.norm.pdf(z) / fraction_selected
-    return i * effects * freqs * (1 - freqs) / sigma
+    return i * (effects / 2) * freqs * (1 - freqs) / sigma
 
 
 def predict_generations(effects: np.ndarray, freqs_init: np.ndarray,
