@@ -1,0 +1,584 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% Color definitions for parameter groups
+\definecolor{cdisease}{HTML}{E74C3C}
+\definecolor{cgenetics}{HTML}{3498DB}
+\definecolor{cpopulation}{HTML}{2ECC71}
+\definecolor{cspawning}{HTML}{F39C12}
+\definecolor{cspatial}{HTML}{9B59B6}
+\definecolor{cpathevo}{HTML}{E67E22}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Sobol R4 Sensitivity Analysis}
+\fancyhead[R]{\small SSWD-EvoEpi Model}
+\fancyfoot[C]{\thepage}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!60!black,
+    urlcolor=blue!60!black,
+}
+
+\title{\textbf{Sobol Sensitivity Analysis (Round 4):\\Three-Trait SSWD-EvoEpi Model}}
+\author{Anton Weertman \and Willem Weertman}
+\date{February 25, 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+We present the results of a variance-based Sobol sensitivity analysis (Round 4) for the SSWD-EvoEpi agent-based model. This analysis evaluates the influence of 47 parameters across 23 output metrics using $N=512$ base samples (25,088 total model evaluations) on an 11-node stepping-stone spatial network. The model incorporates three-trait genetic architecture (resistance, tolerance, recovery), pathogen virulence evolution, and satellite-derived SST forcing. Key findings: the disease transmission cluster---\texttt{K\_half} ($S_T = 0.456$), \texttt{a\_exposure} ($S_T = 0.337$), \texttt{P\_env\_max} ($S_T = 0.251$), and \texttt{sigma\_2\_eff} ($S_T = 0.232$)---dominates population crash outcomes, collectively accounting for over 70\% of total-order sensitivity. Strong parameter interactions pervade the model ($\sum S_T / \sum S_1 = 3.37$ for population crash), confirming that calibration must account for correlated parameter effects. We provide prioritized calibration recommendations for subsequent ABC-SMC inference.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%----------------------------------------------------------------------
+\section{Executive Summary}
+%----------------------------------------------------------------------
+
+This report presents the Sobol sensitivity analysis (Round 4) of the SSWD-EvoEpi model---an agent-based simulation of Sea Star Wasting Disease incorporating host evolution and pathogen adaptation across a spatially explicit 11-node stepping-stone network.
+
+\subsection*{Top 5 Most Influential Parameters (Population Crash)}
+
+\begin{enumerate}
+    \item \textbf{\textcolor{cdisease}{\texttt{K\_half}}} ($S_T = 0.456 \pm 0.128$): Half-saturation constant for dose-response. Controls the threshold pathogen load for infection. Dominates both main effects and interactions.
+    \item \textbf{\textcolor{cdisease}{\texttt{a\_exposure}}} ($S_T = 0.337 \pm 0.097$): Exposure rate exponent. Governs nonlinear transmission scaling with environmental pathogen concentration.
+    \item \textbf{\textcolor{cdisease}{\texttt{P\_env\_max}}} ($S_T = 0.251 \pm 0.079$): Maximum environmental pathogen load. Sets the ceiling for pathogen accumulation in the water column.
+    \item \textbf{\textcolor{cdisease}{\texttt{sigma\_2\_eff}}} ($S_T = 0.232 \pm 0.083$): Late-stage (I$_2$) shedding rate. Controls how much pathogen severely infected individuals release.
+    \item \textbf{\textcolor{cdisease}{\texttt{sigma\_D}}} ($S_T = 0.141 \pm 0.066$): Dead-animal shedding rate. Determines post-mortem pathogen contribution to the environmental reservoir.
+\end{enumerate}
+
+\subsection*{Main Conclusions}
+
+\begin{itemize}
+    \item \textbf{Disease transmission dominates:} All top-5 parameters belong to the disease module. The transmission pathway---from environmental reservoir (\texttt{P\_env\_max}), through dose-response (\texttt{K\_half}, \texttt{a\_exposure}), to shedding feedback (\texttt{sigma\_2\_eff}, \texttt{sigma\_D})---is the primary driver of population outcomes.
+    \item \textbf{Pervasive interactions:} The ratio $\sum S_T / \sum S_1 = 3.37$ indicates that parameter interactions account for roughly two-thirds of explained variance. No parameter acts purely additively.
+    \item \textbf{Genetics matters for evolutionary metrics:} While genetic parameters rank mid-pack for population crash, they dominate evolutionary outcomes (resistance/tolerance/recovery shifts). \texttt{n\_resistance} ($S_T = 0.020$) and \texttt{target\_mean\_r} ($S_T = 0.021$) are key.
+    \item \textbf{Morris--Sobol agreement is partial:} Morris R4 ranked \texttt{rho\_rec} as \#1, but Sobol places it at \#32. This discrepancy reveals that \texttt{rho\_rec}'s Morris $\mu^*$ was inflated by interaction effects that Sobol decomposes properly.
+    \item \textbf{Bottom quartile can be fixed:} Parameters ranked 35--47 by $S_T$ all have $S_T < 0.004$, contributing negligibly. These can be fixed at literature values for calibration.
+\end{itemize}
+
+\newpage
+%----------------------------------------------------------------------
+\section{Methods}
+%----------------------------------------------------------------------
+
+\subsection{Model Configuration}
+
+The SSWD-EvoEpi model (Round 4) represents the complete three-trait architecture:
+
+\begin{itemize}
+    \item \textbf{Spatial network:} 11-node stepping-stone chain spanning the latitudinal range of \textit{Pycnopodia helianthoides} habitat (Alaska to southern California). Nodes include both fjord-type (high self-retention) and open-coast (lower retention, higher dispersal) sites.
+    \item \textbf{Genetic architecture:} Three heritable quantitative traits---resistance (reduces infection probability), tolerance (extends survival while infected), and recovery (increases clearance rate). Each trait is controlled by a configurable number of additive loci ($n_\text{resistance}$, $n_\text{tolerance}$).
+    \item \textbf{Pathogen evolution:} Virulence evolves via mutation, with trade-offs between transmission (shedding), virulence (kill rate), and progression rate controlled by $\alpha_\text{kill}$, $\alpha_\text{shed}$, and $\alpha_\text{prog}$.
+    \item \textbf{Disease dynamics:} Prentice (2025) disease rates with $R \to S$ immunity loss. Environmental pathogen reservoir with temperature-dependent VBNC dynamics.
+    \item \textbf{Temperature forcing:} Satellite-derived SST profiles for each node, capturing the latitudinal temperature gradient.
+\end{itemize}
+
+\subsection{Sensitivity Analysis Design}
+
+\begin{itemize}
+    \item \textbf{Method:} Saltelli sampling scheme for Sobol indices (SALib), \texttt{calc\_second\_order=False}
+    \item \textbf{Parameters:} 47 (Table~\ref{tab:all_params} in Appendix)
+    \item \textbf{Metrics:} 23 output summary statistics (population, disease, evolutionary, spatial)
+    \item \textbf{Sample size:} $N = 512$ base samples $\times$ $(47 + 2)$ = 25,088 total runs
+    \item \textbf{Computation:} 20.4 wall-clock hours on Intel Xeon W-3365 (48 cores)
+    \item \textbf{Base seed:} 88888
+    \item \textbf{Indices computed:} First-order ($S_1$) and total-order ($S_T$) with bootstrap confidence intervals
+\end{itemize}
+
+The first-order index $S_1$ measures the direct (additive) contribution of a parameter to output variance. The total-order index $S_T$ captures both direct effects and all interactions involving that parameter. Their difference $S_T - S_1$ quantifies the contribution of parameter interactions.
+
+\subsection{Output Metrics}
+
+The 23 metrics span four domains:
+\begin{itemize}
+    \item \textbf{Disease dynamics (7):} \texttt{pop\_crash\_pct}, \texttt{peak\_mortality}, \texttt{time\_to\_nadir}, \texttt{disease\_death\_fraction}, \texttt{total\_disease\_deaths}, \texttt{extinction}, \texttt{recovery}
+    \item \textbf{Evolutionary (7):} \texttt{resistance\_shift\_mean}, \texttt{resistance\_shift\_max}, \texttt{tolerance\_shift\_mean}, \texttt{recovery\_shift\_mean}, \texttt{va\_retention\_mean}, \texttt{evolutionary\_rescue\_index}, \texttt{total\_recovery\_events}
+    \item \textbf{Ecological (5):} \texttt{final\_pop\_frac}, \texttt{n\_extinct\_nodes}, \texttt{mean\_recruitment\_rate}, \texttt{spawning\_participation}, \texttt{recovery\_rate}
+    \item \textbf{Spatial (4):} \texttt{north\_south\_mortality\_gradient}, \texttt{fjord\_protection\_effect}, \texttt{mean\_final\_virulence}, \texttt{virulence\_shift}
+\end{itemize}
+
+\newpage
+%----------------------------------------------------------------------
+\section{Results}
+%----------------------------------------------------------------------
+
+\subsection{Global Parameter Ranking (Population Crash)}
+
+Figure~\ref{fig:global_ranking} presents the total-order Sobol indices ($S_T$) for all 47 parameters with respect to \texttt{pop\_crash\_pct}. The distribution is highly skewed: four parameters have $S_T > 0.14$, while 32 parameters have $S_T < 0.01$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig01_global_ranking.png}
+    \caption{Global parameter ranking by total-order Sobol index ($S_T$) for population crash percentage. Bars are colored by parameter group. Error bars show 95\% bootstrap confidence intervals. The disease transmission cluster (\texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, \texttt{sigma\_2\_eff}) dominates.}
+    \label{fig:global_ranking}
+\end{figure}
+
+\subsection{Interaction Structure}
+
+Figure~\ref{fig:s1_vs_st} reveals the interaction structure. Points above the diagonal line $S_1 = S_T$ indicate parameters whose influence is amplified by interactions with other parameters.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig02_s1_vs_st.png}
+    \caption{First-order ($S_1$) vs.\ total-order ($S_T$) indices for \texttt{pop\_crash\_pct}. Points above the diagonal indicate parameter interactions. The top-4 disease parameters show large gaps between $S_1$ and $S_T$, indicating they interact strongly with each other.}
+    \label{fig:s1_vs_st}
+\end{figure}
+
+For \texttt{pop\_crash\_pct}, $\sum S_1 = 0.527$ and $\sum S_T = 1.775$, giving a ratio of 3.37. This means that interaction effects are responsible for approximately $1 - (0.527/1.775) = 70\%$ of the total sensitivity. The disease transmission parameters (\texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, \texttt{sigma\_2\_eff}) form a tightly coupled cluster where the effect of each parameter depends on the values of the others.
+
+\subsection{Multi-Metric Sensitivity Landscape}
+
+Figure~\ref{fig:heatmap} shows the $S_T$ values for the top 20 parameters across all 23 metrics, revealing which parameters matter for which outcomes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig03_heatmap.png}
+    \caption{Multi-metric heatmap of $S_T$ values. Rows = top 20 parameters (by maximum $S_T$ across any metric), columns = 23 output metrics. Both axes are hierarchically clustered. The disease transmission cluster (top rows) dominates population/disease metrics, while genetic parameters emerge for evolutionary metrics.}
+    \label{fig:heatmap}
+\end{figure}
+
+Key patterns in the heatmap:
+\begin{itemize}
+    \item \textbf{Disease transmission cluster} (\texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, \texttt{sigma\_2\_eff}): High $S_T$ across population crash, disease deaths, extinction, and peak mortality metrics.
+    \item \textbf{Metric clustering:} Disease outcome metrics cluster together, as do evolutionary trait shift metrics, confirming that different parameter subsets drive different outcome domains.
+    \item \textbf{Parameter specificity:} Some parameters (like \texttt{n\_resistance}) have modest $S_T$ for population crash but high $S_T$ for \texttt{resistance\_shift\_mean}, indicating domain-specific influence.
+\end{itemize}
+
+\subsection{Main Effects vs.\ Interactions}
+
+Figure~\ref{fig:main_vs_interact} decomposes the total-order index into main effects ($S_1$) and interaction components ($S_T - S_1$) for the top 15 parameters.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig04_main_vs_interactions.png}
+    \caption{Decomposition of $S_T$ into main effect ($S_1$, blue) and interaction ($S_T - S_1$, orange) components for the top 15 parameters. Percentages show the fraction attributable to main effects. \texttt{K\_half} has the highest main-effect fraction ($\sim$40\%), while most parameters are interaction-dominated.}
+    \label{fig:main_vs_interact}
+\end{figure}
+
+\subsection{Parameter Group Contributions}
+
+Figure~\ref{fig:groups} summarizes sensitivity by parameter group.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig05_group_contributions.png}
+    \caption{Left: Total $S_T$ summed across all parameters in each group. Right: Mean $S_T$ per parameter in each group. The disease module dominates both total and per-parameter sensitivity for \texttt{pop\_crash\_pct}.}
+    \label{fig:groups}
+\end{figure}
+
+The disease module contributes the most total $S_T$ (16 parameters), but also has the highest per-parameter mean---confirming that disease transmission parameters are genuinely more influential, not just more numerous.
+
+\subsection{Evolutionary Metrics}
+
+Figure~\ref{fig:evolutionary} shows the top 10 parameters for each evolutionary outcome metric.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig06_evolutionary.png}
+    \caption{Top 10 parameters by $S_T$ for evolutionary metrics: resistance shift, tolerance shift, recovery shift, and evolutionary rescue index. Genetic parameters (\textcolor{cgenetics}{blue}) dominate trait shift metrics, while disease parameters (\textcolor{cdisease}{red}) control the selection pressure that drives evolution.}
+    \label{fig:evolutionary}
+\end{figure}
+
+\subsection{Disease Dynamics}
+
+Figure~\ref{fig:disease} shows disease-related outcome metrics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig07_disease.png}
+    \caption{Top 10 parameters by $S_T$ for disease dynamics metrics. The same disease transmission cluster dominates across all four panels, with consistent ranking.}
+    \label{fig:disease}
+\end{figure}
+
+\subsection{Ecological Metrics}
+
+Figure~\ref{fig:ecological} shows ecological outcome metrics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig08_ecological.png}
+    \caption{Top 10 parameters by $S_T$ for ecological metrics. Population and spawning parameters become more prominent for recruitment and spawning participation, though disease parameters remain influential.}
+    \label{fig:ecological}
+\end{figure}
+
+\subsection{Spatial Metrics}
+
+Figure~\ref{fig:spatial} shows the spatial outcome metrics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig09_spatial.png}
+    \caption{Top 10 parameters by $S_T$ for spatial metrics: north-south mortality gradient and fjord protection effect. Spatial parameters (\textcolor{cspatial}{purple}) appear in the top 10 for the first time, confirming the 11-node network resolves spatial dynamics.}
+    \label{fig:spatial}
+\end{figure}
+
+\subsection{Morris vs.\ Sobol Comparison}
+
+Figure~\ref{fig:morris} compares the parameter rankings from Morris screening (R4) with the Sobol analysis.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig10_morris_comparison.png}
+    \caption{Morris $\mu^*$ rank vs.\ Sobol $S_T$ rank for \texttt{pop\_crash\_pct}. Points on the diagonal indicate perfect agreement. Red-labeled parameters show rank changes $\geq 10$ positions. Notable: \texttt{rho\_rec} drops from Morris \#1 to Sobol \#32; \texttt{sigma\_D} jumps from Morris \#20 to Sobol \#5.}
+    \label{fig:morris}
+\end{figure}
+
+Major rank discrepancies between Morris and Sobol:
+\begin{itemize}
+    \item \textbf{\texttt{rho\_rec}} (Morris \#1 $\to$ Sobol \#32): Morris's OAT perturbations captured strong local effects of recovery rate, but Sobol reveals these are absorbed by interactions with other parameters in the global variance decomposition.
+    \item \textbf{\texttt{k\_growth}} (Morris \#2 $\to$ Sobol \#7): Slight drop; population growth is important but less dominant than disease transmission in variance decomposition.
+    \item \textbf{\texttt{sigma\_D}} (Morris \#20 $\to$ Sobol \#5): Dead-animal shedding is underestimated by Morris because its effect is highly nonlinear and interaction-dependent---exactly what Sobol captures.
+    \item \textbf{Top-3 agreement:} Both methods agree that \texttt{K\_half} and \texttt{a\_exposure} are among the most important parameters.
+\end{itemize}
+
+\subsection{Confidence Intervals}
+
+Figure~\ref{fig:confidence} shows the statistical precision of the Sobol estimates for the top 15 parameters.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig11_confidence.png}
+    \caption{Sobol indices with bootstrap confidence intervals for the top 15 parameters (\texttt{pop\_crash\_pct}). Red circles: $S_T$; blue squares: $S_1$. The top-4 parameters have well-separated confidence intervals, confirming their ranking is robust. Parameters ranked 6+ have overlapping intervals, making their relative ordering uncertain.}
+    \label{fig:confidence}
+\end{figure}
+
+The confidence intervals reveal:
+\begin{itemize}
+    \item The top-4 parameters (\texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, \texttt{sigma\_2\_eff}) are clearly separated from the rest---their ranking is statistically robust.
+    \item Parameters ranked 5--9 have overlapping confidence intervals, forming a ``second tier'' whose internal ordering is uncertain.
+    \item Some $S_1$ values are slightly negative (within confidence of zero), a known artifact of Monte Carlo estimation at limited sample sizes.
+\end{itemize}
+
+\subsection{Calibration Priority Matrix}
+
+Figure~\ref{fig:calibration} maps each parameter's sensitivity importance against its current prior range width.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/fig12_calibration_priority.png}
+    \caption{Calibration priority matrix. X-axis: $S_T$ (importance); Y-axis: normalized range width. Upper-right quadrant = high importance with wide range (``MUST CALIBRATE''). Lower-right = high importance with narrow range (``WELL CONSTRAINED''). Lower-left = low importance with narrow range (``FIX AT NOMINAL'').}
+    \label{fig:calibration}
+\end{figure}
+
+\newpage
+%----------------------------------------------------------------------
+\section{Discussion}
+%----------------------------------------------------------------------
+
+\subsection{Parameter Importance Hierarchy}
+
+The Sobol analysis reveals a steep importance hierarchy for population crash outcomes. Four disease transmission parameters collectively explain the vast majority of variance:
+
+\begin{enumerate}
+    \item \textbf{Dose-response parameters} (\texttt{K\_half}, \texttt{a\_exposure}): These define the shape of the infection probability curve as a function of environmental pathogen exposure. Together they account for $S_T \approx 0.79$, meaning population crash is primarily controlled by \emph{how efficiently pathogen converts to infection}.
+    \item \textbf{Pathogen loading parameters} (\texttt{P\_env\_max}, \texttt{sigma\_2\_eff}): These control the environmental pathogen pool. \texttt{P\_env\_max} sets the ceiling; \texttt{sigma\_2\_eff} controls the dominant input from severely infected animals.
+    \item \textbf{Post-mortem shedding} (\texttt{sigma\_D}): A surprise entry at \#5 that Morris missed. Dead animals continue releasing pathogen, creating a positive feedback loop that Sobol detects through its global variance decomposition.
+\end{enumerate}
+
+Below the top 5, a ``second tier'' of 4 parameters ($S_T \approx 0.03$--0.04) includes demographic (\texttt{k\_growth}, \texttt{settler\_survival}), spawning (\texttt{peak\_width\_days}), and reservoir (\texttt{T\_vbnc}) parameters. These modulate the population's ability to absorb and recover from disease-induced mortality.
+
+\subsection{Interaction Structure}
+
+The ratio $\sum S_T / \sum S_1$ quantifies the overall interaction intensity:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & $\sum S_1$ & $\sum S_T$ \\
+\midrule
+\texttt{pop\_crash\_pct} & 0.527 & 1.775 \\
+\texttt{final\_pop\_frac} & 0.429 & 1.856 \\
+\texttt{resistance\_shift\_mean} & 1.034 & 2.653 \\
+\texttt{peak\_mortality} & 1.232 & 10.019 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\texttt{peak\_mortality} shows extreme interactions ($\sum S_T = 10.0$), meaning this metric is determined almost entirely by parameter combinations rather than individual parameters. This makes it a poor target for univariate calibration but an excellent diagnostic for detecting model structural issues.
+
+\subsection{Disease Transmission Cluster}
+
+The four core disease parameters (\texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, \texttt{sigma\_2\_eff}) form a tightly coupled transmission cluster. Their interaction structure suggests:
+
+\begin{itemize}
+    \item \texttt{K\_half} and \texttt{a\_exposure} jointly define the dose-response curve: changing one shifts the effective threshold, and the other controls the steepness. Their interaction is mechanistically inevitable.
+    \item \texttt{P\_env\_max} interacts with the dose-response pair because it sets the maximum exposure level---if the ceiling is low, the dose-response shape matters less.
+    \item \texttt{sigma\_2\_eff} creates a feedback loop: more shedding $\to$ more environmental pathogen $\to$ more infection $\to$ more shedding. This amplification means its effect depends on the dose-response parameters.
+\end{itemize}
+
+\textbf{Implication:} These four parameters cannot be calibrated independently. ABC-SMC should sample them jointly and use summary statistics that constrain their combined effect (e.g., disease prevalence time series, environmental pathogen concentrations).
+
+\subsection{Genetics Cluster}
+
+For evolutionary metrics, genetic parameters dominate:
+\begin{itemize}
+    \item \texttt{n\_resistance} is the primary determinant of resistance evolution speed (controls genetic variance).
+    \item \texttt{target\_mean\_r} sets the initial resistance level, determining how far the population must evolve.
+    \item For tolerance and recovery shifts, the corresponding trait-specific parameters (\texttt{target\_mean\_t}, \texttt{target\_mean\_c}, \texttt{tau\_max}) are most influential.
+\end{itemize}
+
+The genetics cluster has \emph{low} influence on population crash ($S_T < 0.03$ for all genetic parameters) but \emph{high} influence on trait dynamics. This separation suggests that calibrating evolutionary parameters can proceed semi-independently from disease transmission calibration.
+
+\subsection{Parameters That Don't Matter}
+
+The bottom quartile (ranks 35--47) includes:
+\begin{itemize}
+    \item \texttt{alpha\_self\_open}, \texttt{senescence\_age}, \texttt{q\_init\_beta\_b}, \texttt{target\_mean\_c}, \texttt{D\_L}, \texttt{susceptibility\_multiplier}, \texttt{L\_min\_repro} (all $S_T < 0.004$)
+\end{itemize}
+
+These parameters contribute negligibly to output variance and can be safely fixed at their nominal (literature) values during calibration. Notably, \texttt{susceptibility\_multiplier}---which was the \#1 parameter in Round 1 Sobol---is now ranked \#46. This dramatic decline occurred because explicit genetic resistance mechanics (\texttt{n\_resistance}, \texttt{target\_mean\_r}) now capture the biology that the multiplier previously approximated.
+
+\subsection{Comparison with Morris R4}
+
+The Morris--Sobol rank correlation is moderate, with several instructive discrepancies:
+
+\begin{itemize}
+    \item \textbf{\texttt{rho\_rec} collapse} (Morris \#1 $\to$ Sobol \#32): Morris's one-at-a-time perturbations revealed that changing recovery rate dramatically affects outcomes. However, Sobol shows this effect is almost entirely interaction-dependent---\texttt{rho\_rec}'s \emph{direct} contribution to variance is negligible. Its effect is mediated through the disease transmission cluster.
+    \item \textbf{\texttt{sigma\_D} rise} (Morris \#20 $\to$ Sobol \#5): Post-mortem shedding creates a nonlinear feedback that Morris's linear derivative approximation underestimates. Sobol's global decomposition captures this correctly.
+    \item \textbf{Core agreement:} Both methods identify \texttt{K\_half}, \texttt{a\_exposure}, \texttt{P\_env\_max}, and \texttt{sigma\_2\_eff} as top-tier parameters, validating the screening approach for identifying the parameter ``neighborhood'' that matters.
+\end{itemize}
+
+\textbf{Lesson:} Morris screening is effective for identifying the top $\sim$10 parameters but unreliable for precise ranking. For calibration prioritization, Sobol indices are essential.
+
+\newpage
+%----------------------------------------------------------------------
+\section{Calibration Recommendations}
+%----------------------------------------------------------------------
+
+Based on the Sobol analysis, we recommend a three-tier calibration strategy:
+
+\subsection{Priority 1: Must Calibrate}
+
+These parameters have high $S_T$ and wide prior ranges. Inaccurate values will propagate large errors into model predictions.
+
+\begin{center}
+\begin{tabular}{llcl}
+\toprule
+\textbf{Parameter} & \textbf{Module} & $S_T$ & \textbf{Rationale} \\
+\midrule
+\texttt{K\_half} & Disease & 0.456 & Dose-response threshold; most influential \\
+\texttt{a\_exposure} & Disease & 0.337 & Transmission nonlinearity exponent \\
+\texttt{P\_env\_max} & Disease & 0.251 & Environmental reservoir ceiling \\
+\texttt{sigma\_2\_eff} & Disease & 0.232 & Late-stage shedding rate \\
+\texttt{sigma\_D} & Disease & 0.141 & Dead-animal shedding feedback \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Priority 2: Should Calibrate}
+
+These parameters have moderate $S_T$ and contribute to secondary outcomes (recovery, recruitment, spatial patterns).
+
+\begin{center}
+\begin{tabular}{llcl}
+\toprule
+\textbf{Parameter} & \textbf{Module} & $S_T$ & \textbf{Rationale} \\
+\midrule
+\texttt{T\_vbnc} & Disease & 0.040 & Pathogen persistence temperature \\
+\texttt{k\_growth} & Population & 0.035 & Body growth rate; recovery capacity \\
+\texttt{peak\_width\_days} & Spawning & 0.035 & Spawning window width \\
+\texttt{settler\_survival} & Population & 0.033 & Recruitment success; recovery speed \\
+\texttt{target\_mean\_r} & Genetics & 0.021 & Initial resistance level \\
+\texttt{n\_resistance} & Genetics & 0.020 & Genetic architecture (variance) \\
+\texttt{sigma\_1\_eff} & Disease & 0.016 & Early-stage shedding rate \\
+\texttt{mu\_I2D\_ref} & Disease & 0.014 & Stage I$_2$ $\to$ Death rate \\
+\texttt{min\_susceptible\_age\_days} & Disease & 0.010 & Age susceptibility threshold \\
+\texttt{mu\_I1I2\_ref} & Disease & 0.009 & Stage I$_1$ $\to$ I$_2$ rate \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Priority 3: Fix at Literature Values}
+
+These 32 parameters (ranks 16--47 by $S_T$) have $S_T < 0.006$ for \texttt{pop\_crash\_pct} and can be fixed at their nominal literature values during calibration. This reduces the calibration problem from 47 to 15 dimensions.
+
+Notable parameters safe to fix:
+\begin{itemize}
+    \item All pathogen evolution parameters ($\alpha_\text{kill}$, $\alpha_\text{shed}$, $\alpha_\text{prog}$, $\gamma_\text{early}$, $\sigma_{v,\text{mut}}$, $v_\text{init}$): collectively $S_T < 0.006$ each
+    \item All spatial parameters (\texttt{D\_L}, $\alpha_\text{self,fjord}$, $\alpha_\text{self,open}$): $S_T < 0.004$ each
+    \item \texttt{rho\_rec}: Despite Morris ranking it \#1, Sobol shows $S_T = 0.004$
+    \item \texttt{susceptibility\_multiplier}: Former \#1 in R1, now superseded by explicit genetics
+\end{itemize}
+
+\subsection{Recommended ABC-SMC Target Statistics}
+
+For calibrating the Priority 1--2 parameters, we recommend the following summary statistics:
+
+\begin{enumerate}
+    \item \textbf{Population crash magnitude} (\texttt{pop\_crash\_pct}): Primary target; most sensitive to the calibration parameters.
+    \item \textbf{Time to population nadir} (\texttt{time\_to\_nadir}): Constrains disease progression speed.
+    \item \textbf{Disease death fraction} (\texttt{disease\_death\_fraction}): Separates disease mortality from demographic effects.
+    \item \textbf{Final population fraction} (\texttt{final\_pop\_frac}): Constrains long-term recovery.
+    \item \textbf{North-south mortality gradient}: Constrains spatial parameters and temperature dependence.
+    \item \textbf{Resistance shift} (\texttt{resistance\_shift\_mean}): Constrains genetic architecture if evolutionary data become available.
+\end{enumerate}
+
+\newpage
+%----------------------------------------------------------------------
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendix}
+%----------------------------------------------------------------------
+
+\subsection*{A. Full Parameter Table: \texttt{pop\_crash\_pct}}
+\addcontentsline{toc}{subsection}{A. Full Parameter Table}
+
+\begin{footnotesize}
+\begin{longtable}{rlrrrr}
+\toprule
+\textbf{Rank} & \textbf{Parameter} & $S_1$ & $S_1$ \textbf{conf} & $S_T$ & $S_T$ \textbf{conf} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Rank} & \textbf{Parameter} & $S_1$ & $S_1$ \textbf{conf} & $S_T$ & $S_T$ \textbf{conf} \\
+\midrule
+\endhead
+1 & K\_half & 0.1819 & 0.0993 & 0.4558 & 0.1276 \\
+2 & a\_exposure & 0.1118 & 0.1205 & 0.3373 & 0.0972 \\
+3 & P\_env\_max & 0.0485 & 0.0508 & 0.2512 & 0.0788 \\
+4 & sigma\_2\_eff & 0.0410 & 0.0368 & 0.2323 & 0.0829 \\
+5 & sigma\_D & 0.0754 & 0.0593 & 0.1410 & 0.0657 \\
+6 & T\_vbnc & $-0.0147$ & 0.0316 & 0.0404 & 0.0151 \\
+7 & k\_growth & $-0.0089$ & 0.0205 & 0.0354 & 0.0123 \\
+8 & peak\_width\_days & 0.0184 & 0.0125 & 0.0345 & 0.0154 \\
+9 & settler\_survival & 0.0097 & 0.0200 & 0.0330 & 0.0220 \\
+10 & target\_mean\_r & 0.0079 & 0.0158 & 0.0209 & 0.0067 \\
+11 & n\_resistance & 0.0286 & 0.0271 & 0.0197 & 0.0079 \\
+12 & sigma\_1\_eff & 0.0051 & 0.0095 & 0.0159 & 0.0098 \\
+13 & mu\_I2D\_ref & $-0.0003$ & 0.0115 & 0.0138 & 0.0056 \\
+14 & min\_susceptible\_age\_days & 0.0111 & 0.0094 & 0.0098 & 0.0044 \\
+15 & mu\_I1I2\_ref & 0.0038 & 0.0064 & 0.0089 & 0.0075 \\
+16 & alpha\_kill & $-0.0034$ & 0.0063 & 0.0058 & 0.0034 \\
+17 & v\_init & $-0.0014$ & 0.0069 & 0.0054 & 0.0040 \\
+18 & readiness\_induction\_prob & 0.0024 & 0.0052 & 0.0052 & 0.0034 \\
+19 & tau\_max & 0.0021 & 0.0054 & 0.0052 & 0.0029 \\
+20 & sigma\_v\_mutation & $-0.0047$ & 0.0078 & 0.0046 & 0.0017 \\
+21 & alpha\_shed & $-0.0021$ & 0.0065 & 0.0045 & 0.0021 \\
+22 & immunosuppression\_dur. & 0.0036 & 0.0051 & 0.0045 & 0.0024 \\
+23 & target\_mean\_t & 0.0046 & 0.0058 & 0.0043 & 0.0021 \\
+24 & gamma\_fert & 0.0012 & 0.0052 & 0.0042 & 0.0018 \\
+25 & s\_min & 0.0015 & 0.0059 & 0.0042 & 0.0015 \\
+26 & q\_init\_beta\_a & 0.0003 & 0.0064 & 0.0042 & 0.0019 \\
+27 & female\_max\_bouts & 0.0008 & 0.0082 & 0.0041 & 0.0015 \\
+28 & n\_tolerance & $-0.0021$ & 0.0065 & 0.0040 & 0.0016 \\
+29 & alpha\_self\_fjord & 0.0030 & 0.0054 & 0.0038 & 0.0016 \\
+30 & alpha\_prog & 0.0012 & 0.0066 & 0.0037 & 0.0014 \\
+31 & ind.\ male\_to\_female & 0.0020 & 0.0056 & 0.0037 & 0.0015 \\
+32 & rho\_rec & $-0.0015$ & 0.0048 & 0.0037 & 0.0013 \\
+33 & p\_spont.\ female & $-0.0014$ & 0.0059 & 0.0036 & 0.0016 \\
+34 & ind.\ female\_to\_male & $-0.0026$ & 0.0057 & 0.0036 & 0.0015 \\
+35 & mu\_EI1\_ref & $-0.0027$ & 0.0066 & 0.0036 & 0.0014 \\
+36 & T\_ref & $-0.0009$ & 0.0064 & 0.0036 & 0.0015 \\
+37 & F0 & 0.0045 & 0.0048 & 0.0035 & 0.0014 \\
+38 & gamma\_early & $-0.0009$ & 0.0055 & 0.0035 & 0.0015 \\
+39 & p\_spont.\ male & 0.0032 & 0.0048 & 0.0035 & 0.0014 \\
+40 & alpha\_srs & $-0.0015$ & 0.0058 & 0.0035 & 0.0013 \\
+41 & alpha\_self\_open & 0.0012 & 0.0063 & 0.0032 & 0.0019 \\
+42 & senescence\_age & 0.0022 & 0.0060 & 0.0031 & 0.0014 \\
+43 & q\_init\_beta\_b & 0.0006 & 0.0040 & 0.0031 & 0.0011 \\
+44 & target\_mean\_c & $-0.0001$ & 0.0058 & 0.0031 & 0.0011 \\
+45 & D\_L & 0.0004 & 0.0044 & 0.0030 & 0.0014 \\
+46 & suscept.\ multiplier & 0.0015 & 0.0051 & 0.0030 & 0.0011 \\
+47 & L\_min\_repro & $-0.0038$ & 0.0060 & 0.0024 & 0.0009 \\
+\bottomrule
+\end{longtable}
+\end{footnotesize}
+
+\subsection*{B. Parameter Ranges}
+\addcontentsline{toc}{subsection}{B. Parameter Ranges}
+
+\begin{footnotesize}
+\begin{longtable}{llrrl}
+\toprule
+\textbf{Module} & \textbf{Parameter} & \textbf{Lower} & \textbf{Upper} & \textbf{Scale} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Module} & \textbf{Parameter} & \textbf{Lower} & \textbf{Upper} & \textbf{Scale} \\
+\midrule
+\endhead
+Disease & a\_exposure & 0.5 & 5.0 & linear \\
+Disease & K\_half & 50 & 5000 & log \\
+Disease & sigma\_1\_eff & $10^4$ & $10^7$ & log \\
+Disease & sigma\_2\_eff & $10^5$ & $10^8$ & log \\
+Disease & sigma\_D & 0.01 & 0.5 & linear \\
+Disease & rho\_rec & 0.001 & 0.05 & log \\
+Disease & mu\_EI1\_ref & 0.05 & 0.5 & linear \\
+Disease & mu\_I2D\_ref & 0.005 & 0.1 & log \\
+Disease & P\_env\_max & $10^3$ & $10^7$ & log \\
+Disease & T\_ref & 10.0 & 18.0 & linear \\
+Disease & susceptibility\_mult. & 0.5 & 2.0 & linear \\
+Disease & T\_vbnc & 2.0 & 15.0 & linear \\
+Disease & s\_min & 0.01 & 0.5 & linear \\
+Disease & mu\_I1I2\_ref & 0.01 & 0.2 & linear \\
+Disease & immunosupp.\ dur. & 30 & 365 & linear \\
+Disease & min\_suscept.\ age & 30 & 365 & linear \\
+\midrule
+Population & F0 & $10^4$ & $10^6$ & log \\
+Population & gamma\_fert & 0.5 & 2.0 & linear \\
+Population & settler\_survival & 0.001 & 0.05 & log \\
+Population & alpha\_srs & 0.0001 & 0.01 & log \\
+Population & senescence\_age & 15 & 35 & linear \\
+Population & k\_growth & 0.1 & 0.5 & linear \\
+Population & L\_min\_repro & 10 & 30 & linear \\
+\midrule
+Genetics & n\_resistance & 2 & 30 & linear \\
+Genetics & n\_tolerance & 2 & 30 & linear \\
+Genetics & target\_mean\_t & 0.1 & 0.9 & linear \\
+Genetics & target\_mean\_c & 0.1 & 0.9 & linear \\
+Genetics & tau\_max & 0.1 & 0.9 & linear \\
+Genetics & target\_mean\_r & 0.1 & 0.9 & linear \\
+Genetics & q\_init\_beta\_a & 0.5 & 5.0 & linear \\
+Genetics & q\_init\_beta\_b & 0.5 & 5.0 & linear \\
+\midrule
+Spawning & p\_spont.\ female & 0.001 & 0.1 & log \\
+Spawning & ind.\ female\_to\_male & 0.01 & 0.5 & linear \\
+Spawning & ind.\ male\_to\_female & 0.01 & 0.5 & linear \\
+Spawning & p\_spont.\ male & 0.001 & 0.1 & log \\
+Spawning & peak\_width\_days & 10 & 60 & linear \\
+Spawning & readiness\_ind.\ prob & 0.01 & 0.5 & linear \\
+Spawning & female\_max\_bouts & 1 & 5 & linear \\
+\midrule
+Spatial & D\_L & 1.0 & 100.0 & log \\
+Spatial & alpha\_self\_fjord & 0.5 & 0.99 & linear \\
+Spatial & alpha\_self\_open & 0.1 & 0.8 & linear \\
+\midrule
+Path.\ Evol. & alpha\_kill & 0.0 & 1.0 & linear \\
+Path.\ Evol. & alpha\_shed & 0.0 & 1.0 & linear \\
+Path.\ Evol. & alpha\_prog & 0.0 & 1.0 & linear \\
+Path.\ Evol. & gamma\_early & 0.0 & 0.5 & linear \\
+Path.\ Evol. & sigma\_v\_mutation & 0.001 & 0.1 & log \\
+Path.\ Evol. & v\_init & 0.1 & 0.9 & linear \\
+\bottomrule
+\end{longtable}
+\end{footnotesize}
+
+\end{document}

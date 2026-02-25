@@ -1,0 +1,76 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Executive Summary}{3}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Methods}{4}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Model Configuration}{4}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Sensitivity Analysis Design}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Output Metrics}{4}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Results}{6}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Global Parameter Ranking (Population Crash)}{6}{subsection.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Global parameter ranking by total-order Sobol index ($S_T$) for population crash percentage. Bars are colored by parameter group. Error bars show 95\% bootstrap confidence intervals. The disease transmission cluster (\texttt  {K\_half}, \texttt  {a\_exposure}, \texttt  {P\_env\_max}, \texttt  {sigma\_2\_eff}) dominates.}}{7}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:global_ranking}{{1}{7}{Global parameter ranking by total-order Sobol index ($S_T$) for population crash percentage. Bars are colored by parameter group. Error bars show 95\% bootstrap confidence intervals. The disease transmission cluster (\texttt {K\_half}, \texttt {a\_exposure}, \texttt {P\_env\_max}, \texttt {sigma\_2\_eff}) dominates}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Interaction Structure}{8}{subsection.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces First-order ($S_1$) vs.\ total-order ($S_T$) indices for \texttt  {pop\_crash\_pct}. Points above the diagonal indicate parameter interactions. The top-4 disease parameters show large gaps between $S_1$ and $S_T$, indicating they interact strongly with each other.}}{8}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:s1_vs_st}{{2}{8}{First-order ($S_1$) vs.\ total-order ($S_T$) indices for \texttt {pop\_crash\_pct}. Points above the diagonal indicate parameter interactions. The top-4 disease parameters show large gaps between $S_1$ and $S_T$, indicating they interact strongly with each other}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Multi-Metric Sensitivity Landscape}{8}{subsection.3.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Multi-metric heatmap of $S_T$ values. Rows = top 20 parameters (by maximum $S_T$ across any metric), columns = 23 output metrics. Both axes are hierarchically clustered. The disease transmission cluster (top rows) dominates population/disease metrics, while genetic parameters emerge for evolutionary metrics.}}{9}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:heatmap}{{3}{9}{Multi-metric heatmap of $S_T$ values. Rows = top 20 parameters (by maximum $S_T$ across any metric), columns = 23 output metrics. Both axes are hierarchically clustered. The disease transmission cluster (top rows) dominates population/disease metrics, while genetic parameters emerge for evolutionary metrics}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Main Effects vs.\ Interactions}{9}{subsection.3.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Decomposition of $S_T$ into main effect ($S_1$, blue) and interaction ($S_T - S_1$, orange) components for the top 15 parameters. Percentages show the fraction attributable to main effects. \texttt  {K\_half} has the highest main-effect fraction ($\sim $40\%), while most parameters are interaction-dominated.}}{10}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:main_vs_interact}{{4}{10}{Decomposition of $S_T$ into main effect ($S_1$, blue) and interaction ($S_T - S_1$, orange) components for the top 15 parameters. Percentages show the fraction attributable to main effects. \texttt {K\_half} has the highest main-effect fraction ($\sim $40\%), while most parameters are interaction-dominated}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Parameter Group Contributions}{10}{subsection.3.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Left: Total $S_T$ summed across all parameters in each group. Right: Mean $S_T$ per parameter in each group. The disease module dominates both total and per-parameter sensitivity for \texttt  {pop\_crash\_pct}.}}{10}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:groups}{{5}{10}{Left: Total $S_T$ summed across all parameters in each group. Right: Mean $S_T$ per parameter in each group. The disease module dominates both total and per-parameter sensitivity for \texttt {pop\_crash\_pct}}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Evolutionary Metrics}{11}{subsection.3.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Top 10 parameters by $S_T$ for evolutionary metrics: resistance shift, tolerance shift, recovery shift, and evolutionary rescue index. Genetic parameters (\textcolor {cgenetics}{blue}) dominate trait shift metrics, while disease parameters (\textcolor {cdisease}{red}) control the selection pressure that drives evolution.}}{11}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:evolutionary}{{6}{11}{Top 10 parameters by $S_T$ for evolutionary metrics: resistance shift, tolerance shift, recovery shift, and evolutionary rescue index. Genetic parameters (\textcolor {cgenetics}{blue}) dominate trait shift metrics, while disease parameters (\textcolor {cdisease}{red}) control the selection pressure that drives evolution}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Disease Dynamics}{11}{subsection.3.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Top 10 parameters by $S_T$ for disease dynamics metrics. The same disease transmission cluster dominates across all four panels, with consistent ranking.}}{12}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:disease}{{7}{12}{Top 10 parameters by $S_T$ for disease dynamics metrics. The same disease transmission cluster dominates across all four panels, with consistent ranking}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}Ecological Metrics}{12}{subsection.3.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Top 10 parameters by $S_T$ for ecological metrics. Population and spawning parameters become more prominent for recruitment and spawning participation, though disease parameters remain influential.}}{13}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:ecological}{{8}{13}{Top 10 parameters by $S_T$ for ecological metrics. Population and spawning parameters become more prominent for recruitment and spawning participation, though disease parameters remain influential}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.9}Spatial Metrics}{13}{subsection.3.9}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Top 10 parameters by $S_T$ for spatial metrics: north-south mortality gradient and fjord protection effect. Spatial parameters (\textcolor {cspatial}{purple}) appear in the top 10 for the first time, confirming the 11-node network resolves spatial dynamics.}}{14}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:spatial}{{9}{14}{Top 10 parameters by $S_T$ for spatial metrics: north-south mortality gradient and fjord protection effect. Spatial parameters (\textcolor {cspatial}{purple}) appear in the top 10 for the first time, confirming the 11-node network resolves spatial dynamics}{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.10}Morris vs.\ Sobol Comparison}{14}{subsection.3.10}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Morris $\mu ^*$ rank vs.\ Sobol $S_T$ rank for \texttt  {pop\_crash\_pct}. Points on the diagonal indicate perfect agreement. Red-labeled parameters show rank changes $\geq 10$ positions. Notable: \texttt  {rho\_rec} drops from Morris \#1 to Sobol \#32; \texttt  {sigma\_D} jumps from Morris \#20 to Sobol \#5.}}{15}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:morris}{{10}{15}{Morris $\mu ^*$ rank vs.\ Sobol $S_T$ rank for \texttt {pop\_crash\_pct}. Points on the diagonal indicate perfect agreement. Red-labeled parameters show rank changes $\geq 10$ positions. Notable: \texttt {rho\_rec} drops from Morris \#1 to Sobol \#32; \texttt {sigma\_D} jumps from Morris \#20 to Sobol \#5}{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.11}Confidence Intervals}{15}{subsection.3.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Sobol indices with bootstrap confidence intervals for the top 15 parameters (\texttt  {pop\_crash\_pct}). Red circles: $S_T$; blue squares: $S_1$. The top-4 parameters have well-separated confidence intervals, confirming their ranking is robust. Parameters ranked 6+ have overlapping intervals, making their relative ordering uncertain.}}{16}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:confidence}{{11}{16}{Sobol indices with bootstrap confidence intervals for the top 15 parameters (\texttt {pop\_crash\_pct}). Red circles: $S_T$; blue squares: $S_1$. The top-4 parameters have well-separated confidence intervals, confirming their ranking is robust. Parameters ranked 6+ have overlapping intervals, making their relative ordering uncertain}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.12}Calibration Priority Matrix}{16}{subsection.3.12}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Calibration priority matrix. X-axis: $S_T$ (importance); Y-axis: normalized range width. Upper-right quadrant = high importance with wide range (``MUST CALIBRATE''). Lower-right = high importance with narrow range (``WELL CONSTRAINED''). Lower-left = low importance with narrow range (``FIX AT NOMINAL'').}}{17}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:calibration}{{12}{17}{Calibration priority matrix. X-axis: $S_T$ (importance); Y-axis: normalized range width. Upper-right quadrant = high importance with wide range (``MUST CALIBRATE''). Lower-right = high importance with narrow range (``WELL CONSTRAINED''). Lower-left = low importance with narrow range (``FIX AT NOMINAL'')}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{18}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Parameter Importance Hierarchy}{18}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Interaction Structure}{18}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Disease Transmission Cluster}{18}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Genetics Cluster}{19}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Parameters That Don't Matter}{19}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Comparison with Morris R4}{19}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Calibration Recommendations}{20}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Priority 1: Must Calibrate}{20}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Priority 2: Should Calibrate}{20}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Priority 3: Fix at Literature Values}{20}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Recommended ABC-SMC Target Statistics}{21}{subsection.5.4}\protected@file@percent }
+\gdef \LT@i {\LT@entry 
+    {1}{36.76924pt}\LT@entry 
+    {3}{123.41696pt}\LT@entry 
+    {3}{44.88884pt}\LT@entry 
+    {1}{45.1843pt}\LT@entry 
+    {3}{37.69452pt}\LT@entry 
+    {1}{46.87662pt}}
+\gdef \LT@ii {\LT@entry 
+    {3}{57.73495pt}\LT@entry 
+    {3}{97.56908pt}\LT@entry 
+    {1}{40.10176pt}\LT@entry 
+    {1}{41.58682pt}\LT@entry 
+    {1}{35.67215pt}}
+\@writefile{toc}{\contentsline {section}{Appendix}{22}{Item.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{A. Full Parameter Table}{22}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{B. Parameter Ranges}{22}{table.1}\protected@file@percent }
+\gdef \@abspage@last{23}

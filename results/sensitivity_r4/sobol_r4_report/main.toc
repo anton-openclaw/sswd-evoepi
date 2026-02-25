@@ -1,0 +1,33 @@
+\contentsline {section}{\numberline {1}Executive Summary}{3}{section.1}%
+\contentsline {section}{\numberline {2}Methods}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Model Configuration}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Sensitivity Analysis Design}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Output Metrics}{4}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Results}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Global Parameter Ranking (Population Crash)}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Interaction Structure}{8}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Multi-Metric Sensitivity Landscape}{8}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Main Effects vs.\ Interactions}{9}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Parameter Group Contributions}{10}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Evolutionary Metrics}{11}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Disease Dynamics}{11}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Ecological Metrics}{12}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Spatial Metrics}{13}{subsection.3.9}%
+\contentsline {subsection}{\numberline {3.10}Morris vs.\ Sobol Comparison}{14}{subsection.3.10}%
+\contentsline {subsection}{\numberline {3.11}Confidence Intervals}{15}{subsection.3.11}%
+\contentsline {subsection}{\numberline {3.12}Calibration Priority Matrix}{16}{subsection.3.12}%
+\contentsline {section}{\numberline {4}Discussion}{18}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Parameter Importance Hierarchy}{18}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Interaction Structure}{18}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Disease Transmission Cluster}{18}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Genetics Cluster}{19}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Parameters That Don't Matter}{19}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Comparison with Morris R4}{19}{subsection.4.6}%
+\contentsline {section}{\numberline {5}Calibration Recommendations}{20}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Priority 1: Must Calibrate}{20}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Priority 2: Should Calibrate}{20}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Priority 3: Fix at Literature Values}{20}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Recommended ABC-SMC Target Statistics}{21}{subsection.5.4}%
+\contentsline {section}{Appendix}{22}{Item.14}%
+\contentsline {subsection}{A. Full Parameter Table}{22}{section*.13}%
+\contentsline {subsection}{B. Parameter Ranges}{22}{table.1}%
