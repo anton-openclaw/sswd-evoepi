@@ -141,8 +141,8 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
             total = sum(int(yearly_pops[y][i]) if i < len(yearly_pops[y]) else 0 for i in idxs)
             region_pop.append(total)
         
-        # Peak = max in first 3 years (spinup baseline before disease bites)
-        baseline_years = min(3, n_years)
+        # Peak = max in first 2 years (spinup baseline before disease bites)
+        baseline_years = min(2, n_years)
         peak_pop = max(region_pop[:baseline_years]) if baseline_years > 0 else region_pop[0]
         final_pop = region_pop[-1]
         
@@ -302,8 +302,8 @@ def main():
     parser.add_argument('--seeds', type=str, default=None, help='Comma-separated seeds')
     parser.add_argument('--output', type=str, required=True, help='Output directory')
     parser.add_argument('--K', type=int, default=5000, help='Carrying capacity per node')
-    parser.add_argument('--years', type=int, default=14, help='Simulation years (3yr spinup + 11yr post-crash)')
-    parser.add_argument('--disease-year', type=int, default=3, help='Year disease starts')
+    parser.add_argument('--years', type=int, default=13, help='Simulation years (1yr spinup + 12yr 2013-2024)')
+    parser.add_argument('--disease-year', type=int, default=1, help='Year disease starts (1 = 2013)')
     parser.add_argument('--D_L', type=float, default=400.0, help='Larval dispersal scale (km)')
     args = parser.parse_args()
     
@@ -337,6 +337,7 @@ def main():
     config = default_config()
     config.simulation.sst_source = 'monthly'
     config.simulation.sst_data_dir = str(PROJECT_ROOT / 'data' / 'sst' / 'site_sst')
+    config.simulation.sst_start_year = 2012  # align SST with simulation calendar
     apply_param_overrides(config, param_overrides)
     
     # Run simulations
