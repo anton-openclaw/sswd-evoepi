@@ -689,21 +689,6 @@
     "longitude": -134.6417
   },
   {
-    "site_id": "AKSE005",
-    "name": "AK-FN-013",
-    "lat": 58.2845,
-    "lon": -134.3892,
-    "habitat": "rocky reef, kelp forest",
-    "depth_range": "0-40m",
-    "pycnopodia_documented": true,
-    "sswd_status": "low impact (northern refugia)",
-    "source": "ADF&G SE Alaska monitoring",
-    "notes": "Protected waters near Juneau",
-    "region": "AK-FN",
-    "latitude": 58.2845,
-    "longitude": -134.3892
-  },
-  {
     "site_id": "AKSE006",
     "name": "AK-FN-010",
     "lat": 58.3521,
@@ -3021,27 +3006,6 @@
     "region": "SS-N"
   },
   {
-    "id": "BCN003",
-    "name": "BC-N-004",
-    "latitude": 54.3151,
-    "longitude": -130.321,
-    "location_description": "Prince Rupert major port, end of Highway 16",
-    "depth_range_m": "0-20",
-    "habitat_type": "Harbor, rocky intertidal, kelp beds",
-    "pycnopodia_documented": true,
-    "pycnopodia_evidence": "Historical records, DFO monitoring presence",
-    "sswd_status": "Likely impacted - requires survey",
-    "data_sources": [
-      "DFO Pacific Region",
-      "Marine Communications Centre records"
-    ],
-    "last_survey": "Unknown",
-    "substrate": "Mixed rocky/sandy",
-    "protection_status": "Commercial harbor",
-    "notes": "Major marine centre, CCG helicopter base, northern terminus of ferry to Haida Gwaii",
-    "region": "BC-N"
-  },
-  {
     "id": "BCN004",
     "name": "BC-N-007",
     "latitude": 53.527247970102465,
@@ -3081,27 +3045,6 @@
     "substrate": "Sandy/muddy with rocky areas",
     "protection_status": "Community harbor",
     "notes": "Northern Haida Gwaii community, YHT highway terminus, airport access",
-    "region": "BC-N"
-  },
-  {
-    "id": "BCN006",
-    "name": "BC-N-021",
-    "latitude": 53.15,
-    "longitude": -132.3333,
-    "location_description": "Skidegate Channel between Graham and Moresby Islands",
-    "depth_range_m": "10-40",
-    "habitat_type": "Channel strait, kelp forests, rocky shores",
-    "pycnopodia_documented": true,
-    "pycnopodia_evidence": "BC Ferry route observations, Haida Heritage Centre area",
-    "sswd_status": "Unknown - channel environment",
-    "data_sources": [
-      "BC Ferry observations",
-      "Haida Heritage Centre"
-    ],
-    "last_survey": "Unknown",
-    "substrate": "Rocky channel shores",
-    "protection_status": "Transit corridor",
-    "notes": "Major channel dividing Haida Gwaii's two main islands, ferry route",
     "region": "BC-N"
   },
   {
@@ -8275,18 +8218,6 @@
     "name": "SS-S-070",
     "latitude": 47.5362,
     "longitude": -122.4804,
-    "region": "SS-S",
-    "habitat": "rocky reef / kelp forest",
-    "depth_range_m": "5-25",
-    "sswd_status": "population severely impacted by SSWD starting 2013",
-    "pycnopodia_documented": true,
-    "pycnopodia_documentation": "historically documented",
-    "notes": ""
-  },
-  {
-    "name": "SS-S-073",
-    "latitude": 47.4258,
-    "longitude": -122.5257,
     "region": "SS-S",
     "habitat": "rocky reef / kelp forest",
     "depth_range_m": "5-25",
