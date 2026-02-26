@@ -122,8 +122,8 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
     Recovery = final_population / peak_pre_crash_population.
     Pre-crash = max population in first 3 simulation years.
     """
-    yearly_pops = result.yearly_populations  # list of arrays, one per year
-    n_years = len(yearly_pops)
+    yearly_pop = result.yearly_pop  # shape: (n_nodes, n_years)
+    n_years = yearly_pop.shape[1]
     
     # Group nodes by region
     region_nodes: Dict[str, List[int]] = {}
@@ -136,10 +136,7 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
     
     for region, idxs in sorted(region_nodes.items()):
         # Sum populations across nodes in region per year
-        region_pop = []
-        for y in range(n_years):
-            total = sum(int(yearly_pops[y][i]) if i < len(yearly_pops[y]) else 0 for i in idxs)
-            region_pop.append(total)
+        region_pop = [int(yearly_pop[idxs, y].sum()) for y in range(n_years)]
         
         # Peak = max in first 2 years (spinup baseline before disease bites)
         baseline_years = min(2, n_years)
