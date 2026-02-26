@@ -224,8 +224,8 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         'region_details': region_details,
         'region_recovery': {k: float(v) for k, v in region_recovery.items()},
         'overall': {
-            'pop_crash_pct': float(result.pop_crash_pct),
-            'final_pop_frac': float(result.final_pop_frac),
+            'pop_crash_pct': float(100.0 * (1.0 - result.final_total_pop / max(result.initial_total_pop, 1))),
+            'final_pop_frac': float(result.final_total_pop / max(result.initial_total_pop, 1)),
         },
     }
 
