@@ -120,6 +120,7 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 | spatial.alpha_self_fjord | 0.3 | [0.1, 0.5] | Fjord self-recruitment. HIGHER = more isolation |
 | spatial.alpha_self_open | 0.1 | [0.02, 0.2] | Open coast self-recruitment. HIGHER = more isolation |
 | disease.mu_I2D_ref | 0.563 | [0.375, 1.125] | I₂→Death rate (Prentice 2025 calibrated) |
+| movement.substeps_per_day | 24 | {6, 8, 12, 24} | CRW substeps per day. Fewer = less spatial mixing = LESS disease transmission. Controls within-node contact rates. Biologically: sea stars move in bouts, not continuously. 6 substeps = 4-hour movement bouts, arguably more realistic. HUGE speed impact: 6 substeps runs ~3× faster than 24. |
 
 ## Key Biological Reasoning
 
