@@ -32,6 +32,16 @@ from typing import Optional, Tuple
 from .types import DiseaseState
 
 # ═══════════════════════════════════════════════════════════════════════
+# NUMBA JIT SUPPORT (optional, graceful fallback to NumPy)
+# ═══════════════════════════════════════════════════════════════════════
+
+try:
+    import numba
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+
+# ═══════════════════════════════════════════════════════════════════════
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -40,6 +50,115 @@ SPEED_MODIFIER = np.array([1.0, 1.0, 0.5, 0.1, 0.0, 1.0], dtype=np.float32)
 #                          S     E    I1    I2    D    R
 
 TWO_PI = 2.0 * np.pi
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# NUMBA JIT KERNELS
+# ═══════════════════════════════════════════════════════════════════════
+
+if HAS_NUMBA:
+    @numba.njit(cache=True)
+    def _movement_substeps_jit(headings, x, y, speed_dt, all_turns,
+                               habitat_side, n_substeps):
+        """JIT-compiled movement substep kernel.
+
+        Replaces the Python for-loop + NumPy vectorized ops with a
+        single fused loop compiled to native code.  Eliminates temporary
+        array allocations (cos, sin, dx, dy per substep) and Python
+        loop overhead.
+
+        All arrays must be float64 contiguous.
+        """
+        TWO_PI = 2.0 * np.pi
+        period = 2.0 * habitat_side
+        n = len(headings)
+        for s in range(n_substeps):
+            for i in range(n):
+                headings[i] = (headings[i] + all_turns[s, i]) % TWO_PI
+                dx = speed_dt[i] * np.cos(headings[i])
+                dy = speed_dt[i] * np.sin(headings[i])
+                # Inline _reflect for x
+                new_x = (x[i] + dx) % period
+                if new_x < 0.0:
+                    new_x += period
+                if new_x > habitat_side:
+                    new_x = period - new_x
+                x[i] = new_x
+                # Inline _reflect for y
+                new_y = (y[i] + dy) % period
+                if new_y < 0.0:
+                    new_y += period
+                if new_y > habitat_side:
+                    new_y = period - new_y
+                y[i] = new_y
+        return headings, x, y
+
+    @numba.njit(cache=True)
+    def _movement_substeps_noise_jit(headings, x, y, speed_dt, all_turns,
+                                     speed_noise, habitat_side, n_substeps):
+        """JIT-compiled movement substep kernel with per-substep speed noise.
+
+        Same as _movement_substeps_jit but multiplies speed_dt by
+        speed_noise[s, i] each substep for stochastic step lengths.
+        """
+        TWO_PI = 2.0 * np.pi
+        period = 2.0 * habitat_side
+        n = len(headings)
+        for s in range(n_substeps):
+            for i in range(n):
+                headings[i] = (headings[i] + all_turns[s, i]) % TWO_PI
+                step = speed_dt[i] * speed_noise[s, i]
+                dx = step * np.cos(headings[i])
+                dy = step * np.sin(headings[i])
+                new_x = (x[i] + dx) % period
+                if new_x < 0.0:
+                    new_x += period
+                if new_x > habitat_side:
+                    new_x = period - new_x
+                x[i] = new_x
+                new_y = (y[i] + dy) % period
+                if new_y < 0.0:
+                    new_y += period
+                if new_y > habitat_side:
+                    new_y = period - new_y
+                y[i] = new_y
+        return headings, x, y
+
+    @numba.njit(parallel=True, cache=True)
+    def _movement_substeps_jit_parallel(headings, x, y, speed_dt, all_turns,
+                                        habitat_side, n_substeps):
+        """Parallel JIT-compiled movement substep kernel.
+
+        Same as _movement_substeps_jit but uses numba.prange for the
+        agent loop to enable multi-threaded execution (bypasses GIL).
+
+        NOTE: The outer substep loop must remain sequential (each
+        substep depends on updated positions from the previous one).
+        Only the inner agent loop is independent.
+        """
+        TWO_PI = 2.0 * np.pi
+        period = 2.0 * habitat_side
+        n = len(headings)
+        for s in range(n_substeps):
+            for i in numba.prange(n):
+                headings[i] = (headings[i] + all_turns[s, i]) % TWO_PI
+                dx = speed_dt[i] * np.cos(headings[i])
+                dy = speed_dt[i] * np.sin(headings[i])
+                # Inline _reflect for x
+                new_x = (x[i] + dx) % period
+                if new_x < 0.0:
+                    new_x += period
+                if new_x > habitat_side:
+                    new_x = period - new_x
+                x[i] = new_x
+                # Inline _reflect for y
+                new_y = (y[i] + dy) % period
+                if new_y < 0.0:
+                    new_y += period
+                if new_y > habitat_side:
+                    new_y = period - new_y
+                y[i] = new_y
+        return headings, x, y
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -76,6 +195,7 @@ def update_movement(
     gravity_range: float = 100.0,
     pre_spawn_gravity_days: int = 14,
     post_spawn_gravity_days: int = 14,
+    speed_sigma: float = 0.0,
 ) -> None:
     """Move all alive agents one CRW sub-step (in-place).
 
@@ -116,6 +236,14 @@ def update_movement(
     disease_states = agents['disease_state'][alive_idx]
     speed_mods = SPEED_MODIFIER[disease_states]
     effective_speed = base_speed * speed_mods
+
+    # 2.5. Stochastic step-length variability (log-normal, bias-corrected)
+    if speed_sigma > 0:
+        speed_noise = rng.lognormal(
+            -0.5 * speed_sigma ** 2, speed_sigma, size=n_alive,
+        )
+        effective_speed = effective_speed * speed_noise
+
     agents['speed'][alive_idx] = effective_speed
 
     # 3. Compute displacement
@@ -143,6 +271,7 @@ def daily_movement(
     gravity_range: float = 100.0,
     pre_spawn_gravity_days: int = 14,
     post_spawn_gravity_days: int = 14,
+    speed_sigma: float = 0.0,
 ) -> None:
     """Run one full day of CRW movement (multiple sub-steps).
 
@@ -171,7 +300,8 @@ def daily_movement(
             update_movement(agents, dt_minutes, habitat_side, sigma_turn,
                             base_speed, rng, spawning_gravity_enabled,
                             gravity_strength, gravity_range,
-                            pre_spawn_gravity_days, post_spawn_gravity_days)
+                            pre_spawn_gravity_days, post_spawn_gravity_days,
+                            speed_sigma=speed_sigma)
         return
 
     # ── Fast path: batched substeps (no gravity) ─────────────────
@@ -199,13 +329,55 @@ def daily_movement(
     # Precompute speed × dt for displacement
     speed_dt = effective_speed * dt_minutes
 
-    # Tight inner loop over substeps
-    for s in range(substeps):
-        headings = (headings + all_turns[s]) % TWO_PI
-        dx = speed_dt * np.cos(headings)
-        dy = speed_dt * np.sin(headings)
-        x = _reflect(x + dx, habitat_side)
-        y = _reflect(y + dy, habitat_side)
+    # Stochastic step-length variability (log-normal, bias-corrected)
+    if speed_sigma > 0:
+        speed_noise = rng.lognormal(
+            -0.5 * speed_sigma ** 2, speed_sigma,
+            size=(substeps, n_alive),
+        ).astype(np.float64)
+    else:
+        speed_noise = None
+
+    # Tight inner loop over substeps — use Numba JIT if available
+    _used_jit = False
+    if HAS_NUMBA:
+        try:
+            # Ensure contiguous float64 arrays for Numba
+            h64 = np.ascontiguousarray(headings, dtype=np.float64)
+            x64 = np.ascontiguousarray(x, dtype=np.float64)
+            y64 = np.ascontiguousarray(y, dtype=np.float64)
+            s64 = np.ascontiguousarray(speed_dt, dtype=np.float64)
+            t64 = np.ascontiguousarray(all_turns, dtype=np.float64)
+            if speed_noise is not None:
+                sn64 = np.ascontiguousarray(speed_noise, dtype=np.float64)
+                h64, x64, y64 = _movement_substeps_noise_jit(
+                    h64, x64, y64, s64, t64, sn64,
+                    float(habitat_side), substeps,
+                )
+            else:
+                h64, x64, y64 = _movement_substeps_jit(
+                    h64, x64, y64, s64, t64,
+                    float(habitat_side), substeps,
+                )
+            headings = h64
+            x = x64
+            y = y64
+            _used_jit = True
+        except Exception:
+            _used_jit = False
+
+    if not _used_jit:
+        # Pure NumPy fallback
+        for s in range(substeps):
+            headings = (headings + all_turns[s]) % TWO_PI
+            if speed_noise is not None:
+                step = speed_dt * speed_noise[s]
+            else:
+                step = speed_dt
+            dx = step * np.cos(headings)
+            dy = step * np.sin(headings)
+            x = _reflect(x + dx, habitat_side)
+            y = _reflect(y + dy, habitat_side)
 
     # Write back final state
     agents['heading'][alive_idx] = headings

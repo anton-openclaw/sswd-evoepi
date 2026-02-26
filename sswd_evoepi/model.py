@@ -2182,6 +2182,7 @@ def run_spatial_simulation(
                         base_speed=mov_cfg.base_speed,
                         substeps=mov_cfg.substeps_per_day,
                         rng=rng,
+                        speed_sigma=mov_cfg.speed_sigma,
                     )
 
             # 2b. Build spatial transmission grids (if enabled)

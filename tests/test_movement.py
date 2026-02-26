@@ -554,6 +554,141 @@ class TestSpawningGravity:
         np.testing.assert_allclose(agents['heading'], original_headings)
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# STOCHASTIC STEP-LENGTH TESTS (speed_sigma)
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestStochasticStepLength:
+    def test_zero_sigma_identical_to_default(self):
+        """speed_sigma=0.0 should produce identical results to the default path."""
+        rng1 = np.random.default_rng(42)
+        agents1 = make_agents(100, habitat_side=200.0, rng=rng1)
+        rng1 = np.random.default_rng(99)
+
+        rng2 = np.random.default_rng(42)
+        agents2 = make_agents(100, habitat_side=200.0, rng=rng2)
+        rng2 = np.random.default_rng(99)
+
+        daily_movement(agents1, habitat_side=200.0, sigma_turn=0.6,
+                       base_speed=0.5, substeps=24, rng=rng1,
+                       speed_sigma=0.0)
+
+        daily_movement(agents2, habitat_side=200.0, sigma_turn=0.6,
+                       base_speed=0.5, substeps=24, rng=rng2)
+
+        np.testing.assert_array_equal(agents1['x'], agents2['x'])
+        np.testing.assert_array_equal(agents1['y'], agents2['y'])
+        np.testing.assert_array_equal(agents1['heading'], agents2['heading'])
+
+    def test_nonzero_sigma_changes_positions(self):
+        """speed_sigma > 0 should produce different positions than sigma=0."""
+        rng1 = np.random.default_rng(42)
+        agents1 = make_agents(100, habitat_side=200.0, rng=rng1)
+        rng1 = np.random.default_rng(99)
+
+        rng2 = np.random.default_rng(42)
+        agents2 = make_agents(100, habitat_side=200.0, rng=rng2)
+        rng2 = np.random.default_rng(99)
+
+        daily_movement(agents1, habitat_side=200.0, sigma_turn=0.6,
+                       base_speed=0.5, substeps=24, rng=rng1,
+                       speed_sigma=0.0)
+
+        daily_movement(agents2, habitat_side=200.0, sigma_turn=0.6,
+                       base_speed=0.5, substeps=24, rng=rng2,
+                       speed_sigma=0.5)
+
+        alive = agents1['alive'].astype(bool)
+        # Positions should differ (RNG stream diverges after noise draws)
+        assert not np.allclose(agents1['x'][alive], agents2['x'][alive])
+
+    def test_sigma_preserves_mean_displacement(self):
+        """Bias-corrected log-normal should preserve mean step length."""
+        rng = np.random.default_rng(42)
+        sigma = 0.5
+        # Draw many samples and check E[noise] ≈ 1.0
+        noise = rng.lognormal(-0.5 * sigma**2, sigma, size=100_000)
+        np.testing.assert_allclose(np.mean(noise), 1.0, atol=0.02)
+
+    def test_sigma_increases_displacement_variance(self):
+        """With speed_sigma > 0, per-agent displacements should vary more."""
+        # Run with sigma=0: all agents of same disease state move same distance
+        rng0 = np.random.default_rng(42)
+        agents0 = make_agents(200, habitat_side=2000.0, rng=rng0)
+        # Set all to same heading and straight-line movement for clean measurement
+        agents0['heading'][:200] = 0.0  # All heading east
+        x_before0 = agents0['x'][:200].copy()
+        rng0 = np.random.default_rng(99)
+        daily_movement(agents0, habitat_side=2000.0, sigma_turn=0.0,
+                       base_speed=0.5, substeps=1, rng=rng0,
+                       speed_sigma=0.0)
+        dx0 = agents0['x'][:200] - x_before0
+        var0 = np.var(dx0)
+
+        # Run with sigma=0.5: agents should have variable displacements
+        rng1 = np.random.default_rng(42)
+        agents1 = make_agents(200, habitat_side=2000.0, rng=rng1)
+        agents1['heading'][:200] = 0.0
+        x_before1 = agents1['x'][:200].copy()
+        rng1 = np.random.default_rng(99)
+        daily_movement(agents1, habitat_side=2000.0, sigma_turn=0.0,
+                       base_speed=0.5, substeps=1, rng=rng1,
+                       speed_sigma=0.5)
+        dx1 = agents1['x'][:200] - x_before1
+        var1 = np.var(dx1)
+
+        assert var1 > var0, (
+            f"Displacement variance with speed_sigma=0.5 ({var1:.4f}) "
+            f"should exceed sigma=0 ({var0:.4f})"
+        )
+
+    def test_positions_within_bounds_with_sigma(self):
+        """Positions must remain in [0, side] even with high speed_sigma."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(500, habitat_side=100.0, rng=rng)
+
+        daily_movement(agents, habitat_side=100.0, sigma_turn=0.6,
+                       base_speed=0.5, substeps=24, rng=rng,
+                       speed_sigma=1.0)
+
+        alive = agents['alive'].astype(bool)
+        assert np.all(agents['x'][alive] >= 0)
+        assert np.all(agents['x'][alive] <= 100.0)
+        assert np.all(agents['y'][alive] >= 0)
+        assert np.all(agents['y'][alive] <= 100.0)
+
+    def test_update_movement_with_sigma(self):
+        """update_movement() should work with speed_sigma parameter."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(50, habitat_side=200.0, rng=rng)
+        x_before = agents['x'][:50].copy()
+
+        update_movement(agents, dt_minutes=60.0, habitat_side=200.0,
+                        sigma_turn=0.6, base_speed=0.5, rng=rng,
+                        speed_sigma=0.5)
+
+        alive = agents['alive'].astype(bool)
+        assert not np.allclose(agents['x'][alive], x_before[alive])
+        assert np.all(agents['x'][alive] >= 0)
+        assert np.all(agents['x'][alive] <= 200.0)
+
+    def test_daily_movement_gravity_path_with_sigma(self):
+        """speed_sigma should work when gravity fallback path is used."""
+        rng = np.random.default_rng(42)
+        agents = make_agents(30, habitat_side=200.0, rng=rng)
+        agents[0:10]['spawn_gravity_timer'] = 5
+
+        daily_movement(agents, habitat_side=200.0, sigma_turn=0.3,
+                       base_speed=0.5, substeps=24, rng=rng,
+                       spawning_gravity_enabled=True, gravity_strength=0.5,
+                       gravity_range=80.0, pre_spawn_gravity_days=10,
+                       post_spawn_gravity_days=10, speed_sigma=0.3)
+
+        alive = agents['alive'].astype(bool)
+        assert np.all(agents['x'][alive] >= 0)
+        assert np.all(agents['x'][alive] <= 200.0)
+
+
 class TestSpawningGravityIntegration:
     def test_full_workflow_gravity_and_movement(self):
         """Test complete workflow: set timers, move with gravity, timers count down."""

@@ -246,6 +246,7 @@ class MovementSection:
     spatial_transmission: bool = True   # Use local Vibrio exposure grid
     cell_size: float = 20.0        # Grid cell size for spatial transmission (m)
     diffusion_passes: int = 2      # Smoothing passes (3×3 averaging)
+    speed_sigma: float = 0.0       # Log-normal std dev for step-length variability (0 = fixed steps)
 
 
 @dataclass
