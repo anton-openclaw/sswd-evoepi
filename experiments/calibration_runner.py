@@ -199,11 +199,102 @@ def score_against_targets(region_recovery: dict) -> dict:
     }
 
 
+class EarlyStopChecker:
+    """Year-level callback for early stopping and progress logging.
+
+    Aborts clearly-failing calibration runs to save compute:
+      - Year 3: total extinction or no epidemic (pop > 95% of initial)
+      - Year 5: no regional gradient developing
+    """
+
+    def __init__(self, network, sites: List[dict], round_id: str, seed: int):
+        self.network = network
+        self.sites = sites
+        self.round_id = round_id
+        self.seed = seed
+        self.early_stop_reason: Optional[str] = None
+        # Per-node peak population in first 2 years (for recovery calc)
+        self._node_peak_pop: Optional[np.ndarray] = None
+        self._initial_total_pop: Optional[int] = None
+        # Region → node index mapping (built lazily)
+        self._region_nodes: Optional[Dict[str, list]] = None
+
+    def _build_region_map(self):
+        if self._region_nodes is None:
+            self._region_nodes = {}
+            for i, site in enumerate(self.sites):
+                r = site.get('region', '?')
+                self._region_nodes.setdefault(r, []).append(i)
+
+    def __call__(self, year: int, n_years: int):
+        """Called after each simulated year.  Returns a stop reason string or None."""
+        node_pops = np.array([n.n_alive for n in self.network.nodes])
+        total_pop = int(node_pops.sum())
+        alive_nodes = int(np.sum(node_pops > 0))
+
+        # ── Track baselines ──────────────────────────────────────────
+        if self._initial_total_pop is None:
+            self._initial_total_pop = total_pop
+            self._node_peak_pop = node_pops.copy()
+        elif year <= 1:
+            self._node_peak_pop = np.maximum(self._node_peak_pop, node_pops)
+
+        # ── Progress logging ─────────────────────────────────────────
+        print(f"  [{self.round_id}/seed_{self.seed}] "
+              f"Year {year + 1}/{n_years}: "
+              f"pop={total_pop:,}, alive_nodes={alive_nodes}")
+
+        # ── Year 3 checks (0-indexed year == 2) ─────────────────────
+        if year == 2:
+            if total_pop == 0:
+                self.early_stop_reason = "Total extinction by year 3"
+                return self.early_stop_reason
+            if self._initial_total_pop and total_pop > 0.95 * self._initial_total_pop:
+                self.early_stop_reason = (
+                    f"No epidemic by year 3 (pop {total_pop:,} > 95% "
+                    f"of initial {self._initial_total_pop:,})"
+                )
+                return self.early_stop_reason
+
+        # ── Year 5 checks (0-indexed year == 4) ─────────────────────
+        if year == 4 and self._node_peak_pop is not None:
+            self._build_region_map()
+            recoveries = []
+            for region, idxs in self._region_nodes.items():
+                peak = float(self._node_peak_pop[idxs].sum())
+                current = float(node_pops[idxs].sum())
+                frac = current / peak if peak > 0 else 0.0
+                recoveries.append(frac)
+
+            if all(r < 0.01 for r in recoveries):
+                self.early_stop_reason = "All regions < 1% recovery at year 5"
+                return self.early_stop_reason
+            if all(r > 0.50 for r in recoveries):
+                self.early_stop_reason = "All regions > 50% recovery at year 5"
+                return self.early_stop_reason
+
+            spread = max(recoveries) - min(recoveries)
+            if spread < 0.02:
+                self.early_stop_reason = (
+                    f"No regional variation at year 5 (spread={spread:.4f})"
+                )
+                return self.early_stop_reason
+
+        return None  # continue simulation
+
+
 def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
-               disease_year: int = 3, n_years: int = 14) -> dict:
-    """Run one simulation and return structured results."""
+               disease_year: int = 3, n_years: int = 14,
+               round_id: str = "XX") -> dict:
+    """Run one simulation and return structured results.
+
+    Uses year-level early stopping to abort runs that are clearly failing,
+    saving up to ~60% of compute on bad parameter sets.
+    """
     config.simulation.seed = seed
-    
+
+    checker = EarlyStopChecker(network, sites, round_id, seed)
+
     t0 = time.time()
     result = run_spatial_simulation(
         network=network,
@@ -211,12 +302,36 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         disease_year=disease_year,
         seed=seed,
         config=config,
+        progress_callback=checker,
     )
     elapsed = time.time() - t0
-    
+
+    # ── Handle early stop ────────────────────────────────────────────
+    if checker.early_stop_reason:
+        print(f"  ⚡ EARLY STOP: {checker.early_stop_reason} ({elapsed:.0f}s)")
+        return {
+            'seed': seed,
+            'wall_time_seconds': float(elapsed),
+            'scoring': {
+                'rmse_log': float('inf'),
+                'within_2x': 0,
+                'within_5x': 0,
+                'n_targets': len(RECOVERY_TARGETS),
+                'per_region': {},
+            },
+            'region_details': {},
+            'region_recovery': {},
+            'overall': {
+                'pop_crash_pct': 0.0,
+                'final_pop_frac': 0.0,
+            },
+            'early_stop': checker.early_stop_reason,
+        }
+
+    # ── Normal scoring ───────────────────────────────────────────────
     region_recovery, region_details = compute_regional_recovery(result, sites)
     scoring = score_against_targets(region_recovery)
-    
+
     return {
         'seed': seed,
         'wall_time_seconds': float(elapsed),
@@ -243,13 +358,24 @@ def print_summary(results: List[dict], param_overrides: dict):
     else:
         print(f"\nUsing default parameters (baseline)")
     
-    # Average across seeds
+    # Filter out early-stopped results for scoring summary
+    scored_results = [r for r in results if 'early_stop' not in r]
+    early_stopped = [r for r in results if 'early_stop' in r]
+
+    if early_stopped:
+        print(f"\nEarly stopped: {len(early_stopped)}/{len(results)} seeds")
+        for r in early_stopped:
+            print(f"  seed {r['seed']}: {r['early_stop']}")
+
+    # Average across scored seeds
     avg_scoring = {}
     for region in RECOVERY_TARGETS:
-        actuals = [r['scoring']['per_region'][region]['actual'] for r in results]
+        actuals = [r['scoring']['per_region'][region]['actual']
+                   for r in scored_results
+                   if region in r['scoring'].get('per_region', {})]
         avg_scoring[region] = {
             'target': RECOVERY_TARGETS[region],
-            'mean': float(np.mean(actuals)),
+            'mean': float(np.mean(actuals)) if actuals else 0.0,
             'std': float(np.std(actuals)) if len(actuals) > 1 else 0.0,
         }
     
@@ -338,11 +464,13 @@ def main():
     apply_param_overrides(config, param_overrides)
     
     # Run simulations
+    round_id = output_dir.name  # e.g. "round_00"
     results = []
     for i, seed in enumerate(seeds):
         print(f"\n--- Seed {seed} ({i+1}/{len(seeds)}) ---")
         result = run_single(config, sites, network, seed,
-                           disease_year=args.disease_year, n_years=args.years)
+                           disease_year=args.disease_year, n_years=args.years,
+                           round_id=round_id)
         results.append(result)
         
         # Save individual result

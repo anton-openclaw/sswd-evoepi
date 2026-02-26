@@ -2090,6 +2090,28 @@ def run_spatial_simulation(
                     data_dir=config.simulation.sst_data_dir,
                 )
 
+    # ── Pre-compute sparse D^T for efficient pathogen dispersal ─────
+    # The D matrix is typically ~97% sparse (max_range=50km); using
+    # scipy sparse for the daily D.T @ P step avoids dense matmul.
+    try:
+        from scipy.sparse import csr_matrix as _csr_matrix
+        _D_T_sparse = _csr_matrix(network.D.T)
+        _use_sparse_D = True
+    except ImportError:
+        _D_T_sparse = None
+        _use_sparse_D = False
+
+    # ── Pre-compute flushing rates per node per day-of-year ──────────
+    # seasonal_flushing() uses cos(); pre-computing avoids N×365 calls/yr.
+    _flushing_precomputed = np.zeros((N, DAYS_PER_YEAR), dtype=np.float64)
+    for _fi, _fnode in enumerate(network.nodes):
+        _fnd = _fnode.definition
+        for _fd in range(DAYS_PER_YEAR):
+            _fm = min(_fd // 30, 11)
+            _flushing_precomputed[_fi, _fd] = seasonal_flushing(
+                _fnd.flushing_rate, _fm, _fnd.is_fjord,
+            )
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
@@ -2121,9 +2143,7 @@ def run_spatial_simulation(
                         day, cal_year, nd.mean_sst, nd.sst_amplitude,
                         nd.sst_trend, reference_year=start_year,
                     )
-                node.current_flushing = seasonal_flushing(
-                    nd.flushing_rate, month, nd.is_fjord,
-                )
+                node.current_flushing = _flushing_precomputed[i, day]
                 node.current_salinity = nd.salinity
 
             # 1b. Release events scheduled for today
@@ -2206,7 +2226,10 @@ def run_spatial_simulation(
                 node_disease_states[i].vibrio_concentration
                 for i in range(N)
             ])
-            dispersal_in = pathogen_dispersal_step(P, network.D)
+            if _use_sparse_D:
+                dispersal_in = _D_T_sparse @ P
+            else:
+                dispersal_in = pathogen_dispersal_step(P, network.D)
             for i in range(N):
                 node_disease_states[i].vibrio_concentration += dispersal_in[i]
                 network.nodes[i].vibrio_concentration = (
@@ -2557,7 +2580,9 @@ def run_spatial_simulation(
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
 
         if progress_callback is not None:
-            progress_callback(year, n_years)
+            _stop = progress_callback(year, n_years)
+            if _stop:
+                break  # early stop — return partial result
 
     # ── Compile result ────────────────────────────────────────────────
     return SpatialSimResult(
