@@ -21,12 +21,40 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 - **Recovery (c_i)**: 17 loci. Daily probability of clearing pathogen: `p_rec = rho_rec × c_i`.
 
 ### Temperature-Disease Coupling (KEY for latitudinal gradient)
-- Disease progression speeds up with temperature (Arrhenius kinetics)
-- Vibrio shedding and environmental persistence increase with temperature
-- Below `T_vbnc`, Vibrio enters VBNC state → less transmission in cold water
-- This is the MAIN mechanism producing the north-south recovery gradient:
-  - Cold Alaska: disease slower, less Vibrio → more recovery
-  - Warm California: disease fast, lots of Vibrio → near-total wipeout
+- **Arrhenius kinetics**: rate(T) = rate_ref × exp(Ea/R × (1/T_ref − 1/T)). Higher Ea = steeper temperature dependence.
+  - Ea_EI1 = 4000 (E→I₁ progression)
+  - Ea_I1I2 = 5000 (I₁→I₂ progression)  
+  - Ea_I2D = 2000 (I₂→Death — relatively temperature-insensitive)
+  - Ea_sigma = 5000 (Vibrio shedding rate)
+  - T_ref = 20°C (reference temperature for all rates)
+- **VBNC sigmoid**: f_vbnc(T) = 1/(1 + exp(−k×(T − T_vbnc))). Below T_vbnc, Vibrio enters dormancy.
+  - T_vbnc = 12°C default, k = 1.0 (moderately steep transition)
+  - At 8°C (Alaska): f_vbnc ≈ 0.02 (98% dormant!)
+  - At 12°C (T_vbnc): f_vbnc = 0.50
+  - At 16°C (Oregon summer): f_vbnc ≈ 0.98 (nearly all active)
+- **Salinity**: S_sal modifier, salinity < s_min (10 psu) reduces Vibrio. Fjords have lower salinity (22 vs 32 psu).
+- Environmental Vibrio input: `P_env(T) = P_env_max × f_vbnc(T) × S_sal`
+
+**This creates the N-S gradient:**
+  - Cold Alaska (mean 7-9°C): VBNC suppresses ~95% of Vibrio, slow progression → recovery possible
+  - Temperate BC/WA (mean 10-11°C): moderate suppression → intermediate crash
+  - Warm California (mean 13-18°C): full Vibrio activity, fast progression → near-total wipeout
+
+### Regional SST (from satellite data)
+| Region  | Mean SST | Summer 95th | Winter 5th | Notes |
+|---------|----------|-------------|------------|-------|
+| AK-PWS  |  8.4°C   |  14.5°C     |  3.9°C     | Target: 50% recovery |
+| AK-FN   |  8.7°C   |  13.5°C     |  5.1°C     | Target: 50% recovery |
+| AK-FS   |  9.0°C   |  13.9°C     |  5.4°C     | Target: 20% recovery |
+| BC-N    | 10.1°C   |  14.5°C     |  6.7°C     | Target: 20% recovery |
+| SS-S    | 10.1°C   |  14.6°C     |  7.4°C     | Target: 5% recovery |
+| JDF     | 10.0°C   |  13.3°C     |  7.6°C     | Target: 2% recovery |
+| OR      | 11.4°C   |  14.5°C     |  9.0°C     | Target: 0.25% recovery |
+| CA-N    | 11.6°C   |  13.8°C     |  9.8°C     | Target: 0.1% recovery |
+| CA-C    | 13.2°C   |  15.9°C     | 11.0°C     | No target |
+| CA-S    | 17.0°C   |  21.2°C     | 13.6°C     | No target |
+
+**Key observation**: The recovery gradient (50% → 0.1%) maps onto a SST gradient of only ~3°C in annual mean (8.4 → 11.6°C). This is WITHIN the steep part of the VBNC sigmoid (centered at T_vbnc=12°C). Small changes to T_vbnc will shift which regions get protection.
 
 ### Spatial Dynamics
 - 896 sites across 18 regions (Alaska to Baja California)
@@ -103,7 +131,11 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 
 4. **Resistance evolution is slow**: 17 loci, initial mean 0.15. Significant evolutionary rescue takes >20 generations. Over 11 years, demographic rescue matters more.
 
-5. **The model currently crashes TOO HARD**: Previous validation showed 99%+ crash with defaults. Targets show 50% recovery in Alaska. We likely need to dial back disease severity, especially in cold water.
+5. **The model currently crashes TOO HARD**: Previous 5-node validation showed 99.3-99.7% crash with defaults. Targets show 50% recovery in Alaska. We likely need to dial back disease severity, especially in cold water.
+
+6. **The VBNC sigmoid is the gradient's thermostat**: The recovery targets span 50% → 0.1% across a mean SST range of only 8.4°C → 11.6°C. This 3°C window sits right on the steep part of the VBNC curve (T_vbnc=12°C). Shifting T_vbnc by even 1-2°C dramatically changes which regions get cold-water protection.
+
+7. **P_env is temperature-modulated**: P_env(T) = P_env_max × f_vbnc(T). At cold temperatures where f_vbnc ≈ 0.02, effective P_env is only 2% of P_env_max. This means P_env_max primarily affects WARM regions.
 
 ## Tuning Strategy
 
