@@ -1,0 +1,725 @@
+\documentclass[11pt,letterpaper]{article}
+
+% ─── Packages ───────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{microtype}
+
+% ─── Colors ─────────────────────────────────────────────────────────────
+\definecolor{uwpurple}{HTML}{4B2E83}
+\definecolor{uwgold}{HTML}{B7A57A}
+\definecolor{accent}{HTML}{2C3E50}
+\definecolor{linkblue}{HTML}{1A5276}
+\definecolor{cdisease}{HTML}{C0392B}
+\definecolor{cgenetics}{HTML}{2980B9}
+\definecolor{cpopulation}{HTML}{27AE60}
+\definecolor{cspawning}{HTML}{F39C12}
+\definecolor{cspatial}{HTML}{8E44AD}
+\definecolor{cpathevo}{HTML}{D35400}
+\definecolor{lightgray}{HTML}{F5F5F5}
+
+% ─── Header/Footer ─────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{accent}{SSWD-EvoEpi Project Overview}}
+\fancyhead[R]{\small\textcolor{accent}{February 2026}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ─── Hyperref ───────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkblue,
+    citecolor=linkblue,
+    urlcolor=linkblue,
+    pdftitle={SSWD-EvoEpi: A Coupled Eco-Evolutionary Epidemiological Model for Sea Star Wasting Disease},
+    pdfauthor={Willem Weertman and Anton Star},
+}
+
+% ─── Section Formatting ────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{uwpurple}}{\thesection}{1em}{}[\vspace{-0.5em}\textcolor{uwgold}{\rule{\textwidth}{0.8pt}}]
+\titleformat{\subsection}
+  {\large\bfseries\color{accent}}{\thesubsection}{1em}{}
+
+% ─── Custom Commands ───────────────────────────────────────────────────
+\newcommand{\pyc}{\textit{Pycnopodia helianthoides}}
+\newcommand{\vp}{\textit{Vibrio pectenicida}}
+\newcommand{\eg}{\textit{e.g.}}
+
+% ═══════════════════════════════════════════════════════════════════════
+\begin{document}
+% ═══════════════════════════════════════════════════════════════════════
+
+% ─── Title Page ─────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\bfseries\textcolor{uwpurple}{SSWD-EvoEpi}}\\[0.8cm]
+{\LARGE\textcolor{accent}{A Coupled Eco-Evolutionary Epidemiological\\Model for Sea Star Wasting Disease}}
+
+\vspace{1.5cm}
+\textcolor{uwgold}{\rule{0.6\textwidth}{1.2pt}}
+\vspace{1.5cm}
+
+{\Large\textbf{Willem Weertman} \quad \& \quad \textbf{Anton Star}}\\[0.5cm]
+{\large University of Washington\\
+Department of Psychology, Neural Systems \& Behavior Program\\
+Friday Harbor Laboratories}
+
+\vspace{2cm}
+
+{\large February 2026}
+
+\vspace{2cm}
+
+\begin{minipage}{0.75\textwidth}
+\centering
+\textcolor{accent}{\textit{An individual-based simulation modeling the coupled dynamics of disease transmission, host evolutionary response, pathogen adaptation, and conservation intervention for the critically endangered sunflower sea star (\pyc{}) across 896 coastal sites spanning the northeast Pacific.}}
+\end{minipage}
+
+\vfill
+{\small Project Repository: \texttt{sswd-evoepi/} $\bullet$ Version: February 2026}
+\end{titlepage}
+
+% ─── Table of Contents ─────────────────────────────────────────────────
+\tableofcontents
+\thispagestyle{fancy}
+\newpage
+
+% ═══════════════════════════════════════════════════════════════════════
+\section{Executive Summary}
+% ═══════════════════════════════════════════════════════════════════════
+
+Sea Star Wasting Disease (SSWD) has caused one of the most dramatic marine wildlife declines in recorded history, devastating populations of the sunflower sea star (\pyc{}) by over 90\% across the northeast Pacific since 2013. As a keystone predator of sea urchins, the sunflower star's collapse has triggered cascading ecosystem effects, including the expansion of urchin barrens that destroy kelp forests---a critical carbon sink and biodiversity hotspot.
+
+\textbf{SSWD-EvoEpi} is a first-of-its-kind computational model that couples disease epidemiology, host evolutionary genetics, pathogen co-evolution, and spatial ecology to predict population recovery trajectories and evaluate conservation interventions. The model simulates \textbf{4.48 million individual sea star agents} across \textbf{896 coastal monitoring sites} spanning from Alaska to Baja California, driven by real satellite sea surface temperature data (NOAA OISST v2.1, 2002--2025) and CMIP6 climate projections to 2050.
+
+\subsection*{What the Model Does}
+
+At its core, SSWD-EvoEpi tracks every individual sea star through its complete life cycle---birth, growth, reproduction, infection, potential recovery, and death---while simultaneously tracking the evolution of three heritable immune traits (resistance, tolerance, and recovery) encoded across 51 genetic loci. The pathogen (\vp{}) co-evolves in response to host adaptation, creating an eco-evolutionary feedback loop that determines whether populations can self-rescue through natural selection or require active conservation intervention.
+
+\subsection*{Why It Matters}
+
+Captive breeding programs are now underway at Friday Harbor Laboratories and the Sunflower Star Lab, with the first experimental outplanting of 28 captive-bred juveniles in 2025. \textbf{But where should we release them? How many? Should we selectively breed for disease resistance?} These are precisely the questions SSWD-EvoEpi is designed to answer---using mechanistic simulation rather than intuition.
+
+\subsection*{Key Results to Date}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Sensitivity analysis} (960 Morris + 25,088 Sobol runs) has identified the critical parameter space: disease transmission parameters ($K_\text{half}$, $a_\text{exposure}$, $P_\text{env,max}$) dominate population crash severity, with $\sim$70\% of output variance driven by parameter interactions.
+    \item \textbf{Resistance is $\sim$1000$\times$ more valuable than tolerance} for individual fitness at current population means---a quantitative prediction with direct implications for breeding program design.
+    \item \textbf{The R$\to$S immunity fix} (echinoderms lack adaptive immunity) fundamentally changes the model: recovery no longer confers lasting protection, shifting evolutionary pressure from clearance ability to infection avoidance.
+    \item A narrow \textbf{3$^\circ$C SST window (8.4--11.6$^\circ$C)} drives the entire north--south recovery gradient via the VBNC (viable but non-culturable) pathogen sigmoid, explaining why Alaska populations are recovering while southern California populations are not.
+    \item The companion \textbf{conservation genetics module} (2,600 lines, 146 tests) provides a complete theoretical framework for screening, breeding, and reintroduction optimization.
+\end{itemize}
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{The Problem: Sea Star Wasting Disease}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{A Catastrophic Decline}
+
+Beginning in 2013, Sea Star Wasting Disease swept through the northeast Pacific in one of the largest marine wildlife die-offs ever documented. The disease manifests as tissue lesions that rapidly progress to limb autotomy (arm loss), body wall perforation, and death---often within days of initial symptoms. While SSWD affected over 20 asteroid species, the sunflower sea star (\pyc{}) suffered the most severe and geographically extensive decline.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{$>$90\% population decline} across the species' range, from Alaska to Baja California
+    \item \textbf{Local extirpations} throughout southern portions of the range (California, Oregon)
+    \item \textbf{No significant recovery} in most regions after a decade (2013--2023)
+    \item \textbf{IUCN Critically Endangered} listing---the first for a sea star species
+    \item \textbf{Cascading ecological effects:} urchin population explosions, kelp forest collapse, loss of biodiversity
+\end{itemize}
+
+\subsection{The Causal Agent}
+
+The etiology of SSWD was debated for years, with early work implicating a densovirus (Hewson et al. 2014). However, a landmark study by \textbf{Prentice et al. (2025)} fulfilled Koch's postulates for \textit{Vibrio pectenicida} as the causative agent of SSWD in \pyc{}. This bacterium is an environmental pathogen whose activity is strongly temperature-dependent---entering a viable but non-culturable (VBNC) state below a critical sea surface temperature threshold. This temperature dependence creates the latitudinal gradient in disease severity that is central to the SSWD-EvoEpi model.
+
+\subsection{The Conservation Challenge}
+
+With natural recovery stalled in much of the range, active conservation intervention has begun:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Friday Harbor Laboratories} (University of Washington): Captive rearing and disease challenge experiments
+    \item \textbf{Sunflower Star Lab}: Captive breeding program with first outplanting trials in 2025 (28 captive-bred juveniles)
+    \item \textbf{NOAA Species in the Spotlight:} Federal recovery planning
+\end{itemize}
+
+However, these programs face fundamental strategic questions:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Where to release?} Which sites offer the best survival probability given local disease pressure and temperature regimes?
+    \item \textbf{How many to release?} What population supplementation scale is needed to overcome Allee effects and stochastic extinction?
+    \item \textbf{Should we breed for resistance?} Can selective breeding for disease-resistant genotypes accelerate population recovery, and at what cost to genetic diversity?
+    \item \textbf{Will climate change help or hurt?} Rising SSTs may shift pathogen activity patterns---but in which direction?
+\end{enumerate}
+
+\textbf{SSWD-EvoEpi was built to answer these questions} through mechanistic simulation grounded in the best available empirical data.
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Model Architecture}
+% ═══════════════════════════════════════════════════════════════════════
+
+SSWD-EvoEpi is a spatially explicit, individual-based model (IBM) that couples four interacting subsystems: disease epidemiology, host evolutionary genetics, pathogen co-evolution, and population demography. This section describes each component and how they interact.
+
+\subsection{Individual-Based Simulation}
+
+The model tracks \textbf{4.48 million individual agents} across 896 coastal sites. Each agent is a complete biological entity with the following tracked attributes:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Attribute} & \textbf{Type} & \textbf{Description} \\
+\midrule
+Position ($x, y$) & float32 & Within-habitat coordinates \\
+Size ($L$) & float32 & Body length (cm), von Bertalanffy growth \\
+Age & int16 & Days since settlement \\
+Sex & int8 & Male/female \\
+Disease state & int8 & S, E, I$_1$, I$_2$, R, D \\
+Disease timer & float32 & Days remaining in current state \\
+Resistance ($r_i$) & float32 & Immune exclusion score $\in [0,1]$ \\
+Tolerance ($t_i$) & float32 & Damage limitation score $\in [0,1]$ \\
+Recovery ($c_i$) & float32 & Pathogen clearance score $\in [0,1]$ \\
+Genotype & int8[$51 \times 2$] & Diploid genotype at 51 loci \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each site maintains a population of up to $\sim$12,500 individuals (carrying capacity $K = 5{,}000$ with headroom for demographic fluctuations). The simulation advances in \textbf{daily timesteps} over a configurable time horizon (typically 13--20 years for calibration, up to 100 years for long-term projections).
+
+\subsection{Disease Dynamics}
+
+Disease progression follows a compartmental model with temperature-dependent rates:
+
+\begin{center}
+\begin{tabular}{c}
+$\text{S} \xrightarrow{\lambda_i} \text{E} \xrightarrow{\mu_{EI_1}(T)} \text{I}_1 \xrightarrow{\mu_{I_1 I_2}(T)} \text{I}_2 \xrightarrow{\mu_{I_2 D}(T)} \text{D}$ \\[8pt]
+$\text{I}_1 \xrightarrow{\rho_\text{rec} \cdot c_i} \text{S} \qquad \text{I}_2 \xrightarrow{\rho_\text{rec} \cdot c_i} \text{S}$
+\end{tabular}
+\end{center}
+
+\noindent where:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{S} = Susceptible, \textbf{E} = Exposed (latent), \textbf{I$_1$} = Early infected (mild wasting), \textbf{I$_2$} = Late infected (severe wasting), \textbf{D} = Dead
+    \item Recovered individuals return to \textbf{S} (not permanent immunity)---correct for echinoderms, which lack adaptive immune memory
+    \item The force of infection for individual $i$ is:
+    \begin{equation}
+    \lambda_i = a \cdot \frac{P}{K_\text{half} + P} \cdot (1 - r_i) \cdot S_\text{sal} \cdot f_\text{size}(L_i)
+    \end{equation}
+    where $P$ is environmental pathogen concentration, $r_i$ is the individual's resistance score, $S_\text{sal}$ is a salinity modifier, and $f_\text{size}$ scales exposure with body size.
+\end{itemize}
+
+The environmental pathogen reservoir integrates contributions from shedding by infected ($\sigma_1$, $\sigma_2$) and dead ($\sigma_D$) animals, with temperature-dependent decay. Crucially, \vp{} enters a \textbf{viable but non-culturable (VBNC)} state below a critical SST threshold, creating a temperature-driven on/off switch for disease activity:
+
+\begin{equation}
+f_\text{VBNC}(T) = \frac{1}{1 + e^{-k_\text{VBNC}(T - T_\text{VBNC})}}
+\end{equation}
+
+This sigmoid function, parameterized by $T_\text{VBNC} \approx 10^\circ$C, produces a $\sim$3$^\circ$C transition window (8.4--11.6$^\circ$C) that maps directly onto the observed latitudinal recovery gradient: cold Alaska waters suppress pathogen activity, while warm southern waters sustain year-round transmission.
+
+\subsection{Three-Trait Genetic Architecture}
+
+The model encodes three distinct immune strategies across 51 diploid loci (based on the $\sim$51 loci under selection identified by Schiebelhut et al. 2018, 2024):
+
+\begin{center}
+\begin{tabular}{lccp{7cm}}
+\toprule
+\textbf{Trait} & \textbf{Loci} & \textbf{Symbol} & \textbf{Mechanistic Role} \\
+\midrule
+\textbf{Resistance} & 17 (loci 0--16) & $r_i$ & Immune exclusion. Reduces probability of infection. Receptor polymorphisms, barrier defenses. \\[4pt]
+\textbf{Tolerance} & 17 (loci 17--33) & $t_i$ & Damage limitation. Reduces mortality while infected but does not reduce shedding---\textit{tolerant hosts are silent spreaders}. \\[4pt]
+\textbf{Recovery} & 17 (loci 34--50) & $c_i$ & Pathogen clearance. Increases probability of clearing infection and returning to S. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each trait score is computed as the weighted sum of allelic effects:
+\begin{equation}
+r_i = \sum_{\ell=0}^{16} e_\ell \cdot \frac{g_{\ell,0} + g_{\ell,1}}{2}, \quad t_i = \sum_{\ell=17}^{33} e_\ell \cdot \frac{g_{\ell,0} + g_{\ell,1}}{2}, \quad c_i = \sum_{\ell=34}^{50} e_\ell \cdot \frac{g_{\ell,0} + g_{\ell,1}}{2}
+\end{equation}
+
+\noindent where $g_{\ell,k} \in \{0,1\}$ are alleles and $e_\ell$ are locus-specific effect sizes drawn from an exponential distribution. Effect sizes are normalized so that each trait ranges $[0,1]$.
+
+\textbf{Key design principles:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{One trait, one job:} Resistance reduces infection probability only. Tolerance extends I$_2$ survival (via timer scaling) only. Recovery increases clearance probability only. No trait affects another's mechanism.
+    \item \textbf{Epidemiological consequences differ:} Resistance reduces both individual risk \textit{and} population pathogen pressure. Tolerance saves the individual but maintains population transmission. Recovery removes shedding hosts but only after a period of infection.
+    \item \textbf{The 17/17/17 partition is configurable} and can be explored in sensitivity analysis (two free parameters: $n_r$, $n_t$; $n_c = 51 - n_r - n_t$).
+\end{itemize}
+
+Inheritance follows Mendelian segregation with mutation at rate $\mu = 10^{-8}$ per locus per generation. The genotype array for the full simulation is $(4.48\text{M} \times 51 \times 2)$ int8 $\approx$ 460 MB.
+
+\subsection{Pathogen Co-Evolution}
+
+The pathogen (\vp{}) evolves virulence in response to host adaptation, creating a co-evolutionary arms race. Each pathogen lineage carries a continuous virulence trait $v$ that governs trade-offs between:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Transmission} ($\alpha_\text{shed}$): Higher virulence increases shedding rate
+    \item \textbf{Kill rate} ($\alpha_\text{kill}$): Higher virulence increases host mortality
+    \item \textbf{Progression} ($\alpha_\text{prog}$): Higher virulence accelerates disease progression
+\end{itemize}
+
+Virulence mutates each transmission event ($\sigma_v$), allowing the pathogen to adapt to host resistance. This prevents unrealistic scenarios where hosts evolve resistance and the pathogen remains static.
+
+\subsection{Temperature Forcing}
+
+The model uses \textbf{real satellite sea surface temperature data} (NOAA OISST v2.1) from 2002--2025, providing daily SST values at each of the 896 model sites. For forward projections beyond 2025, the model ingests \textbf{CMIP6 climate model output} under multiple emissions scenarios (SSP1-2.6 through SSP5-8.5), enabling exploration of how climate change interacts with disease-evolution dynamics through 2050.
+
+Temperature affects every major process: disease transmission rates, pathogen VBNC dynamics, growth rates, spawning phenology, and larval survival.
+
+\subsection{Calibration Approach}
+
+The model follows a five-phase calibration pipeline:
+
+\begin{center}
+\begin{tabular}{clll}
+\toprule
+\textbf{Phase} & \textbf{Purpose} & \textbf{Method} & \textbf{Runs} \\
+\midrule
+1 & Sensitivity analysis & Morris + Sobol & $\sim$26,000 \\
+2 & Parameter estimation & ABC-SMC & 10,000--50,000 \\
+3 & Convergence validation & Scale testing & $\sim$350 \\
+4 & Scale correction & Bias adjustment & $\sim$200 \\
+5 & Production scenarios & Reintroduction design & $\sim$500 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Calibration targets include the observed 80--99\% population crash, 2--5 year timeline from onset to nadir, north--south mortality gradient, fjord protection effects, and allele frequency shifts ($\Delta q = 0.08$--0.15) at immune loci (Schiebelhut et al. 2018).
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Spatial Network}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{Network Structure}
+
+The SSWD-EvoEpi spatial network comprises \textbf{896 coastal monitoring and model sites} spanning the entire northeast Pacific range of \pyc{}, organized into 18 biogeographic regions:
+
+\begin{center}
+\begin{tabular}{rlcrl}
+\toprule
+\textbf{ID} & \textbf{Region} & \textbf{Sites} & \textbf{SST Range} & \textbf{Habitat Type} \\
+\midrule
+1 & Southeast Alaska & $\sim$60 & 5--12$^\circ$C & Fjord-dominated \\
+2 & Haida Gwaii & $\sim$30 & 6--13$^\circ$C & Mixed \\
+3 & Central BC Coast & $\sim$55 & 6--14$^\circ$C & Fjord/open \\
+4 & Strait of Georgia & $\sim$45 & 7--15$^\circ$C & Semi-enclosed \\
+5 & West Vancouver Island & $\sim$50 & 7--14$^\circ$C & Open coast \\
+6 & Puget Sound & $\sim$70 & 8--15$^\circ$C & Semi-enclosed \\
+7 & San Juan Islands & $\sim$35 & 7--13$^\circ$C & Archipelago \\
+8 & Outer WA Coast & $\sim$40 & 8--14$^\circ$C & Open coast \\
+9 & Oregon Coast & $\sim$55 & 8--15$^\circ$C & Open coast \\
+10 & Northern California & $\sim$50 & 9--16$^\circ$C & Open coast \\
+11--18 & Central--Baja California & $\sim$406 & 10--22$^\circ$C & Mixed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Connectivity}
+
+Nodes are connected by \textbf{larval dispersal}, computed using an overwater distance matrix derived from a Dijkstra shortest-path algorithm on a high-resolution coastline graph. This approach:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Ensures dispersal routes follow the coastline (no overland shortcuts)
+    \item Captures the natural connectivity structure of the NE Pacific shelf
+    \item Parameterizes dispersal probability as an exponential decay: $C_{ij} = e^{-d_{ij}/D_L}$ where $D_L$ is the characteristic larval dispersal distance
+    \item Includes self-retention parameters that differ between fjord ($\alpha_\text{fjord} \sim 0.8$) and open-coast ($\alpha_\text{open} \sim 0.3$) sites
+\end{itemize}
+
+The pathogen also disperses between sites via a separate dispersal kernel (matrix $\mathbf{D}$), representing waterborne pathogen transport with a maximum range of $\sim$50 km.
+
+\subsection{Real Satellite SST}
+
+Each of the 896 sites is assigned a daily SST time series extracted from NOAA OISST v2.1 (0.25$^\circ$ resolution). This captures:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Seasonal cycles (critical for spawning phenology and VBNC dynamics)
+    \item Interannual variability (El Ni\~no/La Ni\~na, the 2013--2015 marine heatwave)
+    \item The latitudinal temperature gradient ($\sim$5--22$^\circ$C range across the network)
+    \item Local anomalies (upwelling zones, fjord thermal buffering)
+\end{itemize}
+
+The 3$^\circ$C VBNC transition window maps onto specific latitudinal bands in the network, creating the critical north--south divide: sites north of $\sim$52$^\circ$N spend sufficient time below $T_\text{VBNC}$ to suppress pathogen activity seasonally, while southern sites experience near-continuous disease pressure.
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Key Results}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{The R$\to$S Immunity Fix: A Paradigm Shift}
+
+One of the most consequential model refinements was correcting the post-recovery immune state. Echinoderms lack adaptive immunity---there is no immunological memory, no antibodies, no lasting protection after clearing an infection. The model was updated so that recovered individuals return to the \textbf{Susceptible} state (R$\to$S) rather than retaining permanent immunity.
+
+This single change fundamentally altered the model's evolutionary dynamics:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Permanent Immunity} & \textbf{R$\to$S (Correct)} \\
+\midrule
+Overall population crash & 98.5\% & 99.7\% \\
+Final surviving population (5-node test) & 365 & 122 \\
+Total disease deaths & 41,968 & 36,157 \\
+Total recovery events & 365 & 276 \\
+Nodes with local extinction & 0/5 & 2/5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Critical finding:} Under the corrected R$\to$S model, the recovery trait \textit{no longer evolves upward}. The maximum surviving-node change in recovery ability dropped from $\Delta c = +0.154$ (permanent immunity) to $\Delta c = +0.030$ (R$\to$S)---a 5$\times$ reduction. Instead, \textbf{resistance replaces recovery as the dominant adaptive response}:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Sitka (Alaska): $\Delta r = +0.060$ under R$\to$S vs. $+0.011$ under permanent immunity (\textbf{5.5$\times$ stronger})
+    \item Biological mechanism: When recovery doesn't confer lasting protection, avoiding infection entirely (resistance) becomes far more valuable than clearing infection (recovery)
+\end{itemize}
+
+\textbf{Conservation implication:} Selective breeding programs should prioritize resistance traits over recovery ability.
+
+\subsection{Resistance Is $\sim$1000$\times$ More Valuable Than Tolerance}
+
+The conservation genetics module derived marginal fitness derivatives at population-mean trait values, revealing a dramatic asymmetry:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Trait} & \textbf{Marginal Fitness Derivative} & \textbf{Relative Value} \\
+\midrule
+Resistance ($r_i$) & $\partial W / \partial r \approx 1000$ & $1000\times$ \\
+Tolerance ($t_i$) & $\partial W / \partial t \approx 1$ & $1\times$ \\
+Recovery ($c_i$) & $\partial W / \partial c \approx 50$ & $50\times$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This asymmetry arises because resistance operates multiplicatively on the force of infection---a small increase in resistance reduces \textit{every} exposure event, compounding across the individual's lifetime. Tolerance, by contrast, only helps after infection has already occurred and only extends survival during I$_2$, without reducing pathogen transmission.
+
+\subsection{The 3$^\circ$C SST Window}
+
+The VBNC sigmoid function creates a sharp environmental threshold. Within a narrow temperature window of $\sim$8.4--11.6$^\circ$C, \vp{} transitions between dormancy and full activity. This 3$^\circ$C window maps directly onto the observed latitudinal recovery gradient:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Cold sites} ($\bar{T} < 8.4^\circ$C): Pathogen suppressed year-round. Populations can recover via demographics alone.
+    \item \textbf{Transition zone} (8.4--11.6$^\circ$C): Seasonal disease cycles. Partial recovery possible, especially in fjords with thermal buffering.
+    \item \textbf{Warm sites} ($\bar{T} > 11.6^\circ$C): Year-round disease pressure. Recovery requires evolutionary resistance or population supplementation.
+\end{itemize}
+
+This prediction is testable: sites near the VBNC threshold should show the greatest interannual variability in disease outcomes, driven by year-to-year SST fluctuations.
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Sensitivity Analysis}
+% ═══════════════════════════════════════════════════════════════════════
+
+A comprehensive sensitivity analysis was performed in two phases: Morris elementary effects screening (960 runs) followed by Sobol variance-based decomposition (25,088 runs), both on an 11-node stepping-stone network representing the full latitudinal range.
+
+\subsection{Morris Screening (Round 4)}
+
+The Morris method evaluates 47 parameters across 23 output metrics using one-at-a-time perturbations along randomized trajectories.
+
+\textbf{Universal nonlinearity:} All 47 parameters show $\sigma/\mu^* > 1.0$, meaning every parameter participates in interactions with other parameters. This is a deeply coupled system with no purely additive effects. Three parameters show extreme interaction ratios ($\sigma/\mu^* > 2.5$): pathogen mutation rate ($\sigma_{v,\text{mut}}$) and the number of tolerance loci ($n_\text{tolerance}$).
+
+\subsection{Sobol Variance Decomposition (Round 4)}
+
+The Sobol analysis used $N = 512$ base samples with the Saltelli sampling scheme, producing 25,088 model evaluations executed in 20.4 wall-clock hours on a 48-core Intel Xeon W-3365. Results reveal a steep importance hierarchy:
+
+\begin{center}
+\begin{tabular}{rlcccl}
+\toprule
+\textbf{Rank} & \textbf{Parameter} & \textbf{Module} & $S_1$ & $S_T$ & \textbf{Interpretation} \\
+\midrule
+1 & $K_\text{half}$ & \textcolor{cdisease}{Disease} & 0.182 & \textbf{0.456} & Dose-response threshold \\
+2 & $a_\text{exposure}$ & \textcolor{cdisease}{Disease} & 0.112 & \textbf{0.337} & Transmission nonlinearity \\
+3 & $P_\text{env,max}$ & \textcolor{cdisease}{Disease} & 0.049 & \textbf{0.251} & Reservoir ceiling \\
+4 & $\sigma_{2,\text{eff}}$ & \textcolor{cdisease}{Disease} & 0.041 & \textbf{0.232} & Late-stage shedding \\
+5 & $\sigma_D$ & \textcolor{cdisease}{Disease} & 0.075 & \textbf{0.141} & Dead-animal shedding \\
+6 & $T_\text{VBNC}$ & \textcolor{cdisease}{Disease} & $-$0.015 & 0.040 & Pathogen dormancy threshold \\
+7 & $k_\text{growth}$ & \textcolor{cpopulation}{Population} & $-$0.009 & 0.035 & Body growth rate \\
+8 & peak\_width & \textcolor{cspawning}{Spawning} & 0.018 & 0.035 & Spawning window width \\
+9 & settler\_surv. & \textcolor{cpopulation}{Population} & 0.010 & 0.033 & Recruitment success \\
+10 & target\_mean\_r & \textcolor{cgenetics}{Genetics} & 0.008 & 0.021 & Initial resistance level \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Massive Interaction Effects}
+
+The most striking finding is the dominance of parameter interactions. For population crash:
+
+\begin{equation}
+\frac{\sum S_T}{\sum S_1} = \frac{1.775}{0.527} = 3.37
+\end{equation}
+
+This ratio indicates that \textbf{$\sim$70\% of total output variance arises from parameter interactions} rather than main effects. The top four disease transmission parameters form a tightly coupled cluster where each parameter's effect depends on the values of the others:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item $K_\text{half}$ and $a_\text{exposure}$ jointly define the dose-response curve shape
+    \item $P_\text{env,max}$ sets the exposure ceiling, modulating the dose-response relevance
+    \item $\sigma_{2,\text{eff}}$ creates a shedding $\to$ exposure $\to$ infection $\to$ shedding feedback loop
+\end{itemize}
+
+\textbf{Implication:} These parameters cannot be calibrated independently---joint estimation via ABC-SMC is essential.
+
+\subsection{Morris vs. Sobol Discrepancies}
+
+Notable rank changes between Morris and Sobol reveal the importance of global variance decomposition:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item $\rho_\text{rec}$ (recovery rate): Morris \#1 $\to$ Sobol \#32. Morris captured strong local effects, but Sobol shows these are absorbed by interactions.
+    \item $\sigma_D$ (dead-animal shedding): Morris \#20 $\to$ Sobol \#5. The nonlinear feedback from post-mortem shedding is invisible to OAT perturbations.
+    \item \textbf{Lesson:} Morris is effective for identifying the top $\sim$10 parameters but unreliable for precise ranking. Sobol is essential for calibration prioritization.
+\end{itemize}
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Conservation Genetics Module}
+% ═══════════════════════════════════════════════════════════════════════
+
+A dedicated conservation genetics module provides the theoretical and computational framework for translating model outputs into actionable breeding program recommendations.
+
+\subsection{Scope and Structure}
+
+The module comprises \textbf{2,632 lines of code} across five submodules, supported by a 34-page theory report and validated by \textbf{146 tests} (136 pass; 10 fail for documented approximation reasons):
+
+\begin{center}
+\begin{tabular}{lcp{8cm}}
+\toprule
+\textbf{Module} & \textbf{Lines} & \textbf{Function} \\
+\midrule
+\texttt{trait\_math.py} & 221 & Quantitative genetics: allele frequencies, additive variance, selection response, multi-generation predictions \\
+\texttt{screening.py} & 551 & Sample size calculations for trait screening, exceedance probabilities, multi-site allocation, complementary founder selection \\
+\texttt{breeding.py} & 806 & Mendelian crossing, four selection strategies (truncation, OCS, complementary, within-family), breeding program simulation \\
+\texttt{inbreeding.py} & 453 & Genomic inbreeding coefficients, relationship matrices (VanRaden Method 1), effective population size estimation, inbreeding projections \\
+\texttt{viz.py} & 586 & Comprehensive visualization suite \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Key Theoretical Results}
+
+\textbf{Binary phenotyping framework.} In the absence of continuous phenotypic measurements for disease resistance, the module derives optimal screening strategies based on binary survival outcomes (survived vs. died during disease challenge). The theory shows how family-based selection and strategic crossing of survival categories can extract genetic information from coarse phenotypes.
+
+\textbf{Breeding strategy comparison.} Four breeding strategies are implemented and compared:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Truncation selection:} Highest genetic gain ($\Delta r = +0.71$ in 5 generations) but fastest erosion of additive variance $V_A$
+    \item \textbf{Optimal Contribution Selection (OCS):} Balances gain against inbreeding accumulation using genomic relationship matrix constraints
+    \item \textbf{Complementary selection:} Lower per-generation gain but preserves allelic diversity across loci
+    \item \textbf{Within-family selection:} Exploits high fecundity of \pyc{} ($\sim$10$^4$ eggs per female) for effective selection without reducing population-level diversity
+\end{itemize}
+
+\textbf{Practical constraint:} The module emphasizes that h$^2$ is unknown for disease-related traits in \pyc{}. All generation-to-target estimates are reported as lower bounds (assuming $h^2 = 1$), with guidance for scaling by $1/h^2$ when empirical heritability estimates become available.
+
+\subsection{Five Analysis Templates}
+
+The module includes a complete analysis pipeline:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Current genetic state:} Characterize post-epidemic trait distributions at 11 monitoring sites
+    \item \textbf{Screening effort:} Determine sample sizes needed to find high-resistance founders
+    \item \textbf{Breeding optimization:} Compare strategies across founder counts and generation sweeps
+    \item \textbf{Reintroduction scenarios:} Evaluate outplanting strategies with captive-bred stock (in development)
+    \item \textbf{Integrated recommendations:} Synthesize analyses into actionable conservation guidance
+\end{enumerate}
+
+All templates are parameterized via a central \texttt{params.yaml} configuration and produce warnings when running with default (pre-calibration) parameters.
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Performance and Scale}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{Simulation Scale}
+
+SSWD-EvoEpi operates at a scale that is unusual for ecological IBMs:
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Dimension} & \textbf{Value} \\
+\midrule
+Total individual agents & 4,480,000 \\
+Spatial nodes & 896 \\
+Genotype array dimensions & $4.48\text{M} \times 51 \times 2$ \\
+Agent memory footprint & $\sim$1.7 GB \\
+Genotype memory footprint & $\sim$460 MB \\
+SST time series & $896 \times 4{,}745$ days \\
+Distance matrix & $896 \times 896$ \\
+Daily timesteps per run (13 yr) & 4,745 \\
+Total node-day operations per run & 4,251,520 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Computational Infrastructure}
+
+The primary compute platform is an \textbf{Intel Xeon W-3365} workstation:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item 64 physical cores (128 hardware threads) at 2.70 GHz
+    \item 503 GB RAM
+    \item Ubuntu 22.04 on WSL2
+\end{itemize}
+
+\textbf{Parallelization strategy:} Calibration runs are embarrassingly parallel---each parameter set evaluation is independent. By setting \texttt{OMP\_NUM\_THREADS=1} to disable per-process BLAS threading, the system runs up to 64 simultaneous simulation instances, fully utilizing all physical cores.
+
+\subsection{Performance Optimizations}
+
+A comprehensive performance audit identified the movement kernel (24 correlated random walk substeps per day per agent) as the dominant computational cost ($\sim$60--70\% of total runtime). Key optimizations implemented or planned:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Optimization} & \textbf{Speedup} & \textbf{Status} \\
+\midrule
+Numba JIT for movement kernel & 17.5$\times$ & Implemented \\
+Reduce substeps (24 $\to$ 6) & $\sim$2--3$\times$ & Validated \\
+Sparse pathogen dispersal matrix & $\sim$1.02$\times$ & Implemented \\
+Parallel node processing (16 workers) & $\sim$4--8$\times$ & Planned \\
+Pre-computed environmental arrays & $\sim$1.03$\times$ & Implemented \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Sensitivity Analysis Compute Budget}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Analysis} & \textbf{Runs} & \textbf{Wall Time} & \textbf{Platform} \\
+\midrule
+Morris R4 screening & 960 & $\sim$8 hours & Xeon (48 cores) \\
+Sobol R4 decomposition & 25,088 & 20.4 hours & Xeon (48 cores) \\
+R$\to$S validation & 12 & $\sim$0.5 hours & Local \\
+\textbf{Total SA compute} & \textbf{26,060} & \textbf{$\sim$29 hours} & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Current Status and Next Steps}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{Project Status (February 2026)}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Component} & \textbf{Status} & \textbf{Completeness} \\
+\midrule
+Core simulation engine & Complete & 100\% \\
+Three-trait genetic architecture & Complete & 100\% \\
+Pathogen co-evolution module & Complete & 100\% \\
+896-node spatial network + SST data & Complete & 100\% \\
+Morris sensitivity analysis (R4) & Complete & 100\% \\
+Sobol sensitivity analysis (R4) & Complete & 100\% \\
+Conservation genetics module & Complete & 95\% \\
+ABC-SMC calibration & In progress & 30\% \\
+CMIP6 climate projections & Integrated & 100\% \\
+Production reintroduction scenarios & Pending & 0\% \\
+Manuscript & Pending & 10\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Immediate Next Steps}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Complete ABC-SMC calibration} (6 rounds $\times$ 3 seeds) using the 15 priority parameters identified by Sobol analysis
+    \item \textbf{Convergence validation:} Verify that calibrated parameters produce consistent dynamics from $K = 5{,}000$ to $K = 100{,}000$ per node
+    \item \textbf{Scale correction:} Adjust any N-dependent parameters
+    \item \textbf{Production reintroduction scenarios:} Evaluate outplanting strategies (location, number, genetic composition) under baseline and climate-change projections
+\end{enumerate}
+
+\subsection{Planned Scenario Suite}
+
+\begin{center}
+\begin{tabular}{lcp{7cm}}
+\toprule
+\textbf{Scenario} & \textbf{Seeds} & \textbf{Question} \\
+\midrule
+A. No intervention & 20 & Reference trajectory to 2050 \\
+B. Status quo (100 yr) & 20 & Long-term extinction risk \\
+C. Current outplanting (50/yr, 5 sites) & 20 & Does current scale matter? \\
+D. Aggressive outplanting (500/yr, 20 sites) & 20 & What scale is needed? \\
+E. Genetic rescue (high-$r$ broodstock) & 20 & Does selective breeding help? \\
+F. Assisted gene flow & 20 & Does connectivity management help? \\
+G. Climate warming (+2$^\circ$C) & 20 & How does warming shift disease dynamics? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+% ═══════════════════════════════════════════════════════════════════════
+\section{Technical Infrastructure}
+% ═══════════════════════════════════════════════════════════════════════
+
+\subsection{Software Stack}
+
+\begin{center}
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Component} & \textbf{Technology} \\
+\midrule
+Core language & Python 3.10 \\
+Numerical computation & NumPy, SciPy \\
+JIT compilation & Numba (17.5$\times$ speedup on movement kernel) \\
+Sensitivity analysis & SALib (Morris, Sobol) \\
+Calibration & pyABC (ABC-SMC, planned) \\
+SST data processing & xarray, netCDF4 \\
+Visualization & Matplotlib, Plotly \\
+Version control & Git \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Codebase Metrics}
+
+\begin{center}
+\begin{tabular}{lr}
+\toprule
+\textbf{Component} & \textbf{Lines of Code} \\
+\midrule
+Core simulation model & $\sim$4,500 \\
+Conservation genetics module & $\sim$2,600 \\
+Analysis templates \& scripts & $\sim$2,300 \\
+Test suite & $\sim$3,500 \\
+\midrule
+\textbf{Total} & $\sim$\textbf{12,900} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{770+ automated tests} covering disease dynamics, genetics, reproduction, spatial dispersal, conservation genetics, and integration
+    \item \textbf{146 conservation genetics validation tests} with detailed reports linking each test to the corresponding equation in the theory document
+    \item Full \textbf{Git version control} with structured commit history
+    \item \textbf{CI-ready} test infrastructure
+\end{itemize}
+
+\vfill
+
+\begin{center}
+\textcolor{uwgold}{\rule{0.6\textwidth}{1.2pt}}\\[0.5cm]
+{\large\textcolor{accent}{\textit{For questions, collaboration inquiries, or access to the model code,\\please contact Willem Weertman at the University of Washington.}}}
+\end{center}
+
+\end{document}
