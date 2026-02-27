@@ -21,6 +21,8 @@
 \usepackage{parskip}
 \usepackage{microtype}
 
+\graphicspath{{figures/}}
+
 % ─── Colors ─────────────────────────────────────────────────────────────
 \definecolor{uwpurple}{HTML}{4B2E83}
 \definecolor{uwgold}{HTML}{B7A57A}
@@ -137,7 +139,14 @@ Captive breeding programs are now underway at Friday Harbor Laboratories and the
 
 \subsection{A Catastrophic Decline}
 
-Beginning in 2013, Sea Star Wasting Disease swept through the northeast Pacific in one of the largest marine wildlife die-offs ever documented. The disease manifests as tissue lesions that rapidly progress to limb autotomy (arm loss), body wall perforation, and death---often within days of initial symptoms. While SSWD affected over 20 asteroid species, the sunflower sea star (\pyc{}) suffered the most severe and geographically extensive decline.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{epidemic_wavefront_map.png}
+    \caption{Epidemic wavefront map showing the spatial spread of SSWD across the coastal network. The disease radiated outward from initial outbreak sites along the northeast Pacific coast, with the wavefront advancing through the larval dispersal and waterborne pathogen transport pathways captured by the SSWD-EvoEpi spatial network.}
+    \label{fig:wavefront}
+\end{figure}
+
+Beginning in 2013, Sea Star Wasting Disease swept through the northeast Pacific in one of the largest marine wildlife die-offs ever documented (Figure~\ref{fig:wavefront}). The disease manifests as tissue lesions that rapidly progress to limb autotomy (arm loss), body wall perforation, and death---often within days of initial symptoms. While SSWD affected over 20 asteroid species, the sunflower sea star (\pyc{}) suffered the most severe and geographically extensive decline.
 
 \begin{itemize}[leftmargin=1.5em]
     \item \textbf{$>$90\% population decline} across the species' range, from Alaska to Baja California
@@ -236,7 +245,14 @@ This sigmoid function, parameterized by $T_\text{VBNC} \approx 10^\circ$C, produ
 
 \subsection{Three-Trait Genetic Architecture}
 
-The model encodes three distinct immune strategies across 51 diploid loci (based on the $\sim$51 loci under selection identified by Schiebelhut et al. 2018, 2024):
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig1_trait_distributions.png}
+    \caption{Initial trait distributions for the three heritable immune traits---resistance, tolerance, and recovery---across the population. Each trait is encoded by 17 diploid loci with exponentially distributed effect sizes, producing approximately normal trait distributions centered near the population mean. These distributions represent the standing genetic variation available for selection during epidemic events.}
+    \label{fig:trait_distributions}
+\end{figure}
+
+The model encodes three distinct immune strategies across 51 diploid loci (based on the $\sim$51 loci under selection identified by Schiebelhut et al. 2018, 2024), with initial trait distributions shown in Figure~\ref{fig:trait_distributions}:
 
 \begin{center}
 \begin{tabular}{lccp{7cm}}
@@ -348,7 +364,14 @@ The pathogen also disperses between sites via a separate dispersal kernel (matri
 
 \subsection{Real Satellite SST}
 
-Each of the 896 sites is assigned a daily SST time series extracted from NOAA OISST v2.1 (0.25$^\circ$ resolution). This captures:
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig2_latitude_heatmap.png}
+    \caption{Sea surface temperature by latitude over time, derived from NOAA OISST v2.1 satellite data (2002--2025). The latitudinal temperature gradient spans $\sim$5--22$^\circ$C across the model domain. The 2013--2015 marine heatwave (``the Blob'') is clearly visible as a warm anomaly across all latitudes. The dashed lines indicate the $\sim$3$^\circ$C VBNC transition window (8.4--11.6$^\circ$C) that governs the north--south divide in disease pressure.}
+    \label{fig:sst_heatmap}
+\end{figure}
+
+Each of the 896 sites is assigned a daily SST time series extracted from NOAA OISST v2.1 (0.25$^\circ$ resolution), as visualized in Figure~\ref{fig:sst_heatmap}. This captures:
 
 \begin{itemize}[leftmargin=1.5em]
     \item Seasonal cycles (critical for spawning phenology and VBNC dynamics)
@@ -366,7 +389,14 @@ The 3$^\circ$C VBNC transition window maps onto specific latitudinal bands in th
 
 \subsection{The R$\to$S Immunity Fix: A Paradigm Shift}
 
-One of the most consequential model refinements was correcting the post-recovery immune state. Echinoderms lack adaptive immunity---there is no immunological memory, no antibodies, no lasting protection after clearing an infection. The model was updated so that recovered individuals return to the \textbf{Susceptible} state (R$\to$S) rather than retaining permanent immunity.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{pop_trajectories_satellite.png}
+    \caption{Population trajectories across representative sites driven by real satellite SST data. The model reproduces the observed $>$90\% population crash following SSWD onset, with site-specific dynamics governed by local temperature regimes. Cold northern sites (Alaska) show partial recovery, while warm southern sites experience sustained decline---matching the empirical north--south recovery gradient.}
+    \label{fig:pop_trajectories}
+\end{figure}
+
+One of the most consequential model refinements was correcting the post-recovery immune state (see population-level impacts in Figure~\ref{fig:pop_trajectories}). Echinoderms lack adaptive immunity---there is no immunological memory, no antibodies, no lasting protection after clearing an infection. The model was updated so that recovered individuals return to the \textbf{Susceptible} state (R$\to$S) rather than retaining permanent immunity.
 
 This single change fundamentally altered the model's evolutionary dynamics:
 
@@ -384,7 +414,7 @@ Nodes with local extinction & 0/5 & 2/5 \\
 \end{tabular}
 \end{center}
 
-\textbf{Critical finding:} Under the corrected R$\to$S model, the recovery trait \textit{no longer evolves upward}. The maximum surviving-node change in recovery ability dropped from $\Delta c = +0.154$ (permanent immunity) to $\Delta c = +0.030$ (R$\to$S)---a 5$\times$ reduction. Instead, \textbf{resistance replaces recovery as the dominant adaptive response}:
+\textbf{Critical finding:} Under the corrected R$\to$S model, the recovery trait \textit{no longer evolves upward}. The maximum surviving-node change in recovery ability dropped from $\Delta c = +0.154$ (permanent immunity) to $\Delta c = +0.030$ (R$\to$S)---a 5$\times$ reduction. Instead, \textbf{resistance replaces recovery as the dominant adaptive response} (Figure~\ref{fig:trait_evolution}):
 
 \begin{itemize}[leftmargin=1.5em]
     \item Sitka (Alaska): $\Delta r = +0.060$ under R$\to$S vs. $+0.011$ under permanent immunity (\textbf{5.5$\times$ stronger})
@@ -393,9 +423,16 @@ Nodes with local extinction & 0/5 & 2/5 \\
 
 \textbf{Conservation implication:} Selective breeding programs should prioritize resistance traits over recovery ability.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{trait_evolution_sinusoidal.png}
+    \caption{Evolutionary trait dynamics over time under the corrected R$\to$S immunity model. Resistance (blue) shows the strongest directional selection, increasing steadily as individuals with higher resistance avoid infection and survive to reproduce. Recovery (green) shows minimal evolutionary response under R$\to$S dynamics, confirming that avoiding infection is far more valuable than clearing it when no lasting immunity is gained. The sinusoidal SST forcing creates seasonal oscillations in selection pressure.}
+    \label{fig:trait_evolution}
+\end{figure}
+
 \subsection{Resistance Is $\sim$1000$\times$ More Valuable Than Tolerance}
 
-The conservation genetics module derived marginal fitness derivatives at population-mean trait values, revealing a dramatic asymmetry:
+The conservation genetics module derived marginal fitness derivatives at population-mean trait values, revealing a dramatic asymmetry (see also Figure~\ref{fig:survival_distributions}):
 
 \begin{center}
 \begin{tabular}{lcc}
@@ -413,6 +450,13 @@ This asymmetry arises because resistance operates multiplicatively on the force 
 
 \subsection{The 3$^\circ$C SST Window}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig7_disease_window.png}
+    \caption{Temperature window for disease activity. The VBNC sigmoid function creates a sharp transition between pathogen dormancy and full virulence within a narrow $\sim$3$^\circ$C SST window (8.4--11.6$^\circ$C). This temperature dependence maps directly onto the observed latitudinal recovery gradient: cold northern waters suppress \textit{V.~pectenicida} activity, while warm southern waters sustain year-round transmission pressure.}
+    \label{fig:disease_window}
+\end{figure}
+
 The VBNC sigmoid function creates a sharp environmental threshold. Within a narrow temperature window of $\sim$8.4--11.6$^\circ$C, \vp{} transitions between dormancy and full activity. This 3$^\circ$C window maps directly onto the observed latitudinal recovery gradient:
 
 \begin{itemize}[leftmargin=1.5em]
@@ -421,7 +465,7 @@ The VBNC sigmoid function creates a sharp environmental threshold. Within a narr
     \item \textbf{Warm sites} ($\bar{T} > 11.6^\circ$C): Year-round disease pressure. Recovery requires evolutionary resistance or population supplementation.
 \end{itemize}
 
-This prediction is testable: sites near the VBNC threshold should show the greatest interannual variability in disease outcomes, driven by year-to-year SST fluctuations.
+This prediction is testable: sites near the VBNC threshold should show the greatest interannual variability in disease outcomes, driven by year-to-year SST fluctuations (Figure~\ref{fig:disease_window}).
 
 \newpage
 % ═══════════════════════════════════════════════════════════════════════
@@ -438,7 +482,14 @@ The Morris method evaluates 47 parameters across 23 output metrics using one-at-
 
 \subsection{Sobol Variance Decomposition (Round 4)}
 
-The Sobol analysis used $N = 512$ base samples with the Saltelli sampling scheme, producing 25,088 model evaluations executed in 20.4 wall-clock hours on a 48-core Intel Xeon W-3365. Results reveal a steep importance hierarchy:
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{fig01_global_ranking.png}
+    \caption{Global parameter ranking by total-order Sobol index ($S_T$). Disease transmission parameters dominate: $K_\text{half}$ (dose-response threshold), $a_\text{exposure}$ (transmission nonlinearity), $P_\text{env,max}$ (reservoir ceiling), and $\sigma_{2,\text{eff}}$ (late-stage shedding) collectively account for the majority of output variance. The steep drop-off after the top 5 parameters indicates a tractable calibration problem---only $\sim$15 parameters require precise estimation.}
+    \label{fig:sobol_ranking}
+\end{figure}
+
+The Sobol analysis used $N = 512$ base samples with the Saltelli sampling scheme, producing 25,088 model evaluations executed in 20.4 wall-clock hours on a 48-core Intel Xeon W-3365. Results reveal a steep importance hierarchy (Figure~\ref{fig:sobol_ranking}):
 
 \begin{center}
 \begin{tabular}{rlcccl}
@@ -459,9 +510,16 @@ The Sobol analysis used $N = 512$ base samples with the Saltelli sampling scheme
 \end{tabular}
 \end{center}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig02_s1_vs_st.png}
+    \caption{First-order ($S_1$) vs.\ total-order ($S_T$) Sobol indices for all 47 parameters. Points far above the diagonal indicate parameters whose effects are dominated by interactions with other parameters rather than main effects. The top disease parameters ($K_\text{half}$, $a_\text{exposure}$, $P_\text{env,max}$) show large gaps between $S_1$ and $S_T$, confirming that their impacts are strongly context-dependent.}
+    \label{fig:s1_vs_st}
+\end{figure}
+
 \subsection{Massive Interaction Effects}
 
-The most striking finding is the dominance of parameter interactions. For population crash:
+The most striking finding is the dominance of parameter interactions (Figures~\ref{fig:s1_vs_st} and~\ref{fig:interaction_heatmap}). For population crash:
 
 \begin{equation}
 \frac{\sum S_T}{\sum S_1} = \frac{1.775}{0.527} = 3.37
@@ -477,6 +535,20 @@ This ratio indicates that \textbf{$\sim$70\% of total output variance arises fro
 
 \textbf{Implication:} These parameters cannot be calibrated independently---joint estimation via ABC-SMC is essential.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig03_heatmap.png}
+    \caption{Parameter interaction heatmap showing pairwise second-order Sobol indices ($S_{ij}$). The strongest interactions cluster among the top disease transmission parameters, with the $K_\text{half}$--$a_\text{exposure}$ pair showing the single largest interaction effect. The block-diagonal structure reflects the modular architecture of the model: disease, genetics, population, and spawning parameters interact most strongly within their own subsystems.}
+    \label{fig:interaction_heatmap}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig05_group_contributions.png}
+    \caption{Parameter group contributions to total output variance. Disease transmission parameters account for the largest share of variance across nearly all output metrics, followed by population dynamics and genetics. Spawning and spatial parameters contribute minimally, suggesting these subsystems are less sensitive to parameter uncertainty and may be calibrated with coarser data.}
+    \label{fig:group_contributions}
+\end{figure}
+
 \subsection{Morris vs. Sobol Discrepancies}
 
 Notable rank changes between Morris and Sobol reveal the importance of global variance decomposition:
@@ -486,6 +558,13 @@ Notable rank changes between Morris and Sobol reveal the importance of global va
     \item $\sigma_D$ (dead-animal shedding): Morris \#20 $\to$ Sobol \#5. The nonlinear feedback from post-mortem shedding is invisible to OAT perturbations.
     \item \textbf{Lesson:} Morris is effective for identifying the top $\sim$10 parameters but unreliable for precise ranking. Sobol is essential for calibration prioritization.
 \end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig12_calibration_priority.png}
+    \caption{Calibration priority ranking derived from the Sobol analysis. Parameters are ranked by their total contribution to output uncertainty, combining main effects and interactions. The top 15 parameters (above the dashed threshold) are prioritized for ABC-SMC joint estimation, while lower-ranked parameters can be fixed at literature values or default estimates with minimal impact on model predictions.}
+    \label{fig:calibration_priority}
+\end{figure}
 
 \newpage
 % ═══════════════════════════════════════════════════════════════════════
@@ -513,6 +592,13 @@ The module comprises \textbf{2,632 lines of code} across five submodules, suppor
 \end{center}
 
 \subsection{Key Theoretical Results}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{fig5_survival_distributions.png}
+    \caption{Survival probability distributions by genotype, illustrating the differential fitness landscape across the three immune traits. Individuals with high resistance genotypes show dramatically higher survival during epidemic events compared to high-tolerance or high-recovery genotypes---consistent with the $\sim$1000$\times$ marginal fitness advantage of resistance derived analytically in the conservation genetics module.}
+    \label{fig:survival_distributions}
+\end{figure}
 
 \textbf{Binary phenotyping framework.} In the absence of continuous phenotypic measurements for disease resistance, the module derives optimal screening strategies based on binary survival outcomes (survived vs. died during disease challenge). The theory shows how family-based selection and strategic crossing of survival categories can extract genetic information from coarse phenotypes.
 
