@@ -207,12 +207,14 @@ class EarlyStopChecker:
       - Year 5: no regional gradient developing
     """
 
-    def __init__(self, network, sites: List[dict], round_id: str, seed: int):
+    def __init__(self, network, sites: List[dict], round_id: str, seed: int,
+                 checkpoint_dir: Optional[Path] = None):
         self.network = network
         self.sites = sites
         self.round_id = round_id
         self.seed = seed
         self.early_stop_reason: Optional[str] = None
+        self.checkpoint_dir = checkpoint_dir
         # Per-node peak population in first 2 years (for recovery calc)
         self._node_peak_pop: Optional[np.ndarray] = None
         self._initial_total_pop: Optional[int] = None
@@ -242,7 +244,37 @@ class EarlyStopChecker:
         # ── Progress logging ─────────────────────────────────────────
         print(f"  [{self.round_id}/seed_{self.seed}] "
               f"Year {year + 1}/{n_years}: "
-              f"pop={total_pop:,}, alive_nodes={alive_nodes}")
+              f"pop={total_pop:,}, alive_nodes={alive_nodes}",
+              flush=True)
+
+        # ── Yearly checkpoint save ───────────────────────────────────
+        if self.checkpoint_dir is not None:
+            self._build_region_map()
+            region_snapshot = {}
+            for region, idxs in self._region_nodes.items():
+                peak = float(self._node_peak_pop[idxs].sum()) if self._node_peak_pop is not None else 0
+                current = float(node_pops[idxs].sum())
+                region_snapshot[region] = {
+                    'pop': int(current),
+                    'recovery': current / peak if peak > 0 else 0.0,
+                }
+            checkpoint = {
+                'round': self.round_id,
+                'seed': self.seed,
+                'year': year + 1,
+                'n_years': n_years,
+                'total_pop': total_pop,
+                'alive_nodes': alive_nodes,
+                'initial_pop': self._initial_total_pop,
+                'pop_frac': total_pop / self._initial_total_pop if self._initial_total_pop else 0,
+                'regions': region_snapshot,
+            }
+            cp_file = self.checkpoint_dir / f'checkpoint_seed{self.seed}.json'
+            try:
+                with open(cp_file, 'w') as f:
+                    json.dump(checkpoint, f, indent=2)
+            except Exception:
+                pass  # Don't crash on checkpoint write failure
 
         # ── Year 3 checks (0-indexed year == 2) ─────────────────────
         if year == 2:
@@ -285,7 +317,7 @@ class EarlyStopChecker:
 
 def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
                disease_year: int = 3, n_years: int = 14,
-               round_id: str = "XX") -> dict:
+               round_id: str = "XX", output_dir: Optional[Path] = None) -> dict:
     """Run one simulation and return structured results.
 
     Uses year-level early stopping to abort runs that are clearly failing,
@@ -293,7 +325,8 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
     """
     config.simulation.seed = seed
 
-    checker = EarlyStopChecker(network, sites, round_id, seed)
+    checker = EarlyStopChecker(network, sites, round_id, seed,
+                               checkpoint_dir=output_dir)
 
     t0 = time.time()
     result = run_spatial_simulation(
@@ -470,7 +503,7 @@ def main():
         print(f"\n--- Seed {seed} ({i+1}/{len(seeds)}) ---")
         result = run_single(config, sites, network, seed,
                            disease_year=args.disease_year, n_years=args.years,
-                           round_id=round_id)
+                           round_id=round_id, output_dir=output_dir)
         results.append(result)
         
         # Save individual result
