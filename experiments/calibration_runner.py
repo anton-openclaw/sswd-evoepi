@@ -618,10 +618,16 @@ def main():
     print(f"K: {args.K}, Years: {args.years}, Disease year: {args.disease_year}")
     print(f"Overrides: {len(param_overrides)} params")
     
+    # Extract spatial params from overrides (needed before network build)
+    D_P = param_overrides.pop('spatial.D_P', 15.0)
+    D_P_max_range = param_overrides.pop('spatial.D_P_max_range', None)
+    D_L = param_overrides.pop('spatial.D_L', args.D_L)
+    
     # Build network (once, shared across seeds)
-    print(f"\nBuilding {len(load_sites())}-node network...")
+    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range})...")
     t0 = time.time()
-    sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=args.D_L)
+    sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
+                                         D_P=D_P, D_P_max_range=D_P_max_range)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config
