@@ -245,6 +245,91 @@ def score_against_targets(region_recovery: dict) -> dict:
     }
 
 
+# Observed disease arrival timing (months after origin, ~June 2013)
+# From Gravem et al. 2021 Supplement Figure 3
+ARRIVAL_TARGETS = {
+    'CA-S': 0,       # origin
+    'CA-C': 6,       # Jan 2014
+    'CA-N': 6,       # Jan 2014
+    'OR': 15,        # mid 2014 - early 2015
+    'WA-O': 15,      # mid 2014 - early 2015
+    'JDF': 26,       # Aug 2015
+    'SS-S': 26,      # Aug 2015
+    'SS-N': 26,      # Aug 2015
+    'BC-C': 26,      # Aug 2015
+    'BC-N': 26,      # Aug 2015
+    'AK-FS': 26,     # Aug 2015
+    'AK-FN': 26,     # Aug 2015
+    'AK-PWS': 33,    # late 2015 - 2016
+    'AK-EG': 33,     # late 2015 - 2016
+    'AK-OC': 33,     # late 2015 - 2016
+    'AK-WG': 42,     # Jan 2017
+    'AK-AL': 42,     # Jan 2017
+}
+
+
+def score_arrival_timing(result, sites: list, disease_year: int = 1) -> dict:
+    """Score wavefront arrival timing against observed data.
+
+    Args:
+        result: SpatialSimResult with disease_arrival_day array.
+        sites: List of site dicts with 'region' field.
+        disease_year: Simulation year when disease was seeded.
+
+    Returns:
+        Dict with per-region timing, MAE, and individual scores.
+    """
+    if result.disease_arrival_day is None:
+        return {'mae_months': float('inf'), 'per_region': {}, 'note': 'No wavefront data'}
+
+    origin_day = disease_year * 365  # day disease was seeded
+
+    # Build region → node indices
+    region_nodes = {}
+    for i, site in enumerate(sites):
+        r = site.get('region', '?')
+        region_nodes.setdefault(r, []).append(i)
+
+    region_arrival = {}
+    total_abs_error = 0.0
+    n_targets = 0
+
+    for region, target_months in ARRIVAL_TARGETS.items():
+        idxs = region_nodes.get(region, [])
+        if not idxs:
+            continue
+
+        # First arrival in region (earliest node)
+        arrival_days = result.disease_arrival_day[idxs]
+        reached = arrival_days[arrival_days >= 0]
+
+        if len(reached) == 0:
+            actual_months = float('inf')
+        else:
+            first_day = int(reached.min())
+            actual_months = (first_day - origin_day) / 30.44  # avg days per month
+
+        error = actual_months - target_months if actual_months != float('inf') else 60.0  # penalty
+
+        region_arrival[region] = {
+            'target_months': target_months,
+            'actual_months': round(actual_months, 1) if actual_months != float('inf') else None,
+            'error_months': round(error, 1),
+            'reached': actual_months != float('inf'),
+        }
+
+        total_abs_error += abs(error)
+        n_targets += 1
+
+    mae = total_abs_error / n_targets if n_targets > 0 else float('inf')
+
+    return {
+        'mae_months': round(mae, 2),
+        'n_targets': n_targets,
+        'per_region': region_arrival,
+    }
+
+
 class EarlyStopChecker:
     """Year-level callback for early stopping and progress logging.
 
@@ -411,10 +496,14 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
     region_recovery, region_details = compute_regional_recovery(result, sites)
     scoring = score_against_targets(region_recovery)
 
+    # Arrival timing (wavefront mode)
+    arrival_scoring = score_arrival_timing(result, sites, disease_year=disease_year)
+
     return {
         'seed': seed,
         'wall_time_seconds': float(elapsed),
         'scoring': scoring,
+        'arrival_timing': arrival_scoring,
         'region_details': region_details,
         'region_recovery': {k: float(v) for k, v in region_recovery.items()},
         'overall': {
