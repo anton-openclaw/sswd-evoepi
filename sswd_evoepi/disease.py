@@ -268,6 +268,7 @@ def update_vibrio_concentration(
     cfg: DiseaseSection,
     dt: float = 1.0,
     override_shedding: "float | None" = None,
+    disease_reached: bool = True,
 ) -> float:
     """Euler-step update of Vibrio concentration at one node.
 
@@ -306,8 +307,11 @@ def update_vibrio_concentration(
     # Flushing
     flush = phi_k * P_k
 
-    # Environmental reservoir
-    env = environmental_vibrio(T_celsius, salinity, cfg)
+    # Environmental reservoir (gated by wavefront — no VBNC reservoir before pathogen arrives)
+    if disease_reached:
+        env = environmental_vibrio(T_celsius, salinity, cfg)
+    else:
+        env = 0.0
 
     # Euler update
     dP = shed - decay - flush + env + dispersal_input
@@ -680,6 +684,7 @@ def daily_disease_update(
     rng: np.random.Generator,
     infected_density_grid=None,
     pe_cfg: "PathogenEvolutionSection | None" = None,
+    disease_reached: bool = True,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -760,6 +765,7 @@ def daily_disease_update(
         T_celsius, salinity, phi_k, dispersal_input,
         cfg,
         override_shedding=override_shed,
+        disease_reached=disease_reached,
     )
     node_state.vibrio_concentration = P_k
 
