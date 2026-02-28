@@ -187,6 +187,11 @@ class DiseaseSection:
     invasion_year: Optional[int] = None
     invasion_nodes: Optional[List[int]] = None
 
+    # Wavefront disease spread (spatial spread from origin)
+    wavefront_enabled: bool = False           # If True, P_env gated per-node; disease spreads as wavefront
+    disease_origin_nodes: Optional[List[int]] = None  # Node IDs where disease starts. None = all nodes (backward compat)
+    activation_threshold: float = 1.0         # Vibrio concentration (bact/mL) that triggers node activation
+
 
 @dataclass
 class GeneticsSection:
@@ -483,6 +488,17 @@ def validate_config(config: SimulationConfig) -> None:
         if config.disease.invasion_year is None:
             raise ValueError(
                 "disease.invasion_year required for 'invasion' scenario"
+            )
+
+    # Wavefront validation
+    if config.disease.wavefront_enabled:
+        if config.disease.disease_origin_nodes is None or len(config.disease.disease_origin_nodes) == 0:
+            raise ValueError(
+                "disease.disease_origin_nodes required when wavefront_enabled=True"
+            )
+        if config.disease.activation_threshold <= 0:
+            raise ValueError(
+                "disease.activation_threshold must be positive"
             )
 
     # Year ordering

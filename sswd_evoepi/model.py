@@ -1832,6 +1832,10 @@ class SpatialSimResult:
     yearly_total_larvae_dispersed: Optional[np.ndarray] = None
     # Peak disease prevalence per node (fraction infected at peak)
     peak_disease_prevalence: Optional[np.ndarray] = None
+
+    # Wavefront tracking
+    disease_arrival_day: Optional[np.ndarray] = None   # (n_nodes,) sim day when disease reached each node
+
     # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
     yearly_mean_virulence: Optional[np.ndarray] = None
     # Spawning event tracking (daily, per-node)

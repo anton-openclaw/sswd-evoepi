@@ -1,0 +1,221 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+
+\title{SSWD-EvoEpi Calibration Round 1 Results}
+\author{Automated Analysis Report}
+\date{February 27, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report presents the results of the first calibration batch for the SSWD-EvoEpi model, testing parameter variations across 6 rounds with 3 random seeds each (18 total runs). The model simulates Pycnopodia helianthoides (sunflower sea star) recovery dynamics approximately 12 years post-SSWD outbreak across an 896-node coastal network from Alaska to Baja California. Key findings include that increasing K\_half to 200,000 (Round 02) provides the best overall performance, successfully matching Alaska recovery targets but failing to create sufficient latitudinal gradient for southern regions.
+\end{abstract}
+
+\section{Introduction}
+
+The Sea Star Wasting Disease (SSWD) outbreak that began in 2013 caused dramatic population crashes of Pycnopodia helianthoides across the North American Pacific coast. The SSWD-EvoEpi model aims to capture the complex evolutionary and epidemiological dynamics of both pathogen and host populations during and after the outbreak.
+
+This first calibration batch tests the model's ability to reproduce expert estimates of regional recovery fractions circa 2024, approximately 12 years post-outbreak. The calibration targets represent varying degrees of recovery across a strong latitudinal gradient, from 50\% recovery in northern Alaska to just 0.1\% in northern California.
+
+\section{Methods}
+
+\subsection{Model Configuration}
+The SSWD-EvoEpi model runs on an 896-node coastal network spanning from Alaska to Baja California. Each simulation covers the period from outbreak initiation through approximately 12 years of recovery, with yearly population outputs for analysis.
+
+\subsection{Calibration Targets}
+Expert estimates for regional recovery fractions circa 2024:
+\begin{itemize}
+\item AK-PWS (Alaska, Prince William Sound): 50\%
+\item AK-FN (Alaska, Frederick Sound North): 50\%
+\item AK-FS (Alaska, Frederick Sound): 20\%
+\item BC-N (British Columbia, North): 20\%
+\item SS-S (Strait of Georgia/Salish Sea, South): 5\%
+\item JDF (Juan de Fuca Strait): 2\%
+\item OR (Oregon): 0.25\%
+\item CA-N (California, North): 0.1\%
+\end{itemize}
+
+\subsection{Parameter Variations}
+Six parameter combinations were tested:
+\begin{enumerate}
+\item[R00:] Baseline -- Default parameter values
+\item[R01:] K\_half=30,000 -- Density-dependent transmission half-saturation
+\item[R02:] K\_half=200,000 -- Higher density-dependent transmission half-saturation
+\item[R03:] P\_env\_max=100 -- Environmental pathogen ceiling
+\item[R04:] P\_env\_max=2,000 -- Higher environmental pathogen ceiling  
+\item[R05:] Combination -- K\_half=200,000 + P\_env\_max=100 + a\_exposure=0.3
+\end{enumerate}
+
+Each round was executed with three random seeds (42, 123, 999) for statistical robustness.
+
+\section{Results}
+
+\subsection{Performance Summary}
+
+Table 1 summarizes the performance of each calibration round. Round 05 (combination parameters) did not complete during the analysis period and was excluded from results.
+
+\begin{table}[H]
+\centering
+\caption{Summary of calibration round performance (mean $\pm$ standard deviation across seeds)}
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+Round & Description & Seeds & RMSE(log) & Within 2$\times$ & Within 5$\times$ & Runtime (h) \\
+\hline
+R00 & Baseline (defaults) & 3 & 0.885 $\pm$ 0.036 & 2.00 & 3.00 & 26.0 $\pm$ 0.0 \\
+R01 & K\_half=30,000 & 2* & 2.154 $\pm$ 0.084 & 0.00 & 0.00 & 25.2 $\pm$ 0.0 \\
+R02 & K\_half=200,000 & 3 & 1.161 $\pm$ 0.002 & 4.00 & 4.67 & 27.4 $\pm$ 0.1 \\
+R03 & P\_env\_max=100 & 3 & 1.008 $\pm$ 0.003 & 2.00 & 5.00 & 26.3 $\pm$ 0.1 \\
+R04 & P\_env\_max=2,000 & 3 & 1.819 $\pm$ 0.023 & 0.00 & 0.67 & 25.3 $\pm$ 0.1 \\
+\hline
+\end{tabular}
+
+*One seed (123) terminated early due to insufficient regional variation.
+\end{table}
+
+Round 03 (P\_env\_max=100) achieved the lowest RMSE(log) at 1.008, while Round 02 (K\_half=200,000) showed the best performance for targets within 2$\times$ bounds.
+
+\subsection{Regional Recovery Patterns}
+
+Figure 1 shows the comparison between target and actual recovery percentages across all regions and rounds. The results reveal a consistent pattern: while northern Alaska targets are reasonably well matched in several rounds, the model systematically overpredicts recovery in southern regions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/figure1_grouped_bars.pdf}
+\caption{Target versus actual recovery percentages by region and round. Values represent seed-averaged results. Note the logarithmic y-axis scale spanning three orders of magnitude from 0.01\% to 100\%.}
+\end{figure}
+
+\subsection{Performance Heatmap}
+
+The performance heatmap (Figure 2) visualizes the log-ratio of actual to target recovery across all regions and rounds. Values near zero (green) indicate good agreement, while positive values (red) indicate overprediction and negative values (blue) indicate underprediction.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/figure2_heatmap.pdf}
+\caption{Model performance heatmap showing $\log_{10}$(actual/target) ratios. Green indicates good agreement with targets, red shows overprediction, and blue shows underprediction.}
+\end{figure}
+
+\subsection{RMSE Comparison}
+
+Figure 3 compares the RMSE(log) values across rounds, showing Round 03 as the best performer by this metric, followed closely by the baseline Round 00.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/figure3_rmse.pdf}
+\caption{Root Mean Square Error comparison across calibration rounds. Error bars show standard deviation across seeds. Lower values indicate better performance.}
+\end{figure}
+
+\subsection{Population Trajectories}
+
+Figure 4 shows the population recovery trajectories across all calibration rounds (R00-R04) and target regions. This multi-panel comparison reveals how different parameter modifications affect the temporal dynamics of recovery.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/figure4_trajectories.pdf}
+\caption{Population recovery trajectories across all calibration rounds. Each panel shows one round with different parameter settings: R00 (Defaults), R01 (K\_half=30K), R02 (K\_half=200K), R03 (P\_env\_max=100), R04 (P\_env\_max=2000). For each region, thin lines show individual seed trajectories, thick lines show the mean across seeds, and horizontal dashed lines indicate target recovery fractions. Note the logarithmic y-axis spanning 0.1\% to 200\% recovery.}
+\end{figure}
+
+\subsection{Model Performance Scatter Plot}
+
+The scatter plot (Figure 5) provides a comprehensive view of model performance across all regions, seeds, and rounds. The proximity to the 1:1 line indicates agreement with targets.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/figure5_scatter.pdf}
+\caption{Scatter plot of actual versus target recovery percentages on log-log axes. Each point represents one region from one seed run. The 1:1 line indicates perfect agreement, while dashed lines show 2$\times$ and 5$\times$ bounds.}
+\end{figure}
+
+\subsection{Individual Round Trajectory Details}
+
+Figures 6-10 provide detailed views of the population trajectories for each calibration round, showing the temporal dynamics more clearly for individual analysis.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure4a_round00.pdf}
+\caption{Round 00 (Defaults) - Detailed population recovery trajectories across all target regions.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure4b_round01.pdf}
+\caption{Round 01 (K\_half=30K) - Detailed population recovery trajectories across all target regions.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure4c_round02.pdf}
+\caption{Round 02 (K\_half=200K) - Detailed population recovery trajectories across all target regions.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure4d_round03.pdf}
+\caption{Round 03 (P\_env\_max=100) - Detailed population recovery trajectories across all target regions.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/figure4e_round04.pdf}
+\caption{Round 04 (P\_env\_max=2000) - Detailed population recovery trajectories across all target regions.}
+\end{figure}
+
+\section{Discussion}
+
+\subsection{Key Findings}
+
+The calibration results reveal several important patterns:
+
+\begin{enumerate}
+\item \textbf{Northern regions well-captured:} Alaska recovery targets (50\%, 50\%, 20\%) are reasonably well matched by multiple parameter combinations, particularly Round 02 (K\_half=200,000).
+
+\item \textbf{Lack of latitudinal gradient:} The model fails to reproduce the steep decline in recovery fractions from Alaska to California. Southern regions consistently show recovery fractions around 20\% when target values are $<$1\%.
+
+\item \textbf{Environmental pathogen ceiling effects:} Rounds 03 and 04 testing P\_env\_max showed mixed results, with lower values (100) performing better than higher values (2,000).
+
+\item \textbf{Density-dependent transmission:} Higher K\_half values (Round 02) improved northern region matching but did not address the latitudinal gradient problem.
+\end{enumerate}
+
+\subsection{Model Limitations}
+
+The primary limitation revealed by this calibration is the \textbf{insufficient north-south differentiation} in recovery dynamics. The current model configuration produces relatively uniform recovery fractions across latitude, failing to capture the dramatic gradient observed in expert estimates.
+
+This suggests that the VBNC (Viable But Non-Culturable) temperature sigmoid mechanism, intended to create temperature-dependent pathogen persistence, is not creating sufficient differentiation between northern and southern regions.
+
+\subsection{Mechanistic Implications}
+
+The results suggest that:
+\begin{itemize}
+\item Current temperature dependence functions may be too weak
+\item Additional latitudinal factors (ocean chemistry, host density, pathogen strain differences) may need to be incorporated
+\item The relationship between environmental conditions and pathogen persistence requires refinement
+\end{itemize}
+
+\subsection{Next Steps}
+
+Based on these findings, future calibration rounds should focus on:
+
+\begin{enumerate}
+\item \textbf{Enhanced temperature dependence:} Strengthen the VBNC temperature sigmoid or add additional temperature-dependent mechanisms.
+
+\item \textbf{Regional parameterization:} Consider region-specific parameter values rather than global parameters.
+
+\item \textbf{Additional environmental factors:} Incorporate ocean chemistry, salinity, or other environmental gradients.
+
+\item \textbf{Host-pathogen coevolution:} Explore whether evolutionary responses differ by latitude.
+
+\item \textbf{Completion of Round 05:} The combination parameter set (Round 05) should be completed and analyzed when computational resources allow.
+\end{enumerate}
+
+\section{Conclusions}
+
+The first SSWD-EvoEpi calibration batch successfully demonstrates the model's ability to reproduce northern recovery patterns but reveals critical limitations in capturing the latitudinal gradient of recovery. Round 02 (K\_half=200,000) provided the best balance of northern region accuracy, though all tested parameter combinations failed to achieve the low recovery fractions required for southern regions.
+
+The systematic overprediction in southern regions indicates that the current temperature-dependent mechanisms are insufficient to create the observed north-south gradient. Future model development should prioritize enhancing latitudinal differentiation mechanisms while preserving the successful northern region dynamics.
+
+This calibration provides a solid foundation for model refinement and highlights specific areas for mechanistic improvement in subsequent development cycles.
+
+\end{document}

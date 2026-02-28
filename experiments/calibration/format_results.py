@@ -40,9 +40,18 @@ def format_round(round_dir: Path) -> str:
         with open(sf) as f:
             results.append(json.load(f))
     
+    # Filter out early-stopped / empty results
+    valid_results = [r for r in results if r['scoring'].get('per_region')]
+    
     # Compute means across seeds
     lines = []
     lines.append(f"## {round_name}")
+    
+    # Load config.json as fallback for params
+    config_file = round_dir / 'config.json'
+    if not params and config_file.exists():
+        with open(config_file) as f:
+            params = json.load(f)
     
     if params:
         lines.append(f"Parameters changed: {json.dumps(params)}")
@@ -50,12 +59,20 @@ def format_round(round_dir: Path) -> str:
         lines.append("Parameters: ALL DEFAULTS")
     
     lines.append(f"Seeds: {[r['seed'] for r in results]}")
+    early_stopped = len(results) - len(valid_results)
+    if early_stopped:
+        lines.append(f"Early-stopped seeds: {early_stopped}/{len(results)}")
     
-    mean_rmse = np.mean([r['scoring']['rmse_log'] for r in results])
+    finite_rmse = [r['scoring']['rmse_log'] for r in results if r['scoring']['rmse_log'] != float('inf')]
+    mean_rmse = np.mean(finite_rmse) if finite_rmse else float('inf')
     mean_crash = np.mean([r['overall']['pop_crash_pct'] for r in results])
-    lines.append(f"Mean RMSE(log10): {mean_rmse:.3f}")
+    lines.append(f"Mean RMSE(log10): {mean_rmse:.3f}" if mean_rmse != float('inf') else "Mean RMSE(log10): INF")
     lines.append(f"Mean crash: {mean_crash:.1f}%")
     lines.append(f"Wall time per seed: {np.mean([r['wall_time_seconds'] for r in results]):.0f}s")
+    
+    if not valid_results:
+        lines.append("\nNo valid regional results (all early-stopped)")
+        return "\n".join(lines)
     
     # Per-region table
     lines.append("")
@@ -64,7 +81,7 @@ def format_round(round_dir: Path) -> str:
     
     for region in TARGETS:
         target = TARGETS[region]
-        actuals = [r['scoring']['per_region'][region]['actual'] for r in results]
+        actuals = [r['scoring']['per_region'][region]['actual'] for r in valid_results]
         mean_actual = np.mean(actuals)
         std_actual = np.std(actuals) if len(actuals) > 1 else 0
         

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  25 FEB 2026 12:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  25 FEB 2026 13:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -691,13 +691,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 Here is how much of TeX's memory you used:
  13878 strings out of 469514
  219421 string characters out of 5469758
- 671349 words of memory out of 5000000
+ 671345 words of memory out of 5000000
  42232 multiletter control sequences out of 15000+600000
  708960 words of font info for 103 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,13n,79p,1124b,652s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi9.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on main.pdf (23 pages, 3387345 bytes).
+Output written on main.pdf (23 pages, 3387570 bytes).
 PDF statistics:
  477 PDF objects out of 1000 (max. 8388607)
  378 compressed objects within 4 object streams

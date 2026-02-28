@@ -633,6 +633,10 @@ class NodeDiseaseState:
     epidemic_active: bool = False
     epidemic_start_day: int = -1
 
+    # Wavefront tracking
+    disease_reached: bool = True              # Has pathogen reached this node? Default True for backward compat
+    disease_arrival_day: int = -1             # Sim day when disease first reached this node (-1 = not yet)
+
     # R₀ estimate
     R0_estimate: float = 0.0
 
