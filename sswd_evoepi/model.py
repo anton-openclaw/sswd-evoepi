@@ -1960,12 +1960,17 @@ def run_spatial_simulation(
 
         # Init vibrio from environmental background
         if dis_cfg.scenario == "ubiquitous":
-            env = environmental_vibrio(nd.mean_sst, nd.salinity, dis_cfg)
-            xi = vibrio_decay_rate(nd.mean_sst)
-            phi = nd.flushing_rate
-            node.vibrio_concentration = (
-                env / (xi + phi) if (xi + phi) > 0 else 0.0
-            )
+            # When wavefront enabled, no initial steady-state vibrio anywhere
+            # (no reservoir before pathogen arrives)
+            if not (hasattr(dis_cfg, 'wavefront_enabled') and dis_cfg.wavefront_enabled):
+                env = environmental_vibrio(nd.mean_sst, nd.salinity, dis_cfg)
+                xi = vibrio_decay_rate(nd.mean_sst)
+                phi = nd.flushing_rate
+                node.vibrio_concentration = (
+                    env / (xi + phi) if (xi + phi) > 0 else 0.0
+                )
+            else:
+                node.vibrio_concentration = 0.0
         else:
             node.vibrio_concentration = 0.0
 
@@ -2015,6 +2020,12 @@ def run_spatial_simulation(
     # Per-node disease tracking
     node_disease_states = []
     disease_active_flags = [False] * N
+    # Wavefront tracking (per-node disease arrival)
+    wavefront = dis_cfg.wavefront_enabled
+    disease_reached = [True] * N  # default: all reached (backward compat)
+    disease_arrival_day_arr = np.full(N, -1, dtype=np.int32)
+    if wavefront:
+        disease_reached = [False] * N  # nothing reached yet
     cumulative_dis_deaths = [0] * N
     cumulative_recoveries = [0] * N
 
@@ -2217,6 +2228,7 @@ def run_spatial_simulation(
                         density_grids[i] if spatial_tx else None
                     ),
                     pe_cfg=pe_cfg,
+                    disease_reached=disease_reached[i],
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
@@ -2240,6 +2252,17 @@ def run_spatial_simulation(
                 network.nodes[i].vibrio_concentration = (
                     node_disease_states[i].vibrio_concentration
                 )
+
+            # Wavefront activation: check unreached nodes for pathogen arrival
+            if wavefront:
+                sim_day_wf = year * DAYS_PER_YEAR + day
+                for i in range(N):
+                    if not disease_reached[i]:
+                        if node_disease_states[i].vibrio_concentration > dis_cfg.activation_threshold:
+                            disease_reached[i] = True
+                            disease_arrival_day_arr[i] = sim_day_wf
+                            node_disease_states[i].disease_reached = True
+                            node_disease_states[i].disease_arrival_day = sim_day_wf
 
             # 4. Continuous settlement: settle cohorts whose PLD has elapsed
             sim_day = year * DAYS_PER_YEAR + day
@@ -2496,8 +2519,27 @@ def run_spatial_simulation(
         if disease_year is not None and year == disease_year:
             epidemic_started_year = year
             from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
+
+            # Determine which nodes get initial seeding
+            if wavefront and dis_cfg.disease_origin_nodes is not None:
+                origin_set = set(dis_cfg.disease_origin_nodes)
+            else:
+                origin_set = None  # None means ALL nodes (default behavior)
+
             for i, node in enumerate(network.nodes):
-                disease_active_flags[i] = True
+                disease_active_flags[i] = True  # ALL nodes run disease step
+
+                # Only seed infections at origin nodes (or all if no wavefront)
+                if origin_set is not None and i not in origin_set:
+                    # Non-origin node: activate disease step but mark unreached
+                    # disease_reached[i] stays False (set during init)
+                    continue
+
+                # Origin node (or all nodes in non-wavefront mode): seed infections
+                if wavefront:
+                    disease_reached[i] = True
+                    disease_arrival_day_arr[i] = year * 365
+
                 alive_idx = np.where(node.agents['alive'])[0]
                 n_to_infect = min(initial_infected_per_node, len(alive_idx))
                 if n_to_infect > 0:
@@ -2633,4 +2675,5 @@ def run_spatial_simulation(
         yearly_released_alive=(
             yearly_released_alive_spatial if config.release_events else None
         ),
+        disease_arrival_day=disease_arrival_day_arr if wavefront else None,
     )
