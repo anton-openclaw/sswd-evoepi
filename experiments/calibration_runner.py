@@ -152,6 +152,36 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
         region_recruits = [int(yearly_recruits[idxs, y].sum()) for y in range(n_years)] if yearly_recruits is not None else []
         region_dd = [int(yearly_dd[idxs, y].sum()) for y in range(n_years)] if yearly_dd is not None else []
         
+        # Genetics: population-weighted mean traits per region per year
+        def _weighted_mean_trait(trait_arr, pop_arr, idxs, n_years):
+            """Compute population-weighted mean of a trait across region nodes."""
+            if trait_arr is None:
+                return []
+            out = []
+            for y in range(n_years):
+                pops = pop_arr[idxs, y].astype(float)
+                traits = trait_arr[idxs, y]
+                total_pop = pops.sum()
+                if total_pop > 0:
+                    out.append(float((traits * pops).sum() / total_pop))
+                else:
+                    out.append(0.0)
+            return out
+        
+        region_mean_r = _weighted_mean_trait(result.yearly_mean_resistance, yearly_pop, idxs, n_years)
+        region_mean_t = _weighted_mean_trait(result.yearly_mean_tolerance, yearly_pop, idxs, n_years)
+        region_mean_c = _weighted_mean_trait(result.yearly_mean_recovery, yearly_pop, idxs, n_years)
+        
+        # Additive variance (mean across nodes, not pop-weighted — V_A is per-node)
+        def _mean_va(va_arr, idxs, n_years):
+            if va_arr is None:
+                return []
+            return [float(va_arr[idxs, y].mean()) for y in range(n_years)]
+        
+        region_va_r = _mean_va(result.yearly_va, idxs, n_years)
+        region_va_t = _mean_va(result.yearly_va_tolerance, idxs, n_years)
+        region_va_c = _mean_va(result.yearly_va_recovery, idxs, n_years)
+        
         region_details[region] = {
             'n_nodes': len(idxs),
             'peak_pop': int(peak_pop),
@@ -161,6 +191,12 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
             'yearly_totals': [int(p) for p in region_pop],
             'yearly_recruits': region_recruits,
             'yearly_disease_deaths': region_dd,
+            'yearly_mean_resistance': region_mean_r,
+            'yearly_mean_tolerance': region_mean_t,
+            'yearly_mean_recovery': region_mean_c,
+            'yearly_va_resistance': region_va_r,
+            'yearly_va_tolerance': region_va_t,
+            'yearly_va_recovery': region_va_c,
         }
     
     return region_recovery, region_details
