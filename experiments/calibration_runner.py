@@ -146,6 +146,12 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
         recovery = final_pop / peak_pop if peak_pop > 0 else 0.0
         
         region_recovery[region] = recovery
+        # Per-year recruits and disease deaths for diagnostics
+        yearly_recruits = result.yearly_recruits
+        yearly_dd = result.yearly_disease_deaths
+        region_recruits = [int(yearly_recruits[idxs, y].sum()) for y in range(n_years)] if yearly_recruits is not None else []
+        region_dd = [int(yearly_dd[idxs, y].sum()) for y in range(n_years)] if yearly_dd is not None else []
+        
         region_details[region] = {
             'n_nodes': len(idxs),
             'peak_pop': int(peak_pop),
@@ -153,6 +159,8 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
             'recovery_frac': float(recovery),
             'crash_pct': float(100.0 * (1 - final_pop / peak_pop)) if peak_pop > 0 else 100.0,
             'yearly_totals': [int(p) for p in region_pop],
+            'yearly_recruits': region_recruits,
+            'yearly_disease_deaths': region_dd,
         }
     
     return region_recovery, region_details
