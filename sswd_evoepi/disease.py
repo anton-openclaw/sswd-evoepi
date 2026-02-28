@@ -64,8 +64,8 @@ SIGMA_L = 100.0        # mm — normalization
 # Salinity modifier exponent
 ETA_SAL = 2.0
 
-# VBNC dynamics
-K_VBNC = 1.0           # °C⁻¹ — transition steepness
+# VBNC dynamics — default steepness (overridden by cfg.k_vbnc when available)
+K_VBNC = 1.0           # °C⁻¹ — transition steepness (legacy constant)
 
 # Carcass shedding duration (days)
 CARCASS_SHED_DAYS = 3
@@ -235,8 +235,9 @@ def environmental_vibrio(
     if cfg.scenario == "invasion":
         return 0.0
 
-    # VBNC resuscitation sigmoid
-    vbnc_activation = 1.0 / (1.0 + np.exp(-K_VBNC * (T_celsius - cfg.T_vbnc)))
+    # VBNC resuscitation sigmoid (use configurable steepness)
+    k = getattr(cfg, 'k_vbnc', K_VBNC)
+    vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - cfg.T_vbnc)))
 
     # Thermal performance (peak at T_opt=20°C)
     g_peak = thermal_performance(3000.0, T_celsius, rate_ref=1.0)

@@ -165,6 +165,7 @@ class DiseaseSection:
 
     # Temperature
     T_vbnc: float = 12.0          # VBNC midpoint (°C)
+    k_vbnc: float = 1.0           # VBNC sigmoid steepness (°C⁻¹)
     T_ref: float = 20.0           # V. pectenicida T_opt (°C)
 
     # Salinity
