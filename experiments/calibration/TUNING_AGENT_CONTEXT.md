@@ -59,12 +59,21 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 ### Spatial Dynamics
 - 896 sites across 18 regions (Alaska to Baja California)
 - Connected by larval dispersal (kernel scale `D_L` km)
-- Pathogen dispersal between neighboring sites (scale `D_P` km)
+- Pathogen dispersal between neighboring sites (scale `D_P` km, cutoff `D_P_max_range`)
 - Self-recruitment fractions higher in fjords than open coast
+
+### Wavefront Disease Spread
+- **Disease seeds at CA-S origin nodes only** (Channel Islands, ~June 2013)
+- **P_env is ZERO at unreached nodes** — no VBNC reservoir before pathogen arrives
+- **Nodes activate when waterborne vibrio exceeds `activation_threshold`**
+- Wavefront propagates via D matrix: infected nodes → shedding → dispersal → activation of neighbors
+- `disease_arrival_day` array tracks when each node's local epidemic starts
+- **D_P controls wavefront speed**: default 15km is nearest-neighbor only. Need ~50-200km for realistic coastwide spread over 3.5 years.
+- Adjacent nodes in 896-site network are typically 10-50km apart
 
 ## Calibration Targets
 
-**Regional recovery fractions ~11 years post-crash (2024), relative to pre-SSWD peak:**
+### Target A: Regional recovery fractions ~11 years post-crash (2024), relative to pre-SSWD peak
 
 | Region  | Target | Description |
 |---------|--------|-------------|
@@ -80,6 +89,28 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 **Unconstrained regions** (no target, let float): AK-WG, AK-EG, AK-OC, AK-AL, BC-C, SS-N, WA-O, CA-C, CA-S, BJ
 
 **Scoring**: RMSE in log10 space (targets span 3 orders of magnitude). RMSE < 0.3 means all targets within 2× of actual.
+
+### Target B: Disease wavefront arrival timing (from Gravem et al. 2021)
+
+Disease originates in Southern California (~Channel Islands) around June 2013 and spreads north as a wavefront over ~3.5 years. The model must reproduce this timing.
+
+| Region  | Observed crash onset | Sim year (disease_year=1 = 2013) | Arrival tolerance |
+|---------|---------------------|----------------------------------|-------------------|
+| CA-S    | ~June 2013 (origin) | Year 1 day ~180 (seeded)         | origin            |
+| CA-N/CA-C | Jan 2014         | Year 1-2 (~6-12 months)          | ±6 months         |
+| OR/WA-O | mid 2014-early 2015 | Year 2 (~12-18 months)           | ±6 months         |
+| BC/SS/JDF | Aug 2015          | Year 2-3 (~26 months)            | ±6 months         |
+| AK-FS/AK-FN | Aug 2015       | Year 2-3 (~26 months)            | ±6 months         |
+| AK-PWS/AK-EG | late 2015-2016 | Year 3-4 (~30-36 months)        | ±6 months         |
+| AK-WG/AK-AL | Jan 2017       | Year 4 (~42 months)              | ±6 months         |
+
+**Key constraint**: The wavefront must travel ~5,000 km of coastline in ~3.5 years. This is controlled by:
+- `D_P` (pathogen dispersal scale, km) — larger = faster spread
+- `D_P_max_range` (cutoff distance for D matrix) — must be large enough for inter-node transfer
+- `activation_threshold` — lower = faster wavefront
+- Shedding rates (`sigma_1_eff`, `sigma_2_eff`) — more shedding = more vibrio to disperse
+
+**Scoring**: Mean absolute error in months between observed and simulated regional arrival times. Use `disease_arrival_day` array from model output. Target: MAE < 6 months.
 
 ## Parameters — What Each Knob Does
 
@@ -116,6 +147,8 @@ An individual-based coupled eco-evolutionary epidemiological model for *Pycnopod
 
 | Parameter | Default | Range | What it does |
 |-----------|---------|-------|--------------|
+| spatial.D_P | 15 | [10, 200] | Pathogen dispersal scale (km). HIGHER = longer-range waterborne spread = FASTER wavefront. Critical for matching observed 2013-2017 spread timing. |
+| spatial.D_P_max_range | 52.5 | [35, 700] | Pathogen dispersal cutoff (km). Should be ~3.5×D_P. For D_P=200, set to 700. |
 | spatial.D_L | 400 | [100, 1000] | Larval dispersal distance (km). HIGHER = more spatial mixing |
 | spatial.alpha_self_fjord | 0.3 | [0.1, 0.5] | Fjord self-recruitment. HIGHER = more isolation |
 | spatial.alpha_self_open | 0.1 | [0.02, 0.2] | Open coast self-recruitment. HIGHER = more isolation |
