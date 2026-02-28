@@ -358,7 +358,7 @@ def construct_pathogen_dispersal(
     distances: np.ndarray,
     D_P: float = 15.0,
     f_out: float = 0.2,
-    max_range: float = 50.0,
+    max_range: Optional[float] = None,
 ) -> np.ndarray:
     """Construct pathogen dispersal matrix D.
 
@@ -372,11 +372,14 @@ def construct_pathogen_dispersal(
         distances: (N, N) waterway distance matrix (km).
         D_P: Pathogen dispersal scale (km). Default 15.
         f_out: Fraction of flushed water reaching neighbours. Default 0.2.
-        max_range: Maximum dispersal range (km). Default 50.
+        max_range: Maximum dispersal range (km). Default 3.5×D_P
+            (~97% of kernel mass). Set larger for wavefront calibration.
 
     Returns:
         (N, N) dense dispersal matrix (float64).
     """
+    if max_range is None:
+        max_range = 3.5 * D_P  # exp(-3.5) ≈ 0.03, captures 97% of kernel
     N = len(nodes)
     D = np.zeros((N, N), dtype=np.float64)
 
@@ -569,6 +572,7 @@ def build_network(
     node_defs: List[NodeDefinition],
     D_L: float = 400.0,
     D_P: float = 15.0,
+    D_P_max_range: Optional[float] = None,
     r_total: float = 0.02,
     f_out: float = 0.2,
     barriers: Optional[Dict[Tuple[int, int], float]] = None,
@@ -617,6 +621,7 @@ def build_network(
     )
     D = construct_pathogen_dispersal(
         node_defs, distances, D_P=D_P, f_out=f_out,
+        max_range=D_P_max_range,
     )
 
     nodes = []

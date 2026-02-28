@@ -54,6 +54,7 @@ class SpatialSection:
     D_matrix_file: str = "data/connectivity/D_matrix.npz"
     D_L: float = 400.0           # Larval dispersal scale (km)
     D_P: float = 15.0            # Pathogen dispersal scale (km)
+    D_P_max_range: float = 50.0  # Maximum pathogen dispersal range (km); cutoff for D matrix
     r_total: float = 0.02        # Total settlement success fraction
     alpha_self_fjord: float = 0.30   # Larval self-recruitment fraction for fjord nodes
     alpha_self_open: float = 0.10    # Larval self-recruitment fraction for open coast

@@ -90,7 +90,8 @@ def build_node_defs(sites: List[dict], K: int = 5000) -> List[NodeDefinition]:
     return node_defs
 
 
-def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0, D_P: float = 15.0):
+def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
+                       D_P: float = 15.0, D_P_max_range: float = None):
     """Build 896-node network with overwater distances."""
     sites = load_sites()
     node_defs = build_node_defs(sites, K=K)
@@ -100,6 +101,7 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0, D_P: f
         node_defs,
         D_L=D_L,
         D_P=D_P,
+        D_P_max_range=D_P_max_range,
         seed=seed,
         overwater_npz=npz_path,
     )
