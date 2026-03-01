@@ -131,7 +131,7 @@ Disease originates in Southern California (~Channel Islands) around June 2013 an
 | disease.T_vbnc | 12 | [8, 15] | 0.040 | VBNC temperature threshold. HIGHER = more cold-water protection (widens the gradient!) |
 | population.k_growth | 0.08 | [0.03, 0.15] | 0.035 | Growth rate. HIGHER = faster replacement |
 | spawning.peak_width_days | 60 | [30, 90] | 0.035 | Spawning season width. WIDER = more reproductive output |
-| population.settler_survival | 0.03 | [0.005, 0.1] | 0.033 | Larval survival. HIGHER = faster recovery |
+| population.settler_survival | 0.001 | [0.0002, 0.01] | 0.033 | Larval survival (B-H s₀). HIGHER = faster recovery. Lowered from 0.03 after recruitment pipeline fix removed settler caps — BH now sees true settler counts (millions), so s₀ must be much smaller to avoid permanent BH saturation. |
 | disease.T_ref | 20 | [17, 23] | low | Reference temperature for progression rates. Shifts the whole temperature curve |
 
 ### Tier 3: Genetic & Recovery Parameters
