@@ -1,22 +1,17 @@
 {
-  "round": "W22",
-  "rationale": "Original K_half + high s0",
-  "parameters": {
-    "K_half": 200000,
-    "settler_survival": 0.003,
-    "P_env_max": 2000,
-    "k_vbnc": 2.0,
-    "activation_threshold": 500,
-    "D_P": 50,
-    "D_P_max_range": 175,
-    "disease_origin_nodes": [
-      322,
-      319,
-      632,
-      633,
-      634
-    ],
-    "wavefront_enabled": true,
-    "seed": 42
-  }
+  "disease.K_half": 200000.0,
+  "disease.P_env_max": 2000.0,
+  "disease.k_vbnc": 2.0,
+  "disease.activation_threshold": 500.0,
+  "disease.wavefront_enabled": true,
+  "disease.disease_origin_nodes": [
+    322,
+    319,
+    632,
+    633,
+    634
+  ],
+  "population.settler_survival": 0.003,
+  "spatial.D_P": 50.0,
+  "spatial.D_P_max_range": 175.0
 }
