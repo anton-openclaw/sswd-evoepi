@@ -1,0 +1,514 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{siunitx}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\title{SSWD-EvoEpi Wavefront Calibration Round~2\\
+\large W05--W16 Results and Next Steps}
+\author{SSWD-EvoEpi Calibration Pipeline}
+\date{March 1, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present results from 12 wavefront calibration rounds (W05--W16) of the SSWD-EvoEpi model,
+the first runs incorporating three critical code fixes: configurable VBNC sigmoid steepness ($k_\text{vbnc}$),
+corrected Beverton--Holt recruitment pipeline, and reduced settler survival ($s_0 = 0.001$).
+These fixes transform model behavior from the flat ${\sim}21\%$ recovery everywhere (W01--W04)
+to a strong latitudinal gradient: $0\%$ in California, $3{-}7\%$ in the Salish Sea, and $89\%$ in Alaska.
+The best round (W15: $k_\text{vbnc}=2.0$, threshold$=500$, $P_\text{env,max}=2000$) achieves
+RMSE$_\text{log} = 0.404$ with all 8 target regions within 5$\times$ of targets.
+Key remaining issues: Alaska overshoots (89\% vs 50\% target) and the wavefront
+does not propagate to Alaska within the simulation window.
+We propose 12 new rounds (W17--W28) focusing on $K_\text{half}$ and $s_0$ to correct the overshoot.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{Introduction}
+%==============================================================================
+
+The SSWD-EvoEpi model simulates sea star wasting disease dynamics along the Pacific coast,
+coupling an epidemiological engine with an evolutionary framework that tracks host resistance.
+Calibration rounds W01--W04 were run with the original codebase and exhibited two critical
+failures: (1)~flat recovery of ${\sim}21\%$ across all regions regardless of latitude, and
+(2)~a disease wavefront that propagated far too quickly (10--12 months coast-wide vs
+the observed ${\sim}42$ month timeline).
+
+Three code fixes were implemented before W05--W16:
+
+\begin{enumerate}
+    \item \textbf{Configurable VBNC sigmoid steepness} ($k_\text{vbnc}$): The VBNC reactivation
+    sigmoid now accepts a configurable steepness parameter, allowing calibration of the
+    temperature--disease relationship. Values tested: $k = 1.5$ and $k = 2.0$.
+
+    \item \textbf{Recruitment pipeline correction}: The Beverton--Holt stock--recruitment function
+    now receives true settler counts rather than artificially capped values. This removes
+    a bug that inflated recovery rates uniformly across all regions.
+
+    \item \textbf{Reduced settler survival} ($s_0 = 0.001$): Settler survival was reduced by
+    an order of magnitude, ensuring that post-disease recovery requires multiple reproductive
+    seasons rather than rebounding within a single season.
+\end{enumerate}
+
+These changes were expected to produce a latitudinal recovery gradient (high recovery in cold
+Alaska, low recovery in warm California) and slower wavefront propagation.
+
+%==============================================================================
+\section{Methods}
+%==============================================================================
+
+\subsection{Parameter Space}
+
+All 12 rounds used a full factorial design over three parameters
+(Table~\ref{tab:params}), with all other parameters held fixed
+(Table~\ref{tab:fixed}).
+
+\begin{table}[H]
+\centering
+\caption{Varied parameters across W05--W16.}
+\label{tab:params}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Round} & $k_\text{vbnc}$ & Activation Threshold & $P_\text{env,max}$ \\
+\midrule
+W05 & 1.5 & 100 & 2000 \\
+W06 & 1.5 & 100 & 5000 \\
+W07 & 1.5 & 200 & 2000 \\
+W08 & 1.5 & 200 & 5000 \\
+W09 & 1.5 & 500 & 2000 \\
+W10 & 1.5 & 500 & 5000 \\
+W11 & 2.0 & 100 & 2000 \\
+W12 & 2.0 & 100 & 5000 \\
+W13 & 2.0 & 200 & 2000 \\
+W14 & 2.0 & 200 & 5000 \\
+W15 & 2.0 & 500 & 2000 \\
+W16 & 2.0 & 500 & 5000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Fixed parameters across all W05--W16 rounds.}
+\label{tab:fixed}
+\begin{tabular}{lll}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Description} \\
+\midrule
+$K_\text{half}$ & 200{,}000 & Beverton--Holt half-saturation \\
+$D_P$ & 50 km & Pathogen dispersal distance \\
+$D_{P,\text{max}}$ & 175 km & Maximum pathogen range \\
+$s_0$ & 0.001 & Settler survival rate \\
+Origin nodes & [322, 319, 632, 633, 634] & Channel Islands \\
+Wavefront & enabled & Spatial disease spread \\
+Seed & 42 & Random seed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Calibration Targets}
+
+Recovery targets are based on observed field data and represent the fraction of
+pre-disease carrying capacity present at the end of the simulation:
+
+\begin{table}[H]
+\centering
+\caption{Recovery targets with regional mean SST.}
+\label{tab:targets}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Region} & \textbf{Mean SST (\si{\celsius})} & \textbf{Target Recovery (\%)} \\
+\midrule
+AK-PWS & 8.4 & 50 \\
+AK-FN  & 8.7 & 50 \\
+AK-FS  & 9.0 & 20 \\
+BC-N   & 10.1 & 20 \\
+SS-S   & 10.1 & 5 \\
+JDF    & 10.0 & 2 \\
+OR     & 11.4 & 0.25 \\
+CA-N   & 11.6 & 0.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Arrival timing targets range from 0 months (CA-S, origin) to 42 months (AK-WG, AK-AL).
+A penalty of 60 months is applied to regions where the wavefront does not arrive.
+
+\subsection{Scoring Metrics}
+
+\begin{itemize}
+    \item \textbf{RMSE\textsubscript{log}}: Root mean square error of $\log_{10}(\text{actual}/\text{target})$
+    across the 8 recovery target regions.
+    \item \textbf{Within $2\times$} / \textbf{Within $5\times$}: Number of regions where the
+    model recovery is within a factor of 2 or 5 of the target.
+    \item \textbf{Timing MAE}: Mean absolute error of wavefront arrival time (months)
+    across 17 timing target regions.
+\end{itemize}
+
+%==============================================================================
+\section{Results}
+%==============================================================================
+
+\subsection{Overall Results}
+
+Table~\ref{tab:results} presents the complete results for all 12 calibration rounds.
+
+\begin{table}[H]
+\centering
+\small
+\caption{W05--W16 calibration results. Best RMSE highlighted in bold. Recovery values in percent.}
+\label{tab:results}
+\begin{tabular}{lcccccccccccc}
+\toprule
+& $k$ & Thr & $P_\text{max}$ & RMSE & $\leq 2\times$ & $\leq 5\times$ & MAE & PWS & FS & BC-N & SS-S & OR \\
+\midrule
+W05 & 1.5 & 100 & 2K & 0.500 & 5 & 6 & 28.0 & 89.0 & 89.2 & 2.9 & 2.8 & 0.15 \\
+W06 & 1.5 & 100 & 5K & 1.558 & 2 & 4 & 28.4 & 89.0 & 89.4 & 1.4 & 0.3 & 0.00 \\
+W07 & 1.5 & 200 & 2K & 0.470 & 5 & 7 & 27.2 & 89.0 & 89.2 & 5.5 & 2.9 & 0.14 \\
+W08 & 1.5 & 200 & 5K & 1.436 & 2 & 4 & 28.1 & 89.1 & 89.3 & 0.3 & 0.3 & 0.00 \\
+W09 & 1.5 & 500 & 2K & 0.452 & 5 & 7 & 28.2 & 89.0 & 89.3 & 6.5 & 3.4 & 0.14 \\
+W10 & 1.5 & 500 & 5K & 1.481 & 2 & 4 & 27.2 & 89.1 & 89.1 & 0.5 & 0.5 & 0.00 \\
+W11 & 2.0 & 100 & 2K & 0.463 & 4 & 6 & 28.0 & 89.0 & 89.2 & 3.8 & 4.0 & 0.17 \\
+W12 & 2.0 & 100 & 5K & 1.611 & 2 & 4 & 28.3 & 89.0 & 89.0 & 0.2 & 0.7 & 0.00 \\
+W13 & 2.0 & 200 & 2K & 0.453 & 4 & 7 & 27.2 & 89.2 & 88.9 & 5.5 & 4.0 & 0.21 \\
+W14 & 2.0 & 200 & 5K & 1.408 & 2 & 4 & 28.1 & 89.1 & 89.2 & 0.3 & 0.7 & 0.00 \\
+\textbf{W15} & \textbf{2.0} & \textbf{500} & \textbf{2K} & \textbf{0.404} & \textbf{4} & \textbf{8} & \textbf{28.2} & \textbf{89.2} & \textbf{89.1} & \textbf{6.9} & \textbf{4.5} & \textbf{0.18} \\
+W16 & 2.0 & 500 & 5K & 1.404 & 3 & 5 & 27.1 & 89.3 & 89.2 & 4.3 & 0.8 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Dramatic Improvement: P\textsubscript{env,max} = 2000 vs 5000}
+
+The most striking result is the bimodal RMSE distribution (Figure~\ref{fig:rmse}).
+Rounds with $P_\text{env,max} = 2000$ (odd-numbered: W05, W07, W09, W11, W13, W15)
+achieve RMSE values of \textbf{0.40--0.50}, while rounds with $P_\text{env,max} = 5000$
+(even-numbered) are dramatically worse at \textbf{1.40--1.61}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig2_rmse_bars.pdf}
+\caption{RMSE by calibration round. Blue = $P_\text{env,max}$ = 2000; Red = 5000.
+Gold outline marks the best round (W15, RMSE = 0.404).}
+\label{fig:rmse}
+\end{figure}
+
+The mechanism is clear: $P_\text{env,max} = 5000$ generates overwhelming environmental
+pathogen pressure that suppresses recovery in \emph{all} mid-latitude regions (BC-N drops
+to 0.2--1.4\%, SS-S to 0.3--0.8\%, OR and CA-N to 0.00\%). This is far below the targets
+for BC-N (20\%) and SS-S (5\%). The $P_\text{env,max} = 2000$ rounds maintain a gradient
+where mid-latitude regions retain partial recovery.
+
+\textbf{Conclusion}: $P_\text{env,max} = 5000$ is definitively too aggressive. Future rounds
+should explore the 1000--3000 range.
+
+\subsection{Effect of k\textsubscript{vbnc} (1.5 vs 2.0)}
+
+Comparing matched pairs (e.g., W05 vs W11, W09 vs W15), the effect of $k_\text{vbnc}$
+is \textbf{modest}:
+
+\begin{itemize}
+    \item Mean RMSE for $k = 1.5$, $P_\text{env,max} = 2000$: \textbf{0.474}
+    \item Mean RMSE for $k = 2.0$, $P_\text{env,max} = 2000$: \textbf{0.440}
+    \item Improvement: 7\%
+\end{itemize}
+
+The $k = 2.0$ rounds show slightly higher recovery in mid-latitude regions (SS-S:
+3.0--4.5\% vs 2.8--3.4\% for $k = 1.5$) and marginally better RMSE. A steeper sigmoid
+concentrates disease pressure more tightly around the optimal temperature, allowing
+slightly more survival at the temperature margins. However, the effect is small relative
+to the $P_\text{env,max}$ lever.
+
+\subsection{Effect of Activation Threshold}
+
+Within the $P_\text{env,max} = 2000$ group:
+
+\begin{itemize}
+    \item Threshold 100: RMSE = 0.500 ($k=1.5$), 0.463 ($k=2.0$)
+    \item Threshold 200: RMSE = 0.470 ($k=1.5$), 0.453 ($k=2.0$)
+    \item Threshold 500: RMSE = 0.452 ($k=1.5$), \textbf{0.404} ($k=2.0$)
+\end{itemize}
+
+Higher activation thresholds consistently improve RMSE, though the effect is modest
+(Figure~\ref{fig:heatmap}). A threshold of 500 requires higher local pathogen density
+before activating VBNC reactivation, effectively buffering mid-latitude regions and
+allowing more recovery in BC-N and SS-S.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig3_heatmap.pdf}
+\caption{Parameter sensitivity heatmap. Left: $P_\text{env,max} = 2000$; Right: $P_\text{env,max} = 5000$.
+Green indicates lower (better) RMSE.}
+\label{fig:heatmap}
+\end{figure}
+
+\subsection{Recovery Gradient}
+
+The key qualitative success is the emergence of a strong latitudinal recovery gradient
+(Figure~\ref{fig:gradient}). For $P_\text{env,max} = 2000$ rounds:
+
+\begin{itemize}
+    \item \textbf{Alaska} (8.4--9.0$^\circ$C): ${\sim}89\%$ recovery (targets: 20--50\%)
+    \item \textbf{BC-N} (10.1$^\circ$C): 3--7\% recovery (target: 20\%)
+    \item \textbf{SS-S / JDF} (10.0--10.1$^\circ$C): 3--5\% recovery (targets: 2--5\%)
+    \item \textbf{OR} (11.4$^\circ$C): 0.14--0.21\% recovery (target: 0.25\%)
+    \item \textbf{CA-N} (11.6$^\circ$C): 0.01--0.02\% recovery (target: 0.10\%)
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig4_recovery_gradient.pdf}
+\caption{Recovery fraction vs mean SST. Black stars indicate calibration targets.
+X-axis is inverted so cold (high recovery) regions are on the left.}
+\label{fig:gradient}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/fig1_recovery_bars.pdf}
+\caption{Recovery fractions for selected $P_\text{env,max} = 2000$ rounds vs targets.
+W15 (best round) highlighted with red outline.}
+\label{fig:recovery}
+\end{figure}
+
+This is a qualitative transformation from W01--W04 where recovery was flat at ${\sim}21\%$
+everywhere (Figure~\ref{fig:beforeafter}).
+
+\subsection{Wavefront Timing}
+
+The wavefront timing presents a mixed picture (Figure~\ref{fig:timing}). For W15:
+
+\begin{itemize}
+    \item \textbf{Southern regions} (CA-S through WA-O): Wavefront arrives but runs
+    6--10 months late (actual 12--23 mo vs targets 0--15 mo).
+    \item \textbf{Mid-latitude} (JDF through BC-N): Arrives 4--8 months late
+    (actual 30--34 mo vs targets 26 mo).
+    \item \textbf{Alaska} (AK-FS through AK-AL): \textbf{Wavefront never arrives.}
+    All 7 Alaska timing regions receive 60-month penalties.
+\end{itemize}
+
+The Alaska non-arrival drives the high MAE of 28.2 months. Despite the wavefront not
+reaching Alaska, Alaska populations show 89\% recovery because they were never disease-affected
+in the first place --- the disease simply never propagates that far north within the
+simulation window.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/fig5_timing.pdf}
+\caption{Wavefront arrival timing for W15 vs targets. Red \texttimes{} marks regions
+where the wavefront did not arrive within the simulation window.}
+\label{fig:timing}
+\end{figure}
+
+\subsection{Comparison with W01--W04 (Pre-Fix Code)}
+
+Figure~\ref{fig:beforeafter} summarizes the transformation:
+
+\begin{table}[H]
+\centering
+\caption{W01--W04 average vs W15 (best).}
+\label{tab:comparison}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{W01--W04 avg} & \textbf{W15} \\
+\midrule
+RMSE\textsubscript{log} & 1.18 & \textbf{0.404} \\
+Within $2\times$ & 4/8 & 4/8 \\
+Within $5\times$ & 4/8 & \textbf{8/8} \\
+Timing MAE (mo) & 11.1 & 28.2 \\
+Recovery gradient & None (flat $\sim$21\%) & Strong (0--89\%) \\
+CA-N recovery & 21.6\% & 0.02\% \\
+AK-PWS recovery & 46.1\% & 89.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig6_before_after.pdf}
+\caption{Before (W01--W04 average, orange) vs after (W15, blue) comparison.
+A)~Recovery fractions. B)~Wavefront arrival timing. Red \texttimes{} marks unreached regions.}
+\label{fig:beforeafter}
+\end{figure}
+
+\textbf{Key improvements}:
+\begin{itemize}
+    \item RMSE improved from 1.18 to 0.40 (66\% reduction)
+    \item Recovery gradient emerged: 5 orders of magnitude range (0.02--89\%) vs flat 21\%
+    \item Southern regions (OR, CA-N) now correctly show near-zero recovery
+    \item Mid-latitude regions (SS-S, JDF) now in the correct 2--5\% range
+\end{itemize}
+
+\textbf{Remaining issues}:
+\begin{itemize}
+    \item Alaska overshoots by ${\sim}40$ percentage points (89\% vs 50\% target)
+    \item AK-FS dramatically wrong (89\% vs 20\% target)
+    \item BC-N undershoots (6.9\% vs 20\% target)
+    \item Wavefront doesn't reach Alaska; timing MAE is worse than W01--W04
+\end{itemize}
+
+%==============================================================================
+\section{Discussion}
+%==============================================================================
+
+\subsection{What's Working}
+
+The three code fixes have fundamentally transformed model behavior in the right direction.
+The recruitment fix plus low $s_0$ successfully suppresses the universal-recovery artifact
+that plagued W01--W04. The model now produces a realistic latitudinal gradient where
+warm-water southern regions show near-total population collapse while cold-water Alaska
+retains high populations.
+
+The model correctly identifies Oregon and California North as the most devastated regions,
+and the Salish Sea / JDF area as partially affected. These patterns match field observations.
+
+\subsection{What's Not Working}
+
+\textbf{Alaska overshoot}: The 89\% recovery in all three Alaska regions (target:
+50\%, 50\%, 20\%) reveals that disease never reaches Alaska in the current parameterization.
+Alaska populations simply grow to near carrying capacity because they experience no
+disease mortality. This is a wavefront propagation issue --- the disease runs out of
+steam before reaching high latitudes.
+
+Two mechanisms could bring Alaska recovery down:
+\begin{enumerate}
+    \item \textbf{Lower $K_\text{half}$}: Currently at 200K, this controls the
+    Beverton--Holt stock--recruitment curve. With the fixed recruitment pipeline,
+    a lower $K_\text{half}$ (50K--100K) would reduce the asymptotic recovery level
+    even in disease-free regions.
+
+    \item \textbf{Increase $s_0$}: Currently at 0.001. A slightly higher value
+    (0.002--0.003) would allow more settlers to survive, potentially increasing
+    population growth rate enough that disease effects become relatively smaller.
+    However, this lever primarily affects the \emph{rate} of recovery rather than
+    the \emph{equilibrium}, so the impact on Alaska's final recovery may be limited.
+\end{enumerate}
+
+\textbf{BC-N undershoot}: BC-N shows only 6.9\% recovery vs the 20\% target. This region
+sits at the boundary between disease-affected and disease-free zones. Fine-tuning
+$P_\text{env,max}$ in the 1500--2500 range or adjusting dispersal parameters may help.
+
+\textbf{CA-N slight undershoot}: CA-N shows 0.02\% vs 0.10\% target. This is close
+but slightly too suppressed. A modest increase in $s_0$ could provide the survival floor
+needed for the target 0.1\%.
+
+\textbf{Wavefront timing}: The disease wavefront is too slow, arriving 6--10 months
+late in southern regions and never reaching Alaska. The timing MAE of 28 months is
+dominated by the 60-month Alaska penalties. The non-arrival in Alaska is paradoxically
+\emph{why} Alaska recovery is so high --- fixing the timing issue (getting disease to Alaska)
+would automatically bring down Alaska recovery.
+
+\subsection{Parameter Sensitivity Hierarchy}
+
+Based on these results, the parameter sensitivity ranking is:
+\begin{enumerate}
+    \item \textbf{$P_\text{env,max}$}: Dominant effect. 2000 vs 5000 changes RMSE by ${\sim}1.0$.
+    \item \textbf{Activation threshold}: Modest effect. 100$\to$500 improves RMSE by ${\sim}0.06$.
+    \item \textbf{$k_\text{vbnc}$}: Minor effect. 1.5$\to$2.0 improves RMSE by ${\sim}0.03$.
+\end{enumerate}
+
+The parameter space has been effectively reduced: $P_\text{env,max} \approx 2000$,
+$k_\text{vbnc} = 2.0$, threshold $\geq 500$ form the baseline for future exploration.
+
+%==============================================================================
+\section{Next Steps: W17--W28 Design}
+%==============================================================================
+
+\subsection{Strategy}
+
+The primary remaining issue is the Alaska overshoot. We focus on two levers that directly
+control the equilibrium recovery level:
+
+\begin{enumerate}
+    \item \textbf{$K_\text{half}$} (50K, 100K vs current 200K): Lower values reduce the
+    Beverton--Holt asymptote, lowering the ceiling on recovery in disease-free regions.
+    \item \textbf{$s_0$} (0.002, 0.003 vs current 0.001): Higher settler survival may
+    help CA-N reach its 0.1\% target and modestly affect recovery dynamics.
+\end{enumerate}
+
+Secondary levers ($P_\text{env,max}$ in 1500--2500, threshold $\geq 300$) are held near
+optimal or explored narrowly.
+
+\subsection{Proposed Rounds}
+
+\begin{table}[H]
+\centering
+\caption{Proposed W17--W28 parameter configurations.}
+\label{tab:next}
+\begin{tabular}{lcccccl}
+\toprule
+\textbf{Round} & $K_\text{half}$ & $s_0$ & $P_\text{env,max}$ & $k$ & Thr & \textbf{Rationale} \\
+\midrule
+W17 & 50K  & 0.001 & 2000 & 2.0 & 500 & Aggressive $K_\text{half}$ reduction \\
+W18 & 100K & 0.001 & 2000 & 2.0 & 500 & Moderate $K_\text{half}$ reduction \\
+W19 & 50K  & 0.002 & 2000 & 2.0 & 500 & Low $K_\text{half}$ + higher $s_0$ \\
+W20 & 100K & 0.002 & 2000 & 2.0 & 500 & Moderate $K_\text{half}$ + higher $s_0$ \\
+W21 & 200K & 0.002 & 2000 & 2.0 & 500 & Original $K_\text{half}$ + higher $s_0$ \\
+W22 & 200K & 0.003 & 2000 & 2.0 & 500 & Original $K_\text{half}$ + high $s_0$ \\
+W23 & 50K  & 0.001 & 1500 & 2.0 & 500 & Low $K_\text{half}$ + reduced $P_\text{env}$ \\
+W24 & 100K & 0.001 & 1500 & 2.0 & 500 & Moderate $K_\text{half}$ + reduced $P_\text{env}$ \\
+W25 & 50K  & 0.002 & 2500 & 2.0 & 500 & Low $K_\text{half}$ + slightly more disease \\
+W26 & 100K & 0.002 & 2500 & 2.0 & 500 & Moderate $K_\text{half}$ + slightly more disease \\
+W27 & 50K  & 0.003 & 2000 & 2.0 & 500 & Low $K_\text{half}$ + high $s_0$ \\
+W28 & 100K & 0.003 & 2000 & 2.0 & 500 & Moderate $K_\text{half}$ + high $s_0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Expected Outcomes}
+
+\begin{itemize}
+    \item \textbf{W17/W18}: Most likely to bring AK-PWS down significantly. $K_\text{half} = 50$K
+    should reduce the BH asymptote substantially, potentially bringing Alaska from 89\% to
+    40--60\%. Risk: may over-suppress mid-latitude regions.
+
+    \item \textbf{W19--W22}: Explore the interaction between $K_\text{half}$ and $s_0$.
+    Higher $s_0$ may rescue CA-N from 0.02\% toward the 0.10\% target.
+
+    \item \textbf{W23--W26}: Explore $P_\text{env,max}$ in the 1500--2500 range to
+    fine-tune the mid-latitude recovery (BC-N needs to increase from 7\% to 20\%).
+
+    \item \textbf{W27/W28}: Extreme $s_0 = 0.003$ with low $K_\text{half}$ as boundary
+    exploration.
+\end{itemize}
+
+\subsection{Success Criteria}
+
+The ideal outcome for W17--W28 would be a parameter combination achieving:
+\begin{itemize}
+    \item AK-PWS recovery $\leq 60\%$ (down from 89\%)
+    \item BC-N recovery $\geq 10\%$ (up from 7\%)
+    \item SS-S, JDF recovery in 2--5\% range (maintained)
+    \item CA-N recovery $\geq 0.05\%$ (up from 0.02\%)
+    \item RMSE\textsubscript{log} $< 0.35$
+    \item Wavefront reaching at least AK-FS within the simulation window
+\end{itemize}
+
+%==============================================================================
+\section{Conclusion}
+%==============================================================================
+
+The W05--W16 calibration rounds demonstrate that the three code fixes have fundamentally
+improved model behavior. The emergence of a strong latitudinal recovery gradient (0\% south,
+89\% north) is a qualitative success, and the best round (W15) achieves all 8 target
+regions within $5\times$ of targets (RMSE = 0.404). The dominant remaining issue is the
+Alaska overshoot, which we address in the proposed W17--W28 rounds by reducing $K_\text{half}$
+from 200K to 50--100K. This next batch represents a systematic exploration of the
+BH recruitment ceiling that should bring the model into closer quantitative agreement
+with observed recovery patterns.
+
+\end{document}

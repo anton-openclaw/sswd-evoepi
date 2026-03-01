@@ -1,0 +1,22 @@
+{
+  "round": "W17",
+  "rationale": "Aggressive K_half reduction",
+  "parameters": {
+    "K_half": 50000,
+    "settler_survival": 0.001,
+    "P_env_max": 2000,
+    "k_vbnc": 2.0,
+    "activation_threshold": 500,
+    "D_P": 50,
+    "D_P_max_range": 175,
+    "disease_origin_nodes": [
+      322,
+      319,
+      632,
+      633,
+      634
+    ],
+    "wavefront_enabled": true,
+    "seed": 42
+  }
+}
