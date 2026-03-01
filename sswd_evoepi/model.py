@@ -666,16 +666,33 @@ def annual_reproduction(
     pld = pelagic_larval_duration(sst)
     surv = larval_survival(pld)
     n_competent = max(1, int(n_zygotes * surv))
-    n_competent = min(n_competent, 100_000)  # memory cap
     diag['n_competent'] = n_competent
 
-    # SRS lottery
+    # Settlement cue
+    n_adults_present = n_adults
+    cue_mod = settlement_cue_modifier(n_adults_present)
+    effective_settlers = max(0, int(n_competent * cue_mod))
+
+    # Beverton-Holt density-dependent recruitment with TRUE settler count
+    # (no artificial cap — BH itself provides density regulation)
+    current_alive = int(np.sum(agents['alive']))
+    n_recruits = beverton_holt_recruitment(
+        effective_settlers, carrying_capacity, pop_cfg.settler_survival,
+    )
+    # Cap by available slots (dead agent array entries)
+    available_slots = max(0, carrying_capacity - current_alive)
+    n_recruits = min(n_recruits, available_slots, effective_settlers)
+
+    if n_recruits <= 0:
+        return diag
+
+    # SRS lottery — only create genotypes for actual recruits
     offspring_geno, parent_pairs = srs_reproductive_lottery(
         females=females,
         males=males,
         agents=agents,
         genotypes=genotypes,
-        n_offspring_target=n_competent,
+        n_offspring_target=n_recruits,
         alpha_srs=pop_cfg.alpha_srs,
         F0=pop_cfg.F0,
         L_ref=pop_cfg.L_ref,
@@ -687,30 +704,8 @@ def annual_reproduction(
     if len(offspring_geno) == 0:
         return diag
 
-    # Settlement cue
-    n_adults_present = n_adults
-    cue_mod = settlement_cue_modifier(n_adults_present)
-    effective_settlers = max(0, int(len(offspring_geno) * cue_mod))
-
-    # Beverton-Holt density-dependent recruitment (use full K)
-    # Density regulation: BH asymptotes to K; slot availability further limits
-    current_alive = int(np.sum(agents['alive']))
-    n_recruits = beverton_holt_recruitment(
-        effective_settlers, carrying_capacity, pop_cfg.settler_survival,
-    )
-    # Cap by available slots (dead agent array entries)
-    available_slots = max(0, carrying_capacity - current_alive)
-    n_recruits = min(n_recruits, available_slots, effective_settlers, len(offspring_geno))
-
-    if n_recruits <= 0:
-        return diag
-
-    # Select which settlers survive
-    if n_recruits < len(offspring_geno):
-        keep_idx = rng.choice(len(offspring_geno), size=n_recruits, replace=False)
-        settler_geno = offspring_geno[keep_idx]
-    else:
-        settler_geno = offspring_geno[:n_recruits]
+    settler_geno = offspring_geno
+    n_recruits = len(settler_geno)
 
     # Find dead/empty slots
     dead_slots = np.where(~agents['alive'])[0]
