@@ -509,6 +509,61 @@ def distribute_larvae(
     return settlers
 
 
+def distribute_larvae_counts(
+    source_node_ids: List[int],
+    source_n_larvae: List[int],
+    C: np.ndarray,
+    rng: np.random.Generator,
+) -> Dict[int, List[Tuple[int, int]]]:
+    """Distribute larval COUNTS (not genotypes) via C matrix.
+
+    Same dispersal logic as ``distribute_larvae`` (binomial survival then
+    multinomial destination assignment), but operates on integer counts
+    only.  Genotypes are created later at the destination node, after
+    Beverton-Holt filtering determines how many actually recruit.
+
+    Args:
+        source_node_ids: Source node indices.
+        source_n_larvae: Number of competent larvae per source.
+        C: (N, N) larval connectivity matrix.
+        rng: Random generator.
+
+    Returns:
+        Dict ``{dest_id: [(count, source_id), ...]}``.
+    """
+    N = C.shape[0]
+    settlers: Dict[int, List[Tuple[int, int]]] = {k: [] for k in range(N)}
+
+    for idx, j in enumerate(source_node_ids):
+        n = source_n_larvae[idx]
+        if n <= 0:
+            continue
+
+        probs = C[j, :].copy()
+        total_p = probs.sum()
+        if total_p < 1e-12:
+            continue
+
+        # How many larvae settle at all?
+        n_settling = rng.binomial(n, min(total_p, 1.0))
+        if n_settling == 0:
+            continue
+
+        # Conditional probabilities for destination
+        probs_norm = probs / total_p
+
+        # Multinomial assignment
+        dest_counts = rng.multinomial(n_settling, probs_norm)
+
+        for k in range(N):
+            nk = int(dest_counts[k])
+            if nk <= 0:
+                continue
+            settlers[k].append((nk, j))
+
+    return settlers
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # METAPOPULATION NETWORK
 # ═══════════════════════════════════════════════════════════════════════

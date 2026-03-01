@@ -43,6 +43,7 @@ from sswd_evoepi.spatial import (
     construct_pathogen_dispersal,
     pathogen_dispersal_step,
     distribute_larvae,
+    distribute_larvae_counts,
     build_network,
     make_5node_network,
     get_5node_definitions,
@@ -352,6 +353,129 @@ class TestLarvalDispersal:
             fracs = [c / total for c in counts]
             for f in fracs:
                 assert 0.15 < f < 0.35, f"Expected ~0.25, got {f}"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# LARVAL DISPERSAL — COUNT-BASED
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestLarvalDispersalCounts:
+    """Tests for distribute_larvae_counts (count-only, no genotypes)."""
+
+    def test_conserves_settlers(self):
+        """Total settlers should be ≤ total larvae × sum(C row)."""
+        rng = np.random.default_rng(42)
+        C = np.array([
+            [0.01, 0.005, 0.005],
+            [0.005, 0.01, 0.005],
+            [0.005, 0.005, 0.01],
+        ])
+        result = distribute_larvae_counts(
+            source_node_ids=[0],
+            source_n_larvae=[100],
+            C=C,
+            rng=rng,
+        )
+        total_settled = sum(
+            sum(count for count, _ in result[k])
+            for k in range(3)
+        )
+        assert 0 <= total_settled <= 20
+
+    def test_empty_source_no_crash(self):
+        rng = np.random.default_rng(42)
+        C = np.eye(3) * 0.01
+        result = distribute_larvae_counts(
+            source_node_ids=[],
+            source_n_larvae=[],
+            C=C,
+            rng=rng,
+        )
+        assert all(len(v) == 0 for v in result.values())
+
+    def test_returns_counts_not_genotypes(self):
+        """Each entry should be (int_count, source_id) tuple."""
+        rng = np.random.default_rng(42)
+        C = np.array([
+            [0.5, 0.5],
+            [0.5, 0.5],
+        ])
+        result = distribute_larvae_counts(
+            source_node_ids=[0],
+            source_n_larvae=[1000],
+            C=C,
+            rng=rng,
+        )
+        for k in range(2):
+            for count, src in result[k]:
+                assert isinstance(count, int)
+                assert isinstance(src, int)
+                assert count > 0
+
+    def test_multinomial_distribution(self):
+        """With large N and uniform C, settlers should be roughly even."""
+        rng = np.random.default_rng(42)
+        C = np.array([
+            [0.25, 0.25, 0.25, 0.25],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.25, 0.25, 0.25, 0.25],
+            [0.25, 0.25, 0.25, 0.25],
+        ])
+        result = distribute_larvae_counts(
+            source_node_ids=[0],
+            source_n_larvae=[10000],
+            C=C,
+            rng=rng,
+        )
+        counts = []
+        for k in range(4):
+            n = sum(count for count, _ in result[k])
+            counts.append(n)
+        total = sum(counts)
+        if total > 0:
+            fracs = [c / total for c in counts]
+            for f in fracs:
+                assert 0.15 < f < 0.35, f"Expected ~0.25, got {f}"
+
+    def test_no_cap_on_large_counts(self):
+        """Should handle millions of larvae without capping."""
+        rng = np.random.default_rng(42)
+        C = np.array([
+            [0.5, 0.5],
+            [0.5, 0.5],
+        ])
+        n_larvae = 1_000_000
+        result = distribute_larvae_counts(
+            source_node_ids=[0],
+            source_n_larvae=[n_larvae],
+            C=C,
+            rng=rng,
+        )
+        total_settled = sum(
+            sum(count for count, _ in result[k])
+            for k in range(2)
+        )
+        # With C row sum = 1.0, all larvae should settle
+        assert total_settled > 900_000  # nearly all settle
+
+    def test_multiple_sources(self):
+        """Multiple source nodes should all contribute."""
+        rng = np.random.default_rng(42)
+        C = np.array([
+            [0.0, 0.5, 0.5],
+            [0.5, 0.0, 0.5],
+            [0.5, 0.5, 0.0],
+        ])
+        result = distribute_larvae_counts(
+            source_node_ids=[0, 1, 2],
+            source_n_larvae=[1000, 2000, 3000],
+            C=C,
+            rng=rng,
+        )
+        # All destination nodes should receive from at least one source
+        for k in range(3):
+            total = sum(count for count, _ in result[k])
+            assert total > 0, f"Node {k} received no larvae"
 
 
 # ═══════════════════════════════════════════════════════════════════════
