@@ -1878,6 +1878,7 @@ def run_spatial_simulation(
     config: Optional[SimulationConfig] = None,
     progress_callback=None,
     snapshot_recorder=None,
+    monthly_recorder=None,
 ) -> SpatialSimResult:
     """Run multi-node spatial simulation with full genetics tracking.
 
@@ -2366,6 +2367,10 @@ def run_spatial_simulation(
                 snapshot_recorder.capture_all_nodes(
                     sim_day, year, network.nodes
                 )
+
+            # Lightweight monthly aggregate recording (wavefront viz)
+            if monthly_recorder is not None:
+                monthly_recorder.capture(sim_day, network.nodes)
 
             # Track max vibrio and disease prevalence
             for i in range(N):

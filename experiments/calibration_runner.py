@@ -459,6 +459,13 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
     checker = EarlyStopChecker(network, sites, round_id, seed,
                                checkpoint_dir=output_dir)
 
+    # Lightweight monthly recorder for wavefront visualization
+    from sswd_evoepi.monthly_recorder import MonthlyRecorder
+    monthly_rec = MonthlyRecorder(
+        n_nodes=network.n_nodes,
+        sst_start_year=getattr(config, '_sst_start_year', 2012),
+    )
+
     t0 = time.time()
     result = run_spatial_simulation(
         network=network,
@@ -467,6 +474,7 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         seed=seed,
         config=config,
         progress_callback=checker,
+        monthly_recorder=monthly_rec,
     )
     elapsed = time.time() - t0
 
@@ -491,6 +499,16 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
             },
             'early_stop': checker.early_stop_reason,
         }
+
+    # ── Save monthly snapshot data for wavefront visualization ────
+    if monthly_rec.n_frames > 0 and output_dir is not None:
+        snap_path = Path(output_dir) / f'monthly_seed{seed}.npz'
+        site_lats = np.array([s.get('latitude', s.get('lat', 0)) for s in sites])
+        site_lons = np.array([s.get('longitude', s.get('lon', 0)) for s in sites])
+        site_names = [s.get('name', f'node_{i}') for i, s in enumerate(sites)]
+        monthly_rec.save(str(snap_path), site_lats, site_lons, site_names,
+                         K=config.population.carrying_capacity)
+        print(f"  Monthly snapshots: {monthly_rec.n_frames} frames → {snap_path.name}")
 
     # ── Normal scoring ───────────────────────────────────────────────
     region_recovery, region_details = compute_regional_recovery(result, sites)
