@@ -1,20 +1,19 @@
 {
-  "K_half": 400000,
-  "P_env_max": 2000,
-  "k_vbnc": 2.0,
-  "T_vbnc": 12,
-  "D_P": 50,
-  "D_P_max_range": 500,
-  "activation_threshold": 50,
-  "settler_survival": 0.002,
-  "wavefront_enabled": true,
-  "disease_origin_nodes": [
+  "disease.K_half": 400000.0,
+  "disease.P_env_max": 2000.0,
+  "disease.k_vbnc": 2.0,
+  "disease.T_vbnc": 12.0,
+  "disease.activation_threshold": 50.0,
+  "disease.wavefront_enabled": true,
+  "disease.disease_origin_nodes": [
     322,
-    634,
     319,
     632,
-    633
+    633,
+    634
   ],
-  "cumulative_dose_threshold": 1000,
-  "dose_decay_rate": 0.0
+  "population.settler_survival": 0.002,
+  "spatial.D_P": 50.0,
+  "spatial.D_P_max_range": 500.0,
+  "disease.cumulative_dose_threshold": 1000.0
 }
