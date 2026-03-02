@@ -191,28 +191,50 @@ def render_frames(snap: dict, output_dir: Path, fps: int = 4,
         if fi % 12 == 0:
             print(f"  Frame {fi+1}/{n_frames} ({date_str})")
 
-    # Compile GIF
-    print(f"Compiling {n_frames} frames into GIF...")
-    images = [Image.open(p) for p in frame_paths]
-    duration_ms = int(1000 / fps)
-    gif_path = output_dir.parent / (output_dir.stem + '_wavefront.gif')
+    # Compile video — prefer MP4 (ffmpeg) over GIF
+    import shutil
+    has_ffmpeg = shutil.which('ffmpeg') is not None
 
-    # Find output path from args or default
-    images[0].save(
-        gif_path,
-        save_all=True,
-        append_images=images[1:],
-        duration=duration_ms,
-        loop=0,
-        optimize=True,
-    )
-    print(f"  GIF saved: {gif_path} ({gif_path.stat().st_size / 1024 / 1024:.1f} MB)")
+    if has_ffmpeg:
+        mp4_path = output_dir.parent / (output_dir.stem + '_wavefront.mp4')
+        print(f"Compiling {n_frames} frames into MP4 via ffmpeg...")
+        import subprocess
+        cmd = [
+            'ffmpeg', '-y',
+            '-framerate', str(fps),
+            '-i', str(output_dir / 'frame_%04d.png'),
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            '-crf', '23',
+            '-preset', 'medium',
+            str(mp4_path),
+        ]
+        subprocess.run(cmd, capture_output=True)
+        print(f"  MP4 saved: {mp4_path} ({mp4_path.stat().st_size / 1024 / 1024:.1f} MB)")
+        out_path = str(mp4_path)
+    else:
+        print(f"Compiling {n_frames} frames into GIF (install ffmpeg for MP4)...")
+        images = [Image.open(p) for p in frame_paths]
+        duration_ms = int(1000 / fps)
+        gif_path = output_dir.parent / (output_dir.stem + '_wavefront.gif')
+        images[0].save(
+            gif_path,
+            save_all=True,
+            append_images=images[1:],
+            duration=duration_ms,
+            loop=0,
+            optimize=True,
+        )
+        print(f"  GIF saved: {gif_path} ({gif_path.stat().st_size / 1024 / 1024:.1f} MB)")
+        out_path = str(gif_path)
 
-    # Clean up individual frames (optional)
-    # for p in frame_paths:
-    #     p.unlink()
+    # Clean up frames
+    for p in frame_paths:
+        p.unlink()
+    if output_dir.exists() and not any(output_dir.iterdir()):
+        output_dir.rmdir()
 
-    return str(gif_path)
+    return out_path
 
 
 def main():
