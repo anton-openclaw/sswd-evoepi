@@ -293,5 +293,214 @@ class TestWavefrontSpatial:
             )
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# Cumulative dose wavefront activation tests
+# ═══════════════════════════════════════════════════════════════════════
+
+class TestCumulativeDose:
+    """Tests for the cumulative dose wavefront activation mechanism."""
+
+    def test_cumulative_dose_config_defaults(self):
+        """New config fields exist with correct defaults."""
+        cfg = DiseaseSection()
+        assert cfg.cumulative_dose_threshold == 0.0
+        assert cfg.dose_decay_rate == 0.0
+
+    def test_cumulative_dose_config_custom(self):
+        """New config fields accept custom values."""
+        cfg = DiseaseSection(cumulative_dose_threshold=500.0, dose_decay_rate=0.05)
+        assert cfg.cumulative_dose_threshold == 500.0
+        assert cfg.dose_decay_rate == 0.05
+
+    def test_cumulative_dose_accumulation(self):
+        """Unreached node accumulates dispersal over multiple simulated steps."""
+        # Simulate the accumulation logic directly
+        cumulative_dose = 0.0
+        daily_input = 20.0
+        threshold = 500.0
+
+        for day in range(10):
+            cumulative_dose += daily_input
+            # No decay
+        assert cumulative_dose == pytest.approx(200.0)
+        assert cumulative_dose < threshold  # Not yet activated
+
+        for day in range(15):
+            cumulative_dose += daily_input
+        assert cumulative_dose == pytest.approx(500.0)
+        assert cumulative_dose >= threshold  # Now at threshold
+
+    def test_cumulative_dose_activation(self):
+        """Node activates after cumulative threshold is crossed in full sim."""
+        from sswd_evoepi.model import run_spatial_simulation
+        from sswd_evoepi.spatial import NodeDefinition, build_network
+
+        # 3-node linear chain, close enough for dispersal
+        node_defs = [
+            NodeDefinition(node_id=0, name="North", lat=48.5, lon=-123.0,
+                subregion="N", habitat_area=1000, carrying_capacity=200,
+                mean_sst=9.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=1, name="Mid", lat=48.35, lon=-123.0,
+                subregion="M", habitat_area=1000, carrying_capacity=200,
+                mean_sst=11.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=2, name="South", lat=48.2, lon=-123.0,
+                subregion="S", habitat_area=1000, carrying_capacity=200,
+                mean_sst=13.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+        ]
+        network = build_network(node_defs, D_P=15.0, seed=42)
+        assert network.D.sum() > 0
+
+        config = SimulationConfig(
+            disease=DiseaseSection(
+                scenario="ubiquitous",
+                wavefront_enabled=True,
+                disease_origin_nodes=[2],
+                activation_threshold=1e9,  # instantaneous would never fire
+                cumulative_dose_threshold=0.001,  # very low — should activate quickly
+            )
+        )
+
+        result = run_spatial_simulation(
+            network=network, config=config,
+            n_years=5, disease_year=1,
+            initial_infected_per_node=5, seed=42,
+        )
+
+        assert result.disease_arrival_day is not None
+        # Origin activates immediately
+        assert result.disease_arrival_day[2] == 365
+        # With cumulative mode and low threshold, neighbors should eventually activate
+        reached = [i for i in range(3) if result.disease_arrival_day[i] >= 0]
+        assert len(reached) >= 2, (
+            f"Expected cumulative dose to activate at least 2 nodes, got {reached}"
+        )
+
+    def test_cumulative_dose_decay(self):
+        """With decay > 0, accumulated dose decreases each step."""
+        cumulative_dose = 0.0
+        daily_input = 20.0
+        decay_rate = 0.1  # 10% daily decay
+
+        for day in range(10):
+            cumulative_dose += daily_input
+            cumulative_dose *= (1.0 - decay_rate)
+
+        # Without decay: 200.0. With 10% decay each step it's much less.
+        assert cumulative_dose < 200.0
+        # Geometric series: sum = input * (1-r) * (1 - (1-r)^n) / r ... but let's just check range
+        assert cumulative_dose > 0.0
+        # Steady state for this series ≈ daily_input / decay_rate * (1-decay_rate) = 180
+        # After 10 steps we should be approaching that
+        assert cumulative_dose < 180.0
+
+    def test_cumulative_dose_decay_prevents_activation(self):
+        """High decay rate can prevent activation even with sustained input."""
+        cumulative_dose = 0.0
+        daily_input = 20.0
+        threshold = 500.0
+        decay_rate = 0.5  # 50% daily decay — very aggressive
+
+        # Steady state ≈ 20 / 0.5 * 0.5 = 20, well below 500
+        for day in range(1000):
+            cumulative_dose += daily_input
+            cumulative_dose *= (1.0 - decay_rate)
+
+        assert cumulative_dose < threshold
+
+    def test_cumulative_dose_backward_compat(self):
+        """cumulative_dose_threshold=0 falls back to old instantaneous behavior."""
+        from sswd_evoepi.model import run_spatial_simulation
+        from sswd_evoepi.spatial import NodeDefinition, build_network
+
+        node_defs = [
+            NodeDefinition(node_id=0, name="North", lat=48.5, lon=-123.0,
+                subregion="N", habitat_area=1000, carrying_capacity=200,
+                mean_sst=9.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=1, name="Mid", lat=48.35, lon=-123.0,
+                subregion="M", habitat_area=1000, carrying_capacity=200,
+                mean_sst=11.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=2, name="South", lat=48.2, lon=-123.0,
+                subregion="S", habitat_area=1000, carrying_capacity=200,
+                mean_sst=13.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+        ]
+        network = build_network(node_defs, D_P=15.0, seed=42)
+
+        # cumulative_dose_threshold=0.0 (default) → use instantaneous
+        config = SimulationConfig(
+            disease=DiseaseSection(
+                scenario="ubiquitous",
+                wavefront_enabled=True,
+                disease_origin_nodes=[2],
+                activation_threshold=0.001,  # low instantaneous threshold
+                cumulative_dose_threshold=0.0,  # disabled — use legacy
+            )
+        )
+
+        result = run_spatial_simulation(
+            network=network, config=config,
+            n_years=5, disease_year=1,
+            initial_infected_per_node=5, seed=42,
+        )
+
+        assert result.disease_arrival_day is not None
+        # Origin
+        assert result.disease_arrival_day[2] == 365
+        # With low instantaneous threshold and dispersal, neighbors should activate
+        reached = [i for i in range(3) if result.disease_arrival_day[i] >= 0]
+        assert len(reached) >= 2, (
+            f"Expected instantaneous fallback to activate nodes, got {reached}"
+        )
+
+    def test_cumulative_dose_with_origin_nodes(self):
+        """Origin nodes still activate immediately regardless of cumulative mode."""
+        from sswd_evoepi.model import run_spatial_simulation
+        from sswd_evoepi.spatial import NodeDefinition, build_network
+
+        node_defs = [
+            NodeDefinition(node_id=0, name="North", lat=48.5, lon=-123.0,
+                subregion="N", habitat_area=1000, carrying_capacity=200,
+                mean_sst=9.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=1, name="Mid", lat=48.35, lon=-123.0,
+                subregion="M", habitat_area=1000, carrying_capacity=200,
+                mean_sst=11.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+            NodeDefinition(node_id=2, name="South", lat=48.2, lon=-123.0,
+                subregion="S", habitat_area=1000, carrying_capacity=200,
+                mean_sst=13.0, sst_amplitude=3.0, sst_trend=0.0,
+                salinity=33.0, depth_range=(5, 30)),
+        ]
+        network = build_network(node_defs, D_P=15.0, seed=42)
+
+        config = SimulationConfig(
+            disease=DiseaseSection(
+                scenario="ubiquitous",
+                wavefront_enabled=True,
+                disease_origin_nodes=[0, 2],  # two origins
+                activation_threshold=1e9,
+                cumulative_dose_threshold=1e9,  # impossibly high
+            )
+        )
+
+        result = run_spatial_simulation(
+            network=network, config=config,
+            n_years=3, disease_year=1,
+            initial_infected_per_node=5, seed=42,
+        )
+
+        assert result.disease_arrival_day is not None
+        # Both origin nodes should activate at disease_year start
+        assert result.disease_arrival_day[0] == 365
+        assert result.disease_arrival_day[2] == 365
+        # Mid node should NOT be reached (thresholds impossibly high)
+        assert result.disease_arrival_day[1] == -1
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -193,6 +193,8 @@ class DiseaseSection:
     wavefront_enabled: bool = False           # If True, P_env gated per-node; disease spreads as wavefront
     disease_origin_nodes: Optional[List[int]] = None  # Node IDs where disease starts. None = all nodes (backward compat)
     activation_threshold: float = 1.0         # Vibrio concentration (bact/mL) that triggers node activation
+    cumulative_dose_threshold: float = 0.0    # Cumulative dispersal dose to trigger activation (0 = disabled, use instantaneous)
+    dose_decay_rate: float = 0.0              # Daily decay of accumulated dose (0 = no decay; e.g. 0.02 = 2%/day)
 
 
 @dataclass

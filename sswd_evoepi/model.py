@@ -2044,6 +2044,7 @@ def run_spatial_simulation(
     disease_arrival_day_arr = np.full(N, -1, dtype=np.int32)
     if wavefront:
         disease_reached = [False] * N  # nothing reached yet
+    cumulative_dose = np.zeros(N, dtype=np.float64)  # cumulative dispersal tracker (wavefront)
     cumulative_dis_deaths = [0] * N
     cumulative_recoveries = [0] * N
 
@@ -2274,13 +2275,28 @@ def run_spatial_simulation(
             # Wavefront activation: check unreached nodes for pathogen arrival
             if wavefront:
                 sim_day_wf = year * DAYS_PER_YEAR + day
+                use_cumulative = dis_cfg.cumulative_dose_threshold > 0
                 for i in range(N):
                     if not disease_reached[i]:
-                        if node_disease_states[i].vibrio_concentration > dis_cfg.activation_threshold:
-                            disease_reached[i] = True
-                            disease_arrival_day_arr[i] = sim_day_wf
-                            node_disease_states[i].disease_reached = True
-                            node_disease_states[i].disease_arrival_day = sim_day_wf
+                        if use_cumulative:
+                            # Accumulate dispersal input
+                            cumulative_dose[i] += dispersal_in[i]
+                            # Optional decay
+                            if dis_cfg.dose_decay_rate > 0:
+                                cumulative_dose[i] *= (1.0 - dis_cfg.dose_decay_rate)
+                            # Check cumulative threshold
+                            if cumulative_dose[i] > dis_cfg.cumulative_dose_threshold:
+                                disease_reached[i] = True
+                                disease_arrival_day_arr[i] = sim_day_wf
+                                node_disease_states[i].disease_reached = True
+                                node_disease_states[i].disease_arrival_day = sim_day_wf
+                        else:
+                            # Legacy instantaneous check
+                            if node_disease_states[i].vibrio_concentration > dis_cfg.activation_threshold:
+                                disease_reached[i] = True
+                                disease_arrival_day_arr[i] = sim_day_wf
+                                node_disease_states[i].disease_reached = True
+                                node_disease_states[i].disease_arrival_day = sim_day_wf
 
             # 4. Continuous settlement: settle cohorts whose PLD has elapsed
             sim_day = year * DAYS_PER_YEAR + day
