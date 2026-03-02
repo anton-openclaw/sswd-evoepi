@@ -1,0 +1,18 @@
+{
+  "disease.K_half": 200000.0,
+  "disease.P_env_max": 2000.0,
+  "disease.k_vbnc": 2.0,
+  "disease.T_vbnc": 14.0,
+  "disease.activation_threshold": 50.0,
+  "disease.wavefront_enabled": true,
+  "disease.disease_origin_nodes": [
+    322,
+    319,
+    632,
+    633,
+    634
+  ],
+  "population.settler_survival": 0.002,
+  "spatial.D_P": 50.0,
+  "spatial.D_P_max_range": 500.0
+}
