@@ -507,7 +507,7 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         site_lons = np.array([s.get('longitude', s.get('lon', 0)) for s in sites])
         site_names = [s.get('name', f'node_{i}') for i, s in enumerate(sites)]
         monthly_rec.save(str(snap_path), site_lats, site_lons, site_names,
-                         K=config.population.carrying_capacity)
+                         K=network.nodes[0].definition.carrying_capacity if network.nodes else 5000)
         print(f"  Monthly snapshots: {monthly_rec.n_frames} frames → {snap_path.name}")
 
     # ── Normal scoring ───────────────────────────────────────────────
