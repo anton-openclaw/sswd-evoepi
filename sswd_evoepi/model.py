@@ -2135,6 +2135,24 @@ def run_spatial_simulation(
         _D_T_sparse = None
         _use_sparse_D = False
 
+    # Build separate long-range D matrix for wavefront dose accumulation
+    _D_wf_T_sparse = None
+    if wavefront and dis_cfg.wavefront_D_P > 0:
+        from sswd_evoepi.spatial import construct_pathogen_dispersal
+        _wf_D_P = dis_cfg.wavefront_D_P
+        _wf_max_range = dis_cfg.wavefront_D_P_max_range if dis_cfg.wavefront_D_P_max_range > 0 else 3.5 * _wf_D_P
+        _D_wf = construct_pathogen_dispersal(
+            [n.definition for n in network.nodes],
+            network.distances,
+            D_P=_wf_D_P,
+            f_out=0.2,  # same as standard
+            max_range=_wf_max_range,
+        )
+        try:
+            _D_wf_T_sparse = _csr_matrix(_D_wf.T)
+        except Exception:
+            _D_wf_T_sparse = None
+
     # ── Pre-compute flushing rates per node per day-of-year ──────────
     # seasonal_flushing() uses cos(); pre-computing avoids N×365 calls/yr.
     _flushing_precomputed = np.zeros((N, DAYS_PER_YEAR), dtype=np.float64)
@@ -2272,6 +2290,12 @@ def run_spatial_simulation(
                     node_disease_states[i].vibrio_concentration
                 )
 
+            # Compute wavefront long-range dispersal for dose accumulation
+            if wavefront and _D_wf_T_sparse is not None:
+                wf_dispersal_in = _D_wf_T_sparse @ P
+            else:
+                wf_dispersal_in = None
+
             # Wavefront activation: check unreached nodes for pathogen arrival
             if wavefront:
                 sim_day_wf = year * DAYS_PER_YEAR + day
@@ -2280,7 +2304,8 @@ def run_spatial_simulation(
                     if not disease_reached[i]:
                         if use_cumulative:
                             # Accumulate dispersal input
-                            cumulative_dose[i] += dispersal_in[i]
+                            dose_input = wf_dispersal_in[i] if wf_dispersal_in is not None else dispersal_in[i]
+                            cumulative_dose[i] += dose_input
                             # Optional decay
                             if dis_cfg.dose_decay_rate > 0:
                                 cumulative_dose[i] *= (1.0 - dis_cfg.dose_decay_rate)

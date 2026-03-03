@@ -195,6 +195,8 @@ class DiseaseSection:
     activation_threshold: float = 1.0         # Vibrio concentration (bact/mL) that triggers node activation
     cumulative_dose_threshold: float = 0.0    # Cumulative dispersal dose to trigger activation (0 = disabled, use instantaneous)
     dose_decay_rate: float = 0.0              # Daily decay of accumulated dose (0 = no decay; e.g. 0.02 = 2%/day)
+    wavefront_D_P: float = 0.0              # Wavefront dispersal scale (km); 0 = use standard kernel
+    wavefront_D_P_max_range: float = 0.0    # Wavefront dispersal max range (km); 0 = use standard
 
 
 @dataclass
