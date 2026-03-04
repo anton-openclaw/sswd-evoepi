@@ -43,14 +43,10 @@ for W in W65 W66 W67 W68 W69 W70 W71 W72 W73 W74; do
     nohup python3 "$RUNNER" \
         --config "$CFG" \
         --output "$OUTDIR" \
-        --network "$NETWORK" \
-        --sst-dir "$SST_DIR" \
-        --sites "$SITES" \
         --seeds 42 \
         --K 5000 \
         --years 13 \
         --disease-year 1 \
-        --monthly-snapshots \
         > "$OUTDIR/run.log" 2>&1 &
     
     echo "  PID=$! → $OUTDIR"
