@@ -38,7 +38,6 @@ for i in $(seq 75 84); do
         --K 5000 \
         --years 13 \
         --disease-year 1 \
-        --sst-start-year 2012 \
         > "$LOG" 2>&1 &
 
     echo "  PID: $! → $LOG"
