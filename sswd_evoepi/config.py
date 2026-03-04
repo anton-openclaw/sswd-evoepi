@@ -80,6 +80,7 @@ class PopulationSection:
     senescence_age: float = 50.0
     senescence_mortality: float = 0.10
     urchin_submodel: bool = False
+    K_cv: float = 0.0  # Coefficient of variation for per-node K (lognormal). 0 = uniform K.
 
 
 @dataclass

@@ -60,8 +60,30 @@ def load_sites() -> List[dict]:
         return json.load(f)
 
 
-def build_node_defs(sites: List[dict], K: int = 5000) -> List[NodeDefinition]:
-    """Build NodeDefinition list from site JSON."""
+def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
+                    seed: int = 42) -> List[NodeDefinition]:
+    """Build NodeDefinition list from site JSON.
+
+    Args:
+        sites: List of site dicts with latitude, longitude, region, name.
+        K: Base carrying capacity per node.
+        K_cv: Coefficient of variation for per-node K (lognormal).
+            0 = uniform K (all nodes get K). >0 = lognormal variability
+            with E[K] = K exactly (bias-corrected parameterization).
+        seed: RNG seed for reproducible K draws.
+    """
+    n_sites = len(sites)
+
+    # Generate per-node K values
+    if K_cv > 0:
+        rng = np.random.default_rng(seed + 9999)  # offset to avoid collision with sim RNG
+        sigma = np.sqrt(np.log(1 + K_cv**2))
+        mu = np.log(K) - sigma**2 / 2
+        K_values = rng.lognormal(mu, sigma, size=n_sites)
+        K_values = np.maximum(K_values, 100).astype(int)  # floor at 100
+    else:
+        K_values = np.full(n_sites, K, dtype=int)
+
     node_defs = []
     for i, site in enumerate(sites):
         lat = float(site['latitude'])
@@ -76,7 +98,7 @@ def build_node_defs(sites: List[dict], K: int = 5000) -> List[NodeDefinition]:
             lon=lon,
             subregion=region,
             habitat_area=25000.0,
-            carrying_capacity=K,
+            carrying_capacity=int(K_values[i]),
             is_fjord=is_fjord,
             sill_depth=30.0 if is_fjord else np.inf,
             flushing_rate=0.03 if is_fjord else 0.5,
@@ -91,10 +113,11 @@ def build_node_defs(sites: List[dict], K: int = 5000) -> List[NodeDefinition]:
 
 
 def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
-                       D_P: float = 15.0, D_P_max_range: float = None):
+                       D_P: float = 15.0, D_P_max_range: float = None,
+                       K_cv: float = 0.0):
     """Build 896-node network with overwater distances."""
     sites = load_sites()
-    node_defs = build_node_defs(sites, K=K)
+    node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed)
     npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
     
     network = build_network(
@@ -611,6 +634,7 @@ def main():
     parser.add_argument('--seeds', type=str, default=None, help='Comma-separated seeds')
     parser.add_argument('--output', type=str, required=True, help='Output directory')
     parser.add_argument('--K', type=int, default=5000, help='Carrying capacity per node')
+    parser.add_argument('--K-cv', type=float, default=0.0, help='CV for per-node K variability (lognormal, 0=uniform)')
     parser.add_argument('--years', type=int, default=13, help='Simulation years (1yr spinup + 12yr 2013-2024)')
     parser.add_argument('--disease-year', type=int, default=1, help='Year disease starts (1 = 2013)')
     parser.add_argument('--D_L', type=float, default=400.0, help='Larval dispersal scale (km)')
@@ -631,9 +655,14 @@ def main():
     with open(args.config) as f:
         param_overrides = json.load(f)
     
+    # Extract K_cv from CLI or param_overrides
+    K_cv = args.K_cv
+    if 'population.K_cv' in param_overrides:
+        K_cv = float(param_overrides.pop('population.K_cv'))
+
     print(f"=== Agentic Calibration Runner ===")
     print(f"Seeds: {seeds}")
-    print(f"K: {args.K}, Years: {args.years}, Disease year: {args.disease_year}")
+    print(f"K: {args.K}, K_cv: {K_cv}, Years: {args.years}, Disease year: {args.disease_year}")
     print(f"Overrides: {len(param_overrides)} params")
     
     # Extract spatial params from overrides (needed before network build)
@@ -645,7 +674,8 @@ def main():
     print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range})...")
     t0 = time.time()
     sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
-                                         D_P=D_P, D_P_max_range=D_P_max_range)
+                                         D_P=D_P, D_P_max_range=D_P_max_range,
+                                         K_cv=K_cv)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config
@@ -679,6 +709,7 @@ def main():
     combined = {
         'param_overrides': param_overrides,
         'K': args.K,
+        'K_cv': K_cv,
         'years': args.years,
         'disease_year': args.disease_year,
         'seeds': seeds,
