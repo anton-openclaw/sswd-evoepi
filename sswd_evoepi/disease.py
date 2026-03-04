@@ -270,6 +270,7 @@ def update_vibrio_concentration(
     dt: float = 1.0,
     override_shedding: "float | None" = None,
     disease_reached: bool = True,
+    P_env_pool: float = 0.0,
 ) -> float:
     """Euler-step update of Vibrio concentration at one node.
 
@@ -310,7 +311,16 @@ def update_vibrio_concentration(
 
     # Environmental reservoir (gated by wavefront — no VBNC reservoir before pathogen arrives)
     if disease_reached:
-        env = environmental_vibrio(T_celsius, salinity, cfg)
+        if getattr(cfg, 'P_env_dynamic', False):
+            # Dynamic P_env: floor (community maintenance, SST-modulated) + host-amplified pool
+            k = getattr(cfg, 'k_vbnc', K_VBNC)
+            vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - cfg.T_vbnc)))
+            g_peak = thermal_performance(3000.0, T_celsius, rate_ref=1.0)
+            sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
+            floor = cfg.P_env_floor * vbnc_activation * g_peak * sal_mod
+            env = floor + P_env_pool
+        else:
+            env = environmental_vibrio(T_celsius, salinity, cfg)
     else:
         env = 0.0
 
@@ -621,6 +631,9 @@ class NodeDiseaseState:
     # Environmental pathogen concentration (bacteria/mL)
     vibrio_concentration: float = 0.0
 
+    # Dynamic environmental vibrio pool (bact/mL) — used when P_env_dynamic=True
+    P_env_pool: float = 0.0
+
     # Daily compartment counts
     n_S: int = 0
     n_E: int = 0
@@ -760,6 +773,18 @@ def daily_disease_update(
         shed_D = cfg.sigma_D * n_D_fresh  # carcass shedding unchanged
         override_shed = shed_I1 + shed_I2 + shed_D
 
+    # Dynamic P_env pool update (host-amplified environmental reservoir)
+    if getattr(cfg, 'P_env_dynamic', False):
+        if override_shed is not None:
+            total_shedding = override_shed
+        else:
+            total_shedding = (shedding_rate_I1(T_celsius, cfg) * n_I1
+                              + shedding_rate_I2(T_celsius, cfg) * n_I2
+                              + cfg.sigma_D * n_D_fresh)
+        pool_input = cfg.alpha_env * total_shedding
+        pool_decay = cfg.delta_env * node_state.P_env_pool
+        node_state.P_env_pool = max(0.0, node_state.P_env_pool + pool_input - pool_decay)
+
     P_k = update_vibrio_concentration(
         node_state.vibrio_concentration,
         n_I1, n_I2, n_D_fresh,
@@ -767,6 +792,7 @@ def daily_disease_update(
         cfg,
         override_shedding=override_shed,
         disease_reached=disease_reached,
+        P_env_pool=node_state.P_env_pool,
     )
     node_state.vibrio_concentration = P_k
 

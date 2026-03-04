@@ -198,6 +198,12 @@ class DiseaseSection:
     wavefront_D_P: float = 0.0              # Wavefront dispersal scale (km); 0 = use standard kernel
     wavefront_D_P_max_range: float = 0.0    # Wavefront dispersal max range (km); 0 = use standard
 
+    # Dynamic P_env (host-amplified environmental reservoir)
+    P_env_dynamic: bool = False       # Enable dynamic P_env (False = backward compat, uses static P_env_max)
+    P_env_floor: float = 50.0         # Community-maintained vibrio floor (bact/mL/d)
+    alpha_env: float = 0.1            # Fraction of shedding that enters environmental pool
+    delta_env: float = 0.05           # Environmental pool decay rate (d⁻¹), ~14 day half-life
+
 
 @dataclass
 class GeneticsSection:
