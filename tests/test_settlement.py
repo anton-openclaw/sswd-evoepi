@@ -203,8 +203,12 @@ class TestSettleDailyCohorts:
         )
         assert n_settled == 0
 
-    def test_settle_beverton_holt(self):
-        """Fewer recruits when close to K (slot-limited by available capacity)."""
+    def test_settle_slot_limited(self):
+        """Fewer recruits when close to K (slot-limited by available capacity).
+
+        BH density-dependence is applied upstream; settlement is purely
+        slot-limited by (K - current_alive).
+        """
         pop_cfg = PopulationSection()
         K = 500
         rng_seed = 42

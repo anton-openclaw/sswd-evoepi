@@ -1,4 +1,5 @@
 {
+  "disease.K_half": 400000.0,
   "disease.P_env_max": 2000.0,
   "disease.k_vbnc": 2.0,
   "disease.T_vbnc": 12.0,
@@ -14,6 +15,7 @@
   "population.settler_survival": 0.002,
   "spatial.D_P": 50.0,
   "spatial.D_P_max_range": 500.0,
-  "disease.cumulative_dose_threshold": 100.0,
-  "disease.K_half": 600000.0
+  "disease.cumulative_dose_threshold": 1000.0,
+  "disease.wavefront_D_P": 150.0,
+  "disease.wavefront_D_P_max_range": 3000.0
 }

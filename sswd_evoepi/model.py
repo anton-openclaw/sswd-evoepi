@@ -827,8 +827,10 @@ def settle_daily_cohorts(
     """Settle competent larval cohorts into the population.
 
     Called daily in the simulation loop for cohorts whose PLD has elapsed.
-    Applies Beverton-Holt density-dependent recruitment per cohort,
-    modulated by settlement cue (adult biofilm Allee effect).
+    Beverton-Holt density-dependent recruitment is applied *upstream*
+    (in the dispersal block or annual reproduction), so this function
+    simply places pre-filtered recruits into available agent slots,
+    modulated by the settlement cue (adult biofilm Allee effect).
 
     Args:
         cohorts: List of LarvalCohort objects ready to settle (PLD elapsed).
@@ -874,11 +876,9 @@ def settle_daily_cohorts(
         if effective_settlers <= 0:
             continue
 
-        # Beverton-Holt density-dependent recruitment (full K)
-        n_recruits = beverton_holt_recruitment(
-            effective_settlers, carrying_capacity, pop_cfg.settler_survival,
-        )
-        n_recruits = min(n_recruits, available_slots, effective_settlers, cohort.n_competent)
+        # BH density-dependence is applied upstream; here we just
+        # slot-limit to the available capacity.
+        n_recruits = min(effective_settlers, available_slots, cohort.n_competent)
 
         if n_recruits <= 0:
             continue

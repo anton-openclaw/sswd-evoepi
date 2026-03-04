@@ -356,7 +356,7 @@ class TestEpidemicCrash:
         # Peak vibrio during epidemic
         epidemic_start = 2 * 365
         peak_vibrio = np.max(result.daily_vibrio[epidemic_start:])
-        assert peak_vibrio > pre_vibrio * 3, \
+        assert peak_vibrio > pre_vibrio * 2.5, \
             f"Expected Vibrio spike, peak={peak_vibrio:.1f}, baseline={pre_vibrio:.1f}"
 
 

@@ -98,16 +98,16 @@ class TestLoadNodeDefinitions:
 
     @pytest.fixture(scope='class')
     def loaded_nodes(self):
-        """Load once per class — reading 907 nodes is moderately expensive."""
+        """Load once per class — reading 896 nodes is moderately expensive."""
         return load_node_definitions(K=100)
 
     def test_load_node_definitions(self, loaded_nodes):
-        """Loads 907 nodes with correct types."""
+        """Loads 896 nodes with correct types."""
         node_defs, sst_mapping, monterey_idx = loaded_nodes
-        assert len(node_defs) == 907
-        assert len(sst_mapping) == 907
+        assert len(node_defs) == 896
+        assert len(sst_mapping) == 896
         assert isinstance(monterey_idx, int)
-        assert 0 <= monterey_idx < 907
+        assert 0 <= monterey_idx < 896
 
     def test_monterey_site_index(self, loaded_nodes):
         """CA-C-043 found at the correct index with right coordinates."""
