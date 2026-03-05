@@ -1855,6 +1855,7 @@ class SpatialSimResult:
 
     # Pathogen thermal adaptation
     T_vbnc_local: Optional[np.ndarray] = None  # Final per-node T_vbnc
+    yearly_T_vbnc: Optional[list] = None        # List of np.ndarray (N,) per year
 
     # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
     yearly_mean_virulence: Optional[np.ndarray] = None
@@ -1871,6 +1872,36 @@ class SpatialSimResult:
     final_total_pop: int = 0
     disease_year: Optional[int] = None
     seed: int = 0
+
+
+def _inherit_T_vbnc(target_idx, node_disease_states, disease_reached,
+                     D_T_sparse, P, cfg):
+    """Inherit weighted-average T_vbnc from reached source nodes.
+
+    At wavefront activation, the new node's pathogen inherits the thermal
+    adaptation state of contributing source nodes, weighted by their
+    dispersal contribution (D weight × vibrio concentration).
+    """
+    weighted_T = 0.0
+    total_weight = 0.0
+
+    # D_T_sparse is D^T in CSR.  Row target_idx of D^T = column target_idx
+    # of D = dispersal weights FROM all sources TO target.
+    row_start = D_T_sparse.indptr[target_idx]
+    row_end = D_T_sparse.indptr[target_idx + 1]
+    source_indices = D_T_sparse.indices[row_start:row_end]
+    dispersal_weights = D_T_sparse.data[row_start:row_end]
+
+    for k in range(len(source_indices)):
+        src = int(source_indices[k])
+        if disease_reached[src]:
+            w = float(dispersal_weights[k]) * P[src]
+            weighted_T += w * node_disease_states[src].T_vbnc_local
+            total_weight += w
+
+    if total_weight > 0:
+        node_disease_states[target_idx].T_vbnc_local = weighted_T / total_weight
+    # else: keep T_vbnc_initial default
 
 
 def run_spatial_simulation(
@@ -2059,9 +2090,11 @@ def run_spatial_simulation(
         )
 
     # Initialize pathogen thermal adaptation per-node thresholds
+    _yearly_T_vbnc_list = None
     if hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation:
         for nds in node_disease_states:
             nds.T_vbnc_local = dis_cfg.T_vbnc_initial
+        _yearly_T_vbnc_list = []
 
     # ── Spatial transmission grids (one per node) ────────────────────
     density_grids = [None] * N
@@ -2339,6 +2372,12 @@ def run_spatial_simulation(
                                 disease_arrival_day_arr[i] = sim_day_wf
                                 node_disease_states[i].disease_reached = True
                                 node_disease_states[i].disease_arrival_day = sim_day_wf
+                                # Inherit thermal adaptation from source nodes
+                                if dis_cfg.pathogen_adaptation:
+                                    _D_inh = _D_wf_T_sparse if _D_wf_T_sparse is not None else _D_T_sparse
+                                    if _D_inh is not None:
+                                        _inherit_T_vbnc(i, node_disease_states, disease_reached,
+                                                        _D_inh, P, dis_cfg)
                         else:
                             # Legacy instantaneous check
                             if node_disease_states[i].vibrio_concentration > dis_cfg.activation_threshold:
@@ -2346,6 +2385,12 @@ def run_spatial_simulation(
                                 disease_arrival_day_arr[i] = sim_day_wf
                                 node_disease_states[i].disease_reached = True
                                 node_disease_states[i].disease_arrival_day = sim_day_wf
+                                # Inherit thermal adaptation from source nodes
+                                if dis_cfg.pathogen_adaptation:
+                                    _D_inh = _D_wf_T_sparse if _D_wf_T_sparse is not None else _D_T_sparse
+                                    if _D_inh is not None:
+                                        _inherit_T_vbnc(i, node_disease_states, disease_reached,
+                                                        _D_inh, P, dis_cfg)
 
             # 4. Continuous settlement: settle cohorts whose PLD has elapsed
             sim_day = year * DAYS_PER_YEAR + day
@@ -2747,6 +2792,12 @@ def run_spatial_simulation(
         yearly_total_pop[year] = int(yearly_pop[:, year].sum())
         yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
 
+        # Record yearly T_vbnc snapshot (pathogen thermal adaptation)
+        if _yearly_T_vbnc_list is not None:
+            _yearly_T_vbnc_list.append(
+                np.array([nds.T_vbnc_local for nds in node_disease_states])
+            )
+
         if progress_callback is not None:
             _stop = progress_callback(year, n_years)
             if _stop:
@@ -2803,4 +2854,5 @@ def run_spatial_simulation(
         ),
         disease_arrival_day=disease_arrival_day_arr if wavefront else None,
         T_vbnc_local=_final_T_vbnc_local,
+        yearly_T_vbnc=_yearly_T_vbnc_list,
     )

@@ -223,6 +223,12 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
             'yearly_va_tolerance': region_va_t,
             'yearly_va_recovery': region_va_c,
         }
+
+        # Pathogen thermal adaptation: per-region mean final T_vbnc
+        if result.T_vbnc_local is not None:
+            region_details[region]['final_mean_T_vbnc'] = float(
+                np.mean(result.T_vbnc_local[idxs])
+            )
     
     return region_recovery, region_details
 

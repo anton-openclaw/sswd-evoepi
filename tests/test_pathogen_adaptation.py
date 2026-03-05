@@ -338,3 +338,99 @@ class TestAdaptationExactCalculation:
         # delta_T = 0.01 * 0.2 * 4 = 0.008
         expected = 12.0 - 0.008
         assert nds.T_vbnc_local == pytest.approx(expected)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Chunk 2: Wavefront inheritance tests
+# ══════════════════════════════════════════════════════════════════════
+
+class TestInheritTVbnc:
+    """Tests for _inherit_T_vbnc helper function."""
+
+    def test_inherit_basic(self):
+        """Target node inherits weighted-average T_vbnc from reached sources."""
+        from scipy.sparse import csr_matrix
+        from sswd_evoepi.model import _inherit_T_vbnc
+
+        # 3 nodes: 0 and 1 reached, 2 is target
+        nds_list = [NodeDiseaseState(node_id=i) for i in range(3)]
+        nds_list[0].T_vbnc_local = 9.0   # adapted source
+        nds_list[1].T_vbnc_local = 10.0  # less adapted source
+        nds_list[2].T_vbnc_local = 12.0  # target (default)
+
+        disease_reached = [True, True, False]
+        P = np.array([100.0, 50.0, 0.0])  # vibrio concentrations
+
+        # D^T matrix: row 2 (target) has weights from nodes 0 and 1
+        # D^T[2,0] = 0.6, D^T[2,1] = 0.3
+        D_T = csr_matrix(np.array([
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [0.6, 0.3, 0.0],
+        ]))
+
+        cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
+        _inherit_T_vbnc(2, nds_list, disease_reached, D_T, P, cfg)
+
+        # Expected: weighted avg = (0.6*100*9.0 + 0.3*50*10.0) / (0.6*100 + 0.3*50)
+        #         = (540 + 150) / (60 + 15) = 690 / 75 = 9.2
+        assert nds_list[2].T_vbnc_local == pytest.approx(9.2)
+
+    def test_inherit_no_reached_sources(self):
+        """When no reached sources contribute, T_vbnc stays at default."""
+        from scipy.sparse import csr_matrix
+        from sswd_evoepi.model import _inherit_T_vbnc
+
+        nds_list = [NodeDiseaseState(node_id=i) for i in range(2)]
+        nds_list[0].T_vbnc_local = 9.0
+        nds_list[1].T_vbnc_local = 12.0  # target
+
+        disease_reached = [False, False]  # nothing reached
+        P = np.array([100.0, 0.0])
+
+        D_T = csr_matrix(np.array([
+            [0.0, 0.0],
+            [0.5, 0.0],
+        ]))
+
+        cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
+        _inherit_T_vbnc(1, nds_list, disease_reached, D_T, P, cfg)
+
+        assert nds_list[1].T_vbnc_local == 12.0  # unchanged
+
+    def test_inherit_single_source(self):
+        """With a single source, target inherits that source's T_vbnc."""
+        from scipy.sparse import csr_matrix
+        from sswd_evoepi.model import _inherit_T_vbnc
+
+        nds_list = [NodeDiseaseState(node_id=i) for i in range(2)]
+        nds_list[0].T_vbnc_local = 8.5
+        nds_list[1].T_vbnc_local = 12.0
+
+        disease_reached = [True, False]
+        P = np.array([200.0, 0.0])
+
+        D_T = csr_matrix(np.array([
+            [0.0, 0.0],
+            [0.4, 0.0],
+        ]))
+
+        cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
+        _inherit_T_vbnc(1, nds_list, disease_reached, D_T, P, cfg)
+
+        assert nds_list[1].T_vbnc_local == pytest.approx(8.5)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# Chunk 3: Recording tests
+# ══════════════════════════════════════════════════════════════════════
+
+class TestYearlyTVbncRecording:
+    """Tests for yearly_T_vbnc recording in SpatialSimResult."""
+
+    def test_result_has_yearly_T_vbnc_field(self):
+        """SpatialSimResult has the yearly_T_vbnc field."""
+        from sswd_evoepi.model import SpatialSimResult
+        r = SpatialSimResult()
+        assert hasattr(r, 'yearly_T_vbnc')
+        assert r.yearly_T_vbnc is None  # default None when disabled
