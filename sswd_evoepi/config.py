@@ -169,6 +169,13 @@ class DiseaseSection:
     k_vbnc: float = 1.0           # VBNC sigmoid steepness (°C⁻¹)
     T_ref: float = 20.0           # V. pectenicida T_opt (°C)
 
+    # Pathogen thermal adaptation
+    pathogen_adaptation: bool = False       # Enable per-node T_vbnc evolution
+    T_vbnc_initial: float = 12.0           # Starting VBNC threshold (°C)
+    T_vbnc_min: float = 6.0                # Biophysical floor — hard limit on cold adaptation
+    pathogen_adapt_rate: float = 0.001     # °C/day per unit selection pressure
+    pathogen_revert_rate: float = 0.0005   # Reversion speed when disease absent (°C/day)
+
     # Salinity
     s_min: float = 10.0           # Salinity minimum for Vibrio (psu)
     s_full: float = 28.0          # Full-marine salinity (psu)
@@ -568,6 +575,24 @@ def validate_config(config: SimulationConfig) -> None:
             f"pathogen_evolution.v_init ({pe.v_init}) must be in "
             f"[v_min={pe.v_min}, v_max={pe.v_max}]"
         )
+
+    # Pathogen thermal adaptation
+    if config.disease.pathogen_adaptation:
+        if config.disease.T_vbnc_min > config.disease.T_vbnc_initial:
+            raise ValueError(
+                f"disease.T_vbnc_min ({config.disease.T_vbnc_min}) must be <= "
+                f"T_vbnc_initial ({config.disease.T_vbnc_initial})"
+            )
+        if config.disease.pathogen_adapt_rate < 0:
+            raise ValueError(
+                f"disease.pathogen_adapt_rate must be >= 0, "
+                f"got {config.disease.pathogen_adapt_rate}"
+            )
+        if config.disease.pathogen_revert_rate < 0:
+            raise ValueError(
+                f"disease.pathogen_revert_rate must be >= 0, "
+                f"got {config.disease.pathogen_revert_rate}"
+            )
 
     # Positive parameters
     if config.simulation.seed < 0:

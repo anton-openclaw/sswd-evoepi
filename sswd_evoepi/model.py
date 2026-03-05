@@ -49,6 +49,7 @@ from sswd_evoepi.config import (
 from sswd_evoepi.disease import (
     CarcassTracker,
     NodeDiseaseState,
+    adapt_pathogen_thermal,
     daily_disease_update,
     environmental_vibrio,
     vibrio_decay_rate,
@@ -1852,6 +1853,9 @@ class SpatialSimResult:
     # Wavefront tracking
     disease_arrival_day: Optional[np.ndarray] = None   # (n_nodes,) sim day when disease reached each node
 
+    # Pathogen thermal adaptation
+    T_vbnc_local: Optional[np.ndarray] = None  # Final per-node T_vbnc
+
     # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
     yearly_mean_virulence: Optional[np.ndarray] = None
     # Spawning event tracking (daily, per-node)
@@ -2054,6 +2058,11 @@ def run_spatial_simulation(
             network.nodes[i].vibrio_concentration
         )
 
+    # Initialize pathogen thermal adaptation per-node thresholds
+    if hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation:
+        for nds in node_disease_states:
+            nds.T_vbnc_local = dis_cfg.T_vbnc_initial
+
     # ── Spatial transmission grids (one per node) ────────────────────
     density_grids = [None] * N
     if spatial_tx:
@@ -2247,9 +2256,11 @@ def run_spatial_simulation(
                         )
 
             # 3. Per-node disease step (if disease is active at that node)
+            _pathogen_adapt = hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation
             for i, node in enumerate(network.nodes):
                 if not disease_active_flags[i]:
                     continue
+                _T_vbnc_local_i = node_disease_states[i].T_vbnc_local if _pathogen_adapt else None
                 deaths_before = node_disease_states[i].cumulative_deaths
                 node_disease_states[i] = daily_disease_update(
                     agents=node.agents,
@@ -2266,6 +2277,7 @@ def run_spatial_simulation(
                     ),
                     pe_cfg=pe_cfg,
                     disease_reached=disease_reached[i],
+                    T_vbnc_local=_T_vbnc_local_i,
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
@@ -2274,6 +2286,18 @@ def run_spatial_simulation(
                 cumulative_recoveries[i] = (
                     node_disease_states[i].cumulative_recoveries
                 )
+
+                # Pathogen thermal adaptation: update per-node T_vbnc
+                if _pathogen_adapt:
+                    adapt_pathogen_thermal(
+                        node_disease_states[i],
+                        node.current_sst,
+                        node_disease_states[i].n_I1,
+                        node_disease_states[i].n_I2,
+                        node_disease_states[i].n_E,
+                        int(np.sum(node.agents['alive'])),
+                        dis_cfg,
+                    )
 
             # 3. Pathogen dispersal between nodes (D matrix)
             P = np.array([
@@ -2728,6 +2752,11 @@ def run_spatial_simulation(
             if _stop:
                 break  # early stop — return partial result
 
+    # ── Store final T_vbnc_local if pathogen thermal adaptation enabled ──
+    _final_T_vbnc_local = None
+    if hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation:
+        _final_T_vbnc_local = np.array([nds.T_vbnc_local for nds in node_disease_states])
+
     # ── Compile result ────────────────────────────────────────────────
     return SpatialSimResult(
         n_years=n_years,
@@ -2773,4 +2802,5 @@ def run_spatial_simulation(
             yearly_released_alive_spatial if config.release_events else None
         ),
         disease_arrival_day=disease_arrival_day_arr if wavefront else None,
+        T_vbnc_local=_final_T_vbnc_local,
     )

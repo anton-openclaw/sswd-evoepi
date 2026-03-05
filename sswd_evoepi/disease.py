@@ -224,6 +224,7 @@ def environmental_vibrio(
     T_celsius: float,
     salinity: float,
     cfg: DiseaseSection,
+    T_vbnc_local: float = None,
 ) -> float:
     """Background environmental V. pectenicida input rate (bact/mL/d).
 
@@ -231,13 +232,18 @@ def environmental_vibrio(
     activating 10–15°C, peak at 20°C, declining above.
 
     In invasion scenario, returns 0 (pathogen absent until arrival).
+
+    Args:
+        T_vbnc_local: If provided, use this as the VBNC midpoint instead
+            of cfg.T_vbnc. Used by pathogen thermal adaptation.
     """
     if cfg.scenario == "invasion":
         return 0.0
 
     # VBNC resuscitation sigmoid (use configurable steepness)
     k = getattr(cfg, 'k_vbnc', K_VBNC)
-    vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - cfg.T_vbnc)))
+    T_mid = T_vbnc_local if T_vbnc_local is not None else cfg.T_vbnc
+    vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - T_mid)))
 
     # Thermal performance (peak at T_opt=20°C)
     g_peak = thermal_performance(3000.0, T_celsius, rate_ref=1.0)
@@ -271,6 +277,7 @@ def update_vibrio_concentration(
     override_shedding: "float | None" = None,
     disease_reached: bool = True,
     P_env_pool: float = 0.0,
+    T_vbnc_local: float = None,
 ) -> float:
     """Euler-step update of Vibrio concentration at one node.
 
@@ -291,6 +298,8 @@ def update_vibrio_concentration(
             instead of computing from n_I1/n_I2/n_D_fresh counts.  Used
             by pathogen evolution to inject per-individual strain-weighted
             shedding.
+        T_vbnc_local: If provided, use as VBNC midpoint instead of cfg.T_vbnc.
+            Used by pathogen thermal adaptation.
 
     Returns:
         Updated P_k (non-negative).
@@ -314,13 +323,14 @@ def update_vibrio_concentration(
         if getattr(cfg, 'P_env_dynamic', False):
             # Dynamic P_env: floor (community maintenance, SST-modulated) + host-amplified pool
             k = getattr(cfg, 'k_vbnc', K_VBNC)
-            vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - cfg.T_vbnc)))
+            T_mid = T_vbnc_local if T_vbnc_local is not None else cfg.T_vbnc
+            vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - T_mid)))
             g_peak = thermal_performance(3000.0, T_celsius, rate_ref=1.0)
             sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
             floor = cfg.P_env_floor * vbnc_activation * g_peak * sal_mod
             env = floor + P_env_pool
         else:
-            env = environmental_vibrio(T_celsius, salinity, cfg)
+            env = environmental_vibrio(T_celsius, salinity, cfg, T_vbnc_local=T_vbnc_local)
     else:
         env = 0.0
 
@@ -668,6 +678,9 @@ class NodeDiseaseState:
     virulence_sum_daily: float = 0.0
     virulence_count_daily: int = 0
 
+    # Per-node VBNC threshold (pathogen thermal adaptation)
+    T_vbnc_local: float = 12.0
+
     # Carcass tracker
     carcass_tracker: CarcassTracker = field(default_factory=CarcassTracker)
 
@@ -680,6 +693,49 @@ class NodeDiseaseState:
         self.peak_vibrio = 0.0
         self.epidemic_active = False
         self.epidemic_start_day = -1
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# PATHOGEN THERMAL ADAPTATION
+# ═══════════════════════════════════════════════════════════════════════
+
+def adapt_pathogen_thermal(
+    node_state: NodeDiseaseState,
+    T_celsius: float,
+    n_I1: int,
+    n_I2: int,
+    n_E: int,
+    n_total: int,
+    cfg: DiseaseSection,
+) -> None:
+    """Update per-node T_vbnc based on pathogen thermal adaptation.
+
+    When temperature is below the local threshold and infected hosts
+    are present, cold-adapted strains are selected. Rate proportional
+    to prevalence × temperature gap.
+
+    When no infected hosts present, adapted strains revert toward
+    T_vbnc_initial (loss of selection pressure).
+    """
+    if not cfg.pathogen_adaptation:
+        return
+
+    infected = n_I1 + n_I2
+
+    if infected > 0 and T_celsius < node_state.T_vbnc_local:
+        prevalence = infected / max(n_total, 1)
+        temp_gap = node_state.T_vbnc_local - T_celsius
+        delta_T = cfg.pathogen_adapt_rate * prevalence * temp_gap
+        node_state.T_vbnc_local = max(
+            node_state.T_vbnc_local - delta_T,
+            cfg.T_vbnc_min
+        )
+    elif infected == 0 and n_E == 0 and node_state.T_vbnc_local < cfg.T_vbnc_initial:
+        # Reversion: cold-adapted strains lose advantage without hosts
+        node_state.T_vbnc_local = min(
+            node_state.T_vbnc_local + cfg.pathogen_revert_rate,
+            cfg.T_vbnc_initial
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -699,6 +755,7 @@ def daily_disease_update(
     infected_density_grid=None,
     pe_cfg: "PathogenEvolutionSection | None" = None,
     disease_reached: bool = True,
+    T_vbnc_local: float = None,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -793,6 +850,7 @@ def daily_disease_update(
         override_shedding=override_shed,
         disease_reached=disease_reached,
         P_env_pool=node_state.P_env_pool,
+        T_vbnc_local=T_vbnc_local,
     )
     node_state.vibrio_concentration = P_k
 
@@ -860,7 +918,7 @@ def daily_disease_update(
                 # Total shedding from local hosts vs environment
                 P_shed_total = (shedding_rate_I1(T_celsius, cfg) * int(np.sum(alive_I1_mask))
                                 + shedding_rate_I2(T_celsius, cfg) * int(np.sum(alive_I2_mask)))
-                P_env_total = environmental_vibrio(T_celsius, salinity, cfg)
+                P_env_total = environmental_vibrio(T_celsius, salinity, cfg, T_vbnc_local=T_vbnc_local)
                 P_total = P_shed_total + P_env_total
 
                 # Pre-compute shedder sampling distribution
