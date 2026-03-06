@@ -34,6 +34,7 @@ Build target: Phase 3 (three-trait disease wiring).
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
@@ -739,6 +740,51 @@ def adapt_pathogen_thermal(
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# COMMUNITY VIRULENCE EVOLUTION
+# ═══════════════════════════════════════════════════════════════════════
+
+def adapt_community_virulence(
+    node_state: NodeDiseaseState,
+    T_celsius: float,
+    n_hosts: int,
+    K: int,
+    cfg: DiseaseSection,
+) -> None:
+    """Evolve site virulence toward density- and temperature-dependent optimum.
+
+    The Anderson-May virulence-transmission trade-off predicts:
+    - High host density → high optimal virulence (fast transmission viable)
+    - Low host density → low optimal virulence (need longer infectious period)
+    - Cold temperature → lower max virulence (metabolic constraint)
+    """
+    if not cfg.virulence_evolution:
+        return
+    if node_state.P_env_pool <= 0:
+        return
+
+    # Density effect: more hosts → higher optimal virulence
+    density_ratio = n_hosts / max(K, 1)
+    density_ratio = min(density_ratio, 1.0)  # cap at 1.0
+
+    # Temperature constraint: cold → lower max virulence
+    # Sigmoid: 0 at cold temps, 1 at warm temps
+    temp_factor = 1.0 / (1.0 + math.exp(
+        -(T_celsius - cfg.T_v_mid) / max(cfg.T_v_width, 0.1)
+    ))
+
+    # Local optimum
+    v_optimal = cfg.v_max_warm * density_ratio * temp_factor
+    v_optimal = max(0.0, min(1.0, v_optimal))
+
+    # Drift toward optimum (same pool-driven saturation as thermal adaptation)
+    pool_factor = min(
+        node_state.P_env_pool / max(cfg.P_adapt_half, 1e-9), 1.0
+    )
+    delta_v = cfg.v_adapt_rate * pool_factor * (v_optimal - node_state.v_local)
+    node_state.v_local = max(0.0, min(1.0, node_state.v_local + delta_v))
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # DAILY DISEASE UPDATE — CORE ENGINE
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -811,6 +857,21 @@ def daily_disease_update(
     # Per-individual strain-weighted shedding when pathogen evolution active
     pe_active = pe_cfg is not None and pe_cfg.enabled
     override_shed = None
+
+    # Community virulence rate multipliers (applied when virulence_evolution
+    # is enabled but per-agent pathogen evolution is NOT active)
+    _v_evo = cfg.virulence_evolution and pe_cfg is not None and not pe_active
+    v_mult_shed = 1.0
+    v_mult_shed_early = 1.0
+    v_mult_prog = 1.0
+    v_mult_kill = 1.0
+    if _v_evo:
+        dv = node_state.v_local - pe_cfg.v_anchor
+        v_mult_kill = math.exp(pe_cfg.alpha_kill * dv)
+        v_mult_prog = math.exp(pe_cfg.alpha_prog * dv)
+        v_mult_shed = math.exp(pe_cfg.alpha_shed * dv)
+        v_mult_shed_early = math.exp(pe_cfg.alpha_shed * dv * pe_cfg.gamma_early)
+
     if pe_active:
         I1_mask = alive_mask & (ds == DiseaseState.I1)
         I2_mask = alive_mask & (ds == DiseaseState.I2)
@@ -828,6 +889,12 @@ def daily_disease_update(
             shed_I2 = float(np.sum(sigma_2_strain(v_I2, T_celsius, cfg, pe_cfg)))
 
         shed_D = cfg.sigma_D * n_D_fresh  # carcass shedding unchanged
+        override_shed = shed_I1 + shed_I2 + shed_D
+    elif _v_evo:
+        # Community virulence: scale node-level shedding rates
+        shed_I1 = shedding_rate_I1(T_celsius, cfg) * v_mult_shed_early * n_I1
+        shed_I2 = shedding_rate_I2(T_celsius, cfg) * v_mult_shed * n_I2
+        shed_D = cfg.sigma_D * n_D_fresh
         override_shed = shed_I1 + shed_I2 + shed_D
 
     # Dynamic P_env pool update (host-amplified environmental reservoir)
@@ -1007,7 +1074,7 @@ def daily_disease_update(
                 v_arr = agents['pathogen_virulence'][e_idx]
                 rates = mu_I1I2_strain(v_arr, T_celsius, cfg, pe_cfg)
             else:
-                rates = np.full(len(e_idx), mu_I1I2)
+                rates = np.full(len(e_idx), mu_I1I2 * v_mult_prog)
             dt_rem[e_idx] = batch_sample_stage_duration(rates, K_SHAPE_I1, rng)
 
         # ── I1 → I2 ─────────────────────────────────────────────────
@@ -1019,7 +1086,7 @@ def daily_disease_update(
                 v_arr = agents['pathogen_virulence'][i1_idx]
                 rates = mu_I2D_strain(v_arr, T_celsius, cfg, pe_cfg)
             else:
-                rates = np.full(len(i1_idx), mu_I2D)
+                rates = np.full(len(i1_idx), mu_I2D * v_mult_kill)
             # Tolerance → longer I₂ timer
             t_arr = agents['tolerance'][i1_idx].astype(np.float64)
             effective_rates = rates * (1.0 - t_arr * cfg.tau_max)

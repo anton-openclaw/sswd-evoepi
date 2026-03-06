@@ -49,6 +49,7 @@ from sswd_evoepi.config import (
 from sswd_evoepi.disease import (
     CarcassTracker,
     NodeDiseaseState,
+    adapt_community_virulence,
     adapt_pathogen_thermal,
     daily_disease_update,
     environmental_vibrio,
@@ -1280,7 +1281,8 @@ def run_coupled_simulation(
     dis_cfg = config.disease
     pe_cfg = (config.pathogen_evolution
               if hasattr(config, 'pathogen_evolution')
-              and config.pathogen_evolution.enabled
+              and (config.pathogen_evolution.enabled
+                   or dis_cfg.virulence_evolution)
               else None)
 
     rng = np.random.default_rng(seed)
@@ -1969,7 +1971,8 @@ def run_spatial_simulation(
     dis_cfg = config.disease
     pe_cfg = (config.pathogen_evolution
               if hasattr(config, 'pathogen_evolution')
-              and config.pathogen_evolution.enabled
+              and (config.pathogen_evolution.enabled
+                   or dis_cfg.virulence_evolution)
               else None)
     mov_cfg = config.movement
     mov_enabled = mov_cfg.enabled
@@ -2337,6 +2340,17 @@ def run_spatial_simulation(
                         node.current_sst,
                         node_disease_states[i].P_env_pool,
                         dis_cfg,
+                    )
+
+                # Community virulence evolution: drift v_local toward optimum
+                if dis_cfg.virulence_evolution:
+                    _n_alive_node = int(np.sum(node.agents['alive']))
+                    adapt_community_virulence(
+                        node_disease_states[i],
+                        T_celsius=node.current_sst,
+                        n_hosts=_n_alive_node,
+                        K=node.definition.carrying_capacity,
+                        cfg=dis_cfg,
                     )
 
             # 3. Pathogen dispersal between nodes (D matrix)

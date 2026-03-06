@@ -213,6 +213,13 @@ class DiseaseSection:
     alpha_env: float = 0.1            # Fraction of shedding that enters environmental pool
     delta_env: float = 0.05           # Environmental pool decay rate (d⁻¹), ~14 day half-life
 
+    # Community virulence evolution
+    virulence_evolution: bool = False  # Enable community virulence evolution
+    v_adapt_rate: float = 0.001       # Rate of virulence drift toward optimum
+    v_max_warm: float = 0.7           # Max optimal virulence at warm, dense sites
+    T_v_mid: float = 12.0             # Temperature midpoint for virulence constraint
+    T_v_width: float = 3.0            # Width of temperature-virulence sigmoid
+
 
 @dataclass
 class GeneticsSection:
