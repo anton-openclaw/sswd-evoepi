@@ -174,7 +174,8 @@ class DiseaseSection:
     T_vbnc_initial: float = 12.0           # Starting VBNC threshold (°C)
     T_vbnc_min: float = 6.0                # Biophysical floor — hard limit on cold adaptation
     pathogen_adapt_rate: float = 0.001     # °C/day per unit selection pressure
-    pathogen_revert_rate: float = 0.0005   # Reversion speed when disease absent (°C/day)
+    pathogen_revert_rate: float = 0.0      # Reversion speed when disease absent (°C/day)
+    P_adapt_half: float = 500.0            # Half-saturation constant for pool-driven adaptation
 
     # Salinity
     s_min: float = 10.0           # Salinity minimum for Vibrio (psu)
@@ -592,6 +593,11 @@ def validate_config(config: SimulationConfig) -> None:
             raise ValueError(
                 f"disease.pathogen_revert_rate must be >= 0, "
                 f"got {config.disease.pathogen_revert_rate}"
+            )
+        if config.disease.P_adapt_half <= 0:
+            raise ValueError(
+                f"disease.P_adapt_half must be > 0, "
+                f"got {config.disease.P_adapt_half}"
             )
 
     # Positive parameters

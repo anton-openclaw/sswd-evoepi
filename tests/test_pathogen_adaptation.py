@@ -1,7 +1,7 @@
 """Tests for pathogen thermal adaptation (Chunk 1).
 
 Tests cover:
-  - adapt_pathogen_thermal() function behavior
+  - adapt_pathogen_thermal() function behavior (pool-driven)
   - Config validation for new fields
   - environmental_vibrio() with T_vbnc_local override
   - Backward compatibility (pathogen_adaptation=False)
@@ -25,7 +25,8 @@ def _make_cfg(**kwargs) -> DiseaseSection:
         T_vbnc_initial=12.0,
         T_vbnc_min=6.0,
         pathogen_adapt_rate=0.001,
-        pathogen_revert_rate=0.0005,
+        pathogen_revert_rate=0.0,
+        P_adapt_half=500.0,
     )
     defaults.update(kwargs)
     return DiseaseSection(**defaults)
@@ -49,41 +50,38 @@ class TestAdaptationDisabled:
     def test_adaptation_disabled_by_default(self):
         cfg = DiseaseSection()  # pathogen_adaptation=False by default
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=10, n_I2=5,
-                               n_E=3, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=1000.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
     def test_adaptation_disabled_explicit(self):
         cfg = _make_cfg(pathogen_adaptation=False)
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=5.0, n_I1=50, n_I2=50,
-                               n_E=10, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=5.0, P_env_pool=1000.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
 
 class TestAdaptationReducesThreshold:
-    """When temp < T_vbnc_local and infected hosts present, threshold should decrease."""
+    """When temp < T_vbnc_local and P_env_pool > 0, threshold should decrease."""
 
     def test_adaptation_reduces_threshold(self):
         cfg = _make_cfg(pathogen_adapt_rate=0.01)
         nds = _make_node_state(12.0)
-        # T=8°C < 12°C, 10 infected out of 100 → should adapt
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=5, n_I2=5,
-                               n_E=2, n_total=100, cfg=cfg)
+        # T=8°C < 12°C, P_env_pool=500 → pool_factor = 500/500 = 1.0
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=500.0, cfg=cfg)
         assert nds.T_vbnc_local < 12.0
 
-    def test_threshold_decreases_with_I1_only(self):
+    def test_threshold_decreases_with_low_pool(self):
         cfg = _make_cfg(pathogen_adapt_rate=0.01)
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=10, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        # Small pool still adapts
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=50.0, cfg=cfg)
         assert nds.T_vbnc_local < 12.0
 
-    def test_threshold_decreases_with_I2_only(self):
+    def test_threshold_decreases_with_high_pool(self):
         cfg = _make_cfg(pathogen_adapt_rate=0.01)
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=0, n_I2=10,
-                               n_E=0, n_total=100, cfg=cfg)
+        # Large pool (saturated)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=5000.0, cfg=cfg)
         assert nds.T_vbnc_local < 12.0
 
 
@@ -93,36 +91,56 @@ class TestNoAdaptationAboveThreshold:
     def test_no_adaptation_above_threshold(self):
         cfg = _make_cfg()
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=12.0, n_I1=10, n_I2=5,
-                               n_E=3, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=12.0, P_env_pool=1000.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
     def test_no_adaptation_well_above_threshold(self):
         cfg = _make_cfg()
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=20.0, n_I1=50, n_I2=50,
-                               n_E=10, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=20.0, P_env_pool=5000.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
 
-class TestNoAdaptationNoInfected:
-    """When no infected hosts, adaptation branch should NOT activate."""
+class TestNoAdaptationZeroPool:
+    """When P_env_pool == 0, adaptation branch should NOT activate."""
 
-    def test_no_adaptation_no_infected(self):
+    def test_no_adaptation_zero_pool(self):
         cfg = _make_cfg()
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=5.0, n_I1=0, n_I2=0,
-                               n_E=5, n_total=100, cfg=cfg)
-        # No infected (I1+I2=0), even though temp is below threshold
-        # and there are exposed — no adaptation
+        adapt_pathogen_thermal(nds, T_celsius=5.0, P_env_pool=0.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
-    def test_no_adaptation_zero_population(self):
-        cfg = _make_cfg()
+    def test_no_adaptation_zero_pool_even_cold(self):
+        """Zero pool means no adaptation even with big temp gap."""
+        cfg = _make_cfg(pathogen_adapt_rate=1.0)
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=5.0, n_I1=0, n_I2=0,
-                               n_E=0, n_total=0, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=0.0, P_env_pool=0.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
+
+
+class TestAdaptationWithPoolNoInfectedHosts:
+    """Adaptation occurs with P_env_pool > 0 even when there are zero infected hosts.
+
+    This is the key behavior change: the bacterial community drives adaptation,
+    not infected host prevalence.
+    """
+
+    def test_pool_drives_adaptation_without_hosts(self):
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
+        nds = _make_node_state(12.0)
+        # P_env_pool=1000 but conceptually zero infected hosts
+        # (we no longer pass host counts at all)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=1000.0, cfg=cfg)
+        assert nds.T_vbnc_local < 12.0
+
+    def test_pool_adaptation_persists_after_crash(self):
+        """Simulate: hosts crash to zero but pool persists → adaptation continues."""
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
+        nds = _make_node_state(12.0)
+        # 100 days of adaptation with only pool (no hosts needed)
+        for _ in range(100):
+            adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=600.0, cfg=cfg)
+        assert nds.T_vbnc_local < 11.0  # significant adaptation
 
 
 class TestAdaptationRespectsMinimum:
@@ -134,9 +152,8 @@ class TestAdaptationRespectsMinimum:
             T_vbnc_min=8.0,
         )
         nds = _make_node_state(12.0)
-        # Extreme conditions: high rate, many infected, big temp gap
-        adapt_pathogen_thermal(nds, T_celsius=0.0, n_I1=100, n_I2=100,
-                               n_E=0, n_total=200, cfg=cfg)
+        # Extreme: high rate, big pool, big temp gap
+        adapt_pathogen_thermal(nds, T_celsius=0.0, P_env_pool=5000.0, cfg=cfg)
         assert nds.T_vbnc_local == 8.0
 
     def test_adaptation_minimum_reached_incrementally(self):
@@ -146,86 +163,101 @@ class TestAdaptationRespectsMinimum:
         )
         nds = _make_node_state(12.0)
         for _ in range(1000):
-            adapt_pathogen_thermal(nds, T_celsius=5.0, n_I1=50, n_I2=50,
-                                   n_E=0, n_total=100, cfg=cfg)
+            adapt_pathogen_thermal(nds, T_celsius=5.0, P_env_pool=1000.0, cfg=cfg)
         assert nds.T_vbnc_local == pytest.approx(10.0)
 
 
-class TestReversionWithoutDisease:
-    """When no infected/exposed hosts, T_vbnc_local should revert toward T_vbnc_initial."""
+class TestReversionWithoutBacteria:
+    """When P_env_pool == 0, T_vbnc_local should revert toward T_vbnc_initial."""
 
-    def test_reversion_without_disease(self):
+    def test_reversion_when_pool_zero(self):
         cfg = _make_cfg(pathogen_revert_rate=0.1)
         nds = _make_node_state(10.0)  # already adapted (below initial=12)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=0, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=0.0, cfg=cfg)
         assert nds.T_vbnc_local == pytest.approx(10.1)
 
     def test_reversion_capped_at_initial(self):
         cfg = _make_cfg(pathogen_revert_rate=5.0, T_vbnc_initial=12.0)
         nds = _make_node_state(11.5)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=0, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=0.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
-    def test_no_reversion_when_exposed_present(self):
-        """Reversion only happens when BOTH infected=0 AND exposed=0."""
+    def test_no_reversion_when_pool_present(self):
+        """Reversion only happens when P_env_pool == 0."""
         cfg = _make_cfg(pathogen_revert_rate=0.1)
         nds = _make_node_state(10.0)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=0, n_I2=0,
-                               n_E=5, n_total=100, cfg=cfg)
-        # E>0, so no reversion
+        # Pool > 0 but temp above threshold → no adaptation, but also no reversion
+        adapt_pathogen_thermal(nds, T_celsius=15.0, P_env_pool=100.0, cfg=cfg)
         assert nds.T_vbnc_local == 10.0
 
     def test_no_reversion_at_initial(self):
         """No reversion when already at T_vbnc_initial."""
         cfg = _make_cfg(pathogen_revert_rate=0.1, T_vbnc_initial=12.0)
         nds = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds, T_celsius=8.0, n_I1=0, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=0.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
+
+    def test_revert_rate_zero_means_no_reversion(self):
+        """Default revert_rate=0.0 means no reversion even when pool is zero."""
+        cfg = _make_cfg(pathogen_revert_rate=0.0)
+        nds = _make_node_state(10.0)  # adapted below initial=12
+        for _ in range(1000):
+            adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=0.0, cfg=cfg)
+        assert nds.T_vbnc_local == 10.0  # unchanged — reversion disabled
 
 
 class TestAdaptationScaling:
-    """Adaptation rate should scale with prevalence and temperature gap."""
+    """Adaptation rate should scale with pool_factor and temperature gap."""
 
-    def test_adaptation_rate_scales_with_prevalence(self):
-        cfg = _make_cfg(pathogen_adapt_rate=0.01)
+    def test_adaptation_rate_scales_with_pool_half_saturation(self):
+        """Half-saturation: pool=P_adapt_half → pool_factor=1.0 (capped)."""
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
 
-        # Low prevalence
-        nds_low = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds_low, T_celsius=8.0, n_I1=5, n_I2=5,
-                               n_E=0, n_total=1000, cfg=cfg)
-        delta_low = 12.0 - nds_low.T_vbnc_local
+        # Pool = half of P_adapt_half → factor = 250/500 = 0.5
+        nds_half = _make_node_state(12.0)
+        adapt_pathogen_thermal(nds_half, T_celsius=8.0, P_env_pool=250.0, cfg=cfg)
+        delta_half = 12.0 - nds_half.T_vbnc_local
 
-        # High prevalence
-        nds_high = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds_high, T_celsius=8.0, n_I1=50, n_I2=50,
-                               n_E=0, n_total=200, cfg=cfg)
-        delta_high = 12.0 - nds_high.T_vbnc_local
+        # Pool = P_adapt_half → factor = 500/500 = 1.0
+        nds_full = _make_node_state(12.0)
+        adapt_pathogen_thermal(nds_full, T_celsius=8.0, P_env_pool=500.0, cfg=cfg)
+        delta_full = 12.0 - nds_full.T_vbnc_local
 
-        assert delta_high > delta_low
-        # Verify proportionality: prevalence ratio = (100/200) / (10/1000) = 50x
-        ratio = delta_high / delta_low
-        assert ratio == pytest.approx(50.0, rel=0.01)
+        assert delta_full > delta_half
+        ratio = delta_full / delta_half
+        assert ratio == pytest.approx(2.0, rel=0.01)
+
+    def test_adaptation_saturates_above_half(self):
+        """Pool >> P_adapt_half → pool_factor capped at 1.0."""
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
+
+        # Pool = P_adapt_half → factor = 1.0
+        nds_at = _make_node_state(12.0)
+        adapt_pathogen_thermal(nds_at, T_celsius=8.0, P_env_pool=500.0, cfg=cfg)
+        delta_at = 12.0 - nds_at.T_vbnc_local
+
+        # Pool = 10x P_adapt_half → factor = min(10, 1.0) = 1.0
+        nds_over = _make_node_state(12.0)
+        adapt_pathogen_thermal(nds_over, T_celsius=8.0, P_env_pool=5000.0, cfg=cfg)
+        delta_over = 12.0 - nds_over.T_vbnc_local
+
+        # Both should be equal (saturated)
+        assert delta_over == pytest.approx(delta_at, rel=1e-9)
 
     def test_adaptation_rate_scales_with_temp_gap(self):
-        cfg = _make_cfg(pathogen_adapt_rate=0.01)
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
 
         # Small gap (11°C vs 12°C threshold → gap=1)
         nds_small = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds_small, T_celsius=11.0, n_I1=50, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds_small, T_celsius=11.0, P_env_pool=500.0, cfg=cfg)
         delta_small = 12.0 - nds_small.T_vbnc_local
 
         # Large gap (4°C vs 12°C threshold → gap=8)
         nds_large = _make_node_state(12.0)
-        adapt_pathogen_thermal(nds_large, T_celsius=4.0, n_I1=50, n_I2=0,
-                               n_E=0, n_total=100, cfg=cfg)
+        adapt_pathogen_thermal(nds_large, T_celsius=4.0, P_env_pool=500.0, cfg=cfg)
         delta_large = 12.0 - nds_large.T_vbnc_local
 
         assert delta_large > delta_small
-        # Verify proportionality: gap ratio = 8/1 = 8x
         ratio = delta_large / delta_small
         assert ratio == pytest.approx(8.0, rel=0.01)
 
@@ -268,7 +300,8 @@ class TestConfigValidation:
         config.disease.T_vbnc_initial = 12.0
         config.disease.T_vbnc_min = 6.0
         config.disease.pathogen_adapt_rate = 0.001
-        config.disease.pathogen_revert_rate = 0.0005
+        config.disease.pathogen_revert_rate = 0.0
+        config.disease.P_adapt_half = 500.0
         validate_config(config)  # should not raise
 
     def test_config_validation_skipped_when_disabled(self):
@@ -278,6 +311,32 @@ class TestConfigValidation:
         config.disease.T_vbnc_min = 15.0  # invalid but ignored
         config.disease.T_vbnc_initial = 12.0
         validate_config(config)  # should not raise
+
+    def test_P_adapt_half_default(self):
+        """P_adapt_half should default to 500.0."""
+        cfg = DiseaseSection()
+        assert cfg.P_adapt_half == 500.0
+
+    def test_P_adapt_half_invalid_zero(self):
+        """P_adapt_half must be > 0."""
+        config = SimulationConfig()
+        config.disease.pathogen_adaptation = True
+        config.disease.P_adapt_half = 0.0
+        with pytest.raises(ValueError, match="P_adapt_half"):
+            validate_config(config)
+
+    def test_P_adapt_half_invalid_negative(self):
+        """P_adapt_half must be > 0."""
+        config = SimulationConfig()
+        config.disease.pathogen_adaptation = True
+        config.disease.P_adapt_half = -100.0
+        with pytest.raises(ValueError, match="P_adapt_half"):
+            validate_config(config)
+
+    def test_pathogen_revert_rate_default_zero(self):
+        """pathogen_revert_rate should default to 0.0."""
+        cfg = DiseaseSection()
+        assert cfg.pathogen_revert_rate == 0.0
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -322,21 +381,48 @@ class TestEnvironmentalVibrioLocalThreshold:
 
 
 class TestAdaptationExactCalculation:
-    """Verify exact delta_T calculation."""
+    """Verify exact delta_T calculation with pool-based formula."""
 
-    def test_exact_delta(self):
-        cfg = _make_cfg(pathogen_adapt_rate=0.01)
+    def test_exact_delta_saturated_pool(self):
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
         nds = _make_node_state(12.0)
 
         T_celsius = 8.0
-        n_I1, n_I2, n_total = 10, 10, 100
+        P_env_pool = 1000.0  # > P_adapt_half → pool_factor = 1.0
 
-        adapt_pathogen_thermal(nds, T_celsius, n_I1, n_I2,
-                               n_E=0, n_total=n_total, cfg=cfg)
+        adapt_pathogen_thermal(nds, T_celsius, P_env_pool=P_env_pool, cfg=cfg)
 
-        # Expected: prevalence = 20/100 = 0.2, gap = 12-8 = 4
-        # delta_T = 0.01 * 0.2 * 4 = 0.008
-        expected = 12.0 - 0.008
+        # Expected: pool_factor = min(1000/500, 1.0) = 1.0
+        # gap = 12-8 = 4, delta_T = 0.01 * 1.0 * 4 = 0.04
+        expected = 12.0 - 0.04
+        assert nds.T_vbnc_local == pytest.approx(expected)
+
+    def test_exact_delta_partial_pool(self):
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
+        nds = _make_node_state(12.0)
+
+        T_celsius = 8.0
+        P_env_pool = 250.0  # half of P_adapt_half → pool_factor = 0.5
+
+        adapt_pathogen_thermal(nds, T_celsius, P_env_pool=P_env_pool, cfg=cfg)
+
+        # Expected: pool_factor = 250/500 = 0.5
+        # gap = 12-8 = 4, delta_T = 0.01 * 0.5 * 4 = 0.02
+        expected = 12.0 - 0.02
+        assert nds.T_vbnc_local == pytest.approx(expected)
+
+    def test_exact_delta_at_half_saturation(self):
+        cfg = _make_cfg(pathogen_adapt_rate=0.01, P_adapt_half=500.0)
+        nds = _make_node_state(12.0)
+
+        T_celsius = 8.0
+        P_env_pool = 500.0  # exactly P_adapt_half → pool_factor = 1.0
+
+        adapt_pathogen_thermal(nds, T_celsius, P_env_pool=P_env_pool, cfg=cfg)
+
+        # pool_factor = min(500/500, 1.0) = 1.0
+        # delta_T = 0.01 * 1.0 * 4 = 0.04
+        expected = 12.0 - 0.04
         assert nds.T_vbnc_local == pytest.approx(expected)
 
 

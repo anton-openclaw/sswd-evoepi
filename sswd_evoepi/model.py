@@ -2325,10 +2325,7 @@ def run_spatial_simulation(
                     adapt_pathogen_thermal(
                         node_disease_states[i],
                         node.current_sst,
-                        node_disease_states[i].n_I1,
-                        node_disease_states[i].n_I2,
-                        node_disease_states[i].n_E,
-                        int(np.sum(node.agents['alive'])),
+                        node_disease_states[i].P_env_pool,
                         dis_cfg,
                     )
 

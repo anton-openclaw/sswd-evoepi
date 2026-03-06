@@ -702,36 +702,33 @@ class NodeDiseaseState:
 def adapt_pathogen_thermal(
     node_state: NodeDiseaseState,
     T_celsius: float,
-    n_I1: int,
-    n_I2: int,
-    n_E: int,
-    n_total: int,
+    P_env_pool: float,
     cfg: DiseaseSection,
 ) -> None:
     """Update per-node T_vbnc based on pathogen thermal adaptation.
 
-    When temperature is below the local threshold and infected hosts
-    are present, cold-adapted strains are selected. Rate proportional
-    to prevalence × temperature gap.
+    When temperature is below the local threshold and the bacterial
+    community (P_env_pool) is present, cold-adapted strains are
+    selected. Rate follows Michaelis-Menten saturation with
+    ``P_adapt_half`` and scales with the temperature gap.
 
-    When no infected hosts present, adapted strains revert toward
-    T_vbnc_initial (loss of selection pressure).
+    When P_env_pool == 0, adapted strains revert toward
+    T_vbnc_initial (controlled by ``pathogen_revert_rate``,
+    default 0.0 — effectively disabled).
     """
     if not cfg.pathogen_adaptation:
         return
 
-    infected = n_I1 + n_I2
-
-    if infected > 0 and T_celsius < node_state.T_vbnc_local:
-        prevalence = infected / max(n_total, 1)
+    if P_env_pool > 0 and T_celsius < node_state.T_vbnc_local:
+        pool_factor = min(P_env_pool / max(cfg.P_adapt_half, 1e-9), 1.0)
         temp_gap = node_state.T_vbnc_local - T_celsius
-        delta_T = cfg.pathogen_adapt_rate * prevalence * temp_gap
+        delta_T = cfg.pathogen_adapt_rate * pool_factor * temp_gap
         node_state.T_vbnc_local = max(
             node_state.T_vbnc_local - delta_T,
             cfg.T_vbnc_min
         )
-    elif infected == 0 and n_E == 0 and node_state.T_vbnc_local < cfg.T_vbnc_initial:
-        # Reversion: cold-adapted strains lose advantage without hosts
+    elif P_env_pool == 0 and node_state.T_vbnc_local < cfg.T_vbnc_initial:
+        # Reversion: only when no bacteria at all
         node_state.T_vbnc_local = min(
             node_state.T_vbnc_local + cfg.pathogen_revert_rate,
             cfg.T_vbnc_initial
