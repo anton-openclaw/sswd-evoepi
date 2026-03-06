@@ -681,6 +681,9 @@ class NodeDiseaseState:
     # Per-node VBNC threshold (pathogen thermal adaptation)
     T_vbnc_local: float = 12.0
 
+    # Community mean virulence (pathogen community evolution)
+    v_local: float = 0.5
+
     # Carcass tracker
     carcass_tracker: CarcassTracker = field(default_factory=CarcassTracker)
 

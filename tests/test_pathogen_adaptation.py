@@ -431,12 +431,12 @@ class TestAdaptationExactCalculation:
 # ══════════════════════════════════════════════════════════════════════
 
 class TestInheritTVbnc:
-    """Tests for _inherit_T_vbnc helper function."""
+    """Tests for _inherit_pathogen_traits helper function."""
 
     def test_inherit_basic(self):
         """Target node inherits weighted-average T_vbnc from reached sources."""
         from scipy.sparse import csr_matrix
-        from sswd_evoepi.model import _inherit_T_vbnc
+        from sswd_evoepi.model import _inherit_pathogen_traits
 
         # 3 nodes: 0 and 1 reached, 2 is target
         nds_list = [NodeDiseaseState(node_id=i) for i in range(3)]
@@ -456,7 +456,7 @@ class TestInheritTVbnc:
         ]))
 
         cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
-        _inherit_T_vbnc(2, nds_list, disease_reached, D_T, P, cfg)
+        _inherit_pathogen_traits(2, nds_list, disease_reached, D_T, P, cfg)
 
         # Expected: weighted avg = (0.6*100*9.0 + 0.3*50*10.0) / (0.6*100 + 0.3*50)
         #         = (540 + 150) / (60 + 15) = 690 / 75 = 9.2
@@ -465,7 +465,7 @@ class TestInheritTVbnc:
     def test_inherit_no_reached_sources(self):
         """When no reached sources contribute, T_vbnc stays at default."""
         from scipy.sparse import csr_matrix
-        from sswd_evoepi.model import _inherit_T_vbnc
+        from sswd_evoepi.model import _inherit_pathogen_traits
 
         nds_list = [NodeDiseaseState(node_id=i) for i in range(2)]
         nds_list[0].T_vbnc_local = 9.0
@@ -480,14 +480,14 @@ class TestInheritTVbnc:
         ]))
 
         cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
-        _inherit_T_vbnc(1, nds_list, disease_reached, D_T, P, cfg)
+        _inherit_pathogen_traits(1, nds_list, disease_reached, D_T, P, cfg)
 
         assert nds_list[1].T_vbnc_local == 12.0  # unchanged
 
     def test_inherit_single_source(self):
         """With a single source, target inherits that source's T_vbnc."""
         from scipy.sparse import csr_matrix
-        from sswd_evoepi.model import _inherit_T_vbnc
+        from sswd_evoepi.model import _inherit_pathogen_traits
 
         nds_list = [NodeDiseaseState(node_id=i) for i in range(2)]
         nds_list[0].T_vbnc_local = 8.5
@@ -502,7 +502,7 @@ class TestInheritTVbnc:
         ]))
 
         cfg = DiseaseSection(pathogen_adaptation=True, T_vbnc_initial=12.0)
-        _inherit_T_vbnc(1, nds_list, disease_reached, D_T, P, cfg)
+        _inherit_pathogen_traits(1, nds_list, disease_reached, D_T, P, cfg)
 
         assert nds_list[1].T_vbnc_local == pytest.approx(8.5)
 
