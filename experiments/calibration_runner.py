@@ -229,6 +229,12 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
             region_details[region]['final_mean_T_vbnc'] = float(
                 np.mean(result.T_vbnc_local[idxs])
             )
+
+        # Community virulence: per-region mean final v_local
+        if result.v_local is not None:
+            region_details[region]['final_mean_v_local'] = float(
+                np.mean(result.v_local[idxs])
+            )
     
     return region_recovery, region_details
 
