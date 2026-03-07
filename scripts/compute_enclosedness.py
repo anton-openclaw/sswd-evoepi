@@ -268,13 +268,75 @@ def combine_metrics(normalized_tortuosity: np.ndarray, enclosedness_rays: np.nda
     return np.clip(combined, 0.0, 1.0)
 
 
-def map_to_flushing_rate(combined_enclosedness: np.ndarray, 
-                        phi_open: float = 0.8, phi_fjord: float = 0.03) -> np.ndarray:
+def compute_fjord_depth(sites: List[Dict], distance_matrix: np.ndarray,
+                        enclosedness: np.ndarray,
+                        open_threshold: float = 0.3) -> np.ndarray:
+    """Compute 'fjord depth' — over-water distance to nearest open-coast site.
+
+    Sites classified as open coast (enclosedness < open_threshold) get depth 0.
+    All other sites get the minimum over-water distance to any open-coast site.
+    This distinguishes fjord mouths (close to open water) from fjord heads
+    (far from open water along the waterway).
+
+    Returns array of fjord depths in km, one per site.
     """
-    Map enclosedness to flushing rate.
-    phi = phi_open * (1 - combined) + phi_fjord * combined
+    n = len(sites)
+    open_mask = enclosedness < open_threshold
+    open_indices = np.where(open_mask)[0]
+    print(f"  Open-coast sites (enclosedness < {open_threshold}): {len(open_indices)}/{n}")
+
+    fjord_depth = np.zeros(n)
+    if len(open_indices) == 0:
+        print("  WARNING: No open-coast sites found! Using all zeros.")
+        return fjord_depth
+
+    for i in range(n):
+        if open_mask[i]:
+            fjord_depth[i] = 0.0
+        else:
+            # Min over-water distance to any open-coast site
+            dists = distance_matrix[i, open_indices]
+            valid = dists[np.isfinite(dists) & (dists > 0)]
+            if len(valid) > 0:
+                fjord_depth[i] = np.min(valid)
+            else:
+                fjord_depth[i] = 0.0  # disconnected — treat as open
+
+    print(f"  Fjord depth stats: min={np.min(fjord_depth):.1f} km, "
+          f"median={np.median(fjord_depth):.1f} km, "
+          f"max={np.max(fjord_depth):.1f} km, "
+          f"mean={np.mean(fjord_depth):.1f} km")
+    return fjord_depth
+
+
+def normalize_fjord_depth(fjord_depth: np.ndarray,
+                          max_depth_km: float = 200.0) -> np.ndarray:
+    """Normalize fjord depth to [0, 1].
+    0 km → 0.0, ≥ max_depth_km → 1.0, linear between.
     """
-    flushing_rates = phi_open * (1.0 - combined_enclosedness) + phi_fjord * combined_enclosedness
+    return np.clip(fjord_depth / max_depth_km, 0.0, 1.0)
+
+
+def map_to_flushing_rate(combined_enclosedness: np.ndarray,
+                         fjord_depth_norm: np.ndarray = None,
+                         phi_open: float = 0.8, phi_fjord: float = 0.03) -> np.ndarray:
+    """Map enclosedness + fjord depth to flushing rate.
+
+    If fjord_depth_norm is provided, we use a two-factor model:
+        effective_enclosedness = enclosedness * (0.5 + 0.5 * fjord_depth_norm)
+    This means:
+    - Open coast (low enclosedness): φ ≈ phi_open regardless of depth
+    - Enclosed + at mouth (depth~0): φ intermediate (encl * 0.5)
+    - Enclosed + deep in fjord (depth~1): φ ≈ phi_fjord (full enclosedness)
+    """
+    if fjord_depth_norm is not None:
+        # Fjord depth amplifies enclosedness: mouth gets 50% effect, head gets 100%
+        effective = combined_enclosedness * (0.5 + 0.5 * fjord_depth_norm)
+        effective = np.clip(effective, 0.0, 1.0)
+    else:
+        effective = combined_enclosedness
+
+    flushing_rates = phi_open * (1.0 - effective) + phi_fjord * effective
     return flushing_rates
 
 
@@ -337,9 +399,18 @@ def main():
     print("\n=== Combining Metrics ===")
     normalized_tortuosity = normalize_tortuosity(tortuosity_ratios)
     combined_enclosedness = combine_metrics(normalized_tortuosity, enclosedness_rays)
-    flushing_rates = map_to_flushing_rate(combined_enclosedness)
-    
-    print(f"Combined enclosedness stats: min={np.min(combined_enclosedness):.3f}, "
+
+    # Compute fjord depth — distance to open ocean along waterway
+    print("\n=== Computing Fjord Depth ===")
+    fjord_depth = compute_fjord_depth(sites, distance_matrix, combined_enclosedness,
+                                      open_threshold=0.3)
+    fjord_depth_norm = normalize_fjord_depth(fjord_depth, max_depth_km=200.0)
+    print(f"Normalized fjord depth stats: min={np.min(fjord_depth_norm):.3f}, "
+          f"mean={np.mean(fjord_depth_norm):.3f}, max={np.max(fjord_depth_norm):.3f}")
+
+    flushing_rates = map_to_flushing_rate(combined_enclosedness, fjord_depth_norm)
+
+    print(f"\nCombined enclosedness stats: min={np.min(combined_enclosedness):.3f}, "
           f"mean={np.mean(combined_enclosedness):.3f}, max={np.max(combined_enclosedness):.3f}")
     print(f"Flushing rate stats: min={np.min(flushing_rates):.3f}, "
           f"mean={np.mean(flushing_rates):.3f}, max={np.max(flushing_rates):.3f}")
@@ -362,6 +433,8 @@ def main():
             "horizon_exposure": float(horizon_exposures[i]),
             "enclosedness_rays": float(enclosedness_rays[i]),
             "enclosedness_combined": float(combined_enclosedness[i]),
+            "fjord_depth_km": float(fjord_depth[i]),
+            "fjord_depth_norm": float(fjord_depth_norm[i]),
             "flushing_rate": float(flushing_rates[i])
         }
         output_data.append(site_result)
@@ -370,7 +443,8 @@ def main():
         csv_row = [
             site["name"], lat, lon, site["region"],
             tortuosity_ratios[i], horizon_exposures[i], enclosedness_rays[i],
-            combined_enclosedness[i], flushing_rates[i]
+            combined_enclosedness[i], fjord_depth[i], fjord_depth_norm[i],
+            flushing_rates[i]
         ]
         csv_rows.append(csv_row)
     
@@ -382,7 +456,8 @@ def main():
     # Save CSV
     csv_df = pd.DataFrame(csv_rows, columns=[
         'name', 'lat', 'lon', 'region', 'tortuosity_ratio', 'horizon_exposure',
-        'enclosedness_rays', 'enclosedness_combined', 'flushing_rate'
+        'enclosedness_rays', 'enclosedness_combined',
+        'fjord_depth_km', 'fjord_depth_norm', 'flushing_rate'
     ])
     csv_df.to_csv(output_csv_path, index=False)
     print(f"Saved CSV results to {output_csv_path}")
