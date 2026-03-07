@@ -84,16 +84,38 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
     else:
         K_values = np.full(n_sites, K, dtype=int)
 
+    # Load per-site enclosedness-derived flushing rates
+    encl_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'nodes', 'site_enclosedness.json')
+    encl_by_name = {}
+    if os.path.exists(encl_path):
+        with open(encl_path) as ef:
+            encl_data = json.load(ef)
+        for entry in encl_data:
+            encl_by_name[entry['name']] = entry
+        print(f"Loaded enclosedness data for {len(encl_by_name)} sites")
+    else:
+        print("WARNING: site_enclosedness.json not found — using uniform φ=0.5")
+
     node_defs = []
     for i, site in enumerate(sites):
         lat = float(site['latitude'])
         lon = float(site['longitude'])
         region = site.get('region', '?')
-        is_fjord = region in ('BC-N', 'AK-PWS') and lat > 50.0
-        
+        site_name = site['name']
+
+        # Use enclosedness-derived flushing rate if available
+        encl = encl_by_name.get(site_name)
+        if encl:
+            phi = encl['flushing_rate']
+            enclosedness = encl['enclosedness_combined']
+            is_fjord = enclosedness > 0.6  # algorithmically determined
+        else:
+            is_fjord = region in ('BC-N', 'AK-PWS') and lat > 50.0
+            phi = 0.03 if is_fjord else 0.5
+
         nd = NodeDefinition(
             node_id=i,
-            name=site['name'],
+            name=site_name,
             lat=lat,
             lon=lon,
             subregion=region,
@@ -101,7 +123,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
             carrying_capacity=int(K_values[i]),
             is_fjord=is_fjord,
             sill_depth=30.0 if is_fjord else np.inf,
-            flushing_rate=0.03 if is_fjord else 0.5,
+            flushing_rate=phi,
             mean_sst=_estimate_mean_sst(lat),
             sst_amplitude=_estimate_sst_amplitude(lat),
             sst_trend=0.02,
