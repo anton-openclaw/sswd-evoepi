@@ -172,7 +172,21 @@ class DiseaseSection:
     # Pathogen thermal adaptation
     pathogen_adaptation: bool = False       # Enable per-node T_vbnc evolution
     T_vbnc_initial: float = 12.0           # Starting VBNC threshold (°C)
-    T_vbnc_min: float = 6.0                # Biophysical floor — hard limit on cold adaptation
+    T_vbnc_min: float = 9.0                # Biophysical floor — hard limit on cold adaptation
+    #   Justification for T_vbnc_min = 9°C:
+    #   - Most Vibrio spp. enter VBNC (dormant, non-pathogenic) below ~10°C
+    #     (V. vulnificus, V. cholerae, V. parahaemolyticus — Oliver 2005, Colwell 2000)
+    #   - V. splendidus JZ6 (same clade as V. pectenicida): peak virulence AT 10°C,
+    #     virulence lost at 28°C (Zhang et al. 2016). 10°C is the cold extreme for
+    #     pathogenic activity even in cold-adapted splendidus clade members.
+    #   - V. pectenicida can GROW at 4°C (ABIS database) but pathogenic growth range
+    #     is 15-37°C (Lambert et al. 1998). Growth ≠ pathogenicity.
+    #   - Experimental evolution: V. fischeri required 2000 generations (~3-5 yr) to
+    #     adapt to 8°C stress, with fitness trade-offs (Cohen et al. 2019).
+    #   - 9°C chosen as compromise: below the 10°C VBNC threshold but above
+    #     the ~8°C experimental evolution floor. Gives Alaska 3-4 months of
+    #     winter disease-free refuge (SST 3-5°C) that allows population recovery.
+    #   See: specs/vibrio_thermal_limits_review.md for full literature review.
     pathogen_adapt_rate: float = 0.001     # °C/day per unit selection pressure
     pathogen_revert_rate: float = 0.0      # Reversion speed when disease absent (°C/day)
     P_adapt_half: float = 500.0            # Half-saturation constant for pool-driven adaptation
