@@ -697,9 +697,15 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Load param overrides
+    # Load config file (may be nested {param_overrides: {...}, K: ...} or flat)
     with open(args.config) as f:
-        param_overrides = json.load(f)
+        config_data = json.load(f)
+    
+    # Unwrap nested format if present
+    if 'param_overrides' in config_data and isinstance(config_data['param_overrides'], dict):
+        param_overrides = config_data['param_overrides']
+    else:
+        param_overrides = config_data
     
     # Extract K_cv from CLI or param_overrides
     K_cv = args.K_cv
