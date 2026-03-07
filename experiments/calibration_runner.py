@@ -61,7 +61,7 @@ def load_sites() -> List[dict]:
 
 
 def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
-                    seed: int = 42) -> List[NodeDefinition]:
+                    seed: int = 42, n_connectivity: float = 1.0) -> List[NodeDefinition]:
     """Build NodeDefinition list from site JSON.
 
     Args:
@@ -84,7 +84,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
     else:
         K_values = np.full(n_sites, K, dtype=int)
 
-    # Load per-site enclosedness-derived flushing rates
+    # Load per-site enclosedness metrics (raw — φ computed at runtime)
     encl_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'nodes', 'site_enclosedness.json')
     encl_by_name = {}
     if os.path.exists(encl_path):
@@ -96,6 +96,11 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
     else:
         print("WARNING: site_enclosedness.json not found — using uniform φ=0.5")
 
+    # Connectivity parameters
+    phi_open = 0.8    # flushing rate for fully open coast
+    phi_fjord = 0.03  # flushing rate for maximally enclosed fjord head
+    n_conn = n_connectivity  # nonlinearity exponent (1=linear, >1=sharper contrast)
+
     node_defs = []
     for i, site in enumerate(sites):
         lat = float(site['latitude'])
@@ -103,12 +108,18 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
         region = site.get('region', '?')
         site_name = site['name']
 
-        # Use enclosedness-derived flushing rate if available
+        # Compute flushing rate from enclosedness metrics at runtime
         encl = encl_by_name.get(site_name)
         if encl:
-            phi = encl['flushing_rate']
             enclosedness = encl['enclosedness_combined']
-            is_fjord = enclosedness > 0.6  # algorithmically determined
+            depth_norm = encl.get('fjord_depth_norm', 0.0)
+            # Effective enclosedness: fjord depth amplifies (mouth=50%, head=100%)
+            effective = enclosedness * (0.5 + 0.5 * depth_norm)
+            effective = min(effective, 1.0)
+            # Apply connectivity nonlinearity
+            effective_nl = effective ** n_conn
+            phi = phi_open * (1.0 - effective_nl) + phi_fjord * effective_nl
+            is_fjord = enclosedness > 0.6
         else:
             is_fjord = region in ('BC-N', 'AK-PWS') and lat > 50.0
             phi = 0.03 if is_fjord else 0.5
@@ -136,10 +147,11 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
 
 def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        D_P: float = 15.0, D_P_max_range: float = None,
-                       K_cv: float = 0.0):
+                       K_cv: float = 0.0, n_connectivity: float = 1.0):
     """Build 896-node network with overwater distances."""
     sites = load_sites()
-    node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed)
+    node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed,
+                                n_connectivity=n_connectivity)
     npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
     
     network = build_network(
@@ -703,13 +715,16 @@ def main():
     D_P = param_overrides.pop('spatial.D_P', 15.0)
     D_P_max_range = param_overrides.pop('spatial.D_P_max_range', None)
     D_L = param_overrides.pop('spatial.D_L', args.D_L)
+    n_connectivity = float(param_overrides.pop('spatial.n_connectivity', 1.0))
+    # Store it back so it appears in output metadata
+    param_overrides['spatial.n_connectivity'] = n_connectivity
     
     # Build network (once, shared across seeds)
-    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range})...")
+    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity})...")
     t0 = time.time()
     sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
                                          D_P=D_P, D_P_max_range=D_P_max_range,
-                                         K_cv=K_cv)
+                                         K_cv=K_cv, n_connectivity=n_connectivity)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config
