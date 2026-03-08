@@ -1,0 +1,412 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{array}
+
+% Colors
+\definecolor{sweep}{HTML}{E74C3C}
+\definecolor{fix}{HTML}{95A5A6}
+\definecolor{border}{HTML}{F39C12}
+\definecolor{newparam}{HTML}{3498DB}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SA Parameter Selection Report}
+\fancyhead[R]{\small SSWD-EvoEpi Model}
+\fancyfoot[C]{\thepage}
+
+% Hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+}
+
+% Compact lists
+\setlist{nosep,leftmargin=*}
+
+\title{\textbf{Parameter Selection for Full-Model Sensitivity Analysis}\\[6pt]
+\large Fix vs.\ Sweep Recommendations for 896-Node SSWD-EvoEpi Model}
+\author{Anton Star \and Willem Weertman}
+\date{March 7, 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+We recommend \textbf{13 free (SWEEP) parameters} and 47 fixed parameters for the full-model (896-node) Morris + Sobol sensitivity analysis of the SSWD-EvoEpi agent-based model. This reduction from 60 total parameters makes the analysis computationally feasible ($\sim$5 hours for Morris, $\sim$4 days for Sobol on a 48-core Xeon). Parameter selection is based on (1) SA R4 Sobol total-order indices from 25,088 model evaluations, (2) 134 calibration rounds on the full 896-node model, and (3) structural analysis of model changes since SA R4. Seven of the 13 SWEEP parameters are \emph{new} (not in SA R4), reflecting the fundamental model restructuring for dynamic environmental pathogen pools, wavefront disease spread, and enclosedness-based flushing.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%----------------------------------------------------------------------
+\section{Executive Summary}
+%----------------------------------------------------------------------
+
+The SSWD-EvoEpi model has 60 parameters across 7 modules. The full-model SA on the 896-node spatial network requires $\sim$35 minutes per run, making exhaustive analysis of all 60 parameters infeasible. We reduce the free parameter count to 13.
+
+\subsection*{Key Decisions}
+
+\begin{enumerate}
+    \item \textbf{13 SWEEP parameters}: 6 from SA R4 top tier (SA-validated) + 7 new parameters (untested, high expected influence).
+    \item \textbf{47 FIX parameters}: 41 from SA R4 bottom tiers ($S_T < 0.04$) + 6 new parameters with literature constraints or structural roles.
+    \item \textbf{P\_env\_max is structurally obsolete}: SA R4's \#3 parameter ($S_T = 0.251$) is no longer used in the dynamic P\_env model. Its role is absorbed by \texttt{alpha\_env}, \texttt{delta\_env}, and \texttt{P\_env\_floor}.
+    \item \textbf{alpha\_env is expected to dominate}: In 134 calibration rounds, this single parameter drove more outcome variation than any other. It must be swept.
+\end{enumerate}
+
+%----------------------------------------------------------------------
+\section{Background: SA R4 Results}
+%----------------------------------------------------------------------
+
+SA R4 evaluated 47 parameters on an 11-node stepping-stone network. Table~\ref{tab:r4_top} shows the top 13 parameters by Sobol $S_T$ for \texttt{pop\_crash\_pct}.
+
+\begin{table}[H]
+\centering
+\caption{SA R4 top 13 parameters by Sobol $S_T$ (pop\_crash\_pct). Parameters above the dashed line are included in the SWEEP set; those below are fixed.}
+\label{tab:r4_top}
+\begin{tabular}{rllrrrl}
+\toprule
+\textbf{Rank} & \textbf{Parameter} & \textbf{Module} & $S_1$ & $S_T$ & \textbf{Morris $\mu^*$} & \textbf{Decision} \\
+\midrule
+1 & K\_half & Disease & 0.182 & 0.456 & 0.622 & \textcolor{sweep}{\textbf{SWEEP}} \\
+2 & a\_exposure & Disease & 0.112 & 0.337 & 0.379 & \textcolor{sweep}{\textbf{SWEEP}} \\
+3 & P\_env\_max & Disease & 0.049 & 0.251 & 0.598 & \textcolor{fix}{FIX (obsolete)} \\
+4 & sigma\_2\_eff & Disease & 0.041 & 0.232 & 0.431 & \textcolor{sweep}{\textbf{SWEEP}} \\
+5 & sigma\_D & Disease & 0.075 & 0.141 & 0.211 & \textcolor{border}{FIX (borderline)} \\
+\hdashline
+6 & T\_vbnc & Disease & $-$0.015 & 0.040 & 0.355 & \textcolor{sweep}{\textbf{SWEEP}} \\
+7 & k\_growth & Population & $-$0.009 & 0.035 & 0.633 & \textcolor{sweep}{\textbf{SWEEP}} \\
+8 & peak\_width\_days & Spawning & 0.018 & 0.035 & 0.391 & \textcolor{border}{FIX (borderline)} \\
+9 & settler\_survival & Population & 0.010 & 0.033 & 0.509 & \textcolor{sweep}{\textbf{SWEEP}} \\
+10 & target\_mean\_r & Genetics & 0.008 & 0.021 & 0.236 & \textcolor{border}{FIX (borderline)} \\
+11 & n\_resistance & Genetics & 0.029 & 0.020 & 0.525 & \textcolor{sweep}{\textbf{SWEEP}} \\
+12 & sigma\_1\_eff & Disease & 0.005 & 0.016 & 0.245 & \textcolor{fix}{FIX} \\
+13 & mu\_I2D\_ref & Disease & 0.000 & 0.014 & 0.419 & \textcolor{fix}{FIX} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Bottom quartile:} All 34 parameters ranked 14--47 have $S_T < 0.010$. These are unambiguously safe to fix.
+
+%----------------------------------------------------------------------
+\section{Model Changes Since SA R4}
+%----------------------------------------------------------------------
+
+Five structural changes affect parameter importance:
+
+\begin{enumerate}
+    \item \textbf{Dynamic P\_env} replaces static \texttt{P\_env\_max}. Environmental pathogen concentration is now driven by host shedding (\texttt{alpha\_env}), natural decay (\texttt{delta\_env}), and a community-maintained floor (\texttt{P\_env\_floor}).
+    \item \textbf{Wavefront disease spread} with cumulative dose threshold (\texttt{CDT}) and long-range dispersal (\texttt{wavefront\_D\_P}).
+    \item \textbf{Enclosedness-based flushing} via GIS-derived metrics, with nonlinearity exponent \texttt{n\_connectivity}.
+    \item \textbf{Pathogen thermal adaptation}: per-site \texttt{T\_vbnc\_local} evolves toward local SST, bounded by \texttt{T\_vbnc\_min} = 9$^\circ$C.
+    \item \textbf{Community virulence evolution}: per-site \texttt{v\_local} evolves based on host density and temperature.
+\end{enumerate}
+
+These changes introduce 13 new parameters not evaluated in SA R4. Seven of these are recommended for SWEEP.
+
+%----------------------------------------------------------------------
+\section{SWEEP Parameters (13)}
+%----------------------------------------------------------------------
+
+\subsection{Disease Transmission Core (3)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Min} & \textbf{Max} & \textbf{Scale} & \textbf{Reason} \\
+\midrule
+K\_half & 87{,}000 & 20{,}000 & 200{,}000 & log & (E) $S_T = 0.456$ \\
+a\_exposure & 0.75 & 0.30 & 1.50 & linear & (E) $S_T = 0.337$ \\
+sigma\_2\_eff & 50.0 & 10 & 250 & log & (E) $S_T = 0.232$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent These three parameters form the irreducible dose-response and shedding feedback kernel. SA R4 showed they collectively account for $>$70\% of total-order variance for population crash. Their role is unchanged by the model restructuring.
+
+\subsection{Dynamic P\_env System (3)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Min} & \textbf{Max} & \textbf{Scale} & \textbf{Reason} \\
+\midrule
+\textcolor{newparam}{alpha\_env} & 0.10 & 0.01 & 0.50 & log & (F,G,H) Gradient driver \\
+\textcolor{newparam}{delta\_env} & 0.05 & 0.01 & 0.20 & log & (F,G,H) Pool persistence \\
+\textcolor{newparam}{P\_env\_floor} & 50.0 & 5 & 500 & log & (F,G,H) Chronic pressure \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent \texttt{alpha\_env} is \textbf{the single most important calibration parameter} discovered in rounds W01--W134. It controls the fraction of host shedding entering the environmental pathogen pool---the mechanism creating the north-south recovery gradient. \texttt{delta\_env} determines pool persistence (half-life 3.5--70 days across the sweep range). \texttt{P\_env\_floor} sets chronic disease pressure from the multi-species vibrio community.
+
+\subsection{Wavefront Dynamics (2)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Min} & \textbf{Max} & \textbf{Scale} & \textbf{Reason} \\
+\midrule
+\textcolor{newparam}{CDT} & 10.0 & 1 & 100 & log & (F,H) Wavefront speed \\
+\textcolor{newparam}{wavefront\_D\_P} & 150.0 & 50 & 500 & log & (F,H) Long-range dispersal \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent CDT and \texttt{wavefront\_D\_P} jointly control crash timing---the observed 3-year south-to-north wavefront (Gravem et al.\ 2021). Higher CDT means more accumulated dose before activation (slower wavefront); larger \texttt{wavefront\_D\_P} means further pathogen reach per timestep.
+
+\subsection{Spatial Structure (1)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Min} & \textbf{Max} & \textbf{Scale} & \textbf{Reason} \\
+\midrule
+\textcolor{newparam}{n\_connectivity} & 1.0 & 0.3 & 3.0 & linear & (F,G,H) Flushing nonlinearity \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Controls whether flushing rate drops sharply at moderate enclosedness ($n < 1$) or mostly at high enclosedness ($n > 1$). Flushing literature (Liu et al.\ 2019) suggests $n \approx 0.5$--$0.7$ but with substantial uncertainty. Directly modulates pathogen retention in enclosed sites (PWS, Hood Canal).
+
+\subsection{Temperature \& Demography (4)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llrrrl}
+\toprule
+\textbf{Parameter} & \textbf{Default} & \textbf{Min} & \textbf{Max} & \textbf{Scale} & \textbf{Reason} \\
+\midrule
+T\_vbnc & 12.0 & 8 & 15 & linear & (E,H) $S_T = 0.040$ \\
+k\_growth & 0.08 & 0.03 & 0.15 & linear & (E) $S_T = 0.035$ \\
+settler\_survival & 0.001 & 0.005 & 0.10 & log & (E) $S_T = 0.033$ \\
+n\_resistance & 17 & 5 & 30 & linear & (E,H) $S_T = 0.275^*$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent $^*$\texttt{n\_resistance} $S_T = 0.020$ for \texttt{pop\_crash\_pct} but $S_T = 0.275$ for \texttt{resistance\_shift\_mean}. It is the dominant parameter for all evolutionary outcomes.
+
+%----------------------------------------------------------------------
+\section{FIX Parameters (47)}
+%----------------------------------------------------------------------
+
+\subsection{Reason Codes}
+
+\begin{tabular}{cl}
+\toprule
+\textbf{Code} & \textbf{Meaning} \\
+\midrule
+A & SA R4 showed insensitive (low $\mu^*$, low $S_T$) \\
+B & Well-constrained by literature \\
+C & Structural/design choice \\
+D & Computationally necessary \\
+\bottomrule
+\end{tabular}
+
+\subsection{Complete Fixed Parameter Table}
+
+\begin{footnotesize}
+\begin{longtable}{llrlp{5.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Module} & \textbf{Value} & \textbf{Code} & \textbf{Notes} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Module} & \textbf{Value} & \textbf{Code} & \textbf{Notes} \\
+\midrule
+\endhead
+\multicolumn{5}{l}{\textit{Disease (original)}} \\
+\midrule
+sigma\_1\_eff & Disease & 5.0 & A & $S_T = 0.016$ \\
+sigma\_D & Disease & 15.0 & A$^*$ & $S_T = 0.141$ in R4; alpha\_env subsumes role \\
+rho\_rec & Disease & 0.05 & A & $S_T = 0.004$; Morris \#1 inflated by interactions \\
+mu\_EI1\_ref & Disease & 0.233 & A,B & $S_T = 0.004$; Prentice 2025 \\
+mu\_I1I2\_ref & Disease & 0.434 & A,B & $S_T = 0.009$ \\
+mu\_I2D\_ref & Disease & 0.563 & A,B & $S_T = 0.014$; borderline \\
+P\_env\_max & Disease & 500.0 & C & Obsolete: replaced by dynamic P\_env \\
+T\_ref & Disease & 20.0 & A,B & $S_T = 0.004$; \textit{V.\ pectenicida} optimum \\
+s\_min & Disease & 10.0 & A,B & $S_T = 0.004$; Vibrio salinity req. \\
+susc.\ multiplier & Disease & 2.0 & A & $S_T = 0.003$; superseded by genetics \\
+immunosupp.\ dur. & Disease & 28 & A & $S_T = 0.005$ \\
+min\_susc.\ age & Disease & 0 & A & $S_T = 0.010$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Disease (new)}} \\
+\midrule
+k\_vbnc & Disease & 1.0 & C & Standard sigmoid steepness \\
+T\_vbnc\_min & Disease & 9.0 & B & Vibrio biophysical floor (see thermal review) \\
+path.\ adapt.\ rate & Disease & 0.001 & B,G & Calibration-narrowed \\
+v\_adapt\_rate & Disease & 0.001 & G & Secondary to alpha\_env \\
+K\_cv & Population & 0.0 & C,D & Stochastic, not gradient driver \\
+\midrule
+\multicolumn{5}{l}{\textit{Spatial}} \\
+\midrule
+D\_L & Spatial & 400.0 & A & $S_T = 0.003$ \\
+D\_P & Spatial & 15.0 & A,B & Standard kernel \\
+alpha\_self\_fjord & Spatial & 0.30 & A & $S_T = 0.004$ \\
+alpha\_self\_open & Spatial & 0.10 & A & $S_T = 0.003$ \\
+phi\_open & Spatial & 0.80 & C & Boundary condition \\
+phi\_fjord & Spatial & 0.03 & C & Boundary condition \\
+\midrule
+\multicolumn{5}{l}{\textit{Population}} \\
+\midrule
+F0 & Population & $10^7$ & A & $S_T = 0.004$ \\
+gamma\_fert & Population & 4.5 & A & $S_T = 0.004$ \\
+alpha\_srs & Population & 1.35 & A & $S_T = 0.004$ \\
+senescence\_age & Population & 50.0 & A & $S_T = 0.003$ \\
+L\_min\_repro & Population & 400.0 & A & $S_T = 0.002$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Genetics}} \\
+\midrule
+n\_tolerance & Genetics & 17 & A & $S_T = 0.004$ \\
+target\_mean\_r & Genetics & 0.15 & A & $S_T = 0.021$; degenerate with n\_resistance \\
+target\_mean\_t & Genetics & 0.10 & A & $S_T = 0.004$ \\
+target\_mean\_c & Genetics & 0.02 & A & $S_T = 0.003$ \\
+tau\_max & Genetics & 0.85 & A & $S_T = 0.005$ \\
+q\_init\_beta\_a & Genetics & 2.0 & A & $S_T = 0.004$ \\
+q\_init\_beta\_b & Genetics & 8.0 & A & $S_T = 0.003$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Spawning}} \\
+\midrule
+peak\_width\_days & Spawning & 60.0 & A$^*$ & $S_T = 0.035$; borderline \\
+p\_spont.\ female & Spawning & 0.012 & A & $S_T = 0.004$ \\
+p\_spont.\ male & Spawning & 0.0125 & A & $S_T = 0.004$ \\
+fem.\ max\_bouts & Spawning & 2 & A & $S_T = 0.004$ \\
+ind.\ f$\to$m & Spawning & 0.80 & A & $S_T = 0.004$ \\
+ind.\ m$\to$f & Spawning & 0.60 & A & $S_T = 0.004$ \\
+readiness\_ind. & Spawning & 0.50 & A & $S_T = 0.005$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Pathogen Evolution}} \\
+\midrule
+alpha\_kill & Path.\ Evol. & 2.0 & A,B & $S_T = 0.006$; Anderson-May \\
+alpha\_shed & Path.\ Evol. & 1.5 & A,B & $S_T = 0.005$ \\
+alpha\_prog & Path.\ Evol. & 1.0 & A,B & $S_T = 0.004$ \\
+gamma\_early & Path.\ Evol. & 0.3 & A & $S_T = 0.004$ \\
+sigma\_v\_mut. & Path.\ Evol. & 0.02 & A & $S_T = 0.005$ \\
+v\_init & Path.\ Evol. & 0.5 & A,B & $S_T = 0.005$ \\
+\bottomrule
+\end{longtable}
+\end{footnotesize}
+
+\noindent $^*$Borderline decisions discussed in \S\ref{sec:borderline}.
+
+%----------------------------------------------------------------------
+\section{Borderline Decisions}
+\label{sec:borderline}
+%----------------------------------------------------------------------
+
+\subsection{sigma\_D (FIXED at 15.0)}
+
+SA R4 ranked \texttt{sigma\_D} \#5 ($S_T = 0.141$). This is well above the SWEEP threshold. However, with dynamic P\_env, \texttt{alpha\_env} controls the fraction of \textit{all} shedding entering the environmental pool, including contributions from dead animals. \texttt{sigma\_D} and \texttt{alpha\_env} are partially degenerate---both increase pathogen loading. Sweeping both creates identifiability problems. We fix \texttt{sigma\_D} and sweep \texttt{alpha\_env} because the latter is the more mechanistically fundamental parameter in the current model.
+
+\subsection{peak\_width\_days (FIXED at 60.0)}
+
+SA R4 ranked \texttt{peak\_width\_days} \#8 ($S_T = 0.035$). It primarily affects spawning synchrony and recruitment timing but does not directly control any of the six target biological questions. In calibration (W01--W134), varying \texttt{peak\_width\_days} had minimal impact on the recovery gradient. The literature supports 60$\pm$15 days (Animal Diversity Web: spawning ``between March and July'' with ``main peak in May and June'').
+
+\subsection{target\_mean\_r (FIXED at 0.15)}
+
+SA R4 ranked \texttt{target\_mean\_r} \#10 ($S_T = 0.021$). It sets the initial population mean resistance. However, it is partially degenerate with \texttt{n\_resistance}: both control the initial genetic variance and evolutionary potential. We sweep \texttt{n\_resistance} (controls mechanistic architecture) and fix \texttt{target\_mean\_r} (calibrated value).
+
+%----------------------------------------------------------------------
+\section{Biological Questions Coverage}
+%----------------------------------------------------------------------
+
+\begin{table}[H]
+\centering
+\caption{Coverage of biological questions by SWEEP parameters.}
+\begin{tabular}{p{4.5cm}p{7cm}c}
+\toprule
+\textbf{Biological Question} & \textbf{Key SWEEP Parameters} & \textbf{Coverage} \\
+\midrule
+Recovery gradient (AK 50\% vs CA-S 0.1\%) & alpha\_env, delta\_env, P\_env\_floor, n\_connectivity, T\_vbnc & Excellent \\
+Crash timing (wavefront speed) & CDT, wavefront\_D\_P, K\_half, a\_exposure & Excellent \\
+Evolutionary dynamics & n\_resistance, k\_growth, settler\_survival & Good \\
+Pathogen adaptation & T\_vbnc, alpha\_env, delta\_env & Moderate \\
+Reintroduction outcomes & settler\_survival, alpha\_env, K\_half & Good \\
+La Ni\~na rebound & T\_vbnc, alpha\_env, delta\_env, k\_growth & Good \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------
+\section{Computational Cost}
+%----------------------------------------------------------------------
+
+\begin{table}[H]
+\centering
+\caption{Computational cost estimates. Platform: Xeon W-3365 (48 cores), 35 min/run average.}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Phase} & \textbf{Total Runs} & \textbf{Serial Hours} & \textbf{Wall Time (48$\times$)} \\
+\midrule
+Morris ($r=20$, $k=13$) & 280 & 163 & $\sim$5 hours \\
+Sobol ($N=256$, $k=13$) & 7{,}168 & 4{,}181 & $\sim$4 days \\
+\midrule
+\textbf{Total} & \textbf{7,448} & \textbf{4,344} & $\sim$\textbf{5 days} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent\textbf{Formulas used:}
+\begin{itemize}
+    \item Morris: $r \times (k + 1) = 20 \times 14 = 280$ runs
+    \item Sobol (Saltelli): $N \times (2k + 2) = 256 \times 28 = 7{,}168$ runs
+\end{itemize}
+
+\noindent If $N = 256$ yields wide confidence intervals, increase to $N = 512$ (14,336 runs, $\sim$8 days).
+
+%----------------------------------------------------------------------
+\section{Recommended SA Metrics}
+%----------------------------------------------------------------------
+
+\begin{table}[H]
+\centering
+\caption{Output metrics mapping to biological questions.}
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Metric} & \textbf{Question} & \textbf{Definition} \\
+\midrule
+recovery\_gradient & Recovery & AK-PWS recovery $-$ CA-S recovery \\
+rmse\_log\_recovery & Recovery & Log-space RMSE against 8 regional targets \\
+wavefront\_mae & Crash timing & MAE of disease arrival vs.\ Gravem 2021 \\
+final\_pop\_frac & Crash severity & Final / peak total population \\
+resistance\_shift\_mean & Evolution & $\Delta\bar{r}$ from year 0 to final \\
+v\_local\_gradient & Pathogen adapt. & Mean $v_\mathrm{local}$(AK) $-$ mean $v_\mathrm{local}$(CA) \\
+reintro\_persistence & Reintroduction & Pop at released site, 5 yr post-release / released \\
+la\_nina\_rebound & La Ni\~na & Pop year 9 / pop year 7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%----------------------------------------------------------------------
+\section*{Acknowledgments}
+%----------------------------------------------------------------------
+
+SA R4 analysis: 25,088 model evaluations on Intel Xeon W-3365. Calibration rounds W01--W134: 896-node network with satellite SST forcing. Vibrio thermal limits review informed T\_vbnc\_min constraint. Flushing residence time literature informed n\_connectivity range.
+
+\end{document}

@@ -89,10 +89,12 @@ def latitude_adjusted_peak(base_peak_doy: int, latitude: float, lat_shift_per_de
     """Adjust spawning peak day-of-year based on latitude.
     
     Higher latitudes have later spawning peaks. Default shift of 3 days per degree
-    northward follows observed patterns in other marine invertebrates.
+    northward, based on Hodin et al. (2021) observations: WA (48.5°N) spawns
+    Nov-Mar (peak ~Feb), AK (58°N) spawns later (~May-Jul).
     
     Args:
-        base_peak_doy: Base peak day (e.g., 105 for ~Apr 15).
+        base_peak_doy: Base peak day at reference latitude (default 50 = ~Feb 19
+            at 48.5°N San Juan Island).
         latitude: Node latitude (degrees North).
         lat_shift_per_deg: Days to shift peak per degree latitude (default 3.0).
         
@@ -100,11 +102,12 @@ def latitude_adjusted_peak(base_peak_doy: int, latitude: float, lat_shift_per_de
         Adjusted peak day-of-year (wrapped to 1-365 range).
         
     Examples:
-        latitude_adjusted_peak(105, 50.0)  # Later peak at higher latitude
-        latitude_adjusted_peak(105, 35.0)  # Earlier peak at lower latitude
+        latitude_adjusted_peak(50, 48.5)   # 50 (reference, ~Feb 19)
+        latitude_adjusted_peak(50, 61.0)   # 88 (~Mar 28, AK-PWS)
+        latitude_adjusted_peak(50, 34.0)   # 6  (~Jan 6, CA-S)
     """
-    # Assume reference latitude is ~40°N (central California)
-    reference_latitude = 40.0
+    # Reference latitude: San Juan Island, WA (Hodin et al. 2021 data)
+    reference_latitude = 48.5
     lat_offset = (latitude - reference_latitude) * lat_shift_per_deg
     
     adjusted_peak = base_peak_doy + int(round(lat_offset))

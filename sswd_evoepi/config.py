@@ -96,7 +96,7 @@ class SpawningSection:
     # Spawning season parameters
     season_start_doy: int = 305      # Season start (~Nov 1)
     season_end_doy: int = 196        # Season end (~Jul 15) - wraps year boundary
-    peak_doy: int = 105              # Peak spawning activity (~Apr 15)
+    peak_doy: int = 50               # Peak spawning activity (~Feb 19 at ref lat 48.5°N)
     peak_width_days: float = 60.0    # Std dev of seasonal peak (Normal) - calibrated in Phase 1A2
     lat_shift_per_deg: float = 3.0   # Latitude shift of peak (days/°N)
     
