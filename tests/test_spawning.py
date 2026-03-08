@@ -149,31 +149,31 @@ class TestLatitudeAdjustment:
     
     def test_higher_latitude_later_peak(self):
         """Test higher latitudes have later spawning peaks."""
-        base_peak = 105
+        base_peak = 50
         
         # Reference latitude (40°N) should give base peak
-        ref_peak = latitude_adjusted_peak(base_peak, 40.0)
+        ref_peak = latitude_adjusted_peak(base_peak, 48.5)
         assert ref_peak == base_peak
         
         # Higher latitude should be later
         north_peak = latitude_adjusted_peak(base_peak, 50.0)
         assert north_peak > base_peak
         
-        # Lower latitude should be earlier  
-        south_peak = latitude_adjusted_peak(base_peak, 30.0)
-        assert south_peak < base_peak
+        # Lower latitude should be earlier (may wrap past year boundary)
+        south_peak = latitude_adjusted_peak(base_peak, 45.0)
+        assert south_peak < base_peak  # 3° south of ref → 9 days earlier, no wrap
     
     def test_latitude_shift_rate(self):
-        """Test default 3 days per degree shift rate."""
-        base_peak = 105
+        """Test default 3 days per degree shift rate (ref lat 48.5°N)."""
+        base_peak = 50
         
-        # 10 degrees north should be 30 days later
-        peak_10n = latitude_adjusted_peak(base_peak, 50.0)  # 10 degrees above reference
+        # 10 degrees north of reference (58.5°N) should be 30 days later
+        peak_10n = latitude_adjusted_peak(base_peak, 58.5)
         expected = base_peak + 30
         assert peak_10n == expected
         
-        # 5 degrees south should be 15 days earlier
-        peak_5s = latitude_adjusted_peak(base_peak, 35.0)   # 5 degrees below reference  
+        # 5 degrees south of reference (43.5°N) should be 15 days earlier
+        peak_5s = latitude_adjusted_peak(base_peak, 43.5)
         expected = base_peak - 15
         assert peak_5s == expected
     
@@ -188,16 +188,16 @@ class TestLatitudeAdjustment:
         assert 1 <= late_peak <= 365
     
     def test_custom_shift_rate(self):
-        """Test custom latitude shift rates."""
-        base_peak = 105
+        """Test custom latitude shift rates (ref lat 48.5°N)."""
+        base_peak = 50
         
-        # 1 day per degree
-        peak_1deg = latitude_adjusted_peak(base_peak, 45.0, lat_shift_per_deg=1.0)
-        expected = base_peak + 5  # 5 degrees * 1 day/degree
+        # 1 day per degree, 10° north of reference (58.5°N)
+        peak_1deg = latitude_adjusted_peak(base_peak, 58.5, lat_shift_per_deg=1.0)
+        expected = base_peak + 10  # 10 degrees * 1 day/degree
         assert peak_1deg == expected
         
-        # 5 days per degree
-        peak_5deg = latitude_adjusted_peak(base_peak, 45.0, lat_shift_per_deg=5.0)
+        # 5 days per degree, 5° north of reference (53.5°N)
+        peak_5deg = latitude_adjusted_peak(base_peak, 53.5, lat_shift_per_deg=5.0)
         expected = base_peak + 25  # 5 degrees * 5 days/degree
         assert peak_5deg == expected
 
@@ -1225,7 +1225,7 @@ class TestSpawningConfiguration:
         # Season parameters
         assert config.season_start_doy == 305
         assert config.season_end_doy == 196
-        assert config.peak_doy == 105
+        assert config.peak_doy == 50
         assert config.peak_width_days == 60.0  # From Phase 1A2, verified in 1A3
         
         # Spontaneous rates (calibrated in Phase 1A3)
