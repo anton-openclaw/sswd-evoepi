@@ -1,0 +1,82 @@
+{
+  "runs": {
+    "W125": {
+      "param": "settler_survival",
+      "value": 0.0005,
+      "label": "Low s\u2080=0.0005"
+    },
+    "W126": {
+      "param": "settler_survival",
+      "value": 0.001,
+      "label": "Baseline s\u2080=0.001"
+    },
+    "W127": {
+      "param": "settler_survival",
+      "value": 0.002,
+      "label": "High s\u2080=0.002"
+    },
+    "W128": {
+      "param": "alpha_env",
+      "value": 0.15,
+      "label": "Low \u03b1_env=0.15"
+    },
+    "W129": {
+      "param": "alpha_env",
+      "value": 0.25,
+      "label": "Best \u03b1_env=0.25"
+    },
+    "W130": {
+      "param": "alpha_env",
+      "value": 0.3,
+      "label": "High \u03b1_env=0.3"
+    },
+    "W131": {
+      "param": "P_env_floor",
+      "value": 300,
+      "label": "Low floor=300"
+    },
+    "W132": {
+      "param": "P_env_floor",
+      "value": 800,
+      "label": "High floor=800"
+    }
+  },
+  "rmse_values": {
+    "W125": 0.797,
+    "W126": 0.76,
+    "W127": 0.814,
+    "W128": 1.043,
+    "W129": 0.691,
+    "W130": 0.822,
+    "W131": 0.899,
+    "W132": 0.763
+  },
+  "baselines": {
+    "W117": 0.603,
+    "W91": 0.591
+  },
+  "targets": {
+    "AK-PWS": 50.0,
+    "AK-FN": 50.0,
+    "AK-FS": 20.0,
+    "BC-N": 20.0,
+    "SS-S": 5.0,
+    "JDF": 2.0,
+    "OR": 0.25,
+    "CA-N": 0.1
+  },
+  "best_run": "W129",
+  "best_rmse": 0.691,
+  "scored_regions": [
+    "AK-PWS",
+    "AK-FN",
+    "AK-FS",
+    "BC-N",
+    "SS-S",
+    "JDF",
+    "OR",
+    "CA-N"
+  ],
+  "degradation_w117": 14.593698175787729,
+  "degradation_w91": 16.92047377326564
+}

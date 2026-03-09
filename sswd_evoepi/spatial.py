@@ -636,6 +636,7 @@ def build_network(
     overwater_npz: Optional[str] = None,
     alpha_self_fjord: float = 0.30,
     alpha_self_open: float = 0.10,
+    alpha_self: Optional[np.ndarray] = None,
 ) -> MetapopulationNetwork:
     """Build a MetapopulationNetwork from node definitions.
 
@@ -653,6 +654,9 @@ def build_network(
         seed: RNG seed.
         overwater_npz: Optional path to precomputed overwater distances.
             If provided, uses load_overwater_distances instead of Haversine×tortuosity.
+        alpha_self: Optional (N,) array of per-node self-recruitment fractions.
+            If provided, overrides alpha_self_fjord/alpha_self_open binary assignment.
+            Use for continuous enclosedness-based self-recruitment.
 
     Returns:
         Assembled MetapopulationNetwork.
@@ -666,10 +670,11 @@ def build_network(
         distances = compute_distance_matrix(lats, lons, tortuosity=tortuosity)
 
     # Per-node self-recruitment fractions
-    alpha_self = np.array(
-        [alpha_self_fjord if n.is_fjord else alpha_self_open for n in node_defs],
-        dtype=np.float64,
-    )
+    if alpha_self is None:
+        alpha_self = np.array(
+            [alpha_self_fjord if n.is_fjord else alpha_self_open for n in node_defs],
+            dtype=np.float64,
+        )
     C = construct_larval_connectivity(
         node_defs, distances, D_L=D_L, alpha_self=alpha_self,
         barriers=barriers, r_total=r_total,

@@ -123,6 +123,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
         else:
             is_fjord = region in ('BC-N', 'AK-PWS') and lat > 50.0
             phi = 0.03 if is_fjord else 0.5
+            effective_nl = 1.0 if is_fjord else 0.0
 
         nd = NodeDefinition(
             node_id=i,
@@ -141,19 +142,34 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
             salinity=22.0 if is_fjord else 32.0,
             depth_range=(5.0, 60.0),
         )
+        # Store effective enclosedness for continuous alpha_self
+        nd._effective_enclosedness = effective_nl if encl else 0.0
         node_defs.append(nd)
     return node_defs
 
 
 def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        D_P: float = 15.0, D_P_max_range: float = None,
-                       K_cv: float = 0.0, n_connectivity: float = 1.0):
-    """Build 896-node network with overwater distances."""
+                       K_cv: float = 0.0, n_connectivity: float = 1.0,
+                       alpha_self_open: float = 0.05,
+                       alpha_self_fjord: float = 0.50):
+    """Build 896-node network with overwater distances.
+
+    alpha_self is computed continuously from enclosedness:
+        alpha_self[i] = alpha_self_open + (alpha_self_fjord - alpha_self_open) * effective_enclosedness[i]
+    This means enclosed sites retain more larvae locally (higher self-recruitment).
+    """
     sites = load_sites()
     node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed,
                                 n_connectivity=n_connectivity)
     npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
-    
+
+    # Compute continuous alpha_self from enclosedness
+    alpha_self = np.array([
+        alpha_self_open + (alpha_self_fjord - alpha_self_open) * getattr(nd, '_effective_enclosedness', 0.0)
+        for nd in node_defs
+    ], dtype=np.float64)
+
     network = build_network(
         node_defs,
         D_L=D_L,
@@ -161,6 +177,7 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
         D_P_max_range=D_P_max_range,
         seed=seed,
         overwater_npz=npz_path,
+        alpha_self=alpha_self,
     )
     return sites, network
 
@@ -722,15 +739,21 @@ def main():
     D_P_max_range = param_overrides.pop('spatial.D_P_max_range', None)
     D_L = param_overrides.pop('spatial.D_L', args.D_L)
     n_connectivity = float(param_overrides.pop('spatial.n_connectivity', 1.0))
-    # Store it back so it appears in output metadata
+    alpha_self_open = float(param_overrides.pop('spatial.alpha_self_open', 0.05))
+    alpha_self_fjord = float(param_overrides.pop('spatial.alpha_self_fjord', 0.50))
+    # Store back so they appear in output metadata
     param_overrides['spatial.n_connectivity'] = n_connectivity
+    param_overrides['spatial.alpha_self_open'] = alpha_self_open
+    param_overrides['spatial.alpha_self_fjord'] = alpha_self_fjord
     
     # Build network (once, shared across seeds)
-    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity})...")
+    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity}, α_self=[{alpha_self_open:.2f},{alpha_self_fjord:.2f}])...")
     t0 = time.time()
     sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
                                          D_P=D_P, D_P_max_range=D_P_max_range,
-                                         K_cv=K_cv, n_connectivity=n_connectivity)
+                                         K_cv=K_cv, n_connectivity=n_connectivity,
+                                         alpha_self_open=alpha_self_open,
+                                         alpha_self_fjord=alpha_self_fjord)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config

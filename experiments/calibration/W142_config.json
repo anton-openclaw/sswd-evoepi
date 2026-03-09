@@ -2,7 +2,7 @@
   "param_overrides": {
     "disease.K_half": 800000.0,
     "disease.P_env_dynamic": true,
-    "disease.P_env_floor": 500.0,
+    "disease.P_env_floor": 300.0,
     "disease.P_env_max": 2000.0,
     "disease.T_vbnc": 12.0,
     "disease.T_vbnc_initial": 12.0,
