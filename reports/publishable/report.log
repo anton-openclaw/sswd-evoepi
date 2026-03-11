@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 12:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 12:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -559,7 +559,7 @@ Overfull \hbox (0.5854pt too wide) in paragraph at lines 357--362
 []\T1/lmr/bx/n/10.95 Alaska (mod-er-ate se-lec-tion, slow re-sponse): \T1/lmr/m/n/10.95 AK-PWS: $\OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 150 \OMS/lmsy/m/n/10.95 ! \OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 253$\T1/lmr/m/n/10.95 ; AK-FN: $\OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 150 \OMS/lmsy/m/n/10.95 !
  []
 
-[26] [27] [28] [29]) (./sections/sec5_model.tex [30] [31] [32] [33] [34]) (./sections/sec6_discussion.tex [35{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [36] [37] [38]) [39] (./sections/sec7_appendix.tex
+[26] [27] [28] [29]) (./sections/sec5_model.tex [30] [31] [32] [33] [34] [35{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]) (./sections/sec6_discussion.tex [36] [37] [38]) [39] (./sections/sec7_appendix.tex
 Overfull \hbox (1.45953pt too wide) in paragraph at lines 72--72
 []|$\OML/lmm/m/it/10 T[]$| 
  []
@@ -617,13 +617,13 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 Here is how much of TeX's memory you used:
  13080 strings out of 469514
  209743 string characters out of 5469758
- 681355 words of memory out of 5000000
+ 681501 words of memory out of 5000000
  41353 multiletter control sequences out of 15000+600000
  709663 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,12n,79p,1905b,606s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr5.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb>
-Output written on report.pdf (45 pages, 3813595 bytes).
+Output written on report.pdf (45 pages, 3813686 bytes).
 PDF statistics:
  870 PDF objects out of 1000 (max. 8388607)
  751 compressed objects within 8 object streams
