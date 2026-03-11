@@ -138,12 +138,15 @@ class TestSettleDailyCohorts:
         assert int(np.sum(agents['alive'])) == n_before
 
     def test_settle_single_cohort(self):
-        """One cohort with larvae settles, agents appear in population."""
+        """One cohort with larvae settles, agents appear in population.
+
+        With BH (s0=0.001), need large cohort to get non-zero recruits.
+        """
         agents, genotypes, effect_sizes = _make_population(50, 200)
         pop_cfg = PopulationSection()
         rng = np.random.default_rng(42)
 
-        cohort = _make_cohort(n_competent=500, spawn_day=10, sst_at_spawn=10.5, rng=rng)
+        cohort = _make_cohort(n_competent=50000, spawn_day=10, sst_at_spawn=10.5, rng=rng)
         n_before = int(np.sum(agents['alive']))
 
         n_settled = settle_daily_cohorts(
@@ -204,18 +207,19 @@ class TestSettleDailyCohorts:
         assert n_settled == 0
 
     def test_settle_slot_limited(self):
-        """Fewer recruits when close to K (slot-limited by available capacity).
+        """Fewer recruits when close to K (BH + slot-limited).
 
-        BH density-dependence is applied upstream; settlement is purely
-        slot-limited by (K - current_alive).
+        BH density-dependence is now applied inside settle_daily_cohorts.
+        With large enough cohorts, BH + slot limits constrain recruits
+        more at high density.
         """
         pop_cfg = PopulationSection()
         K = 500
         rng_seed = 42
 
-        # Low density: 50/500 alive → 450 available slots
+        # Low density: 50/500 alive → 450 available slots, BH generous
         agents_low, geno_low, eff = _make_population(50, K)
-        cohort_low = _make_cohort(n_competent=2000, rng=np.random.default_rng(99))
+        cohort_low = _make_cohort(n_competent=500000, rng=np.random.default_rng(99))
         n_low = settle_daily_cohorts(
             cohorts=[cohort_low],
             agents=agents_low,
@@ -228,7 +232,7 @@ class TestSettleDailyCohorts:
 
         # Near capacity: 490/500 alive → only 10 available slots
         agents_high, geno_high, eff2 = _make_population(490, K)
-        cohort_high = _make_cohort(n_competent=2000, rng=np.random.default_rng(99))
+        cohort_high = _make_cohort(n_competent=500000, rng=np.random.default_rng(99))
         n_high = settle_daily_cohorts(
             cohorts=[cohort_high],
             agents=agents_high,
@@ -239,7 +243,7 @@ class TestSettleDailyCohorts:
             effect_sizes=eff2,
         )
 
-        # Near capacity: slot limitation should constrain recruitment
+        # Near capacity: BH + slot limitation should constrain recruitment
         assert n_low > n_high, (
             f"Expected more recruits at low density ({n_low}) than near-capacity ({n_high})"
         )
@@ -251,7 +255,7 @@ class TestSettleDailyCohorts:
         pop_cfg = PopulationSection()
         rng = np.random.default_rng(42)
 
-        cohort = _make_cohort(n_competent=500, rng=np.random.default_rng(99))
+        cohort = _make_cohort(n_competent=50000, rng=np.random.default_rng(99))
 
         # Track which slots are dead before settlement
         dead_before = set(np.where(~agents['alive'])[0])
@@ -286,7 +290,8 @@ class TestSettleDailyCohorts:
         rng = np.random.default_rng(42)
 
         # Create cohort with known genotypes (all 1s)
-        n_comp = 100
+        # Need large cohort for BH (s0=0.001) to produce recruits
+        n_comp = 50000
         geno_all_ones = np.ones((n_comp, N_LOCI, 2), dtype=np.int8)
         cohort = LarvalCohort(
             source_node=0,
@@ -332,7 +337,7 @@ class TestSettleDailyCohorts:
         rng = np.random.default_rng(42)
 
         cohorts = [
-            _make_cohort(n_competent=300, spawn_day=10, rng=np.random.default_rng(i))
+            _make_cohort(n_competent=50000, spawn_day=10, rng=np.random.default_rng(i))
             for i in range(5)
         ]
 
@@ -357,7 +362,7 @@ class TestSettleDailyCohorts:
         pop_cfg = PopulationSection()
         rng = np.random.default_rng(42)
 
-        cohort = _make_cohort(n_competent=200, rng=np.random.default_rng(99))
+        cohort = _make_cohort(n_competent=50000, rng=np.random.default_rng(99))
         n_settled = settle_daily_cohorts(
             cohorts=[cohort],
             agents=agents,
