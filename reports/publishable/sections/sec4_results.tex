@@ -85,12 +85,28 @@ oscillatory regime reflects the strong seasonality of high-latitude
 SSTs and the proximity of ambient temperatures to the pathogen's
 thermal activation boundary.
 
+% --- Figure: Regional Trajectories ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_regional_trajectories.png}
+    \caption{Population trajectories for six representative regions under all four scenarios. \textbf{Top row:} Alaska (AK-PWS, AK-FN) and British Columbia (BC-N), showing seasonal population cycling driven by winter pathogen dormancy and summer reactivation. \textbf{Bottom row:} Oregon (OR), central California (CA-C), and southern California (CA-S). Oregon sustains the highest long-term abundance; CA-S declines to extinction in all scenarios. Lines show three-seed means; shaded regions show $\pm$1 standard deviation.}
+    \label{fig:regional_trajectories}
+\end{figure}
+
 In contrast, southern populations (California, Baja California) exhibit
 monotonic decline with minimal seasonal modulation.  Year-round warm
 SSTs in these regions maintain chronic pathogen activity, leaving
 populations no seasonal refuge.  The result is a relentless erosion of
 abundance that, in the most southerly regions, proceeds to functional
 or absolute extinction (Section~\ref{sec:regional}).
+
+% --- Figure: Regional Trajectories ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_regional_trajectories.png}
+    \caption{Population trajectories for six representative regions under all four scenarios. \textbf{Top row:} Alaska (AK-PWS, AK-FN) and British Columbia (BC-N), showing seasonal population cycling driven by winter pathogen dormancy and summer reactivation. \textbf{Bottom row:} Oregon (OR), central California (CA-C), and southern California (CA-S). Oregon shows episodic oasis dynamics with boom-bust cycles; CA-S declines to extinction in all scenarios. Lines show three-seed means; shaded regions show $\pm$1 standard deviation.}
+    \label{fig:regional_trajectories}
+\end{figure>
 
 \subsubsection{The Recruitment Pulse Phenomenon}
 
@@ -113,6 +129,14 @@ and Baja, recruitment pulses are largely absent by the 2030s, as
 chronic pathogen pressure suppresses reproduction below replacement
 (Figure~\ref{fig:heatmap_population}).
 
+% --- Figure: Population Heatmap ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_heatmap_population.png}
+    \caption{Space--time heatmap of \textit{Pycnopodia} populations across the species' range under the baseline scenario (F01). Each row represents one of the 18 geographic regions (ordered south to north from bottom to top); the x-axis spans 2012--2050; color intensity indicates the fraction of carrying capacity occupied. The disease wavefront is visible as a dark band sweeping from south to north during 2013--2015. Post-crash, southern regions (BJ, CA-S) remain permanently dark (extinct), while a few northern and mid-latitude regions retain pale coloration (partial persistence). The 2025 observation-to-projection transition is marked.}
+    \label{fig:heatmap_population}
+\end{figure>
+
 % ---------------------------------------------------------------------------
 \subsection{Regional Recovery Patterns}
 \label{sec:regional}
@@ -126,7 +150,8 @@ across all 18 model regions and four scenarios.
 \caption{Regional recovery at 2050 (\% of initial population
 surviving), grouped by geographic cluster.  Values are three-seed means.
 Bold values indicate the highest recovery within each region across
-scenarios.}
+scenarios. Note: Oregon's 17.6\% value represents an endpoint artifact; 
+the 5-year average (2045--2050) is 5.4\% due to extreme boom-bust cycles.}
 \label{tab:regional}
 \smallskip
 \small
@@ -199,27 +224,29 @@ and moderate scenario sensitivity.  SS-S consistently outperforms SS-N,
 likely reflecting the greater habitat complexity and cooler deep-water
 refugia of the southern basins.
 
-\subsubsection{Pacific Northwest: Oregon's Dominance}
+\subsubsection{Pacific Northwest: Oregon's Episodic Dynamics}
 
 The Pacific Northwest cluster reveals the most striking regional
-pattern in the entire forecast ensemble.  Oregon (OR) is the
-unambiguous recovery leader under the baseline scenario, retaining
-17.6\% of its initial population---more than three times the coast-wide
-average and nearly double the next-best region (CA-C at 11.9\%).
-Oregon's advantage derives from a combination of factors: strong
-upwelling that maintains relatively cool summer SSTs, high initial
-population density that buffers against stochastic extinction, and
-sufficient thermal variability to provide seasonal windows of low
-pathogen activity.
+pattern in the entire forecast ensemble.  Oregon (OR) appears to be 
+the recovery leader in 2050 endpoint snapshots (17.6\%), but this 
+reflects boom-bust episodic dynamics rather than sustained recovery. 
+Oregon's 5-year average (2045--2050) is 5.4\% with 121\% coefficient 
+of variation, indicating extreme volatility. Alaska's Fairweather-North 
+region shows more reliable persistence (6.8\% snapshot, 9.4\% 5-year 
+average). Oregon's episodic advantage derives from oasis sites that 
+periodically boom due to strong upwelling, thermal variability, and 
+sweepstakes reproductive success, but these gains are repeatedly erased 
+by subsequent pathogen activity.
 
-However, Oregon is also the region most vulnerable to both warming and
-evolutionary change.  Under F04 (high warming), Oregon's recovery drops
-to 10.4\%---a loss of 7.2 percentage points, the largest negative
-climate effect of any region.  Under F02 (no evolution), Oregon
-declines to 12.8\%, losing 4.8 points despite the coast-wide benefit
-of freezing pathogen evolution.  These paradoxical vulnerabilities are
-analyzed in Sections~\ref{sec:climate_effects} and
-\ref{sec:pathogen_evo}.
+However, Oregon's episodic dynamics are also highly vulnerable to both 
+warming and evolutionary change.  Under F04 (high warming), Oregon's 
+endpoint snapshot drops to 10.4\%---a loss of 7.2 percentage points 
+affecting both snapshots and underlying averages, the largest negative
+climate effect of any region.  Under F02 (no evolution), Oregon's 
+endpoint declines to 12.8\%, losing 4.8 points despite the coast-wide 
+benefit of freezing pathogen evolution.  These paradoxical vulnerabilities 
+reflect the fragility of Oregon's oasis-driven boom-bust cycles and are
+analyzed in Sections~\ref{sec:climate_effects} and \ref{sec:pathogen_evo}.
 
 Outer Washington (WA-O) follows a distinctive pattern, achieving its
 highest recovery (8.8\%) under F01 but declining under all alternative
@@ -265,6 +292,14 @@ redistribution of surviving populations
 The largest positive climate effects are concentrated in a band from
 southern Alaska through northern British Columbia
 (Figure~\ref{fig:recovery_vs_latitude}):
+
+% --- Figure: Recovery vs Latitude ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/fig_recovery_vs_latitude.png}
+    \caption{Recovery fraction vs.\ latitude for all 18 regions across four scenarios. Each point represents a region's three-seed mean recovery percentage at 2050. Under baseline conditions (F01, blue), Oregon ($\sim$45\textdegree N) shows a 2050 endpoint artifact of 17.6\% (5-year average: 5.4\% with high variability), while Alaska's Fairweather-North provides more reliable recovery. Under high warming (F04, red), the high-latitude tail lifts substantially while the mid-latitude peak flattens, reflecting the northward shift in favorable conditions. The relationship between latitude and recovery is nonlinear and non-monotonic, driven by the interplay of temperature-dependent pathogen activity, host reproductive season length, and site-specific hydrodynamic flushing.}
+    \label{fig:recovery_vs_latitude}
+\end{figure>
 
 \begin{itemize}
   \item BC-N: $+$7.7 percentage points (3.6\% $\rightarrow$ 11.3\%)
@@ -421,6 +456,14 @@ evolutionary rescue theory \citep{gomulkiewicz1995, bell2008} and
 provides a concrete, spatially explicit demonstration of its
 consequences for a real species undergoing an ongoing epizootic.
 
+% --- Figure: Genetic Diversity ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/fig_genetic_diversity.png}
+    \caption{Additive genetic variance ($V_A$) for the resistance trait across six regions under the baseline scenario (F01). $V_A$ measures the raw material available for future evolutionary adaptation. Southern populations (CA-C, CA-S) lose genetic diversity rapidly as intense disease selection eliminates most genotypes. By 2050, CA-C retains only a fraction of its initial $V_A$---the population has evolved substantially but is running out of ``evolutionary fuel.' Northern populations (AK-PWS, AK-FN) maintain higher $V_A$ because weaker selection preserves more genotypic diversity. This creates a cruel paradox: the populations that most need to evolve have the least remaining capacity to do so.}
+    \label{fig:genetic_diversity}
+\end{figure}
+
 \subsubsection{Pathogen Thermal Adaptation}
 
 The pathogen's VBNC threshold temperature ($T_\mathrm{vbnc}$)---the
@@ -432,6 +475,14 @@ lower bound of 9.00\textdegree C throughout Alaska (AK-PWS:
 9.00\textdegree C; AK-FN: 9.00\textdegree C), indicating that
 selection has driven the trait to the edge of the modeled parameter
 space within 38 years (Figure~\ref{fig:pathogen_traits}).
+
+% --- Figure: Pathogen Traits ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/fig_pathogen_traits_final.png}
+    \caption{Final (2050) pathogen community traits across all 18 regions under the baseline scenario (F01). \textbf{Top:} Thermal activation threshold ($T_{\text{vbnc}}$), showing how northern pathogen communities have evolved to activate at lower temperatures (reaching the 9\textdegree C biophysical floor throughout Alaska), while southern communities remain near the initial 12\textdegree C. \textbf{Bottom:} Local virulence ($v_{\text{local}}$), showing the latitudinal gradient predicted by virulence--transmission trade-off theory: high virulence in warm, dense southern waters (Baja: 0.34) and low virulence in cold, sparse northern waters (Alaska: 0.09).}
+    \label{fig:pathogen_traits}
+\end{figure>
 
 At lower latitudes, $T_\mathrm{vbnc}$ settles at intermediate values
 that reflect a balance between selection for broader thermal niches and

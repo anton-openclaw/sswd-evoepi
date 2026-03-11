@@ -24,6 +24,14 @@ regions corresponding to major oceanographic and biogeographic boundaries
 Each site supports up to $K = 5{,}000$ individuals, yielding a theoretical
 coast-wide carrying capacity of approximately 4.5~million sea stars.
 
+% --- Figure: Network Map (from progress report) ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_network_map.png}
+    \caption{The 896-site spatial network spanning Alaska (Aleutian Islands) to Baja California, colored by 18 geographic regions. Sites are connected by larval dispersal ($D_L = 400$~km exponential decay) and waterborne pathogen transport ($D_P = 300$~km) kernels. The inset panel zooms into the Salish Sea, where gray connectivity lines illustrate the dense local network structure through which larvae and pathogen disperse.}
+    \label{fig:network_map}
+\end{figure>
+
 The simulation operates in \textbf{daily timesteps} from 2012 through 2050.
 Each simulated day steps through disease transmission, individual survival,
 growth, and---during the spawning season---reproduction and larval dispersal.
@@ -49,6 +57,14 @@ individuals do not move.  Movement matters because disease transmission is
 \textbf{spatially explicit}: a 20\,m grid within each site tracks local
 pathogen concentrations, so stars near clusters of infected individuals
 experience higher exposure than those farther away.
+
+% --- Figure: Network Map (from progress report) ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_network_map.png}
+    \caption{The 896-site spatial network spanning Alaska (Aleutian Islands) to Baja California, colored by 18 geographic regions. Sites are connected by larval dispersal ($D_L = 400$~km exponential decay) and waterborne pathogen transport ($D_P = 300$~km) kernels. The inset panel zooms into the Salish Sea, where gray connectivity lines illustrate the dense local network structure through which larvae and pathogen disperse.}
+    \label{fig:network_map}
+\end{figure}
 
 \paragraph{Temperature forcing.}
 All scenarios are driven by \textbf{observed sea surface temperature (SST)}
@@ -118,6 +134,14 @@ this feedback can collapse a site within weeks; at low density, the same
 parameters produce modest mortality because the pool never builds to
 saturating levels.
 
+% --- Figure: Within-site Disease (from progress report) ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/fig_within_site_disease.png}
+    \caption{Simulated within-site disease dynamics using the model's actual spatial transmission mechanics ($K = 5{,}000$ individuals, 158$\times$158~m habitat, $T = 13$\textdegree C). Disease begins with 3 pre-symptomatic individuals (Day~0). By Day~14, exposed (gold) and infected (orange/red) individuals are spreading through spatial proximity effects. Day~28 is peak infection (1,256 active infected). By Day~45, 93.8\% of the population is dead. Zero individuals recovered, consistent with the very low initial recovery ability ($\bar{c} = 0.02$). The rapidity of collapse at high density contrasts with only $\sim$12\% mortality at low density, illustrating the density-dependent positive feedback in pathogen dynamics.}
+    \label{fig:within_site_disease}
+\end{figure}
+
 \paragraph{Wavefront propagation.}
 Consistent with observational records, disease originates from five sites
 in the Channel Islands (southern California) in mid-2013 and spreads as a
@@ -129,6 +153,14 @@ local outbreak onset, creating a realistic lag between first exposure and
 epizootic; and (3)~waterborne pathogen disperses between connected sites
 via an exponential decay kernel ($D_P = 300$\,km characteristic distance),
 allowing the disease front to propagate along the coast.
+
+% --- Figure: Disease Wavefront Snapshots (from progress report) ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/fig_disease_snapshots.png}
+    \caption{Four snapshots of the range-wide disease simulation. \textbf{Top left:} Pre-disease (2012), all populations near carrying capacity. \textbf{Top right:} Peak crash (2014--2015), disease spreading northward from southern California. \textbf{Bottom left:} Mid-simulation (2016--2017), partial recovery in Alaska driven by seasonal pathogen dormancy. \textbf{Bottom right:} Final state (2024), showing the persistent north--south gradient in population survival.}
+    \label{fig:disease_snapshots}
+\end{figure}
 
 % --------------------------------------------------------------------------
 \subsection{Host Genetics and Evolution}

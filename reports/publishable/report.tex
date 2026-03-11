@@ -17,6 +17,7 @@
 \usepackage{multirow}
 % \usepackage{colortbl}  % not available in local TinyTeX
 % \usepackage{pdflscape} % not needed
+\usepackage{float}
 
 \hypersetup{
     colorlinks=true,
@@ -34,7 +35,7 @@
 \maketitle
 
 \begin{abstract}
-Sea star wasting disease (SSWD) has reduced sunflower sea star (\textit{Pycnopodia helianthoides}) populations by over 90\% since 2013, driving the species to Critically Endangered status. With captive breeding programs now underway, wildlife managers urgently need projections of future population trajectories to guide reintroduction strategies. We developed a spatially explicit, eco-evolutionary agent-based model spanning 896 coastal sites from Alaska to Baja California, calibrated against observed disease dynamics (2012--2025) and driven by real sea surface temperature data. We then projected population trajectories to 2050 under four scenarios crossing two climate pathways (SSP2-4.5 and SSP5-8.5) with evolutionary toggles for pathogen adaptation. All scenarios predict a persistent $\sim$95\% population decline with no natural recovery to pre-disease levels. Oregon emerges as the strongest natural recovery region (17.6\% of peak population retained), while southern California and Baja populations face functional extinction. Climate warming produces a striking latitude-dependent trade-off: higher emissions improve northern Alaskan recovery by up to 7.7 percentage points while reducing southern recovery by up to 7.2 points. Removing pathogen evolution provides only modest coast-wide benefits ($+$0.5\%), and virulence evolution specifically has negligible impact on outcomes. Host resistance evolves substantially (0.15 to 0.43 in central California) but remains insufficient to outpace pathogen adaptation, and genetic diversity collapses in the most heavily impacted populations. These results indicate that natural recovery alone will not restore \textit{Pycnopodia} populations, particularly in the southern half of the species' range, and that active intervention through captive breeding and reintroduction is essential.
+Sea star wasting disease (SSWD) has reduced sunflower sea star (\textit{Pycnopodia helianthoides}) populations by over 90\% since 2013, driving the species to Critically Endangered status. With captive breeding programs now underway, wildlife managers urgently need projections of future population trajectories to guide reintroduction strategies. We developed a spatially explicit, eco-evolutionary agent-based model spanning 896 coastal sites from Alaska to Baja California, calibrated against observed disease dynamics (2012--2025) and driven by real sea surface temperature data. We then projected population trajectories to 2050 under four scenarios crossing two climate pathways (SSP2-4.5 and SSP5-8.5) with evolutionary toggles for pathogen adaptation. All scenarios predict a persistent $\sim$95\% population decline with no natural recovery to pre-disease levels. Alaska's Fairweather regions show the most reliable natural recovery (6.8--9.4\% 5-year averages), while Oregon demonstrates episodic oasis dynamics (5.4\% 5-year average despite 17.6\% endpoint artifacts from boom-bust cycles), and southern California and Baja populations face functional extinction. Climate warming produces a striking latitude-dependent trade-off: higher emissions improve northern Alaskan recovery by up to 7.7 percentage points while reducing southern recovery by up to 7.2 points. Removing pathogen evolution provides only modest coast-wide benefits ($+$0.5\%), and virulence evolution specifically has negligible impact on outcomes. Host resistance evolves substantially (0.15 to 0.43 in central California) but remains insufficient to outpace pathogen adaptation, and genetic diversity collapses in the most heavily impacted populations. These results indicate that natural recovery alone will not restore \textit{Pycnopodia} populations, particularly in the southern half of the species' range, and that active intervention through captive breeding and reintroduction is essential.
 \end{abstract}
 
 \tableofcontents
@@ -49,9 +50,6 @@ Sea star wasting disease (SSWD) has reduced sunflower sea star (\textit{Pycnopod
 % SECTION 2: Key Findings
 % ============================================================
 \input{sections/sec2_key_findings}
-
-% Place key overview figures after Key Findings
-\input{sections/figures}
 
 % ============================================================
 % SECTION 3: Scenario Design

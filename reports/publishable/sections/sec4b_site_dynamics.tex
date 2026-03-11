@@ -13,8 +13,9 @@ and has direct implications for conservation monitoring and reintroduction strat
 
 \subsubsection{The Oasis Pattern in Oregon}
 
-Oregon's status as the leading recovery region (17.6\% of pre-disease population
-retained under F01) masks an extreme concentration of survivors.  Across three
+Oregon's apparent endpoint recovery (17.6\% snapshot in 2050, though 5-year 
+average is only 5.4\% due to boom-bust cycles) masks an extreme concentration 
+of survivors in oasis sites.  Across three
 independent simulation seeds, Oregon's final population is overwhelmingly
 concentrated in a handful of sites:
 
@@ -24,6 +25,14 @@ concentrated in a handful of sites:
   \item The top 3 sites hold 39--79\% of the regional population (mean $\approx$ 54\%)
   \item The Gini coefficient for within-region population distribution reaches
     0.85--0.92 by 2050, compared to 0.00 at the start of the simulation
+
+% --- Figure: Oasis Concentration ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.80\textwidth]{figures/fig_oasis_concentration.png}
+    \caption{Population concentration metrics over time for six key regions. \textbf{Left:} Gini coefficient of within-region site-level population distribution (0 = perfectly equal, 1 = all population in one site). Oregon (Gini $>$ 0.85 by 2050) shows extreme oasis concentration; AK-PWS and AK-FN (Gini $\approx$ 0.65) maintain distributed populations. \textbf{Right:} Fraction of regional population held by the top 3 sites over time. In Oregon, the top 3 sites hold 40--80\% of the population throughout the forecast period, while in Alaska they hold only 25--30\%.}
+    \label{fig:oasis_concentration}
+\end{figure}
     (Figure~\ref{fig:oasis_concentration})
 \end{itemize}
 
@@ -35,6 +44,22 @@ is already uneven (Gini $\approx 0.78$), with only 38 sites retaining any
 individuals.  By 2028, the oasis pattern is fully established: Gini exceeds
 0.90, and the top 3 sites hold $\sim$80\% of the regional total
 (Figure~\ref{fig:oasis_concentration}).
+
+% --- Figure: Site Decomposition (oasis analysis) ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_site_decomposition.png}
+    \caption{Site-level population dynamics within four key regions under the baseline scenario (F01, seed 42). Each panel shows the population trajectory of individual sites (thin lines) against the regional total (thick black line). In Oregon and CA-C, a handful of ``oasis'' sites hold the majority of the population, while in AK-PWS and AK-FN, population is broadly distributed across many sites. The boom-bust cycles visible at the regional level are driven by different subsets of sites in each cycle.}
+    \label{fig:site_decomposition}
+\end{figure>
+
+% --- Figure: Oasis Concentration ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.80\textwidth]{figures/fig_oasis_concentration.png}
+    \caption{Population concentration metrics over time for six key regions. \textbf{Left:} Gini coefficient of within-region site-level population distribution (0 = perfectly equal, 1 = all population in one site). Oregon (Gini $>$ 0.85 by 2050) shows extreme oasis concentration; AK-PWS and AK-FN (Gini $\approx$ 0.65) maintain distributed populations. \textbf{Right:} Fraction of regional population held by the top 3 sites over time. In Oregon, the top 3 sites hold 40--80\% of the population throughout the forecast period, while in Alaska they hold only 25--30\%.}
+    \label{fig:oasis_concentration}
+\end{figure>
 
 The oasis sites are geographically clustered.  In all three seeds, the dominant
 survivors concentrate along the southern Oregon coast between 42.0\textdegree N
@@ -63,12 +88,28 @@ larval cohort in one year can temporarily dominate the regional population
 through exponential growth from a low base.  The same site in a different
 random seed may fail to produce that initial cohort and remain near zero.
 
+% --- Figure: Oasis Consistency ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.90\textwidth]{figures/fig_oasis_consistency.png}
+    \caption{Cross-seed consistency of oasis site identity in Oregon. Population trajectories of the top 5 Oregon sites under each of three independent random seeds. While the geographic \textit{zone} of oasis concentration is consistent (southern Oregon, 42--43\textdegree N), the specific sites that dominate vary across seeds: 13 different sites appear among the top 5 across three seeds, with only 2 appearing in more than one seed. Oasis geography is deterministic but oasis identity is stochastic, reflecting the role of sweepstakes reproductive success at small population sizes.}
+    \label{fig:oasis_consistency}
+\end{figure>
+
 The conservation implication is important: \textbf{oasis sites cannot be
 identified in advance from geographic or oceanographic data alone.}  While the
 southern Oregon coast is consistently favorable, the specific sites that
 sustain the population depend on stochastic reproductive events that are
 inherently unpredictable.  Monitoring programs should therefore survey the
 entire favorable zone rather than focusing on a few ``expected'' oasis sites.
+
+% --- Figure: Oasis Consistency ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.90\textwidth]{figures/fig_oasis_consistency.png}
+    \caption{Cross-seed consistency of oasis site identity in Oregon. Population trajectories of the top 5 Oregon sites under each of three independent random seeds. While the geographic \textit{zone} of oasis concentration is consistent (southern Oregon, 42--43\textdegree N), the specific sites that dominate vary across seeds: 13 different sites appear among the top 5 across three seeds, with only 2 appearing in more than one seed. Oasis geography is deterministic but oasis identity is stochastic, reflecting the role of sweepstakes reproductive success at small population sizes.}
+    \label{fig:oasis_consistency}
+\end{figure}
 
 \subsubsection{Distributed Recovery in Alaska}
 
@@ -129,6 +170,14 @@ reproduction, combined with the tiny population sizes between booms, means
 that oasis identity shuffles between cycles.  However, the \textit{geographic
 zone} from which booms originate remains consistent: the southern Oregon
 coast, where the thermal regime most strongly favors winter recovery.
+
+% --- Figure: Boom Decomposition ---
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_boom_decomposition.png}
+    \caption{Decomposition of selected recovery booms into individual site contributions. For each boom event (identified as periods where regional population increases by $>$50\% within 6 months), bars show each site's absolute contribution to the regional population increase, ranked from largest to smallest. In Oregon, a single site often contributes $>$40\% of the boom; in AK-PWS, the largest contributor accounts for only $\sim$10\%. This confirms the oasis-driven nature of Oregon recovery versus the distributed recovery in Alaska.}
+    \label{fig:boom_decomposition}
+\end{figure}
 
 \subsubsection{Implications for Conservation}
 
