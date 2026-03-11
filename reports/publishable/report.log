@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -380,11 +380,7 @@ File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) (/home/starbot/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count326
-) (./report.aux
-
-LaTeX Warning: Label `fig:regional_recovery_bars' multiply defined.
-
-)
+) (./report.aux)
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
@@ -485,13 +481,13 @@ LaTeX Font Info:    External font `lmex10' loaded for size
  (./report.toc
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <10.95> on input line 2.
- [1
-
-{/home/starbot/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}])
+)
 \tf@toc=\write4
 \openout4 = `report.toc'.
 
- [2] (./sections/sec1_introduction.tex [3] [4]
+ [1
+
+{/home/starbot/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}] [2] (./sections/sec1_introduction.tex [3] [4]
 
 LaTeX Warning: Reference `sec:scenarios' on page 5 undefined on input line 130.
 
@@ -505,50 +501,48 @@ LaTeX Warning: Reference `sec:model' on page 5 undefined on input line 130.
 LaTeX Warning: Reference `sec:discussion' on page 5 undefined on input line 130.
 
 ) (./sections/sec2_key_findings.tex
-<figures/fig_coastwide_population.png, id=98, 452.892pt x 282.5757pt>
+<figures/fig_coastwide_population.png, id=93, 452.892pt x 282.5757pt>
 File: figures/fig_coastwide_population.png Graphic file (type png)
 <use figures/fig_coastwide_population.png>
 Package pdftex.def Info: figures/fig_coastwide_population.png  used on input line 40.
 (pdftex.def)             Requested size: 399.29463pt x 249.14166pt.
-<figures/fig_regional_recovery_bars.png, id=101, 1004.553pt x 353.8821pt>
+<figures/fig_regional_recovery_bars.png, id=96, 1004.553pt x 353.8821pt>
 File: figures/fig_regional_recovery_bars.png Graphic file (type png)
 <use figures/fig_regional_recovery_bars.png>
-Package pdftex.def Info: figures/fig_regional_recovery_bars.png  used on input line 59.
+Package pdftex.def Info: figures/fig_regional_recovery_bars.png  used on input line 61.
 (pdftex.def)             Requested size: 469.75502pt x 165.48222pt.
  [5] [6 <./figures/fig_coastwide_population.png> <./figures/fig_regional_recovery_bars.png>]
-<figures/fig_recovery_vs_latitude.png, id=116, 498.4221pt x 354.123pt>
-File: figures/fig_recovery_vs_latitude.png Graphic file (type png)
-<use figures/fig_recovery_vs_latitude.png>
-Package pdftex.def Info: figures/fig_recovery_vs_latitude.png  used on input line 101.
-(pdftex.def)             Requested size: 352.31625pt x 250.32137pt.
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 102.
- (/home/starbot/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
-File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
 
-LaTeX Warning: Reference `fig:climate_effect' on page 7 undefined on input line 112.
+LaTeX Warning: Reference `fig:recovery_vs_latitude' on page 7 undefined on input line 87.
 
-<figures/fig_climate_effect.png, id=117, 498.663pt x 426.393pt>
+
+LaTeX Warning: Reference `fig:climate_effect' on page 7 undefined on input line 106.
+
+<figures/fig_climate_effect.png, id=109, 498.663pt x 426.393pt>
 File: figures/fig_climate_effect.png Graphic file (type png)
 <use figures/fig_climate_effect.png>
-Package pdftex.def Info: figures/fig_climate_effect.png  used on input line 124.
+Package pdftex.def Info: figures/fig_climate_effect.png  used on input line 118.
 (pdftex.def)             Requested size: 352.31625pt x 301.25772pt.
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 119.
+(/home/starbot/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
+File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
 Runaway argument?
 {figure> 
 ! Paragraph ended before \end  was complete.
 <to be read again> 
                    \par 
-l.128 
+l.122 
       
 I suspect you've forgotten a `}', causing me to apply this
 control sequence to too much text. How can we recover?
 My plan is to forget the whole thing and hope for the best.
 
 
-LaTeX Warning: Reference `sec:discussion' on page 7 undefined on input line 147.
+LaTeX Warning: Reference `sec:discussion' on page 7 undefined on input line 141.
 
 
-LaTeX Warning: Reference `fig:resistance_evolution' on page 7 undefined on input line 153.
+LaTeX Warning: Reference `fig:resistance_evolution' on page 7 undefined on input line 147.
 
 
 ! LaTeX Error: Not in outer par mode.
@@ -557,27 +551,16 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.159 \begin{figure}[!htbp]
+l.153 \begin{figure}[!htbp]
                            
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_resistance_evolution_forecast.png, id=118, 498.663pt x 317.988pt>
+<figures/fig_resistance_evolution_forecast.png, id=110, 498.663pt x 317.988pt>
 File: figures/fig_resistance_evolution_forecast.png Graphic file (type png)
 <use figures/fig_resistance_evolution_forecast.png>
-Package pdftex.def Info: figures/fig_resistance_evolution_forecast.png  used on input line 161.
+Package pdftex.def Info: figures/fig_resistance_evolution_forecast.png  used on input line 155.
 (pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
-Runaway argument?
-{figure> 
-! Paragraph ended before \end  was complete.
-<to be read again> 
-                   \par 
-l.165 
-      
-I suspect you've forgotten a `}', causing me to apply this
-control sequence to too much text. How can we recover?
-My plan is to forget the whole thing and hope for the best.
-
 
 ! LaTeX Error: Not in outer par mode.
 
@@ -585,29 +568,18 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.207 \begin{figure}[!htbp]
+l.201 \begin{figure}[!htbp]
                            
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_genetic_diversity.png, id=119, 498.663pt x 317.988pt>
+<figures/fig_genetic_diversity.png, id=111, 498.663pt x 317.988pt>
 File: figures/fig_genetic_diversity.png Graphic file (type png)
 <use figures/fig_genetic_diversity.png>
-Package pdftex.def Info: figures/fig_genetic_diversity.png  used on input line 209.
+Package pdftex.def Info: figures/fig_genetic_diversity.png  used on input line 203.
 (pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
-Runaway argument?
-{figure> 
-! Paragraph ended before \end  was complete.
-<to be read again> 
-                   \par 
-l.213 
-      
-I suspect you've forgotten a `}', causing me to apply this
-control sequence to too much text. How can we recover?
-My plan is to forget the whole thing and hope for the best.
 
-
-LaTeX Warning: Reference `fig:evo_comparison' on page 7 undefined on input line 227.
+LaTeX Warning: Reference `fig:evo_comparison' on page 7 undefined on input line 221.
 
 
 ! LaTeX Error: Not in outer par mode.
@@ -616,47 +588,27 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.262 \begin{figure}[!htbp]
+l.256 \begin{figure}[!htbp]
                            
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_evo_comparison.png, id=122, 1004.553pt x 353.8821pt>
+<figures/fig_evo_comparison.png, id=114, 1004.553pt x 353.8821pt>
 File: figures/fig_evo_comparison.png Graphic file (type png)
 <use figures/fig_evo_comparison.png>
-Package pdftex.def Info: figures/fig_evo_comparison.png  used on input line 264.
+Package pdftex.def Info: figures/fig_evo_comparison.png  used on input line 258.
 (pdftex.def)             Requested size: 469.75502pt x 165.48222pt.
 
-LaTeX Warning: Reference `fig:heatmap_population' on page 7 undefined on input line 303.
+LaTeX Warning: Reference `sec:scenarios' on page 7 undefined on input line 331.
 
 
-! LaTeX Error: Not in outer par mode.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.339 \begin{figure}[!htbp]
-                           
-You've lost some text.  Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-<figures/fig_heatmap_population.png, id=125, 912.7701pt x 426.1521pt>
-File: figures/fig_heatmap_population.png Graphic file (type png)
-<use figures/fig_heatmap_population.png>
-Package pdftex.def Info: figures/fig_heatmap_population.png  used on input line 341.
-(pdftex.def)             Requested size: 469.75502pt x 219.31796pt.
-
-LaTeX Warning: Reference `sec:scenarios' on page 7 undefined on input line 346.
+LaTeX Warning: Reference `sec:results' on page 7 undefined on input line 331.
 
 
-LaTeX Warning: Reference `sec:results' on page 7 undefined on input line 346.
+LaTeX Warning: Reference `sec:model' on page 7 undefined on input line 331.
 
 
-LaTeX Warning: Reference `sec:model' on page 7 undefined on input line 346.
-
-
-LaTeX Warning: Reference `sec:discussion' on page 7 undefined on input line 346.
+LaTeX Warning: Reference `sec:discussion' on page 7 undefined on input line 331.
 
 ) (./sections/sec3_scenario_design.tex
 
@@ -740,7 +692,7 @@ l.89 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_regional_trajectories.png, id=131, 1004.3121pt x 531.4254pt>
+<figures/fig_regional_trajectories.png, id=122, 1004.3121pt x 531.4254pt>
 File: figures/fig_regional_trajectories.png Graphic file (type png)
 <use figures/fig_regional_trajectories.png>
 Package pdftex.def Info: figures/fig_regional_trajectories.png  used on input line 91.
@@ -790,6 +742,7 @@ l.133 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
+<figures/fig_heatmap_population.png, id=123, 912.7701pt x 426.1521pt>
 File: figures/fig_heatmap_population.png Graphic file (type png)
 <use figures/fig_heatmap_population.png>
 Package pdftex.def Info: figures/fig_heatmap_population.png  used on input line 135.
@@ -836,6 +789,9 @@ LaTeX Warning: Reference `sec:evo_dynamics' on page 7 undefined on input line 27
 LaTeX Warning: Reference `fig:climate_effect' on page 7 undefined on input line 288.
 
 
+LaTeX Warning: Reference `fig:recovery_vs_latitude' on page 7 undefined on input line 294.
+
+
 ! LaTeX Error: Not in outer par mode.
 
 See the LaTeX manual or LaTeX Companion for explanation.
@@ -847,6 +803,7 @@ l.297 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
+<figures/fig_recovery_vs_latitude.png, id=125, 498.4221pt x 354.123pt>
 File: figures/fig_recovery_vs_latitude.png Graphic file (type png)
 <use figures/fig_recovery_vs_latitude.png>
 Package pdftex.def Info: figures/fig_recovery_vs_latitude.png  used on input line 299.
@@ -899,7 +856,7 @@ l.480 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_pathogen_traits_final.png, id=138, 498.663pt x 441.5697pt>
+<figures/fig_pathogen_traits_final.png, id=130, 498.663pt x 441.5697pt>
 File: figures/fig_pathogen_traits_final.png Graphic file (type png)
 <use figures/fig_pathogen_traits_final.png>
 Package pdftex.def Info: figures/fig_pathogen_traits_final.png  used on input line 482.
@@ -937,7 +894,7 @@ l.30 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_oasis_concentration.png, id=141, 858.5676pt x 569.2467pt>
+<figures/fig_oasis_concentration.png, id=133, 858.5676pt x 569.2467pt>
 File: figures/fig_oasis_concentration.png Graphic file (type png)
 <use figures/fig_oasis_concentration.png>
 Package pdftex.def Info: figures/fig_oasis_concentration.png  used on input line 32.
@@ -960,7 +917,7 @@ l.49 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_site_decomposition.png, id=142, 919.0335pt x 1148.1294pt>
+<figures/fig_site_decomposition.png, id=134, 919.0335pt x 1148.1294pt>
 File: figures/fig_site_decomposition.png Graphic file (type png)
 <use figures/fig_site_decomposition.png>
 Package pdftex.def Info: figures/fig_site_decomposition.png  used on input line 51.
@@ -1015,7 +972,7 @@ l.92 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_oasis_consistency.png, id=145, 1004.553pt x 878.8032pt>
+<figures/fig_oasis_consistency.png, id=137, 1004.553pt x 878.8032pt>
 File: figures/fig_oasis_consistency.png Graphic file (type png)
 <use figures/fig_oasis_consistency.png>
 Package pdftex.def Info: figures/fig_oasis_consistency.png  used on input line 94.
@@ -1065,7 +1022,7 @@ l.175 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_boom_decomposition.png, id=146, 1076.5821pt x 446.6286pt>
+<figures/fig_boom_decomposition.png, id=138, 1076.5821pt x 446.6286pt>
 File: figures/fig_boom_decomposition.png Graphic file (type png)
 <use figures/fig_boom_decomposition.png>
 Package pdftex.def Info: figures/fig_boom_decomposition.png  used on input line 177.
@@ -1086,7 +1043,7 @@ l.28 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_network_map.png, id=147, 995.8806pt x 499.1448pt>
+<figures/fig_network_map.png, id=139, 995.8806pt x 499.1448pt>
 File: figures/fig_network_map.png Graphic file (type png)
 <use figures/fig_network_map.png>
 Package pdftex.def Info: figures/fig_network_map.png  used on input line 30.
@@ -1139,7 +1096,7 @@ l.138 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_within_site_disease.png, id=156, 1106.2128pt x 788.7066pt>
+<figures/fig_within_site_disease.png, id=148, 1106.2128pt x 788.7066pt>
 File: figures/fig_within_site_disease.png Graphic file (type png)
 <use figures/fig_within_site_disease.png>
 Package pdftex.def Info: figures/fig_within_site_disease.png  used on input line 140.
@@ -1156,7 +1113,7 @@ l.158 \begin{figure}[!htbp]
 You've lost some text.  Try typing  <return>  to proceed.
 If that doesn't work, type  X <return>  to quit.
 
-<figures/fig_disease_snapshots.png, id=157, 798.3426pt x 851.8224pt>
+<figures/fig_disease_snapshots.png, id=149, 798.3426pt x 851.8224pt>
 File: figures/fig_disease_snapshots.png Graphic file (type png)
 <use figures/fig_disease_snapshots.png>
 Package pdftex.def Info: figures/fig_disease_snapshots.png  used on input line 160.
@@ -1268,17 +1225,8 @@ L3 programming layer <2026-01-19>
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: There were multiply-defined labels.
-
-
-Package rerunfilecheck Warning: File `report.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `report.out':
-(rerunfilecheck)             Before: 35F14A71DCE9F01693FF7A2942F375FB;2264
-(rerunfilecheck)             After:  6BC65CCF94E74947AB50008AC7155416;1874.
+Package rerunfilecheck Info: File `report.out' has not changed.
+(rerunfilecheck)             Checksum: 6BC65CCF94E74947AB50008AC7155416;1874.
 ! You can't use `\end' in internal vertical mode.
 \enddocument ...cument/end}\deadcycles \z@ \@@end 
                                                   
@@ -1321,11 +1269,11 @@ my insertion and my current dilemma will both disappear.
 
  
 Here is how much of TeX's memory you used:
- 12947 strings out of 469514
- 208939 string characters out of 5469758
- 917108 words of memory out of 5000000
- 41369 multiletter control sequences out of 15000+600000
+ 12943 strings out of 469514
+ 208871 string characters out of 5469758
+ 903342 words of memory out of 5000000
+ 41367 multiletter control sequences out of 15000+600000
  709663 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,32n,79p,2038b,2464s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,28n,79p,2038b,2160s stack positions out of 10000i,1000n,20000p,200000b,200000s
 !  ==> Fatal error occurred, no output PDF file produced!

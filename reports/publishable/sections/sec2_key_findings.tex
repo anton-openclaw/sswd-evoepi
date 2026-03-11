@@ -48,10 +48,12 @@ timescales.
 Although the coastwide numbers are uniformly grim, the regional picture reveals
 striking heterogeneity (Figure~\ref{fig:regional_recovery_bars}). Under the
 baseline scenario (F01), Alaska's Fairweather-North region (AK-FN) retains the 
-highest fraction of its peak population at 6.8\%, followed by Oregon at 5.4\% 
-(5-year average, see endpoint bias discussion below). Central California follows at 11.9\%, then outer Washington
-coast at 8.8\%, the Fairweather--Yakutat coast of Alaska (AK-FN) at 6.8\%, and
-the southern Salish Sea (SS-S) at 6.5\%.
+highest fraction of its peak population at 9.4\% (5-year time-averaged), 
+followed by northern British Columbia (BC-N) at 7.4\% and central California (CA-C) 
+at 6.8\%. Oregon, despite showing episodic peaks up to 17.6\%, averages only 
+5.4\% over the final five years due to extreme boom-bust volatility (CV=121\%). 
+Alaska's Prince William Sound (AK-PWS) shows the most stable recovery at 2.5\% 
+(CV=6\%), while outer Washington coast (WA-O) averages 4.9\%.
 
 % --- Figure: Regional Recovery Bars ---
 \begin{figure}[!htbp]
@@ -94,14 +96,6 @@ central California for their demonstrated (though episodic) oasis potential,
 while recognizing that the southern and northern extremes of the range may
 require fundamentally different strategies---or acceptance that recovery in those
 areas may not be feasible in the near term.
-
-% --- Figure: Recovery vs Latitude ---
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.75\textwidth]{figures/fig_recovery_vs_latitude.png}
-    \caption{Recovery fraction vs.\ latitude for all 18 regions across four scenarios. Each point represents a region's three-seed mean recovery percentage at 2050. Under baseline conditions (F01, blue), Oregon ($\sim$45\textdegree N) shows a 2050 snapshot of 17.6\% recovery (an endpoint artifact; 5-year average is 5.4\%), while Alaska's Fairweather-North shows the most reliable recovery at 9.4\% (5-year average). Under high warming (F04, red), the high-latitude tail lifts substantially while the mid-latitude peak flattens, reflecting the northward shift in favorable conditions. The relationship between latitude and recovery is nonlinear and non-monotonic, driven by the interplay of temperature-dependent pathogen activity, host reproductive season length, and site-specific hydrodynamic flushing.}
-    \label{fig:recovery_vs_latitude}
-\end{figure}
 
 \subsection{The climate paradox: warming helps the north, hurts the south}
 \label{sec:findings_climate}
@@ -161,7 +155,7 @@ pressure and population persistence.
     \includegraphics[width=0.75\textwidth]{figures/fig_resistance_evolution_forecast.png}
     \caption{Evolution of mean host resistance ($r$) across six representative regions under the baseline scenario (F01), 2012--2050. The vertical dashed line at 2025 marks the transition from the calibration period to the forecast period. All populations begin at $r = 0.15$. Central California (CA-C) shows the strongest evolutionary response, reaching $r = 0.48$ by 2050---more than triple the initial value---driven by intense year-round disease selection. Oregon reaches $r = 0.36$, Prince William Sound $r = 0.26$. Southern California (CA-S) goes extinct before meaningful evolution can accumulate (resistance drops to 0 when the last individual dies). Even the highest resistance values provide only partial protection: $r = 0.48$ still allows 52\% of the pathogen force of infection to penetrate.}
     \label{fig:resistance_evolution}
-\end{figure>
+\end{figure}
 
 Central California, where moderate temperatures sustain year-round pathogen
 activity and intense selection, shows the strongest evolutionary response:
@@ -209,7 +203,7 @@ that the model produces.
     \includegraphics[width=0.75\textwidth]{figures/fig_genetic_diversity.png}
     \caption{Additive genetic variance ($V_A$) for the resistance trait across six regions under the baseline scenario (F01). $V_A$ measures the raw material available for future evolutionary adaptation. Southern populations (CA-C, CA-S) lose genetic diversity rapidly as intense disease selection eliminates most genotypes. By 2050, CA-C retains only a fraction of its initial $V_A$---the population has evolved substantially but is running out of ``evolutionary fuel.'' Northern populations (AK-PWS, AK-FN) maintain higher $V_A$ because weaker selection preserves more genotypic diversity. This creates a cruel paradox: the populations that most need to evolve have the least remaining capacity to do so.}
     \label{fig:genetic_diversity}
-\end{figure>
+\end{figure}
 
 \subsection{The surprising irrelevance of virulence evolution}
 \label{sec:findings_virulence}
@@ -299,8 +293,7 @@ wild populations are slowly building their own defenses.
 \subsection{Synthesis: what the numbers mean for conservation}
 \label{sec:findings_synthesis}
 
-The key findings can be distilled into five actionable conclusions
-(Figure~\ref{fig:heatmap_population}):
+The key findings can be distilled into five actionable conclusions:
 
 \begin{enumerate}
     \item \textbf{Natural recovery is insufficient.} No scenario produces
@@ -334,13 +327,5 @@ The key findings can be distilled into five actionable conclusions
     disease-selected genotypes, rather than relying solely on pre-epidemic
     genetic lineages.
 \end{enumerate}
-
-% --- Figure: Population Heatmap ---
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=\textwidth]{figures/fig_heatmap_population.png}
-    \caption{Space--time heatmap of \textit{Pycnopodia} populations across the species' range under the baseline scenario (F01). Each row represents one of the 18 geographic regions (ordered south to north from bottom to top); the x-axis spans 2012--2050; color intensity indicates the fraction of carrying capacity occupied. The disease wavefront is visible as a dark band sweeping from south to north during 2013--2015. Post-crash, southern regions (BJ, CA-S) remain permanently dark (extinct), while a few northern and mid-latitude regions retain pale coloration (partial persistence). The 2025 observation-to-projection transition is marked.}
-    \label{fig:heatmap_population}
-\end{figure}
 
 The sections that follow describe the scenario design (Section~\ref{sec:scenarios}), provide detailed regional results (Section~\ref{sec:results}), explain the model architecture (Section~\ref{sec:model}), and explore the conservation implications in depth (Section~\ref{sec:discussion}).
