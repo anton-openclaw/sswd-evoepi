@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -504,11 +504,11 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 \openout4 = `report.toc'.
 
  [3] (./sections/sec1_introduction.tex [4] [5]) (./sections/sec2_key_findings.tex
-<figures/fig_coastwide_population.png, id=408, 452.892pt x 282.5757pt>
+<figures/fig_coastwide_population.png, id=408, 445.1832pt x 282.5757pt>
 File: figures/fig_coastwide_population.png Graphic file (type png)
 <use figures/fig_coastwide_population.png>
 Package pdftex.def Info: figures/fig_coastwide_population.png  used on input line 40.
-(pdftex.def)             Requested size: 399.29463pt x 249.14166pt.
+(pdftex.def)             Requested size: 399.29463pt x 253.46204pt.
 <figures/fig_regional_recovery_bars.png, id=411, 1004.553pt x 353.8821pt>
 File: figures/fig_regional_recovery_bars.png Graphic file (type png)
 <use figures/fig_regional_recovery_bars.png>
@@ -698,13 +698,13 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 Here is how much of TeX's memory you used:
  13211 strings out of 469514
  212556 string characters out of 5469758
- 684180 words of memory out of 5000000
+ 684182 words of memory out of 5000000
  41448 multiletter control sequences out of 15000+600000
  709663 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,12n,79p,2038b,606s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr5.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb>
-Output written on report.pdf (55 pages, 6239032 bytes).
+Output written on report.pdf (55 pages, 6308808 bytes).
 PDF statistics:
  977 PDF objects out of 1000 (max. 8388607)
  839 compressed objects within 9 object streams

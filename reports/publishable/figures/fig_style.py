@@ -79,7 +79,10 @@ def load_monthly_regional(scenario, seed):
     # Build region -> indices
     region_idx = {}
     for i, name in enumerate(names):
-        prefix = '-'.join(str(name).split('-')[:2])
+        parts = str(name).split('-')
+        # Region prefix is everything except the last numeric segment
+        # e.g. AK-AL-001 -> AK-AL, OR-048 -> OR, JDF-005 -> JDF, BJ-031 -> BJ
+        prefix = '-'.join(p for p in parts if not p.isdigit())
         region_idx.setdefault(prefix, []).append(i)
     result = {}
     for reg in REGIONS_NS:
