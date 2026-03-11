@@ -1,0 +1,201 @@
+% ==============================================================================
+% Section 7: Appendix — Model Parameters
+% ==============================================================================
+
+\appendix
+
+\section{Region Codes}
+\label{sec:appendix_regions}
+
+Table~\ref{tab:regions} maps the abbreviated region codes used throughout this report to their full geographic names.
+
+\begin{table}[ht]
+\centering
+\caption{Region code glossary. Regions are listed north to south.}
+\label{tab:regions}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Code} & \textbf{Full Name} & \textbf{Approx.\ Latitude} \\
+\midrule
+AK-PWS & Prince William Sound, Alaska & 60.5\textdegree N \\
+AK-EG & Eastern Gulf of Alaska & 59.5\textdegree N \\
+AK-OC & Alaska Outer Coast & 59.0\textdegree N \\
+AK-FN & Fairweather North (SE Alaska) & 58.5\textdegree N \\
+AK-WG & Western Gulf of Alaska & 57.5\textdegree N \\
+AK-FS & Fairweather South (SE Alaska) & 57.0\textdegree N \\
+AK-AL & Aleutian Islands & 53.0\textdegree N \\
+BC-N & British Columbia North & 54.0\textdegree N \\
+BC-C & British Columbia Central & 51.0\textdegree N \\
+SS-N & Salish Sea North & 49.0\textdegree N \\
+JDF & Juan de Fuca Strait & 48.3\textdegree N \\
+SS-S & Salish Sea South & 48.0\textdegree N \\
+WA-O & Washington Outer Coast & 47.0\textdegree N \\
+OR & Oregon & 44.5\textdegree N \\
+CA-N & California North & 40.5\textdegree N \\
+CA-C & California Central & 36.5\textdegree N \\
+CA-S & California South & 34.0\textdegree N \\
+BJ & Baja California & 30.0\textdegree N \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Model Parameters}
+\label{sec:appendix_params}
+
+Table~\ref{tab:params} lists all model parameters used in the W154 production configuration. Parameters marked with $\dagger$ were actively varied during the 154-round calibration process.
+
+\small
+\begin{longtable}{p{3.2cm} p{1.3cm} p{1.5cm} p{7cm}}
+\caption{Complete model parameters for the W154 production configuration.}
+\label{tab:params} \\
+\toprule
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} & \textbf{Description} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\textit{Continued on next page}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{4}{l}{\textbf{Disease Transmission}} \\
+\midrule
+Exposure coefficient & $a_{\text{exp}}$ & 0.75 & Efficiency of environmental pathogen translating to infection risk \\
+Half-saturation$^\dagger$ & $K_{\text{half}}$ & 800,000 & Environmental pathogen level for 50\% of maximum dose--response \\
+Pathogen activation & $T_{\text{vbnc}}$ & 12\textdegree C & Temperature above which dormant \textit{Vibrio} become infectious \\
+VBNC steepness & $k_{\text{vbnc}}$ & 2.0 & Sigmoid sharpness around $T_{\text{vbnc}}$ \\
+Thermal floor & $T_{\text{vbnc,min}}$ & 9\textdegree C & Lowest temperature pathogen can evolve to activate at \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Environmental Pathogen Pool}} \\
+\midrule
+Background input & $P_{\text{env,max}}$ & 2,000 & Maximum background \textit{Vibrio} production (bact/mL/d) \\
+Accumulation$^\dagger$ & $\alpha_{\text{env}}$ & 0.18 & Fraction of host shedding entering persistent pool \\
+Decay rate & $\delta_{\text{env}}$ & 0.02 & Daily environmental pathogen degradation (2\%/d, $t_{1/2} \approx 35$~d) \\
+Pool floor & $P_{\text{floor}}$ & 500 & Minimum pathogen maintained at active sites \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Wavefront Spread}} \\
+\midrule
+Origin sites & --- & 5 & Channel Islands nodes where SSWD first appeared (2013) \\
+Dose threshold & CDT & 1,000 & Cumulative pathogen dose to trigger local outbreak \\
+Dispersal range & $D_P$ & 300~km & Characteristic waterborne pathogen dispersal distance \\
+Max dispersal & $D_{P,\text{max}}$ & 3,000~km & Maximum long-range pathogen transport \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Disease Progression}} \\
+\midrule
+Pre-symptomatic shedding & $\sigma_1$ & 5.0 & Pathogen shed rate, I$_1$ stage \\
+Symptomatic shedding & $\sigma_2$ & 50.0 & Pathogen shed rate, I$_2$ stage (10$\times$ higher) \\
+Death shedding & $\sigma_D$ & 15.0 & Pathogen burst on host death \\
+E$\to$I$_1$ rate & $\mu_{EI_1}$ & 0.233/d & Exposed to pre-symptomatic (at 20\textdegree C) \\
+I$_1$$\to$I$_2$ rate & $\mu_{I_1 I_2}$ & 0.434/d & Pre-symptomatic to symptomatic \\
+I$_2$$\to$Death rate & $\mu_{I_2 D}$ & 0.563/d & Symptomatic to death \\
+Recovery rate & $\rho_{\text{rec}}$ & 0.05 & Base daily clearance probability ($\times$ individual $c$) \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Pathogen Evolution}} \\
+\midrule
+Thermal adapt rate & --- & 0.001/d & Speed of thermal threshold drift \\
+Virulence adapt rate & --- & 0.001/d & Speed of virulence drift \\
+Max virulence & $v_{\text{max}}$ & 0.70 & Upper virulence bound \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Host Genetics}} \\
+\midrule
+Resistance loci & $n_R$ & 17 & Loci controlling infection hazard reduction \\
+Tolerance loci & $n_T$ & 17 & Loci controlling I$_2$ survival extension \\
+Recovery loci & $n_C$ & 17 & Loci controlling pathogen clearance \\
+Initial resistance & $\bar{r}_0$ & 0.15 & Starting hazard reduction (85\% susceptible) \\
+Initial tolerance & $\bar{t}_0$ & 0.10 & Starting tolerance \\
+Initial recovery & $\bar{c}_0$ & 0.02 & Starting clearance scalar ($\times \rho_{\text{rec}} = 0.001$/d) \\
+Tolerance ceiling & $\tau_{\text{max}}$ & 0.85 & Maximum survival extension fraction \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Reproduction}} \\
+\midrule
+Peak spawning day & --- & Day 50 & Peak at reference latitude (48.5\textdegree N) \\
+Latitude shift & --- & 3~d/\textdegree & Spawning shifts later with latitude \\
+SRS Pareto shape & $\alpha_{\text{SRS}}$ & 1.35 & Reproductive skew (lower = more sweepstakes-like) \\
+Settler survival & $s_0$ & 0.001 & Larval survival to juvenile (0.1\%) \\
+Post-spawn immuno-suppression & --- & 28~d & Increased susceptibility after spawning \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Spatial Connectivity}} \\
+\midrule
+Larval dispersal & $D_L$ & 400~km & Characteristic larval dispersal distance \\
+Connectivity exponent$^\dagger$ & $n_{\text{conn}}$ & 0.3 & Enclosedness$\to$flushing nonlinearity \\
+Self-recruit (open)$^\dagger$ & $\alpha_{\text{open}}$ & 0.02 & Minimum larval retention (exposed coast) \\
+Self-recruit (fjord)$^\dagger$ & $\alpha_{\text{fjord}}$ & 0.70 & Maximum larval retention (deep fjord) \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Population Biology}} \\
+\midrule
+Carrying capacity & $K$ & 5,000 & Maximum population per site (uniform) \\
+Max body size & $L_\infty$ & 1,000~mm & Asymptotic arm length (von Bertalanffy) \\
+Growth rate & $k_g$ & 0.08/yr & Growth toward max size \\
+Min reproductive size & $L_{\text{min}}$ & 400~mm & Minimum size to spawn \\
+Natural senescence & --- & 50~yr & Age at increased natural mortality \\
+\midrule
+
+\multicolumn{4}{l}{\textbf{Simulation}} \\
+\midrule
+Start year & --- & 2012 & Simulation start \\
+Duration & --- & 38~yr & Total simulation years (2012--2050) \\
+Disease onset & --- & Year 1 & Wavefront begins in simulation year 1 (2013) \\
+SST transition & --- & 2025 & Switch from OISST observations to CMIP6 projections \\
+
+\end{longtable}
+\normalsize
+
+\clearpage
+\section{Calibration Targets}
+\label{sec:appendix_targets}
+
+The model was calibrated against regional recovery fractions estimated from available survey data and expert assessment (Table~\ref{tab:targets}). RMSE was computed on log-transformed fractions to weight relative errors equally across the four-order-of-magnitude range of targets.
+
+\begin{table}[ht]
+\centering
+\caption{Regional recovery targets used for model calibration.}
+\label{tab:targets}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Region} & \textbf{Target (\%)} & \textbf{Basis} \\
+\midrule
+AK-PWS (Prince William Sound) & 50 & Substantial survey-documented recovery \\
+AK-FN (Fairweather North) & 50 & Cold-water remote populations \\
+AK-FS (Fairweather South) & 20 & Partial recovery; warmer than PWS \\
+BC-N (British Columbia North) & 20 & Moderate fjord-coast recovery \\
+SS-S (Salish Sea South) & 5 & Limited recovery in semi-enclosed waters \\
+JDF (Juan de Fuca Strait) & 2 & Near-total loss \\
+OR (Oregon) & 0.25 & Severe decline, minimal recovery \\
+CA-N (California North) & 0.1 & Near-extirpation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The production model (W154) achieves a log-RMSE of 0.504 against these targets. The primary remaining discrepancy is in the Alaskan regions: the model predicts 2--7\% recovery where survey data suggest up to 50\%. This is discussed in Section~\ref{sec:discussion}.
+
+\clearpage
+\section{SST Projection Methodology}
+\label{sec:appendix_sst}
+
+Sea surface temperature (SST) for 2012--2025 was drawn directly from the NOAA Optimum Interpolation SST (OISST) v2.1 dataset, providing daily satellite-derived temperatures on a 0.25\textdegree\ grid. Each model site was assigned the nearest OISST grid cell.
+
+For 2026--2050, we used the \textbf{delta method} to generate site-specific projections from CMIP6 multi-model ensemble outputs. The approach preserves each site's observed climatological baseline while applying projected warming trends:
+
+\begin{equation}
+T_{\text{site}}(y, m) = \bar{T}_{\text{site,obs}}(m) + \left[ T_{\text{ref,proj}}(y, m) - \bar{T}_{\text{ref,base}}(m) \right]
+\label{eq:delta}
+\end{equation}
+
+\noindent where $\bar{T}_{\text{site,obs}}(m)$ is the site's observed monthly climatology (2012--2024 mean), $T_{\text{ref,proj}}(y, m)$ is the CMIP6 projection for the nearest reference site in year $y$ and month $m$, and $\bar{T}_{\text{ref,base}}(m)$ is that reference site's historical baseline (2012--2024 mean).
+
+Eleven CMIP6 reference sites were selected to span the species' range, from the Aleutian Islands (53\textdegree N) to Baja California (30\textdegree N). Each of the 896 model sites was assigned to its nearest reference site by great-circle distance. Projections were generated under both SSP2-4.5 (moderate emissions, used in F01--F03) and SSP5-8.5 (high emissions, used in F04).
+
+The delta method ensures that each site retains its unique seasonal SST cycle and inter-annual variability structure (from the observational record), with only the long-term warming trend adjusted according to the climate scenario. This approach avoids the biases that arise from using raw CMIP6 output directly at coastal locations, where global climate models often have significant resolution-related errors.

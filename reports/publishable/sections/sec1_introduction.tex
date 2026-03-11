@@ -1,0 +1,133 @@
+% ==============================================================================
+% Section 1: Introduction
+% ==============================================================================
+
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{The collapse of a keystone predator}
+
+Between 2013 and 2015, the largest marine wildlife mass mortality event ever recorded
+swept the Pacific coast of North America. Sea star wasting disease (SSWD) killed
+billions of sea stars across more than twenty species, from Alaska to Baja California.
+No species was hit harder than the sunflower star, \textit{Pycnopodia helianthoides}---the
+largest sea star on Earth, capable of spanning a full meter across, with up to
+twenty-four arms and thousands of tube feet that let it glide across the seafloor at
+speeds remarkable for an echinoderm. Survey data compiled by \citet{gravem2021}
+documented a 90.6\% range-wide decline, a loss so severe that \textit{Pycnopodia} was
+subsequently listed as Critically Endangered on the IUCN Red List---the first sea star
+to receive that designation.
+
+The ecological consequences of this collapse extend far beyond the loss of a single
+species. \textit{Pycnopodia} is a keystone predator in kelp forest ecosystems, where it
+controls populations of sea urchins---the primary grazers of kelp. Without sunflower
+stars to keep urchin numbers in check, urchin populations have exploded across large
+stretches of the coast, overgrazing kelp forests and converting them into ``urchin
+barrens'': rocky reefs stripped of macroalgae, impoverished in biodiversity, and
+largely devoid of the three-dimensional habitat structure that supports hundreds of
+associated species. The loss of \textit{Pycnopodia} has thus triggered a trophic cascade
+with consequences that ripple through entire nearshore ecosystems, from fish nursery
+habitat to carbon sequestration.
+
+\subsection{Identifying the pathogen}
+
+For over a decade after the initial outbreak, the causative agent of SSWD remained
+uncertain. Early hypotheses centered on a densovirus (sea star--associated
+densovirus, SSaDV), but subsequent work failed to establish a consistent causal
+link. The breakthrough came when \citet{prentice2025}, publishing in \textit{Nature
+Ecology \& Evolution}, fulfilled Koch's postulates for the marine bacterium
+\textit{Vibrio pectenicida}. Their work demonstrated that this Vibrio species could
+be isolated from wasting sea stars, grown in pure culture, used to experimentally
+induce wasting in healthy animals, and then re-isolated from the newly diseased
+individuals---the classical chain of evidence required to establish causation in
+infectious disease.
+
+The identification of \textit{V.\ pectenicida} as the etiological agent transforms our
+understanding of SSWD from a mysterious syndrome into a problem that can, in
+principle, be modeled mechanistically. Vibrio species are well-studied bacteria
+whose ecology is tightly coupled to seawater temperature: they enter a viable but
+non-culturable (VBNC) dormant state when water temperatures drop below a
+species-specific thermal threshold, and resume active growth and virulence when
+temperatures rise above it. This temperature-dependent life cycle means that climate
+warming does not merely provide a stressful background for the host---it directly
+controls the seasonal window during which the pathogen can cause disease.
+
+\subsection{The conservation challenge}
+
+Active conservation efforts for \textit{Pycnopodia} are already underway. Captive
+breeding programs, informed by detailed work on sunflower star spawning biology and
+larval rearing \citep{hodin2021}, aim to produce juveniles for eventual
+reintroduction to depleted habitats. Field researchers have identified potential
+refugia---\citet{gehman2025} documented that fjord environments in British Columbia,
+where a surface freshwater lens suppresses \textit{Vibrio} activity, may harbor
+surviving populations shielded from the worst disease pressure.
+
+Yet these efforts face a fundamental uncertainty: \textit{what will the disease
+landscape look like in the decades ahead?} Captive-bred juveniles released into the
+wild will encounter a pathogen that is itself evolving---potentially adapting to new
+thermal regimes, shifting its virulence, and tracking the warming ocean northward.
+Managers selecting reintroduction sites need to know not just where \textit{Pycnopodia}
+survives today, but where it can persist through mid-century under realistic climate
+and evolutionary trajectories. Without forecasts that account for the coupled dynamics
+of host populations, pathogen evolution, and climate change, conservation investments
+risk targeting sites that will become untenable within a generation.
+
+\subsection{Why an eco-evolutionary model?}
+
+Classical epidemiological models treat host susceptibility and pathogen virulence as
+fixed parameters. For a disease system operating over decades in a warming ocean,
+this assumption is untenable. Host populations under intense disease pressure will
+experience natural selection for resistance---individuals that survive carry alleles
+conferring some degree of tolerance or resistance, and pass them to their offspring.
+Simultaneously, the pathogen population evolves: \textit{V.\ pectenicida} can adapt
+its thermal tolerance (the VBNC threshold temperature) to track warming waters, and
+its virulence can shift in response to the trade-off between transmission success
+and host mortality \citep{anderson1982}. These evolutionary dynamics operate on
+timescales of years to decades---precisely the timescale relevant to conservation
+planning.
+
+We therefore developed a coupled eco-evolutionary epidemiological agent-based model
+(ABM) that simulates individual \textit{Pycnopodia} across 896 discrete coastal sites
+spanning the species' entire range, from the Aleutian Islands of Alaska to Baja
+California, Mexico. Each simulated sea star carries a heritable resistance trait;
+each local pathogen population carries heritable traits for thermal tolerance and
+virulence. Reproduction, mortality, disease transmission, and trait inheritance all
+operate at the individual level, allowing emergent population dynamics and
+evolutionary trajectories to arise from first principles rather than imposed
+aggregate equations.
+
+\subsection{Scope of this report}
+
+We calibrated the model against observational survey data from 2012 through 2025,
+achieving a root-mean-square error (RMSE) of 0.504 against normalized regional
+abundance indices. We then projected the model forward to 2050 under four scenarios
+designed to isolate the effects of climate trajectory and pathogen evolutionary
+capacity:
+
+\begin{description}
+    \item[Scenario F01 (Baseline):] Moderate warming (Shared Socioeconomic Pathway 2-4.5, hereafter SSP2-4.5) with all pathogen
+    evolutionary mechanisms active---thermal adaptation and virulence evolution.
+    This represents our best estimate of the most likely future trajectory.
+
+    \item[Scenario F02 (No pathogen evolution):] Moderate warming (Shared Socioeconomic Pathway 2-4.5, hereafter SSP2-4.5) with
+    all pathogen evolution disabled. The pathogen retains its initial thermal
+    tolerance and virulence throughout the simulation. Comparing F02 to F01 reveals
+    the total effect of pathogen evolutionary capacity on host population outcomes.
+
+    \item[Scenario F03 (Thermal adaptation only):] Moderate warming (Shared Socioeconomic Pathway 2-4.5, hereafter SSP2-4.5)
+    with pathogen thermal adaptation enabled but virulence evolution disabled.
+    Comparing F03 to F01 isolates the specific contribution of virulence evolution.
+
+    \item[Scenario F04 (High warming):] High-end warming (SSP5-8.5) with all
+    pathogen evolution active. Comparing F04 to F01 reveals how an accelerated
+    warming trajectory reshapes outcomes across the species' latitudinal range.
+\end{description}
+
+Each scenario was run with three independent random seeds, and all results reported
+here represent the three-seed mean. The peak historical population across all
+scenarios was 4,447,241 individuals.
+
+This report presents the key findings from these forecast simulations (Section~\ref{sec:key_findings}), describes the scenario design (Section~\ref{sec:scenarios}), provides detailed regional results (Section~\ref{sec:results}), explains the model architecture (Section~\ref{sec:model}), and discusses implications for conservation strategy (Section~\ref{sec:discussion}). Our aim is to provide the quantitative foundation
+that conservation managers, captive breeding programs, and policy makers need to
+make informed decisions about where, when, and how to invest in the recovery of
+this critically endangered keystone predator.

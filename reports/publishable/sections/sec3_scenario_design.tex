@@ -1,0 +1,130 @@
+% =============================================================================
+% Section 3: Scenario Design
+% =============================================================================
+\section{Scenario Design}
+\label{sec:scenarios}
+
+To disentangle the relative contributions of climate forcing and pathogen
+evolution to the long-term trajectory of \textit{Pycnopodia helianthoides}
+populations, we designed a factorial scenario ensemble that independently
+varied two axes: the magnitude of ocean warming and the availability of
+evolutionary mechanisms within the pathogen module.  All scenarios were
+executed with the validated production model W154 (coast-wide
+RMSE\,=\,0.504; Section~\ref{sec:calibration}).
+
+\subsection{Factorial Structure}
+
+The four forecast scenarios (Table~\ref{tab:scenarios}) arise from the
+cross of two climate pathways and two evolutionary configurations:
+
+\begin{table}[htbp]
+\centering
+\caption{Factorial scenario design.  ``Evo ON'' enables both pathogen
+thermal-niche adaptation and local virulence evolution; ``Evo OFF''
+freezes all pathogen traits at their calibrated 2012 values.  F03
+provides an intermediate case in which the thermal niche may shift but
+virulence remains static.}
+\label{tab:scenarios}
+\smallskip
+\begin{tabular}{llccc}
+\toprule
+\textbf{ID} & \textbf{Climate} & \textbf{Thermal adapt.} &
+  \textbf{Virulence evol.} & \textbf{Rationale} \\
+\midrule
+F01 & SSP2-4.5 & ON  & ON  & Baseline: moderate warming, full evolution \\
+F02 & SSP2-4.5 & OFF & OFF & Isolate total evolutionary effect \\
+F03 & SSP2-4.5 & ON  & OFF & Isolate virulence evolution contribution \\
+F04 & SSP5-8.5 & ON  & ON  & Probe sensitivity to high-end warming \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The baseline scenario F01 represents the ``most likely'' coupled
+trajectory: a middle-of-the-road emissions pathway (SSP2-4.5) with all
+eco-evolutionary feedbacks active.  Comparing F01 to F02 quantifies the
+aggregate effect of pathogen evolution, while comparing F01 to F03
+isolates the marginal contribution of virulence evolution alone (with
+thermal adaptation still permitted).  Finally, F04 retains all
+evolutionary mechanisms but substitutes the high-emissions SSP5-8.5
+climate trajectory, enabling direct assessment of the warming signal
+independent of evolutionary configuration.
+
+This design permits three clean contrasts:
+\begin{enumerate}
+  \item \textbf{Total pathogen evolution effect:} F02\,$-$\,F01
+        (both climate and evolutionary axes vary);
+  \item \textbf{Virulence evolution alone:} F01\,$-$\,F03
+        (thermal adaptation held constant, virulence toggled);
+  \item \textbf{Climate forcing:} F04\,$-$\,F01
+        (evolution held constant, SSP pathway varied).
+\end{enumerate}
+
+\subsection{Common Model Settings}
+
+All four scenarios share the following configuration:
+\begin{itemize}
+  \item \textbf{Spatial domain:} 896 coastal grid cells spanning the
+        full historical range of \textit{P.~helianthoides} from the
+        western Aleutian Islands (52.5\textdegree N) to central Baja
+        California (28.5\textdegree N).
+  \item \textbf{Carrying capacity:} $K = 5{,}000$ individuals per cell,
+        reflecting the maximum local density supported by prey
+        availability and habitat suitability.
+  \item \textbf{Model version:} W154 production parameterization, as
+        selected through the calibration procedure described in
+        Section~\ref{sec:calibration}.
+  \item \textbf{Temporal extent:} 2012--2050, with daily time steps.
+  \item \textbf{Replication:} Each scenario was run with three
+        independent random seeds to characterize stochastic variability.
+        All results reported below are three-seed means unless otherwise
+        noted.
+\end{itemize}
+
+\subsection{Sea Surface Temperature Forcing}
+\label{sec:sst_forcing}
+
+The thermal forcing protocol distinguishes two periods.  During the
+\textit{observation window} (2012--2025), all scenarios use
+daily sea surface temperature (SST) fields derived from the NOAA
+Optimum Interpolation SST v2.1 dataset \citep{reynolds2007,
+huang2021}, bilinearly interpolated to each of the 896 model grid
+cells.  This ensures that the simulated SSWD epizootic and its
+immediate aftermath are driven by observed oceanographic conditions,
+including the anomalous 2013--2016 marine heatwave.
+
+For the \textit{projection window} (2026--2050), SSTs are generated
+via a delta method applied to an ensemble of CMIP6 general circulation
+models.  Eleven reference coastal sites, distributed at regular
+latitudinal intervals from Alaska to Baja California, were selected to
+span the major oceanographic provinces within the model domain.  At
+each reference site, monthly climatological differences between
+historical and future SSP-forced CMIP6 runs were computed and smoothed
+with a 12-month running mean to remove interannual noise while
+preserving the secular warming trend.  These monthly deltas were then
+spatially interpolated (inverse-distance weighting from the nearest
+three reference sites) and added to the 2012--2025 OISST climatology
+at each of the 896 model cells.  A stochastic daily perturbation term,
+calibrated to match the observed interannual SST variance at each
+site, was superimposed to maintain realistic thermal variability.
+
+Under SSP2-4.5, this procedure yields coast-wide mean warming of
+approximately $+$0.8\,\textdegree C by 2050 relative to the
+2012--2020 baseline, with stronger warming in the Gulf of Alaska and
+weaker warming along the upwelling-dominated California Current.
+Under SSP5-8.5 (scenario F04), warming roughly doubles to
+$+$1.5\,\textdegree C coast-wide, with pronounced amplification at
+high latitudes.
+
+\subsection{Initialization and Spin-Up}
+
+All scenarios are initialized identically at 1 January 2012 using the
+pre-epizootic abundance estimates described in Section~\ref{sec:abm_framework}.
+Host resistance allele frequencies are set to $r_0 = 0.150$ uniformly
+across all populations, reflecting the calibrated standing genetic
+variation prior to the onset of selection by SSWD.  Pathogen traits
+($T_\mathrm{vbnc}$, $v_\mathrm{local}$) are likewise initialized at
+their calibrated 2012 values.  No burn-in period is applied; the
+epizootic itself (2013--2015) serves as the dynamical transition from
+pre-disease equilibrium to the post-outbreak regime that is the focus
+of the forecast analysis.
