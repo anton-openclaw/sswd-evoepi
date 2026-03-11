@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 13:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -524,17 +524,17 @@ LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 11
  (/home/starbot/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) [8] [9{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc} <./figures/fig_climate_effect.png>]
-<figures/fig_resistance_evolution_forecast.png, id=442, 498.663pt x 317.988pt>
+<figures/fig_resistance_evolution_forecast.png, id=442, 715.7139pt x 390.0171pt>
 File: figures/fig_resistance_evolution_forecast.png Graphic file (type png)
 <use figures/fig_resistance_evolution_forecast.png>
 Package pdftex.def Info: figures/fig_resistance_evolution_forecast.png  used on input line 155.
-(pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
+(pdftex.def)             Requested size: 352.31625pt x 191.99081pt.
  [10{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc} <./figures/fig_resistance_evolution_forecast.png>]
-<figures/fig_genetic_diversity.png, id=450, 498.663pt x 317.988pt>
+<figures/fig_genetic_diversity.png, id=450, 715.7139pt x 390.0171pt>
 File: figures/fig_genetic_diversity.png Graphic file (type png)
 <use figures/fig_genetic_diversity.png>
 Package pdftex.def Info: figures/fig_genetic_diversity.png  used on input line 203.
-(pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
+(pdftex.def)             Requested size: 352.31625pt x 191.99081pt.
  [11 <./figures/fig_genetic_diversity.png>]
 <figures/fig_evo_comparison.png, id=461, 1004.553pt x 353.8821pt>
 File: figures/fig_evo_comparison.png Graphic file (type png)
@@ -547,7 +547,7 @@ Overfull \hbox (26.25809pt too wide) in paragraph at lines 29--40
  []
 
 [14]) (./sections/sec4_results.tex [15] [16]
-<figures/fig_regional_trajectories.png, id=523, 1004.3121pt x 531.4254pt>
+<figures/fig_regional_trajectories.png, id=524, 1004.3121pt x 531.4254pt>
 File: figures/fig_regional_trajectories.png Graphic file (type png)
 <use figures/fig_regional_trajectories.png>
 Package pdftex.def Info: figures/fig_regional_trajectories.png  used on input line 91.
@@ -577,8 +577,8 @@ Overfull \hbox (0.5854pt too wide) in paragraph at lines 392--397
 File: figures/fig_genetic_diversity.png Graphic file (type png)
 <use figures/fig_genetic_diversity.png>
 Package pdftex.def Info: figures/fig_genetic_diversity.png  used on input line 462.
-(pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
-<figures/fig_pathogen_traits_final.png, id=585, 498.663pt x 441.5697pt>
+(pdftex.def)             Requested size: 352.31625pt x 191.99081pt.
+<figures/fig_pathogen_traits_final.png, id=587, 498.663pt x 441.5697pt>
 File: figures/fig_pathogen_traits_final.png Graphic file (type png)
 <use figures/fig_pathogen_traits_final.png>
 Package pdftex.def Info: figures/fig_pathogen_traits_final.png  used on input line 482.
@@ -589,8 +589,7 @@ File: figures/fig_oasis_concentration.png Graphic file (type png)
 <use figures/fig_oasis_concentration.png>
 Package pdftex.def Info: figures/fig_oasis_concentration.png  used on input line 32.
 (pdftex.def)             Requested size: 375.80544pt x 249.16643pt.
- [30 <./figures/fig_oasis_concentration.png>]
-<figures/fig_site_decomposition.png, id=631, 919.0335pt x 1148.1294pt>
+<figures/fig_site_decomposition.png, id=624, 919.0335pt x 1148.1294pt>
 File: figures/fig_site_decomposition.png Graphic file (type png)
 <use figures/fig_site_decomposition.png>
 Package pdftex.def Info: figures/fig_site_decomposition.png  used on input line 51.
@@ -599,7 +598,8 @@ File: figures/fig_oasis_concentration.png Graphic file (type png)
 <use figures/fig_oasis_concentration.png>
 Package pdftex.def Info: figures/fig_oasis_concentration.png  used on input line 59.
 (pdftex.def)             Requested size: 375.80544pt x 249.16643pt.
-<figures/fig_oasis_consistency.png, id=634, 1004.553pt x 878.8032pt>
+ [30 <./figures/fig_oasis_concentration.png>] [31 <./figures/fig_site_decomposition.png>] [32]
+<figures/fig_oasis_consistency.png, id=645, 1004.553pt x 878.8032pt>
 File: figures/fig_oasis_consistency.png Graphic file (type png)
 <use figures/fig_oasis_consistency.png>
 Package pdftex.def Info: figures/fig_oasis_consistency.png  used on input line 94.
@@ -608,35 +608,35 @@ File: figures/fig_oasis_consistency.png Graphic file (type png)
 <use figures/fig_oasis_consistency.png>
 Package pdftex.def Info: figures/fig_oasis_consistency.png  used on input line 109.
 (pdftex.def)             Requested size: 422.77664pt x 369.85918pt.
- [31] [32 <./figures/fig_site_decomposition.png>] [33] [34 <./figures/fig_oasis_consistency.png>] [35]
+ [33] [34 <./figures/fig_oasis_consistency.png>] [35]
 <figures/fig_boom_decomposition.png, id=664, 1076.5821pt x 446.6286pt>
 File: figures/fig_boom_decomposition.png Graphic file (type png)
 <use figures/fig_boom_decomposition.png>
 Package pdftex.def Info: figures/fig_boom_decomposition.png  used on input line 177.
 (pdftex.def)             Requested size: 399.29463pt x 165.65207pt.
- [36]) (./sections/sec5_model.tex
+ [36 <./figures/fig_boom_decomposition.png>]) (./sections/sec5_model.tex
 <figures/fig_network_map.png, id=677, 995.8806pt x 499.1448pt>
 File: figures/fig_network_map.png Graphic file (type png)
 <use figures/fig_network_map.png>
 Package pdftex.def Info: figures/fig_network_map.png  used on input line 30.
 (pdftex.def)             Requested size: 399.29463pt x 200.12659pt.
- [37 <./figures/fig_boom_decomposition.png>]
 File: figures/fig_network_map.png Graphic file (type png)
 <use figures/fig_network_map.png>
 Package pdftex.def Info: figures/fig_network_map.png  used on input line 64.
 (pdftex.def)             Requested size: 399.29463pt x 200.12659pt.
- [38 <./figures/fig_network_map.png>] [39]
-<figures/fig_within_site_disease.png, id=716, 1106.2128pt x 788.7066pt>
+ [37] [38 <./figures/fig_network_map.png>]
+<figures/fig_within_site_disease.png, id=706, 1106.2128pt x 788.7066pt>
 File: figures/fig_within_site_disease.png Graphic file (type png)
 <use figures/fig_within_site_disease.png>
 Package pdftex.def Info: figures/fig_within_site_disease.png  used on input line 140.
 (pdftex.def)             Requested size: 446.26582pt x 318.1728pt.
-<figures/fig_disease_snapshots.png, id=717, 798.3426pt x 851.8224pt>
+ [39] [40 <./figures/fig_within_site_disease.png>]
+<figures/fig_disease_snapshots.png, id=723, 832.0686pt x 674.2791pt>
 File: figures/fig_disease_snapshots.png Graphic file (type png)
 <use figures/fig_disease_snapshots.png>
 Package pdftex.def Info: figures/fig_disease_snapshots.png  used on input line 160.
-(pdftex.def)             Requested size: 446.26582pt x 476.17244pt.
- [40 <./figures/fig_within_site_disease.png>] [41 <./figures/fig_disease_snapshots.png>] [42] [43] [44]) (./sections/sec6_discussion.tex [45{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [46] [47]) [48] [49] (./sections/sec7_appendix.tex
+(pdftex.def)             Requested size: 446.26582pt x 361.63602pt.
+ [41 <./figures/fig_disease_snapshots.png>] [42] [43] [44{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]) (./sections/sec6_discussion.tex [45] [46] [47]) [48] [49] (./sections/sec7_appendix.tex
 Overfull \hbox (1.45953pt too wide) in paragraph at lines 72--72
 []|$\OML/lmm/m/it/10 T[]$| 
  []
@@ -704,7 +704,7 @@ Here is how much of TeX's memory you used:
  14 hyphenation exceptions out of 8191
  75i,12n,79p,2038b,606s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr5.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb>
-Output written on report.pdf (55 pages, 6308808 bytes).
+Output written on report.pdf (55 pages, 7479954 bytes).
 PDF statistics:
  977 PDF objects out of 1000 (max. 8388607)
  839 compressed objects within 9 object streams
