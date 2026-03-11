@@ -13,66 +13,72 @@
 \contentsline {subsection}{\numberline {2.6}Pathogen evolution: a double-edged sword}{9}{subsection.2.6}%
 \contentsline {subsection}{\numberline {2.7}Synthesis: what the numbers mean for conservation}{9}{subsection.2.7}%
 \contentsline {section}{\numberline {3}Scenario Design}{10}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Factorial Structure}{20}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Common Model Settings}{20}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Sea Surface Temperature Forcing}{21}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Initialization and Spin-Up}{21}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Results}{21}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Population Trajectories}{22}{subsection.4.1}%
-\contentsline {subsubsection}{\numberline {4.1.1}Coast-Wide Dynamics}{22}{subsubsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {4.1.2}Regional Divergence}{22}{subsubsection.4.1.2}%
-\contentsline {subsubsection}{\numberline {4.1.3}The Recruitment Pulse Phenomenon}{23}{subsubsection.4.1.3}%
-\contentsline {subsection}{\numberline {4.2}Regional Recovery Patterns}{23}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Alaska}{23}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}British Columbia and the Salish Sea}{24}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}Pacific Northwest: Oregon's Dominance}{24}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}California and Baja California: Southern Collapse}{24}{subsubsection.4.2.4}%
-\contentsline {subsection}{\numberline {4.3}Climate Effects}{25}{subsection.4.3}%
-\contentsline {subsubsection}{\numberline {4.3.1}Northern Beneficiaries}{25}{subsubsection.4.3.1}%
-\contentsline {subsubsection}{\numberline {4.3.2}Southern Losers}{25}{subsubsection.4.3.2}%
-\contentsline {subsubsection}{\numberline {4.3.3}The Breakeven Latitude}{26}{subsubsection.4.3.3}%
-\contentsline {subsection}{\numberline {4.4}Evolutionary Dynamics}{26}{subsection.4.4}%
-\contentsline {subsubsection}{\numberline {4.4.1}Host Resistance}{26}{subsubsection.4.4.1}%
-\contentsline {subsubsection}{\numberline {4.4.2}The Cruel Paradox of Evolutionary Capacity}{27}{subsubsection.4.4.2}%
-\contentsline {subsubsection}{\numberline {4.4.3}Pathogen Thermal Adaptation}{27}{subsubsection.4.4.3}%
-\contentsline {subsubsection}{\numberline {4.4.4}Virulence Gradient}{28}{subsubsection.4.4.4}%
-\contentsline {subsection}{\numberline {4.5}The Pathogen Evolution Question}{28}{subsection.4.5}%
-\contentsline {subsubsection}{\numberline {4.5.1}Aggregate Effect: Modest and Counterintuitive}{28}{subsubsection.4.5.1}%
-\contentsline {subsubsection}{\numberline {4.5.2}Where Disabling Evolution Hurts the Host}{29}{subsubsection.4.5.2}%
-\contentsline {subsubsection}{\numberline {4.5.3}Where Disabling Evolution Helps the Host}{29}{subsubsection.4.5.3}%
-\contentsline {subsubsection}{\numberline {4.5.4}Virulence Evolution Alone: A Minor Player}{30}{subsubsection.4.5.4}%
-\contentsline {subsubsection}{\numberline {4.5.5}Synthesis: The Evolutionary Forecast}{30}{subsubsection.4.5.5}%
-\contentsline {section}{\numberline {5}Model Description}{30}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Agent-Based Framework}{31}{subsection.5.1}%
-\contentsline {paragraph}{Temperature forcing.}{31}{section*.18}%
-\contentsline {subsection}{\numberline {5.2}Disease Mechanics}{31}{subsection.5.2}%
-\contentsline {paragraph}{Within-host progression.}{31}{section*.19}%
-\contentsline {paragraph}{The VBNC state.}{32}{section*.20}%
-\contentsline {paragraph}{Environmental pathogen pool.}{32}{section*.21}%
-\contentsline {paragraph}{Wavefront propagation.}{32}{section*.22}%
-\contentsline {subsection}{\numberline {5.3}Host Genetics and Evolution}{32}{subsection.5.3}%
-\contentsline {paragraph}{Natural selection.}{33}{section*.23}%
-\contentsline {subsection}{\numberline {5.4}Pathogen Community Evolution}{33}{subsection.5.4}%
-\contentsline {paragraph}{Thermal activation threshold ($T_\mathrm {vbnc}$).}{33}{section*.24}%
-\contentsline {paragraph}{Local virulence ($v_\mathrm {local}$).}{33}{section*.25}%
-\contentsline {subsection}{\numberline {5.5}Reproduction and Dispersal}{34}{subsection.5.5}%
-\contentsline {paragraph}{Broadcast spawning.}{34}{section*.26}%
-\contentsline {paragraph}{Sweepstakes reproductive success.}{34}{section*.27}%
-\contentsline {paragraph}{Larval dispersal.}{34}{section*.28}%
-\contentsline {paragraph}{Allee effects.}{34}{section*.29}%
-\contentsline {paragraph}{The enclosedness metric.}{34}{section*.30}%
-\contentsline {subsection}{\numberline {5.6}Calibration Summary}{35}{subsection.5.6}%
-\contentsline {paragraph}{Known limitation.}{35}{section*.31}%
-\contentsline {subsection}{\numberline {5.7}SST Projections}{35}{subsection.5.7}%
-\contentsline {section}{\numberline {6}Discussion}{36}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Recovery without intervention}{36}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}The Oregon opportunity}{36}{subsection.6.2}%
-\contentsline {subsection}{\numberline {6.3}Alaska's conditional optimism}{37}{subsection.6.3}%
-\contentsline {subsection}{\numberline {6.4}Southern California as a conservation priority}{37}{subsection.6.4}%
-\contentsline {subsection}{\numberline {6.5}The evolutionary dead end}{38}{subsection.6.5}%
-\contentsline {subsection}{\numberline {6.6}Limitations}{38}{subsection.6.6}%
-\contentsline {subsection}{\numberline {6.7}What comes next}{39}{subsection.6.7}%
-\contentsline {section}{\numberline {A}Region Codes}{40}{appendix.A}%
-\contentsline {section}{\numberline {B}Model Parameters}{40}{appendix.B}%
-\contentsline {section}{\numberline {C}Calibration Targets}{43}{appendix.C}%
-\contentsline {section}{\numberline {D}SST Projection Methodology}{44}{appendix.D}%
+\contentsline {subsection}{\numberline {3.1}Factorial Structure}{17}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Common Model Settings}{21}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Sea Surface Temperature Forcing}{24}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Initialization and Spin-Up}{24}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Results}{24}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Population Trajectories}{25}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Coast-Wide Dynamics}{25}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Regional Divergence}{25}{subsubsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.3}The Recruitment Pulse Phenomenon}{26}{subsubsection.4.1.3}%
+\contentsline {subsection}{\numberline {4.2}Regional Recovery Patterns}{26}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Alaska}{26}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}British Columbia and the Salish Sea}{27}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Pacific Northwest: Oregon's Dominance}{27}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}California and Baja California: Southern Collapse}{27}{subsubsection.4.2.4}%
+\contentsline {subsection}{\numberline {4.3}Climate Effects}{28}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Northern Beneficiaries}{28}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Southern Losers}{28}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}The Breakeven Latitude}{29}{subsubsection.4.3.3}%
+\contentsline {subsection}{\numberline {4.4}Evolutionary Dynamics}{29}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Host Resistance}{29}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}The Cruel Paradox of Evolutionary Capacity}{30}{subsubsection.4.4.2}%
+\contentsline {subsubsection}{\numberline {4.4.3}Pathogen Thermal Adaptation}{30}{subsubsection.4.4.3}%
+\contentsline {subsubsection}{\numberline {4.4.4}Virulence Gradient}{31}{subsubsection.4.4.4}%
+\contentsline {subsection}{\numberline {4.5}The Pathogen Evolution Question}{31}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Aggregate Effect: Modest and Counterintuitive}{31}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}Where Disabling Evolution Hurts the Host}{32}{subsubsection.4.5.2}%
+\contentsline {subsubsection}{\numberline {4.5.3}Where Disabling Evolution Helps the Host}{32}{subsubsection.4.5.3}%
+\contentsline {subsubsection}{\numberline {4.5.4}Virulence Evolution Alone: A Minor Player}{33}{subsubsection.4.5.4}%
+\contentsline {subsubsection}{\numberline {4.5.5}Synthesis: The Evolutionary Forecast}{33}{subsubsection.4.5.5}%
+\contentsline {subsection}{\numberline {4.6}Site-Level Dynamics: Oasis Sites and the Geography of Persistence}{33}{subsection.4.6}%
+\contentsline {subsubsection}{\numberline {4.6.1}The Oasis Pattern in Oregon}{34}{subsubsection.4.6.1}%
+\contentsline {subsubsection}{\numberline {4.6.2}Oasis Identity Is Stochastic, Oasis Geography Is Not}{34}{subsubsection.4.6.2}%
+\contentsline {subsubsection}{\numberline {4.6.3}Distributed Recovery in Alaska}{35}{subsubsection.4.6.3}%
+\contentsline {subsubsection}{\numberline {4.6.4}The Boom-Bust Cycle at Site Resolution}{35}{subsubsection.4.6.4}%
+\contentsline {subsubsection}{\numberline {4.6.5}Implications for Conservation}{36}{subsubsection.4.6.5}%
+\contentsline {section}{\numberline {5}Model Description}{36}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Agent-Based Framework}{36}{subsection.5.1}%
+\contentsline {paragraph}{Temperature forcing.}{37}{section*.22}%
+\contentsline {subsection}{\numberline {5.2}Disease Mechanics}{37}{subsection.5.2}%
+\contentsline {paragraph}{Within-host progression.}{37}{section*.23}%
+\contentsline {paragraph}{The VBNC state.}{37}{section*.24}%
+\contentsline {paragraph}{Environmental pathogen pool.}{37}{section*.25}%
+\contentsline {paragraph}{Wavefront propagation.}{38}{section*.26}%
+\contentsline {subsection}{\numberline {5.3}Host Genetics and Evolution}{38}{subsection.5.3}%
+\contentsline {paragraph}{Natural selection.}{38}{section*.27}%
+\contentsline {subsection}{\numberline {5.4}Pathogen Community Evolution}{39}{subsection.5.4}%
+\contentsline {paragraph}{Thermal activation threshold ($T_\mathrm {vbnc}$).}{39}{section*.28}%
+\contentsline {paragraph}{Local virulence ($v_\mathrm {local}$).}{39}{section*.29}%
+\contentsline {subsection}{\numberline {5.5}Reproduction and Dispersal}{39}{subsection.5.5}%
+\contentsline {paragraph}{Broadcast spawning.}{39}{section*.30}%
+\contentsline {paragraph}{Sweepstakes reproductive success.}{39}{section*.31}%
+\contentsline {paragraph}{Larval dispersal.}{39}{section*.32}%
+\contentsline {paragraph}{Allee effects.}{40}{section*.33}%
+\contentsline {paragraph}{The enclosedness metric.}{40}{section*.34}%
+\contentsline {subsection}{\numberline {5.6}Calibration Summary}{40}{subsection.5.6}%
+\contentsline {paragraph}{Known limitation.}{41}{section*.35}%
+\contentsline {subsection}{\numberline {5.7}SST Projections}{41}{subsection.5.7}%
+\contentsline {section}{\numberline {6}Discussion}{41}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Recovery without intervention}{41}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}The Oregon opportunity}{42}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Alaska's conditional optimism}{42}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Southern California as a conservation priority}{43}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}The evolutionary dead end}{43}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Limitations}{44}{subsection.6.6}%
+\contentsline {subsection}{\numberline {6.7}What comes next}{44}{subsection.6.7}%
+\contentsline {section}{\numberline {A}Region Codes}{46}{appendix.A}%
+\contentsline {section}{\numberline {B}Model Parameters}{46}{appendix.B}%
+\contentsline {section}{\numberline {C}Calibration Targets}{49}{appendix.C}%
+\contentsline {section}{\numberline {D}SST Projection Methodology}{50}{appendix.D}%

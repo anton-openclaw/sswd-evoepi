@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 12:36
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.21)  11 MAR 2026 12:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -484,82 +484,102 @@ LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 12
  (/home/starbot/.TinyTeX/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) [8{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}] [9]) (./sections/figures.tex
-<figures/fig_coastwide_population.png, id=423, 452.892pt x 282.5757pt>
+<figures/fig_coastwide_population.png, id=453, 452.892pt x 282.5757pt>
 File: figures/fig_coastwide_population.png Graphic file (type png)
 <use figures/fig_coastwide_population.png>
 Package pdftex.def Info: figures/fig_coastwide_population.png  used on input line 10.
 (pdftex.def)             Requested size: 399.29463pt x 249.14166pt.
-<figures/fig_regional_recovery_bars.png, id=425, 1004.553pt x 353.8821pt>
+<figures/fig_regional_recovery_bars.png, id=455, 1004.553pt x 353.8821pt>
 File: figures/fig_regional_recovery_bars.png Graphic file (type png)
 <use figures/fig_regional_recovery_bars.png>
 Package pdftex.def Info: figures/fig_regional_recovery_bars.png  used on input line 18.
 (pdftex.def)             Requested size: 469.75502pt x 165.48222pt.
-<figures/fig_regional_trajectories.png, id=426, 1004.3121pt x 531.4254pt>
+<figures/fig_regional_trajectories.png, id=456, 1004.3121pt x 531.4254pt>
 File: figures/fig_regional_trajectories.png Graphic file (type png)
 <use figures/fig_regional_trajectories.png>
 Package pdftex.def Info: figures/fig_regional_trajectories.png  used on input line 26.
 (pdftex.def)             Requested size: 469.75502pt x 248.56984pt.
-<figures/fig_climate_effect.png, id=427, 498.663pt x 426.393pt>
+<figures/fig_climate_effect.png, id=457, 498.663pt x 426.393pt>
 File: figures/fig_climate_effect.png Graphic file (type png)
 <use figures/fig_climate_effect.png>
 Package pdftex.def Info: figures/fig_climate_effect.png  used on input line 34.
 (pdftex.def)             Requested size: 352.31625pt x 301.25772pt.
-<figures/fig_resistance_evolution_forecast.png, id=428, 498.663pt x 317.988pt>
+<figures/fig_resistance_evolution_forecast.png, id=458, 498.663pt x 317.988pt>
 File: figures/fig_resistance_evolution_forecast.png Graphic file (type png)
 <use figures/fig_resistance_evolution_forecast.png>
 Package pdftex.def Info: figures/fig_resistance_evolution_forecast.png  used on input line 42.
 (pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
-<figures/fig_genetic_diversity.png, id=429, 498.663pt x 317.988pt>
+<figures/fig_genetic_diversity.png, id=459, 498.663pt x 317.988pt>
 File: figures/fig_genetic_diversity.png Graphic file (type png)
 <use figures/fig_genetic_diversity.png>
 Package pdftex.def Info: figures/fig_genetic_diversity.png  used on input line 50.
 (pdftex.def)             Requested size: 352.31625pt x 224.66676pt.
-<figures/fig_pathogen_traits_final.png, id=430, 498.663pt x 441.5697pt>
+<figures/fig_pathogen_traits_final.png, id=460, 498.663pt x 441.5697pt>
 File: figures/fig_pathogen_traits_final.png Graphic file (type png)
 <use figures/fig_pathogen_traits_final.png>
 Package pdftex.def Info: figures/fig_pathogen_traits_final.png  used on input line 58.
 (pdftex.def)             Requested size: 352.31625pt x 311.98045pt.
-<figures/fig_evo_comparison.png, id=431, 1004.553pt x 353.8821pt>
+<figures/fig_evo_comparison.png, id=461, 1004.553pt x 353.8821pt>
 File: figures/fig_evo_comparison.png Graphic file (type png)
 <use figures/fig_evo_comparison.png>
 Package pdftex.def Info: figures/fig_evo_comparison.png  used on input line 66.
 (pdftex.def)             Requested size: 469.75502pt x 165.48222pt.
-<figures/fig_recovery_vs_latitude.png, id=432, 498.4221pt x 354.123pt>
+<figures/fig_recovery_vs_latitude.png, id=462, 498.4221pt x 354.123pt>
 File: figures/fig_recovery_vs_latitude.png Graphic file (type png)
 <use figures/fig_recovery_vs_latitude.png>
 Package pdftex.def Info: figures/fig_recovery_vs_latitude.png  used on input line 74.
 (pdftex.def)             Requested size: 352.31625pt x 250.32137pt.
-<figures/fig_heatmap_population.png, id=433, 912.7701pt x 426.1521pt>
+<figures/fig_heatmap_population.png, id=463, 912.7701pt x 426.1521pt>
 File: figures/fig_heatmap_population.png Graphic file (type png)
 <use figures/fig_heatmap_population.png>
 Package pdftex.def Info: figures/fig_heatmap_population.png  used on input line 82.
 (pdftex.def)             Requested size: 469.75502pt x 219.31796pt.
-<figures/fig_network_map.png, id=434, 995.8806pt x 499.1448pt>
+<figures/fig_site_decomposition.png, id=464, 919.0335pt x 1148.1294pt>
+File: figures/fig_site_decomposition.png Graphic file (type png)
+<use figures/fig_site_decomposition.png>
+Package pdftex.def Info: figures/fig_site_decomposition.png  used on input line 90.
+(pdftex.def)             Requested size: 399.29463pt x 498.81909pt.
+<figures/fig_oasis_concentration.png, id=465, 858.5676pt x 569.2467pt>
+File: figures/fig_oasis_concentration.png Graphic file (type png)
+<use figures/fig_oasis_concentration.png>
+Package pdftex.def Info: figures/fig_oasis_concentration.png  used on input line 98.
+(pdftex.def)             Requested size: 375.80544pt x 249.16643pt.
+<figures/fig_boom_decomposition.png, id=466, 1076.5821pt x 446.6286pt>
+File: figures/fig_boom_decomposition.png Graphic file (type png)
+<use figures/fig_boom_decomposition.png>
+Package pdftex.def Info: figures/fig_boom_decomposition.png  used on input line 106.
+(pdftex.def)             Requested size: 399.29463pt x 165.65207pt.
+<figures/fig_oasis_consistency.png, id=467, 1004.553pt x 878.8032pt>
+File: figures/fig_oasis_consistency.png Graphic file (type png)
+<use figures/fig_oasis_consistency.png>
+Package pdftex.def Info: figures/fig_oasis_consistency.png  used on input line 114.
+(pdftex.def)             Requested size: 422.77664pt x 369.85918pt.
+<figures/fig_network_map.png, id=468, 995.8806pt x 499.1448pt>
 File: figures/fig_network_map.png Graphic file (type png)
 <use figures/fig_network_map.png>
-Package pdftex.def Info: figures/fig_network_map.png  used on input line 90.
+Package pdftex.def Info: figures/fig_network_map.png  used on input line 122.
 (pdftex.def)             Requested size: 399.29463pt x 200.12659pt.
-<figures/fig_within_site_disease.png, id=435, 1106.2128pt x 788.7066pt>
+<figures/fig_within_site_disease.png, id=469, 1106.2128pt x 788.7066pt>
 File: figures/fig_within_site_disease.png Graphic file (type png)
 <use figures/fig_within_site_disease.png>
-Package pdftex.def Info: figures/fig_within_site_disease.png  used on input line 98.
+Package pdftex.def Info: figures/fig_within_site_disease.png  used on input line 130.
 (pdftex.def)             Requested size: 446.26582pt x 318.1728pt.
-<figures/fig_disease_snapshots.png, id=436, 798.3426pt x 851.8224pt>
+<figures/fig_disease_snapshots.png, id=470, 798.3426pt x 851.8224pt>
 File: figures/fig_disease_snapshots.png Graphic file (type png)
 <use figures/fig_disease_snapshots.png>
-Package pdftex.def Info: figures/fig_disease_snapshots.png  used on input line 106.
+Package pdftex.def Info: figures/fig_disease_snapshots.png  used on input line 138.
 (pdftex.def)             Requested size: 446.26582pt x 476.17244pt.
 ) (./sections/sec3_scenario_design.tex
 Overfull \hbox (26.25809pt too wide) in paragraph at lines 29--40
  [][] 
  []
 
-[10 <./figures/fig_coastwide_population.png>] [11 <./figures/fig_regional_recovery_bars.png> <./figures/fig_regional_trajectories.png>] [12 <./figures/fig_climate_effect.png>] [13{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc} <./figures/fig_resistance_evolution_forecast.png>] [14 <./figures/fig_genetic_diversity.png>] [15 <./figures/fig_pathogen_traits_final.png>] [16 <./figures/fig_evo_comparison.png> <./figures/fig_recovery_vs_latitude.png>] [17 <./figures/fig_heatmap_population.png> <./figures/fig_network_map.png>] [18 <./figures/fig_within_site_disease.png>] [19 <./figures/fig_disease_snapshots.png>] [20]) (./sections/sec4_results.tex [21] [22] [23] [24] [25]
+[10 <./figures/fig_coastwide_population.png>] [11 <./figures/fig_regional_recovery_bars.png> <./figures/fig_regional_trajectories.png>] [12 <./figures/fig_climate_effect.png>] [13{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc} <./figures/fig_resistance_evolution_forecast.png>] [14 <./figures/fig_genetic_diversity.png>] [15 <./figures/fig_pathogen_traits_final.png>] [16 <./figures/fig_evo_comparison.png> <./figures/fig_recovery_vs_latitude.png>] [17 <./figures/fig_heatmap_population.png>] [18 <./figures/fig_site_decomposition.png>] [19 <./figures/fig_oasis_concentration.png> <./figures/fig_boom_decomposition.png>] [20 <./figures/fig_oasis_consistency.png>] [21 <./figures/fig_network_map.png>] [22 <./figures/fig_within_site_disease.png>] [23 <./figures/fig_disease_snapshots.png>]) (./sections/sec4_results.tex [24] [25] [26] [27] [28]
 Overfull \hbox (0.5854pt too wide) in paragraph at lines 357--362
 []\T1/lmr/bx/n/10.95 Alaska (mod-er-ate se-lec-tion, slow re-sponse): \T1/lmr/m/n/10.95 AK-PWS: $\OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 150 \OMS/lmsy/m/n/10.95 ! \OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 253$\T1/lmr/m/n/10.95 ; AK-FN: $\OT1/lmr/m/n/10.95 0\OML/lmm/m/it/10.95 :\OT1/lmr/m/n/10.95 150 \OMS/lmsy/m/n/10.95 !
  []
 
-[26] [27] [28] [29]) (./sections/sec5_model.tex [30] [31] [32] [33] [34] [35{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}]) (./sections/sec6_discussion.tex [36] [37] [38]) [39] (./sections/sec7_appendix.tex
+[29] [30] [31] [32]) (./sections/sec4b_site_dynamics.tex [33] [34] [35]) (./sections/sec5_model.tex [36] [37] [38] [39] [40]) (./sections/sec6_discussion.tex [41{/home/starbot/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [42] [43] [44]) [45] (./sections/sec7_appendix.tex
 Overfull \hbox (1.45953pt too wide) in paragraph at lines 72--72
 []|$\OML/lmm/m/it/10 T[]$| 
  []
@@ -599,34 +619,34 @@ Underfull \hbox (badness 10000) in paragraph at lines 142--142
 []|\T1/lmr/m/n/10 Min re-pro-duc-tive
  []
 
-ignored error: Infinite glue shrinkage found in box being split [40
+ignored error: Infinite glue shrinkage found in box being split [46
 
 ]
-ignored error: Infinite glue shrinkage found in box being split [41] [42] [43
+ignored error: Infinite glue shrinkage found in box being split [47] [48] [49
 
-]) [44
+]) [50
 
-] [45] (./report.aux)
+] [51] (./report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: 109B194AF2E6F7B7585C6E826E9424EF;12974.
+(rerunfilecheck)             Checksum: 896966F9F1F3F4FB6703805EC92294EE;14664.
  ) 
 Here is how much of TeX's memory you used:
- 13080 strings out of 469514
- 209743 string characters out of 5469758
- 681501 words of memory out of 5000000
- 41353 multiletter control sequences out of 15000+600000
+ 13150 strings out of 469514
+ 211670 string characters out of 5469758
+ 690852 words of memory out of 5000000
+ 41397 multiletter control sequences out of 15000+600000
  709663 words of font info for 83 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  75i,12n,79p,1905b,606s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbxi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmex10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr5.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy7.pfb></home/starbot/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb>
-Output written on report.pdf (45 pages, 3813686 bytes).
+Output written on report.pdf (51 pages, 6231320 bytes).
 PDF statistics:
- 870 PDF objects out of 1000 (max. 8388607)
- 751 compressed objects within 8 object streams
- 176 named destinations out of 1000 (max. 500000)
- 578 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 956 PDF objects out of 1000 (max. 8388607)
+ 822 compressed objects within 9 object streams
+ 199 named destinations out of 1000 (max. 500000)
+ 646 words of extra memory for PDF output out of 10000 (max. 10000000)
 
