@@ -74,9 +74,9 @@
 \contentsline {subsection}{\numberline {6.1}Recovery without intervention}{45}{subsection.6.1}%
 \contentsline {subsection}{\numberline {6.2}The Oregon oasis paradox}{45}{subsection.6.2}%
 \contentsline {subsection}{\numberline {6.3}Alaska's conditional optimism}{46}{subsection.6.3}%
-\contentsline {subsection}{\numberline {6.4}Southern California as a conservation priority}{46}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.4}Southern California as a conservation priority}{47}{subsection.6.4}%
 \contentsline {subsection}{\numberline {6.5}The evolutionary dead end}{47}{subsection.6.5}%
-\contentsline {subsection}{\numberline {6.6}Limitations}{47}{subsection.6.6}%
+\contentsline {subsection}{\numberline {6.6}Limitations}{48}{subsection.6.6}%
 \contentsline {subsection}{\numberline {6.7}What comes next}{48}{subsection.6.7}%
 \contentsline {section}{\numberline {A}Region Codes}{50}{appendix.A}%
 \contentsline {section}{\numberline {B}Model Parameters}{50}{appendix.B}%

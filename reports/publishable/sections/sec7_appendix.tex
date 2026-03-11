@@ -157,25 +157,59 @@ SST transition & --- & 2025 & Switch from OISST observations to CMIP6 projection
 \section{Calibration Targets}
 \label{sec:appendix_targets}
 
-The model was calibrated against regional recovery fractions estimated from available survey data and expert assessment (Table~\ref{tab:targets}). RMSE was computed on log-transformed fractions to weight relative errors equally across the four-order-of-magnitude range of targets.
+The model was calibrated against regional recovery fractions estimated for
+approximately 2024 (Table~\ref{tab:targets}).  These targets draw on two
+distinct classes of evidence:
+
+\begin{enumerate}
+  \item \textbf{Published survey data (pre-$\sim$2020).}  Early post-SSWD
+    population assessments, including the comprehensive coastwide decline
+    estimates of \citet{gravem2021} (90.6\% global decline, $\sim$97--99\%
+    in southern regions, $\sim$87.8\% in the north) and MARINe intertidal
+    monitoring, provide quantitative baselines for the initial crash
+    magnitude.  Disease arrival timing targets are similarly drawn from
+    published case reports and monitoring programs that documented the
+    southward-to-northward SSWD wavefront during 2013--2016.
+
+  \item \textbf{Expert inference (post-$\sim$2020).}  No consolidated,
+    range-wide survey of current \textit{Pycnopodia} population status
+    exists as of 2025.  Recovery fractions for calibration were therefore
+    estimated through consultation with field researchers active across
+    the species' range, including scientists at NOAA, the University of
+    Washington Friday Harbor Laboratories, and the broader SSWD research
+    community.  These estimates synthesize unpublished dive survey data,
+    anecdotal sighting reports, and researcher experience into
+    order-of-magnitude recovery targets.  Because these are informed
+    estimates rather than formal survey results, we present them as
+    approximate targets spanning four orders of magnitude (50\% down to
+    0.1\%) and evaluate model fit using log-transformed RMSE, which
+    weights relative accuracy equally across this range.
+\end{enumerate}
+
+\noindent This two-tier approach reflects the current state of
+\textit{Pycnopodia} monitoring: while the initial crash is well documented
+in the literature, the subsequent decade of slow, spatially heterogeneous
+recovery has not yet been captured in any comprehensive published
+assessment.
 
 \begin{table}[ht]
 \centering
 \caption{Regional recovery targets used for model calibration.}
 \label{tab:targets}
-\begin{tabular}{lrl}
+\begin{tabular}{lrll}
 \toprule
-\textbf{Region} & \textbf{Target (\%)} & \textbf{Basis} \\
+\textbf{Region} & \textbf{Target (\%)} & \textbf{Source} & \textbf{Basis} \\
 \midrule
-AK-PWS (Prince William Sound) & 50 & Substantial survey-documented recovery \\
-AK-FN (Fairweather North) & 50 & Cold-water remote populations \\
-AK-FS (Fairweather South) & 20 & Partial recovery; warmer than PWS \\
-BC-N (British Columbia North) & 20 & Moderate fjord-coast recovery \\
-SS-S (Salish Sea South) & 5 & Limited recovery in semi-enclosed waters \\
-JDF (Juan de Fuca Strait) & 2 & Near-total loss \\
-OR (Oregon) & 0.25 & Severe decline, minimal recovery \\
-CA-N (California North) & 0.1 & Near-extirpation \\
+AK-PWS (Prince William Sound) & 50 & Expert & Dive surveys report substantial recovery \\
+AK-FN (Fairweather North) & 50 & Expert & Cold-water remote populations persisting \\
+AK-FS (Fairweather South) & 20 & Expert & Partial recovery; warmer than PWS \\
+BC-N (British Columbia North) & 20 & Expert & Moderate fjord-coast recovery observed \\
+SS-S (Salish Sea South) & 5 & Expert & Limited recovery in semi-enclosed waters \\
+JDF (Juan de Fuca Strait) & 2 & Expert & Near-total loss reported \\
+OR (Oregon) & 0.25 & Expert & Severe decline, rare sightings \\
+CA-N (California North) & 0.1 & Expert & Near-extirpation \\
 \bottomrule
+\multicolumn{4}{l}{\footnotesize \textit{Expert}: researcher consultation and unpublished survey data; no published range-wide assessment available.} \\
 \end{tabular}
 \end{table}
 
