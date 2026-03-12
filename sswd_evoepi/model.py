@@ -2433,8 +2433,43 @@ def run_spatial_simulation(
             #    Cohorts arrive with genotypes=None (counts only, dispersed
             #    through C at production). Create genotypes via SRS from
             #    source node's adults, then settle with cue + BH.
+            #
+            #    OPTIMIZATION: Cache source breeding info (females/males
+            #    indices) per source node per day. Many cohorts at different
+            #    destinations share the same source — avoids redundant
+            #    numpy boolean ops (~40× reduction).
             sim_day = year * DAYS_PER_YEAR + day
             if spawning_enabled:
+                # --- Pre-compute source breeding adults cache ---
+                _src_cache: Dict[int, Optional[tuple]] = {}
+
+                def _get_source_info(src_id: int):
+                    """Return (females, males, agents, genotypes) or None."""
+                    cached = _src_cache.get(src_id)
+                    if cached is not None:
+                        return cached if cached is not False else None
+                    src_node = network.nodes[src_id]
+                    src_agents = src_node.agents
+                    src_alive = src_agents['alive'].astype(bool)
+                    src_adult = src_agents['stage'] == Stage.ADULT
+                    src_healthy = (
+                        (src_agents['disease_state'] == DiseaseState.S)
+                        | (src_agents['disease_state'] == DiseaseState.R)
+                    )
+                    src_can_spawn = src_alive & src_adult & src_healthy
+                    src_females = np.where(
+                        src_can_spawn & (src_agents['sex'] == 0)
+                    )[0]
+                    src_males = np.where(
+                        src_can_spawn & (src_agents['sex'] == 1)
+                    )[0]
+                    if len(src_females) == 0 or len(src_males) == 0:
+                        _src_cache[src_id] = False  # sentinel: no breeders
+                        return None
+                    info = (src_females, src_males, src_agents, src_node.genotypes)
+                    _src_cache[src_id] = info
+                    return info
+
                 for i, node in enumerate(network.nodes):
                     if not pending_cohorts[i]:
                         continue
@@ -2447,27 +2482,13 @@ def run_spatial_simulation(
                     for c in ready:
                         if c.n_competent <= 0:
                             continue
-                        # Look up source node's breeding adults
-                        src_node = network.nodes[c.source_node]
-                        src_agents = src_node.agents
-                        src_alive = src_agents['alive'].astype(bool)
-                        src_adult = src_agents['stage'] == Stage.ADULT
-                        src_healthy = (
-                            (src_agents['disease_state'] == DiseaseState.S)
-                            | (src_agents['disease_state'] == DiseaseState.R)
-                        )
-                        src_can_spawn = src_alive & src_adult & src_healthy
-                        src_females = np.where(
-                            src_can_spawn & (src_agents['sex'] == 0)
-                        )[0]
-                        src_males = np.where(
-                            src_can_spawn & (src_agents['sex'] == 1)
-                        )[0]
-                        if len(src_females) == 0 or len(src_males) == 0:
+                        src_info = _get_source_info(c.source_node)
+                        if src_info is None:
                             continue
+                        src_females, src_males, src_agents, src_geno = src_info
                         offspring_geno, parent_pairs = srs_reproductive_lottery(
                             src_females, src_males,
-                            src_agents, src_node.genotypes,
+                            src_agents, src_geno,
                             n_offspring_target=c.n_competent,
                             alpha_srs=pop_cfg.alpha_srs,
                             rng=rng,
