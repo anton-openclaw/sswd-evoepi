@@ -1,0 +1,44 @@
+{
+  "param_overrides": {
+    "disease.K_half": 800000.0,
+    "disease.P_env_dynamic": true,
+    "disease.P_env_floor": 500.0,
+    "disease.P_env_max": 2000.0,
+    "disease.T_vbnc": 12.0,
+    "disease.T_vbnc_initial": 12.0,
+    "disease.T_vbnc_min": 9.0,
+    "disease.activation_threshold": 50.0,
+    "disease.alpha_env": 0.2,
+    "disease.cumulative_dose_threshold": 1000.0,
+    "disease.delta_env": 0.02,
+    "disease.disease_origin_nodes": [
+      322,
+      319,
+      632,
+      633,
+      634
+    ],
+    "disease.k_vbnc": 2.0,
+    "disease.pathogen_adapt_rate": 0.001,
+    "disease.pathogen_adaptation": true,
+    "disease.pathogen_revert_rate": 0.0,
+    "disease.v_adapt_rate": 0.001,
+    "disease.v_max_warm": 0.7,
+    "disease.virulence_evolution": true,
+    "disease.wavefront_D_P": 300.0,
+    "disease.wavefront_D_P_max_range": 3000.0,
+    "disease.wavefront_enabled": true,
+    "population.settler_survival": 0.001,
+    "spatial.n_connectivity": 0.7
+  },
+  "K": 5000,
+  "K_cv": 0.0,
+  "years": 13,
+  "disease_year": 1,
+  "seeds": [
+    42,
+    123,
+    999
+  ],
+  "sst_start_year": 2012
+}

@@ -774,38 +774,34 @@ def _cohort_settlement_day(c: LarvalCohort) -> int:
     return c.spawn_day + int(c.pld_days)
 
 
-def _insort_cohort(pending: List[LarvalCohort], cohort: LarvalCohort) -> None:
-    """Insert cohort into sorted pending list (by settlement_day, ascending)."""
+def _add_cohort(pending: Dict[int, List[LarvalCohort]], cohort: LarvalCohort) -> None:
+    """Add cohort to dict-of-lists keyed by settlement day.  O(1) amortized."""
     key = _cohort_settlement_day(cohort)
-    # bisect on the key — find insertion point
-    lo, hi = 0, len(pending)
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if _cohort_settlement_day(pending[mid]) < key:
-            lo = mid + 1
-        else:
-            hi = mid
-    pending.insert(lo, cohort)
+    bucket = pending.get(key)
+    if bucket is None:
+        pending[key] = [cohort]
+    else:
+        bucket.append(cohort)
 
 
 def _pop_ready_cohorts(
-    pending: List[LarvalCohort], sim_day: int
+    pending: Dict[int, List[LarvalCohort]], sim_day: int
 ) -> List[LarvalCohort]:
-    """Pop all cohorts with settlement_day <= sim_day from sorted list.
+    """Pop all cohorts with settlement_day <= sim_day.
 
-    O(k) where k = number of ready cohorts (typically 0-3 per day).
-    The pending list remains sorted after popping.
+    O(k) where k = number of ready settlement days (typically 0-3).
     """
-    if not pending or _cohort_settlement_day(pending[0]) > sim_day:
+    if not pending:
         return []
-    # Find cutoff index using bisect
-    # All cohorts with settlement_day <= sim_day are at the front
-    cut = 0
-    while cut < len(pending) and _cohort_settlement_day(pending[cut]) <= sim_day:
-        cut += 1
-    ready = pending[:cut]
-    del pending[:cut]
+    ready: List[LarvalCohort] = []
+    days_to_pop = [d for d in pending if d <= sim_day]
+    for d in days_to_pop:
+        ready.extend(pending.pop(d))
     return ready
+
+
+# Keep old name as alias for any external callers / tests
+_insort_cohort = _add_cohort
 
 
 def settle_daily_cohorts(
@@ -2125,16 +2121,13 @@ def run_spatial_simulation(
     total_sim_days = n_years * DAYS_PER_YEAR
     daily_spawning_counts_spatial = np.zeros((N, total_sim_days), dtype=np.int32)
 
-    # ── Continuous settlement: per-node pending cohort lists ────────
+    # ── Continuous settlement: per-node pending cohort dicts ────────
     # Each node accumulates LarvalCohort objects from daily spawning.
-    # At year-end, unsettled cohorts are collected for C matrix dispersal.
     # Dispersed cohorts land in pending_cohorts[dest] and settle daily
     # when PLD elapses.
     #
-    # OPTIMIZATION (Phase 7): Lists are kept sorted by settlement_day
-    # (ascending). Daily check pops from front while settlement_day <=
-    # sim_day — O(1) amortized instead of O(n) filter per day.
-    pending_cohorts: List[List[LarvalCohort]] = [[] for _ in range(N)]
+    # Dict[settlement_day, List[LarvalCohort]] — O(1) insert, O(k) pop.
+    pending_cohorts: List[Dict[int, List[LarvalCohort]]] = [{} for _ in range(N)]
     spawning_enabled = config.spawning is not None
 
     # Per-node spawning season tracking
@@ -2445,8 +2438,6 @@ def run_spatial_simulation(
                 for i, node in enumerate(network.nodes):
                     if not pending_cohorts[i]:
                         continue
-                    # Phase 7 optimization: pop from sorted front instead
-                    # of filtering the entire list each day
                     ready = _pop_ready_cohorts(pending_cohorts[i], sim_day)
                     if not ready:
                         continue
@@ -2581,7 +2572,7 @@ def run_spatial_simulation(
                                 spawn_day=rep.spawn_day,
                                 sst_at_spawn=rep.sst_at_spawn,
                             )
-                            _insort_cohort(
+                            _add_cohort(
                                 pending_cohorts[dest_id],
                                 dest_cohort,
                             )

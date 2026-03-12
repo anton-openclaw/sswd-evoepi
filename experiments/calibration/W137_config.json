@@ -29,7 +29,7 @@
     "disease.wavefront_D_P_max_range": 3000.0,
     "disease.wavefront_enabled": true,
     "population.settler_survival": 0.001,
-    "spatial.n_connectivity": 0.5
+    "spatial.n_connectivity": 2.0
   },
   "K": 5000,
   "K_cv": 0.0,

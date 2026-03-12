@@ -1,6 +1,6 @@
 {
   "param_overrides": {
-    "disease.K_half": 1200000.0,
+    "disease.K_half": 800000.0,
     "disease.P_env_dynamic": true,
     "disease.P_env_floor": 500.0,
     "disease.P_env_max": 2000.0,
@@ -28,8 +28,7 @@
     "disease.wavefront_D_P": 300.0,
     "disease.wavefront_D_P_max_range": 3000.0,
     "disease.wavefront_enabled": true,
-    "population.settler_survival": 0.001,
-    "spatial.n_connectivity": 0.5
+    "population.settler_survival": 0.001
   },
   "K": 5000,
   "K_cv": 0.0,
