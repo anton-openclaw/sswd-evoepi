@@ -135,6 +135,7 @@ def spawning_step(
     rng: np.random.Generator,
     current_sim_day: int = 0,
     current_sst: float = 10.5,
+    compute_genotypes: bool = True,
 ) -> List[LarvalCohort]:
     """Execute daily spawning step for Phase 1-4 (complete spawning system).
     
@@ -290,6 +291,7 @@ def spawning_step(
             rng,
             current_sim_day=current_sim_day,
             current_sst=current_sst,
+            compute_genotypes=compute_genotypes,
         )
         if cohort.n_competent > 0:
             cohorts.append(cohort)
@@ -668,6 +670,7 @@ def _generate_larval_cohort(
     rng: np.random.Generator,
     current_sim_day: int = 0,
     current_sst: float = 10.5,
+    compute_genotypes: bool = True,
 ) -> LarvalCohort:
     """Generate larval cohort from spawning agents using SRS lottery.
     
@@ -683,9 +686,12 @@ def _generate_larval_cohort(
         rng: Random number generator.
         current_sim_day: Absolute simulation day (for continuous settlement tracking).
         current_sst: Sea surface temperature at spawning (°C).
+        compute_genotypes: If True, compute full genotypes and parent pairs. 
+            If False, return lightweight cohort with counts only (for multi-node dispersal).
         
     Returns:
-        LarvalCohort with competent larvae and parent tracking.
+        LarvalCohort with competent larvae. If compute_genotypes=True, includes
+        genotypes and parent tracking. If False, genotypes=None, parent_pairs=None.
         
     Note:
         This function will need to access population config parameters
@@ -697,10 +703,10 @@ def _generate_larval_cohort(
 
     if not spawner_indices:
         return LarvalCohort(
-            source_node=agents['node_id'][spawner_indices[0]] if spawner_indices else 0,
+            source_node=0,  # Default node if no spawners
             n_competent=0,
-            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
-            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
+            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2) if compute_genotypes else None,
+            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2) if compute_genotypes else None,
             pld_days=pld,
             spawn_day=current_sim_day,
             sst_at_spawn=current_sst,
@@ -724,8 +730,8 @@ def _generate_larval_cohort(
         return LarvalCohort(
             source_node=source_node,
             n_competent=0,
-            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
-            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
+            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2) if compute_genotypes else None,
+            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2) if compute_genotypes else None,
             pld_days=pld,
             spawn_day=current_sim_day,
             sst_at_spawn=current_sst,
@@ -744,8 +750,8 @@ def _generate_larval_cohort(
         return LarvalCohort(
             source_node=source_node,
             n_competent=0,
-            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
-            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
+            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2) if compute_genotypes else None,
+            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2) if compute_genotypes else None,
             pld_days=pld,
             spawn_day=current_sim_day,
             sst_at_spawn=current_sst,
@@ -802,8 +808,20 @@ def _generate_larval_cohort(
         return LarvalCohort(
             source_node=source_node,
             n_competent=0,
-            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2),
-            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2),
+            genotypes=np.array([], dtype=np.int8).reshape(0, N_LOCI, 2) if compute_genotypes else None,
+            parent_pairs=np.array([], dtype=np.int32).reshape(0, 2) if compute_genotypes else None,
+            pld_days=pld,
+            spawn_day=current_sim_day,
+            sst_at_spawn=current_sst,
+        )
+    
+    # Early return for lightweight cohorts (multi-node dispersal)
+    if not compute_genotypes:
+        return LarvalCohort(
+            source_node=source_node,
+            n_competent=int(total_competent),
+            genotypes=None,
+            parent_pairs=None,
             pld_days=pld,
             spawn_day=current_sim_day,
             sst_at_spawn=current_sst,

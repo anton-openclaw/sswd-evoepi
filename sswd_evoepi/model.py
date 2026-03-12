@@ -821,6 +821,7 @@ def settle_daily_cohorts(
     res_slice: slice = None,
     tol_slice: slice = None,
     rec_slice: slice = None,
+    pre_filtered: bool = False,
 ) -> int:
     """Settle competent larval cohorts into the population.
 
@@ -843,6 +844,9 @@ def settle_daily_cohorts(
         habitat_area: Habitat area in m² (for spatial placement of settlers).
         sim_day: Current simulation day (stamped as settlement_day for
             juvenile immunity tracking).
+        pre_filtered: If True, cohorts already have BH recruitment and settlement 
+            cue filtering applied (new multi-node spawning flow). If False, apply 
+            filtering within this function (single-node simulation, legacy callers).
 
     Returns:
         Total number of recruits successfully settled across all cohorts.
@@ -864,31 +868,39 @@ def settle_daily_cohorts(
         if available_slots == 0:
             break
 
-        # Count adults for settlement cue modifier (Allee effect)
-        n_adults = int(np.sum(
-            agents['alive'] & (agents['stage'] == Stage.ADULT)
-        ))
-        cue_mod = settlement_cue_modifier(n_adults)
-        effective_settlers = max(0, int(cohort.n_competent * cue_mod))
-
-        if effective_settlers <= 0:
-            continue
-
-        # Beverton-Holt density-dependent recruitment
-        n_recruits = beverton_holt_recruitment(
-            effective_settlers, carrying_capacity, pop_cfg.settler_survival,
-        )
-        n_recruits = min(n_recruits, available_slots)
-
-        if n_recruits <= 0:
-            continue
-
-        # Select which settlers survive (random subsample if needed)
-        if n_recruits < cohort.n_competent:
-            keep_idx = rng.choice(cohort.n_competent, size=n_recruits, replace=False)
-            settler_geno = cohort.genotypes[keep_idx]
+        if pre_filtered:
+            # Cohorts from new multi-node spawning flow already have exact genotypes needed
+            n_recruits = cohort.n_competent
+            settler_geno = cohort.genotypes
         else:
-            settler_geno = cohort.genotypes[:n_recruits]
+            # Original flow: apply settlement cue modifier and Beverton-Holt
+            # (single-node simulation, tests, or legacy callers)
+            
+            # Count adults for settlement cue modifier (Allee effect)
+            n_adults = int(np.sum(
+                agents['alive'] & (agents['stage'] == Stage.ADULT)
+            ))
+            cue_mod = settlement_cue_modifier(n_adults)
+            effective_settlers = max(0, int(cohort.n_competent * cue_mod))
+
+            if effective_settlers <= 0:
+                continue
+
+            # Beverton-Holt density-dependent recruitment
+            n_recruits = beverton_holt_recruitment(
+                effective_settlers, carrying_capacity, pop_cfg.settler_survival,
+            )
+            n_recruits = min(n_recruits, available_slots)
+
+            if n_recruits <= 0:
+                continue
+
+            # Select which settlers survive (random subsample if needed)
+            if n_recruits < cohort.n_competent:
+                keep_idx = rng.choice(cohort.n_competent, size=n_recruits, replace=False)
+                settler_geno = cohort.genotypes[keep_idx]
+            else:
+                settler_geno = cohort.genotypes[:n_recruits]
 
         # Find dead/empty slots in agent array
         dead_slots = np.where(~agents['alive'])[0]
@@ -2430,46 +2442,10 @@ def run_spatial_simulation(
                                                                   _D_inh, P, dis_cfg)
 
             # 4. Continuous settlement: settle cohorts whose PLD has elapsed
-            #    Cohorts arrive with genotypes=None (counts only, dispersed
-            #    through C at production). Create genotypes via SRS from
-            #    source node's adults, then settle with cue + BH.
-            #
-            #    OPTIMIZATION: Cache source breeding info (females/males
-            #    indices) per source node per day. Many cohorts at different
-            #    destinations share the same source — avoids redundant
-            #    numpy boolean ops (~40× reduction).
+            #    Cohorts arrive with pre-computed genotypes from spawning time.
+            #    Just place them into available slots.
             sim_day = year * DAYS_PER_YEAR + day
             if spawning_enabled:
-                # --- Pre-compute source breeding adults cache ---
-                _src_cache: Dict[int, Optional[tuple]] = {}
-
-                def _get_source_info(src_id: int):
-                    """Return (females, males, agents, genotypes) or None."""
-                    cached = _src_cache.get(src_id)
-                    if cached is not None:
-                        return cached if cached is not False else None
-                    src_node = network.nodes[src_id]
-                    src_agents = src_node.agents
-                    src_alive = src_agents['alive'].astype(bool)
-                    src_adult = src_agents['stage'] == Stage.ADULT
-                    src_healthy = (
-                        (src_agents['disease_state'] == DiseaseState.S)
-                        | (src_agents['disease_state'] == DiseaseState.R)
-                    )
-                    src_can_spawn = src_alive & src_adult & src_healthy
-                    src_females = np.where(
-                        src_can_spawn & (src_agents['sex'] == 0)
-                    )[0]
-                    src_males = np.where(
-                        src_can_spawn & (src_agents['sex'] == 1)
-                    )[0]
-                    if len(src_females) == 0 or len(src_males) == 0:
-                        _src_cache[src_id] = False  # sentinel: no breeders
-                        return None
-                    info = (src_females, src_males, src_agents, src_node.genotypes)
-                    _src_cache[src_id] = info
-                    return info
-
                 for i, node in enumerate(network.nodes):
                     if not pending_cohorts[i]:
                         continue
@@ -2477,37 +2453,10 @@ def run_spatial_simulation(
                     if not ready:
                         continue
                     nd = node.definition
-                    # Create genotypes for each cohort via SRS from source
-                    cohorts_with_geno = []
-                    for c in ready:
-                        if c.n_competent <= 0:
-                            continue
-                        src_info = _get_source_info(c.source_node)
-                        if src_info is None:
-                            continue
-                        src_females, src_males, src_agents, src_geno = src_info
-                        offspring_geno, parent_pairs = srs_reproductive_lottery(
-                            src_females, src_males,
-                            src_agents, src_geno,
-                            n_offspring_target=c.n_competent,
-                            alpha_srs=pop_cfg.alpha_srs,
-                            rng=rng,
-                        )
-                        n_valid = len(offspring_geno)
-                        if n_valid == 0:
-                            continue
-                        cohorts_with_geno.append(LarvalCohort(
-                            source_node=c.source_node,
-                            n_competent=n_valid,
-                            genotypes=offspring_geno,
-                            parent_pairs=parent_pairs,
-                            pld_days=c.pld_days,
-                            spawn_day=c.spawn_day,
-                            sst_at_spawn=c.sst_at_spawn,
-                        ))
-                    if cohorts_with_geno:
+                    # Settle cohorts that are ready (genotypes already set & BH-filtered from spawning)
+                    if ready:
                         n_settled = settle_daily_cohorts(
-                            cohorts_with_geno, node.agents,
+                            ready, node.agents,
                             node.genotypes,
                             nd.carrying_capacity, pop_cfg, rng,
                             effect_sizes, node_id=nd.node_id,
@@ -2518,6 +2467,7 @@ def run_spatial_simulation(
                             res_slice=res_slice,
                             tol_slice=tol_slice,
                             rec_slice=rec_slice,
+                            pre_filtered=True,
                         )
                         yearly_recruits_accum[i] += n_settled
 
@@ -2552,6 +2502,7 @@ def run_spatial_simulation(
                             rng=rng,
                             current_sim_day=sim_day,
                             current_sst=node.current_sst,
+                            compute_genotypes=False,
                         )
                         if cohorts_today:
                             total_competent = sum(
@@ -2579,24 +2530,103 @@ def run_spatial_simulation(
                         day_spawning_sources, day_spawning_counts,
                         network.C, rng,
                     )
+                    
+                    # --- Phase 3: Compute BH + genotype exact recruits needed ---
+                    # Cache source breeding adults for SRS calls (multiple destinations per source)
+                    _src_cache: Dict[int, Optional[tuple]] = {}
+
+                    def _get_source_info(src_id: int):
+                        """Return (females, males, agents, genotypes) or None."""
+                        cached = _src_cache.get(src_id)
+                        if cached is not None:
+                            return cached if cached is not False else None
+                        src_node = network.nodes[src_id]
+                        src_agents = src_node.agents
+                        src_alive = src_agents['alive'].astype(bool)
+                        src_adult = src_agents['stage'] == Stage.ADULT
+                        src_healthy = (
+                            (src_agents['disease_state'] == DiseaseState.S)
+                            | (src_agents['disease_state'] == DiseaseState.R)
+                        )
+                        src_can_spawn = src_alive & src_adult & src_healthy
+                        src_females = np.where(
+                            src_can_spawn & (src_agents['sex'] == 0)
+                        )[0]
+                        src_males = np.where(
+                            src_can_spawn & (src_agents['sex'] == 1)
+                        )[0]
+                        if len(src_females) == 0 or len(src_males) == 0:
+                            _src_cache[src_id] = False  # sentinel: no breeders
+                            return None
+                        info = (src_females, src_males, src_agents, src_node.genotypes)
+                        _src_cache[src_id] = info
+                        return info
+
                     for dest_id, arrivals in dest_map.items():
+                        dest_node = network.nodes[dest_id]
+                        dest_nd = dest_node.definition
+                        
+                        # Pre-compute destination population stats
+                        current_alive = int(np.sum(dest_node.agents['alive']))
+                        available_slots = max(0, dest_nd.carrying_capacity - current_alive)
+                        if available_slots == 0:
+                            continue  # No room for any recruits at this destination
+                            
+                        n_adults = int(np.sum(
+                            dest_node.agents['alive'] & (dest_node.agents['stage'] == Stage.ADULT)
+                        ))
+                        cue_mod = settlement_cue_modifier(n_adults)
+                        
+                        total_slots_used = 0
                         for n_arriving, src_id in arrivals:
-                            if n_arriving <= 0:
+                            if n_arriving <= 0 or total_slots_used >= available_slots:
                                 continue
+                                
                             rep = day_spawning_rep[src_id]
-                            dest_cohort = LarvalCohort(
-                                source_node=src_id,
-                                n_competent=n_arriving,
-                                genotypes=None,
-                                parent_pairs=None,
-                                pld_days=rep.pld_days,
-                                spawn_day=rep.spawn_day,
-                                sst_at_spawn=rep.sst_at_spawn,
+                            
+                            # Apply settlement cue modifier + Beverton-Holt at spawning time
+                            # (using current destination population, not settlement-time population)
+                            effective_settlers = max(0, int(n_arriving * cue_mod))
+                            if effective_settlers <= 0:
+                                continue
+                                
+                            n_recruits = beverton_holt_recruitment(
+                                effective_settlers, dest_nd.carrying_capacity, pop_cfg.settler_survival
                             )
-                            _add_cohort(
-                                pending_cohorts[dest_id],
-                                dest_cohort,
+                            n_recruits = min(n_recruits, available_slots - total_slots_used)
+                            
+                            if n_recruits <= 0:
+                                continue
+                                
+                            # Generate genotypes for exactly n_recruits via SRS from source adults
+                            src_info = _get_source_info(src_id)
+                            if src_info is None:
+                                continue
+                            src_females, src_males, src_agents, src_geno = src_info
+                            offspring_geno, parent_pairs = srs_reproductive_lottery(
+                                src_females, src_males,
+                                src_agents, src_geno,
+                                n_offspring_target=n_recruits,
+                                alpha_srs=pop_cfg.alpha_srs,
+                                rng=rng,
                             )
+                            
+                            if len(offspring_geno) > 0:
+                                # Create cohort with exact genotypes needed
+                                dest_cohort = LarvalCohort(
+                                    source_node=src_id,
+                                    n_competent=len(offspring_geno),
+                                    genotypes=offspring_geno,
+                                    parent_pairs=parent_pairs,
+                                    pld_days=rep.pld_days,
+                                    spawn_day=rep.spawn_day,
+                                    sst_at_spawn=rep.sst_at_spawn,
+                                )
+                                _add_cohort(
+                                    pending_cohorts[dest_id],
+                                    dest_cohort,
+                                )
+                                total_slots_used += len(offspring_geno)
 
             # 6. Daily demographics (continuous mortality + growth)
             #    Compute alive_idx ONCE per node, share across both calls
