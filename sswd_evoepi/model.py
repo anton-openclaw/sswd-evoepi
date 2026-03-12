@@ -2512,6 +2512,12 @@ def run_spatial_simulation(
             # 5. Daily spawning step (if enabled)
             if spawning_enabled:
                 day_of_year = (day + 1)  # Convert 0-based to 1-based
+
+                # --- Phase 1: spawning for all nodes, collect sources ---
+                day_spawning_sources = []
+                day_spawning_counts = []
+                day_spawning_rep = {}  # source_id -> representative cohort
+
                 for i, node in enumerate(network.nodes):
                     nd = node.definition
                     currently_in_season = in_spawning_season(
@@ -2536,36 +2542,14 @@ def run_spatial_simulation(
                             current_sst=node.current_sst,
                         )
                         if cohorts_today:
-                            # Batch all cohorts from this source node and
-                            # distribute through C matrix immediately.
-                            # Larvae arrive at DESTINATION nodes (not source).
                             total_competent = sum(
                                 c.n_competent for c in cohorts_today
                             )
                             total_larvae_year += total_competent
                             if total_competent > 0:
-                                rep = cohorts_today[0]  # representative meta
-                                dest_map = distribute_larvae_counts(
-                                    [i], [total_competent],
-                                    network.C, rng,
-                                )
-                                for dest_id, arrivals in dest_map.items():
-                                    for n_arriving, src_id in arrivals:
-                                        if n_arriving <= 0:
-                                            continue
-                                        dest_cohort = LarvalCohort(
-                                            source_node=src_id,
-                                            n_competent=n_arriving,
-                                            genotypes=None,
-                                            parent_pairs=None,
-                                            pld_days=rep.pld_days,
-                                            spawn_day=rep.spawn_day,
-                                            sst_at_spawn=rep.sst_at_spawn,
-                                        )
-                                        _insort_cohort(
-                                            pending_cohorts[dest_id],
-                                            dest_cohort,
-                                        )
+                                day_spawning_sources.append(i)
+                                day_spawning_counts.append(total_competent)
+                                day_spawning_rep[i] = cohorts_today[0]
                         # Count spawners today at this node
                         alive_spawned = (
                             node.agents['alive'] &
@@ -2576,6 +2560,31 @@ def run_spatial_simulation(
                     immuno_mask = node.agents['immunosuppression_timer'] > 0
                     node.agents['immunosuppression_timer'][immuno_mask] -= 1
                     previous_in_season[i] = currently_in_season
+
+                # --- Phase 2: ONE batched dispersal call for all sources ---
+                if day_spawning_sources:
+                    dest_map = distribute_larvae_counts(
+                        day_spawning_sources, day_spawning_counts,
+                        network.C, rng,
+                    )
+                    for dest_id, arrivals in dest_map.items():
+                        for n_arriving, src_id in arrivals:
+                            if n_arriving <= 0:
+                                continue
+                            rep = day_spawning_rep[src_id]
+                            dest_cohort = LarvalCohort(
+                                source_node=src_id,
+                                n_competent=n_arriving,
+                                genotypes=None,
+                                parent_pairs=None,
+                                pld_days=rep.pld_days,
+                                spawn_day=rep.spawn_day,
+                                sst_at_spawn=rep.sst_at_spawn,
+                            )
+                            _insort_cohort(
+                                pending_cohorts[dest_id],
+                                dest_cohort,
+                            )
 
             # 6. Daily demographics (continuous mortality + growth)
             #    Compute alive_idx ONCE per node, share across both calls

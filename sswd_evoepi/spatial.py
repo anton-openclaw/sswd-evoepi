@@ -350,6 +350,9 @@ def construct_larval_connectivity(
         if row_sum > 0:
             C[j, :] *= r_total / row_sum
 
+    # Zero out negligible entries to enable sparse-aware downstream code
+    C[C < 1e-15] = 0.0
+
     return C
 
 
@@ -534,13 +537,26 @@ def distribute_larvae_counts(
     N = C.shape[0]
     settlers: Dict[int, List[Tuple[int, int]]] = {k: [] for k in range(N)}
 
+    # Pre-compute sparse structure once: for each source node, cache
+    # the indices and probability values of non-zero C entries.
+    # This avoids repeated 896-element scans and enables multinomial
+    # draws over ~30-50 entries instead of 896.
+    C_nonzero: Dict[int, Tuple[np.ndarray, np.ndarray]] = {}
+    for j_candidate in source_node_ids:
+        row = C[j_candidate, :]
+        nz = np.where(row > 1e-15)[0]
+        C_nonzero[j_candidate] = (nz, row[nz])
+
     for idx, j in enumerate(source_node_ids):
         n = source_n_larvae[idx]
         if n <= 0:
             continue
 
-        probs = C[j, :].copy()
-        total_p = probs.sum()
+        nonzero_idx, nonzero_probs = C_nonzero[j]
+        if len(nonzero_idx) == 0:
+            continue
+
+        total_p = nonzero_probs.sum()
         if total_p < 1e-12:
             continue
 
@@ -549,14 +565,14 @@ def distribute_larvae_counts(
         if n_settling == 0:
             continue
 
-        # Conditional probabilities for destination
-        probs_norm = probs / total_p
+        # Conditional probabilities for destination (sparse)
+        probs_norm = nonzero_probs / total_p
 
-        # Multinomial assignment
+        # Multinomial assignment over non-zero destinations only
         dest_counts = rng.multinomial(n_settling, probs_norm)
 
-        for k in range(N):
-            nk = int(dest_counts[k])
+        for ki, k in enumerate(nonzero_idx):
+            nk = int(dest_counts[ki])
             if nk <= 0:
                 continue
             settlers[k].append((nk, j))
