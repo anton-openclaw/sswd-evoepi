@@ -5,7 +5,7 @@ a matplotlib Figure. Designed for static PNG export and embedding in reports.
 
 Usage:
     data = SimulationData.load("results/5node_epidemic_20yr/")
-    fig = plot_population_trajectory(data, node_id=2)
+    fig = plot_population_trajectory_npz(data, node_id=2)
     fig.savefig("pop_sji.png", dpi=150, bbox_inches="tight")
 """
 
@@ -143,7 +143,7 @@ def _add_disease_vline(ax, disease_year: int, label: bool = True):
 # PLOT FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════
 
-def plot_population_trajectory(data: SimulationData, node_id: int) -> plt.Figure:
+def plot_population_trajectory_npz(data: SimulationData, node_id: int) -> plt.Figure:
     """Population trajectory for a single node.
 
     Shows total population as area, adults overlaid, carrying capacity K as
@@ -228,53 +228,6 @@ def plot_population_all_nodes(data: SimulationData) -> plt.Figure:
                    loc="upper right", fontsize=7, ncol=5)
 
     fig.suptitle("Population Dynamics by Node", fontsize=14, fontweight="bold", y=1.01)
-    fig.tight_layout()
-    return fig
-
-
-def plot_disease_trajectory(data: SimulationData, node_id: int) -> plt.Figure:
-    """Disease impact trajectory for a single node.
-
-    Shows disease deaths vs natural deaths (stacked bars), Vibrio concentration
-    (line on secondary axis).
-
-    Args:
-        data: Loaded simulation data.
-        node_id: Node index (0-based).
-
-    Returns:
-        matplotlib Figure.
-    """
-    fig, ax1 = plt.subplots(figsize=(10, 4))
-    years = data.years
-    name = data.node_names[node_id]
-
-    nat_d = data.yearly_natural_deaths[node_id]
-    dis_d = data.yearly_disease_deaths[node_id]
-
-    # Stacked bars: natural (bottom) + disease (top)
-    ax1.bar(years, nat_d, width=0.6, color=DISEASE_COLORS["natural"],
-            alpha=0.7, label="Natural Deaths")
-    ax1.bar(years, dis_d, width=0.6, bottom=nat_d,
-            color=DISEASE_COLORS["disease"], alpha=0.8, label="Disease Deaths")
-
-    _style_axis(ax1, "Year", "Deaths/Year", f"Disease Impact — {name}")
-    ax1.legend(loc="upper left", fontsize=8)
-
-    # Secondary axis: Vibrio
-    ax2 = ax1.twinx()
-    vibrio = data.yearly_vibrio_max[node_id]
-    ax2.plot(years, vibrio, color="#ff7f0e", linewidth=2, alpha=0.8,
-             label="Peak Vibrio (bact/mL)")
-    ax2.set_ylabel("Peak Vibrio (bact/mL)", fontsize=10, color="#ff7f0e")
-    ax2.tick_params(axis="y", labelcolor="#ff7f0e", labelsize=9)
-    ax2.spines["top"].set_visible(False)
-
-    # Disease line
-    ax1.axvline(data.disease_year, color="#e41a1c", linewidth=1.5,
-                linestyle="--", alpha=0.7)
-    ax1.set_xlim(-0.5, data.n_years - 0.5)
-
     fig.tight_layout()
     return fig
 
@@ -492,7 +445,7 @@ def plot_genetic_heatmap_all_nodes(data: SimulationData) -> plt.Figure:
     return fig
 
 
-def plot_resistance_distribution(data: SimulationData, node_id: int,
+def plot_resistance_distribution_npz(data: SimulationData, node_id: int,
                                  year: int) -> plt.Figure:
     """Mean resistance over time with bar showing value at specified year.
 

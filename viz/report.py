@@ -42,7 +42,7 @@ from viz.plot_utils import (
     plot_genetic_heatmap_all_nodes,
     plot_network_state,
     plot_allele_frequencies,
-    plot_resistance_distribution,
+    plot_resistance_distribution_npz,
 )
 
 

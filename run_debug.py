@@ -112,7 +112,7 @@ def main():
     # ── Wildfire visualization ────────────────────────────────
     print("\nGenerating wildfire animation...")
     try:
-        from viz.wildfire import render_wildfire, render_wildfire_static
+        from viz.agent_viewer import render_wildfire, render_wildfire_static
 
         # Compute habitat side lengths from areas
         hab_sides = {}
