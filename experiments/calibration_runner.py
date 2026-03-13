@@ -34,8 +34,8 @@ DISTANCE_MATRIX_PATH = 'results/overwater/distance_matrix.npz'
 
 # ── Calibration targets: recovery fraction by ~2024 (11yr post-crash) ──
 RECOVERY_TARGETS = {
-    'AK-PWS': 0.50,   # Prince William Sound — 50%
-    'AK-FN': 0.50,    # North inshore SE Alaska — 50%
+    'AK-PWS': 0.30,   # Prince William Sound — 30%
+    'AK-FN': 0.30,    # North inshore SE Alaska — 30%
     'AK-FS': 0.20,    # South inshore SE Alaska — 20%
     'BC-N': 0.20,     # Northern BC — 20%
     'SS-S': 0.05,     # Puget Sound — 5%
