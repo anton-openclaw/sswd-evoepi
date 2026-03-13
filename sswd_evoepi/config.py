@@ -73,7 +73,7 @@ class PopulationSection:
     gamma_fert: float = 4.5      # Fertilization kinetics parameter (m²)
     alpha_srs: float = 1.35      # Pareto SRS shape
     sigma_alpha: float = 0.10    # Annual SRS shape variation
-    settler_survival: float = 0.001  # Annual settler survival (B-H s₀)
+    settler_survival: float = 1.0    # B-H s₀ — fixed at 1.0 (pure density dependence; all mortality via C matrix r_total)
     annual_survival: List[float] = field(
         default_factory=lambda: [0.001, 0.03, 0.90, 0.95, 0.98]
     )

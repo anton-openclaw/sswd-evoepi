@@ -704,10 +704,14 @@ class TestBevertonHolt:
         assert beverton_holt_recruitment(100, 0) == 0
 
     def test_low_settlers_supply_limited(self):
-        """At low settler numbers, recruitment ≈ S × s0."""
+        """At low settler numbers with s0=1.0, R ≈ S (supply-limited).
+        With explicit low s0, R ≈ S × s0."""
+        # Default s0=1.0: R = K*S/(K+S) ≈ S when S << K
         R = beverton_holt_recruitment(10, 1000)
-        expected = 10 * 0.03  # = 0.3 → rounds to 0
-        assert R <= 1  # very few from small settler number
+        assert R == 10  # pure BH: all 10 settlers recruit at low density
+        # Explicit low s0: R ≈ s0 * S
+        R_low = beverton_holt_recruitment(10, 1000, s0=0.03)
+        assert R_low <= 1  # very few from small settler number
 
     def test_high_settlers_saturates(self):
         """At very high settler numbers, recruitment approaches K.

@@ -152,7 +152,8 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        D_P: float = 15.0, D_P_max_range: float = None,
                        K_cv: float = 0.0, n_connectivity: float = 1.0,
                        alpha_self_open: float = 0.05,
-                       alpha_self_fjord: float = 0.50):
+                       alpha_self_fjord: float = 0.50,
+                       r_total: float = 0.02):
     """Build 896-node network with overwater distances.
 
     alpha_self is computed continuously from enclosedness:
@@ -175,6 +176,7 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
         D_L=D_L,
         D_P=D_P,
         D_P_max_range=D_P_max_range,
+        r_total=r_total,
         seed=seed,
         overwater_npz=npz_path,
         alpha_self=alpha_self,
@@ -741,19 +743,22 @@ def main():
     n_connectivity = float(param_overrides.pop('spatial.n_connectivity', 1.0))
     alpha_self_open = float(param_overrides.pop('spatial.alpha_self_open', 0.05))
     alpha_self_fjord = float(param_overrides.pop('spatial.alpha_self_fjord', 0.50))
+    r_total = float(param_overrides.pop('spatial.r_total', 0.02))
     # Store back so they appear in output metadata
     param_overrides['spatial.n_connectivity'] = n_connectivity
     param_overrides['spatial.alpha_self_open'] = alpha_self_open
     param_overrides['spatial.alpha_self_fjord'] = alpha_self_fjord
+    param_overrides['spatial.r_total'] = r_total
     
     # Build network (once, shared across seeds)
-    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity}, α_self=[{alpha_self_open:.2f},{alpha_self_fjord:.2f}])...")
+    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity}, α_self=[{alpha_self_open:.2f},{alpha_self_fjord:.2f}], r_total={r_total})...")
     t0 = time.time()
     sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
                                          D_P=D_P, D_P_max_range=D_P_max_range,
                                          K_cv=K_cv, n_connectivity=n_connectivity,
                                          alpha_self_open=alpha_self_open,
-                                         alpha_self_fjord=alpha_self_fjord)
+                                         alpha_self_fjord=alpha_self_fjord,
+                                         r_total=r_total)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config

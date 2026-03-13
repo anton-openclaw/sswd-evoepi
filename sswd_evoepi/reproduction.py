@@ -656,7 +656,7 @@ def settlement_cue_modifier(n_adults: int, halfsat: int = 5) -> float:
 def beverton_holt_recruitment(
     n_settlers: int,
     K: int,
-    s0: float = 0.03,
+    s0: float = 1.0,
 ) -> int:
     """Density-dependent settler recruitment (standard Beverton-Holt).
 
@@ -665,15 +665,16 @@ def beverton_holt_recruitment(
     At low S: R ≈ s0 × S (supply-limited; each settler has s0 chance).
     At high S: R → K (habitat-limited; asymptotes to carrying capacity).
 
-    The standard BH form ensures the asymptote equals K regardless of s0.
-    s0 controls the initial slope (density-independent survival per settler).
-    For broadcast spawners with millions of eggs, S >> K and R ≈ K,
-    meaning recruitment is habitat-limited and population self-regulates.
+    With s0=1.0 (default), this is pure density dependence:
+    R = K × S / (K + S).  All transport mortality is handled upstream
+    by the C matrix r_total parameter.  There is ONE survival parameter
+    (r_total) and ONE density-dependence mechanism (BH).
 
     Args:
         n_settlers: Number of competent settlers arriving.
         K: Carrying capacity (full K, not available slots).
         s0: Density-independent per-settler survival rate.
+            Fixed at 1.0 by design — calibrate r_total instead.
 
     Returns:
         Number of settlers that successfully recruit.
