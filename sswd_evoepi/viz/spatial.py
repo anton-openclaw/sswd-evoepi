@@ -34,8 +34,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -99,7 +99,7 @@ def plot_network_map(
         metric_by_node = K.astype(float)
         metric_label = 'Carrying capacity (K)'
 
-    fig, ax = dark_figure(figsize=(10, 10))
+    fig, ax = pub_figure(figsize=(10, 10))
 
     # Draw connectivity lines (C matrix)
     C = network.C
@@ -113,7 +113,7 @@ def plot_network_map(
                     width = 0.5 + 3.0 * strength / (2 * c_max)
                     ax.plot(
                         [lons[i], lons[j]], [lats[i], lats[j]],
-                        color=GRID_COLOR, linewidth=width, alpha=alpha,
+                        color=LIGHT_GRID, linewidth=width, alpha=alpha,
                         zorder=1,
                     )
 
@@ -136,15 +136,15 @@ def plot_network_map(
         ax.annotate(
             short, (lons[i], lats[i]),
             xytext=(8, 8), textcoords='offset points',
-            color=TEXT_COLOR, fontsize=9, fontweight='bold',
-            bbox=dict(boxstyle='round,pad=0.2', facecolor=DARK_PANEL,
-                      edgecolor=GRID_COLOR, alpha=0.8),
+            color=LIGHT_TEXT, fontsize=9, fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.2', facecolor=LIGHT_PANEL,
+                      edgecolor=LIGHT_GRID, alpha=0.8),
         )
 
     cbar = fig.colorbar(scatter, ax=ax, pad=0.02, shrink=0.7)
-    cbar.set_label(metric_label, color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label(metric_label, color=LIGHT_TEXT, fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     ax.set_xlabel('Longitude', fontsize=12)
     ax.set_ylabel('Latitude', fontsize=12)
@@ -179,7 +179,7 @@ def plot_connectivity_heatmap(
     short_names = [n.split(',')[0] for n in names]
     N = len(names)
 
-    fig, ax = dark_figure(figsize=(8, 7))
+    fig, ax = pub_figure(figsize=(8, 7))
 
     im = ax.imshow(mat, cmap='magma', interpolation='nearest')
 
@@ -202,9 +202,9 @@ def plot_connectivity_heatmap(
     ax.set_ylabel('Source node', fontsize=11)
 
     cbar = fig.colorbar(im, ax=ax, pad=0.02, shrink=0.8)
-    cbar.set_label('Probability', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Probability', color=LIGHT_TEXT, fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     if save_path:
         save_figure(fig, save_path)
@@ -275,7 +275,7 @@ def plot_north_south_gradient(
     else:
         raise ValueError(f"Unknown metric: {metric}")
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     ax.scatter(values, lat_arr, c=color, s=150, edgecolors='white',
                linewidths=1.5, zorder=3)
@@ -284,7 +284,7 @@ def plot_north_south_gradient(
         ax.annotate(
             short_names[i], (values[i], lat_arr[i]),
             xytext=(10, 0), textcoords='offset points',
-            color=TEXT_COLOR, fontsize=10,
+            color=LIGHT_TEXT, fontsize=10,
         )
 
     # Trend line
@@ -292,7 +292,7 @@ def plot_north_south_gradient(
         z = np.polyfit(values[values > 0], lat_arr[values > 0], 1) if np.sum(values > 0) >= 2 else None
         if z is not None:
             x_fit = np.linspace(values.min(), values.max(), 50)
-            ax.plot(x_fit, np.polyval(z, x_fit), color=GRID_COLOR,
+            ax.plot(x_fit, np.polyval(z, x_fit), color=LIGHT_GRID,
                     linestyle='--', linewidth=1, alpha=0.7)
 
     ax.set_xlabel(xlabel, fontsize=12)
@@ -339,7 +339,7 @@ def plot_fjord_vs_open(
 
     years = np.arange(sr.n_years)
 
-    fig, axes = dark_figure(nrows=2, ncols=2, figsize=(14, 10))
+    fig, axes = pub_figure(nrows=2, ncols=2, figsize=(14, 10))
 
     fjord_name = names[fjord_idx].split(',')[0]
     fjord_color = ACCENT_COLORS[3]  # teal
@@ -355,7 +355,7 @@ def plot_fjord_vs_open(
     for ax, (label, data, is_vir) in zip(axes.flat, panels):
         if data is None:
             ax.text(0.5, 0.5, 'No data', ha='center', va='center',
-                    color=TEXT_COLOR, fontsize=12, transform=ax.transAxes)
+                    color=LIGHT_TEXT, fontsize=12, transform=ax.transAxes)
             ax.set_title(label, fontsize=12, fontweight='bold')
             continue
 
@@ -378,11 +378,11 @@ def plot_fjord_vs_open(
 
         ax.set_title(label, fontsize=12, fontweight='bold')
         ax.set_xlabel('Year', fontsize=10)
-        ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                  labelcolor=TEXT_COLOR, fontsize=8, loc='best')
+        ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                  labelcolor=LIGHT_TEXT, fontsize=8, loc='best')
 
     fig.suptitle(f'Fjord vs Open Coast Comparison',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.01)
+                 fontsize=15, fontweight='bold', color=LIGHT_TEXT, y=1.01)
 
     if save_path:
         save_figure(fig, save_path)
@@ -416,7 +416,7 @@ def plot_metapopulation_timeseries(
     names = sr.node_names if sr.node_names else [f'Node {i}' for i in range(N)]
     years = np.arange(sr.n_years)
 
-    fig, ax = dark_figure(figsize=(12, 7))
+    fig, ax = pub_figure(figsize=(12, 7))
 
     for i in range(N):
         color = NODE_COLORS[i % len(NODE_COLORS)]
@@ -435,8 +435,8 @@ def plot_metapopulation_timeseries(
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Population', fontsize=12)
     ax.set_title('Metapopulation Trajectories', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, ncol=2)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, ncol=2)
     ax.set_xlim(0, sr.n_years - 1)
     ax.set_ylim(bottom=0)
 
@@ -473,7 +473,7 @@ def plot_larval_flow_diagram(
     N = network.n_nodes
     C = network.C
 
-    fig, ax = dark_figure(figsize=(10, 10))
+    fig, ax = pub_figure(figsize=(10, 10))
 
     # Draw flow arrows (off-diagonal only)
     c_max = 0
@@ -531,9 +531,9 @@ def plot_larval_flow_diagram(
         ax.annotate(
             name, (lons[i], lats[i]),
             xytext=(10, 10), textcoords='offset points',
-            color=TEXT_COLOR, fontsize=10, fontweight='bold',
-            bbox=dict(boxstyle='round,pad=0.2', facecolor=DARK_PANEL,
-                      edgecolor=GRID_COLOR, alpha=0.8),
+            color=LIGHT_TEXT, fontsize=10, fontweight='bold',
+            bbox=dict(boxstyle='round,pad=0.2', facecolor=LIGHT_PANEL,
+                      edgecolor=LIGHT_GRID, alpha=0.8),
         )
 
     ax.set_xlabel('Longitude', fontsize=12)
@@ -544,7 +544,7 @@ def plot_larval_flow_diagram(
     ax.annotate(
         'Arrow width ∝ C[i,j]\n(larval connectivity)',
         xy=(0.02, 0.02), xycoords='axes fraction',
-        fontsize=9, color=GRID_COLOR,
+        fontsize=9, color=LIGHT_GRID,
     )
 
     if save_path:
@@ -611,7 +611,7 @@ def plot_spatial_epidemic_timeline(
     phase_colors = {0: '#2ecc71', 1: '#e74c3c', 2: '#3498db'}
     phase_labels = {0: 'Disease-free', 1: 'Epidemic', 2: 'Recovery'}
 
-    fig, ax = dark_figure(figsize=(14, max(4, N * 1.2)))
+    fig, ax = pub_figure(figsize=(14, max(4, N * 1.2)))
 
     bar_height = 0.7
     for i in range(N):
@@ -636,8 +636,8 @@ def plot_spatial_epidemic_timeline(
     # Legend
     patches = [mpatches.Patch(color=phase_colors[k], label=phase_labels[k])
                for k in sorted(phase_colors.keys())]
-    ax.legend(handles=patches, facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='lower right')
+    ax.legend(handles=patches, facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='lower right')
 
     if save_path:
         save_figure(fig, save_path)
@@ -674,7 +674,7 @@ def plot_node_fate_matrix(
     ncols = min(N, max(2, int(np.ceil(np.sqrt(N)))))
     nrows = int(np.ceil(N / ncols))
 
-    fig, axes = dark_figure(nrows=nrows, ncols=ncols,
+    fig, axes = pub_figure(nrows=nrows, ncols=ncols,
                             figsize=(5 * ncols, 4 * nrows))
     if isinstance(axes, np.ndarray):
         axes_flat = axes.flat
@@ -702,7 +702,7 @@ def plot_node_fate_matrix(
 
         # Resistance (right y-axis)
         ax2 = ax.twinx()
-        apply_dark_theme(ax=ax2)
+        apply_light_theme(ax=ax2)
         res = sr.yearly_mean_resistance[i]
         ax2.plot(years, res, color=ACCENT_COLORS[7], linewidth=1.5,
                  linestyle='--', label='Resist.')
@@ -729,7 +729,7 @@ def plot_node_fate_matrix(
             ax.set_xlabel('Year', fontsize=8)
 
     fig.suptitle('Node Fate Matrix', fontsize=15, fontweight='bold',
-                 color=TEXT_COLOR, y=1.01)
+                 color=LIGHT_TEXT, y=1.01)
 
     if save_path:
         save_figure(fig, save_path)

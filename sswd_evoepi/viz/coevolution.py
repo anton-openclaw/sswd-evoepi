@@ -34,8 +34,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -122,7 +122,7 @@ def plot_virulence_trajectory(
     mean_v = result.yearly_mean_virulence
     sd_v = _estimate_virulence_sd(result)
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # ±SD band
     valid = mean_v > 0
@@ -158,8 +158,8 @@ def plot_virulence_trajectory(
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Mean virulence (v)', fontsize=12)
     ax.set_title('Pathogen Virulence Trajectory', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(0, result.n_years - 1)
     ax.set_ylim(0, 1)
 
@@ -201,9 +201,9 @@ def plot_coevolution_phase_portrait(
     idx = np.where(valid)[0]
     if len(idx) < 2:
         # Not enough data; return empty figure
-        fig, ax = dark_figure()
+        fig, ax = pub_figure()
         ax.text(0.5, 0.5, 'Insufficient co-evolution data',
-                ha='center', va='center', color=TEXT_COLOR,
+                ha='center', va='center', color=LIGHT_TEXT,
                 fontsize=14, transform=ax.transAxes)
         if save_path:
             save_figure(fig, save_path)
@@ -215,7 +215,7 @@ def plot_coevolution_phase_portrait(
 
     cmap = plt.get_cmap(cmap_name)
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Draw coloured line segments
     for i in range(len(idx) - 1):
@@ -252,16 +252,16 @@ def plot_coevolution_phase_portrait(
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(idx[0], idx[-1]))
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=ax, pad=0.02)
-    cbar.set_label('Year', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Year', color=LIGHT_TEXT, fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     ax.set_xlabel('Mean host resistance (r̄)', fontsize=12)
     ax.set_ylabel('Mean pathogen virulence (v̄)', fontsize=12)
     ax.set_title('Host–Pathogen Co-Evolution Phase Portrait',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper left')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper left')
 
     if save_path:
         save_figure(fig, save_path)
@@ -301,9 +301,9 @@ def plot_virulence_distribution_over_time(
     # Pick timepoints: from disease_year onward
     valid_years = np.where(mean_v > 0)[0]
     if len(valid_years) < 2:
-        fig, ax = dark_figure()
+        fig, ax = pub_figure()
         ax.text(0.5, 0.5, 'Insufficient virulence data',
-                ha='center', va='center', color=TEXT_COLOR,
+                ha='center', va='center', color=LIGHT_TEXT,
                 fontsize=14, transform=ax.transAxes)
         if save_path:
             save_figure(fig, save_path)
@@ -314,7 +314,7 @@ def plot_virulence_distribution_over_time(
                          dtype=int)
     timepoints = valid_years[tp_idx]
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Generate synthetic distributions (normal, clipped to [0,1])
     violin_data = []
@@ -395,7 +395,7 @@ def plot_tradeoff_curve(
                       for v in v_range])
     tlo = shed / death  # total lifetime output
 
-    fig, axes = dark_figure(nrows=3, ncols=1, figsize=(10, 12))
+    fig, axes = pub_figure(nrows=3, ncols=1, figsize=(10, 12))
 
     # Panel 1: Shedding rate
     ax1 = axes[0]
@@ -409,16 +409,16 @@ def plot_tradeoff_curve(
     ax1.set_ylabel('Shedding rate (bact/mL/d)', fontsize=11)
     ax1.set_title('Virulence–Transmission Tradeoff', fontsize=14,
                   fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Panel 2: Death rate
     ax2 = axes[1]
     ax2.plot(v_range, death, color=ACCENT_COLORS[6], linewidth=2.5,
              label='µ_I2D(v) — disease death rate')
     ax2.set_ylabel('I₂→D death rate (d⁻¹)', fontsize=11)
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax2.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Panel 3: TLO (fitness proxy)
     ax3 = axes[2]
@@ -426,8 +426,8 @@ def plot_tradeoff_curve(
              label='TLO = σ₂/µ_I2D')
     ax3.set_ylabel('Total lifetime output (bact/mL)', fontsize=11)
     ax3.set_xlabel('Virulence (v)', fontsize=12)
-    ax3.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax3.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Mark TLO peak
     tlo_peak_idx = np.argmax(tlo)
@@ -456,7 +456,7 @@ def plot_tradeoff_curve(
 
     # Mark v_anchor
     for ax in axes:
-        ax.axvline(pe_cfg.v_anchor, color=GRID_COLOR, linestyle='-.',
+        ax.axvline(pe_cfg.v_anchor, color=LIGHT_GRID, linestyle='-.',
                    linewidth=1, alpha=0.5)
 
     if save_path:
@@ -499,7 +499,7 @@ def plot_R0_by_virulence(
 
     v_range = np.linspace(pe_cfg.v_min + 0.01, pe_cfg.v_max - 0.01, 150)
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     colors = [VIRULENCE_LOW, ACCENT_COLORS[3], ACCENT_COLORS[4],
               ACCENT_COLORS[5], VIRULENCE_HIGH]
@@ -527,8 +527,8 @@ def plot_R0_by_virulence(
     ax.set_ylabel('R₀', fontsize=12)
     ax.set_title('R₀ vs Virulence by Host Density',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(v_range[0], v_range[-1])
     ax.set_ylim(bottom=0)
 
@@ -564,9 +564,9 @@ def plot_virulence_vs_host_density(
 
     valid = vir > 0
     if np.sum(valid) < 2:
-        fig, ax = dark_figure()
+        fig, ax = pub_figure()
         ax.text(0.5, 0.5, 'Insufficient data',
-                ha='center', va='center', color=TEXT_COLOR,
+                ha='center', va='center', color=LIGHT_TEXT,
                 fontsize=14, transform=ax.transAxes)
         if save_path:
             save_figure(fig, save_path)
@@ -578,7 +578,7 @@ def plot_virulence_vs_host_density(
     if len(valid_idx) > 1:
         t_norm[valid_idx] = np.linspace(0, 1, len(valid_idx))
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     cmap = plt.get_cmap('plasma')
     scatter = ax.scatter(
@@ -588,7 +588,7 @@ def plot_virulence_vs_host_density(
     )
 
     # Connect with thin line
-    ax.plot(pop[valid], vir[valid], color=GRID_COLOR, linewidth=0.8,
+    ax.plot(pop[valid], vir[valid], color=LIGHT_GRID, linewidth=0.8,
             alpha=0.5, zorder=2)
 
     # Mark start and end
@@ -600,16 +600,16 @@ def plot_virulence_vs_host_density(
                linewidths=2, zorder=6, label=f'Year {valid_idx[-1]}')
 
     cbar = fig.colorbar(scatter, ax=ax, pad=0.02)
-    cbar.set_label('Time →', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Time →', color=LIGHT_TEXT, fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     ax.set_xlabel('Population size', fontsize=12)
     ax.set_ylabel('Mean virulence (v)', fontsize=12)
     ax.set_title('Virulence vs Host Density Over Time',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -675,7 +675,7 @@ def plot_strain_competition(
         if total > 0:
             fractions[:, yr] /= total
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     ax.stackplot(
         years, *fractions,
@@ -689,8 +689,8 @@ def plot_strain_competition(
     ax.set_ylabel('Fraction of strains', fontsize=12)
     ax.set_title('Strain Competition: Virulence Bin Composition',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper right')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper right')
     ax.set_xlim(0, result.n_years - 1)
     ax.set_ylim(0, 1)
 
@@ -721,7 +721,7 @@ def plot_coevolution_multi_seed(
     Returns:
         matplotlib Figure.
     """
-    fig, axes = dark_figure(nrows=2, ncols=1, figsize=(12, 10))
+    fig, axes = pub_figure(nrows=2, ncols=1, figsize=(12, 10))
     ax_r, ax_v = axes
 
     seeds = sorted(results_dict.keys())
@@ -777,21 +777,21 @@ def plot_coevolution_multi_seed(
     ax_r.set_ylabel('Mean resistance (r̄)', fontsize=12)
     ax_r.set_title(f'Co-Evolution Across {len(seeds)} Seeds',
                    fontsize=14, fontweight='bold')
-    ax_r.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                labelcolor=TEXT_COLOR, fontsize=10)
+    ax_r.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                labelcolor=LIGHT_TEXT, fontsize=10)
     ax_r.set_xlim(0, n_years - 1)
 
     ax_v.set_xlabel('Year', fontsize=12)
     ax_v.set_ylabel('Mean virulence (v̄)', fontsize=12)
-    ax_v.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                labelcolor=TEXT_COLOR, fontsize=10)
+    ax_v.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                labelcolor=LIGHT_TEXT, fontsize=10)
     ax_v.set_xlim(0, n_years - 1)
     ax_v.set_ylim(0, 1)
 
     # Label seed count
     ax_r.text(0.98, 0.02, f'n = {len(seeds)} seeds',
               transform=ax_r.transAxes, ha='right', va='bottom',
-              color=GRID_COLOR, fontsize=10)
+              color=LIGHT_GRID, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)

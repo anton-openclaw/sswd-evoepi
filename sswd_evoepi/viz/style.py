@@ -116,7 +116,7 @@ def _theme_colors(theme='dark'):
 
 
 def dark_figure(nrows=1, ncols=1, figsize=None, **kwargs):
-    """Create a Figure + Axes with the dark theme already applied.
+    """Create a Figure + Axes with the dark theme applied.
 
     Returns (fig, ax) where ax may be a single Axes or an ndarray.
     """
@@ -149,11 +149,13 @@ def pub_figure(nrows=1, ncols=1, figsize=None, **kwargs):
     return fig, axes
 
 
-def themed_figure(nrows=1, ncols=1, figsize=None, theme='dark', **kwargs):
+def themed_figure(nrows=1, ncols=1, figsize=None, theme='light', **kwargs):
     """Create a Figure + Axes with the specified theme.
 
+    Default is 'light' (publication-ready white backgrounds).
+
     Args:
-        theme: 'dark' or 'light'.
+        theme: 'light' (default) or 'dark'.
 
     Returns (fig, ax) where ax may be a single Axes or an ndarray.
     """

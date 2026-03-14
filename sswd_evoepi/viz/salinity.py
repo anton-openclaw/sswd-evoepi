@@ -112,15 +112,15 @@ def _sal_mod(salinity: float, s_min: float = 10.0, s_full: float = 28.0,
 
 
 
-def _tc(theme='dark'):
+def _tc(theme='light'):
     """Get text color for theme."""
     return LIGHT_TEXT if theme == 'light' else TEXT_COLOR
 
-def _pc(theme='dark'):
+def _pc(theme='light'):
     """Get panel color for theme."""
     return LIGHT_PANEL if theme == 'light' else DARK_PANEL
 
-def _gc(theme='dark'):
+def _gc(theme='light'):
     """Get grid color for theme."""
     return LIGHT_GRID if theme == 'light' else GRID_COLOR
 
@@ -141,7 +141,7 @@ def plot_salinity_heatmap(
     fw_depth_exp: float = 1.0,
     sort_by: str = 'latitude',
     title: Optional[str] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Heatmap of daily salinity for all nodes across a year.
@@ -222,7 +222,7 @@ def plot_depression_heatmap(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Heatmap of salinity DEPRESSION (baseline - actual) across nodes × months.
@@ -377,7 +377,7 @@ def plot_regional_salinity_profiles(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     regions: Optional[List[str]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Seasonal salinity curves averaged per region.
@@ -452,7 +452,7 @@ def plot_latitude_asymmetry(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Scatter: latitude vs peak salinity depression at each node.
@@ -548,7 +548,7 @@ def plot_fw_strength_sensitivity(
     fw_values: Optional[List[float]] = None,
     fw_depth_exp: float = 1.0,
     representative_nodes: Optional[Dict[str, int]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Show how fw_strength affects salinity and disease suppression.
@@ -667,7 +667,7 @@ def plot_depth_exp_comparison(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     exponents: Optional[List[float]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Compare different fw_depth_exp values on the spatial gradient.
@@ -739,7 +739,7 @@ def plot_sal_mod_transfer(
     s_full: float = 28.0,
     eta: float = 2.0,
     annotate_sites: Optional[Dict[str, float]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Plot the salinity → disease modifier transfer function.
@@ -810,7 +810,7 @@ def plot_sal_mod_transfer(
 # ═══════════════════════════════════════════════════════════════════════
 
 def plot_mechanism_components(
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Three-panel plot showing the three multiplicative components.
@@ -901,7 +901,7 @@ def plot_dfo_validation(
     nodes: Optional[List['NodeDefinition']] = None,
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Compare model salinity predictions against DFO lighthouse observations.
@@ -1040,7 +1040,7 @@ def plot_regional_suppression_bars(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     month: int = 5,  # June
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Bar chart of mean disease suppression per region.
@@ -1131,7 +1131,7 @@ def plot_regional_suppression_bars(
 
 def plot_fjord_depth_by_region(
     nodes: List['NodeDefinition'],
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Box plot of fjord_depth_norm by region.
@@ -1202,7 +1202,7 @@ def plot_suppression_monthly_panels(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     months: Optional[List[int]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Multi-panel geographic maps of disease suppression for key months.
@@ -1285,7 +1285,7 @@ def plot_suppression_vs_recovery(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     recovery_targets: Optional[Dict[str, float]] = None,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Scatter: regional mean suppression vs observed/simulated recovery.
@@ -1401,7 +1401,7 @@ def plot_suppression_regional_zoom(
     month: int = 5,  # June
     s_min: float = 10.0,
     s_full: float = 28.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Four-panel regional zoom of disease suppression.
@@ -1517,7 +1517,7 @@ def plot_salinity_regional_profiles(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Four-panel seasonal salinity profiles, one panel per region.
@@ -1607,7 +1607,7 @@ def plot_depression_regional_scatter(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
-    theme: str = 'dark',
+    theme: str = 'light',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Four-panel scatter: fjord_depth_norm vs peak depression, per region.

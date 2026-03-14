@@ -41,8 +41,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -440,7 +440,7 @@ def plot_spawning_event_profile(
     peak demonstrates that the cascade mechanism creates biologically
     realistic synchronous broadcast spawning from individual-level rules.
     """
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     doys = [s.doy for s in snapshots]
     female_counts = []
@@ -459,12 +459,12 @@ def plot_spawning_event_profile(
     ax.bar(doys, female_arr, color='#e94560', alpha=0.85, label='Females', width=1.0)
     ax.bar(doys, male_arr, bottom=female_arr, color='#3498db', alpha=0.85, label='Males', width=1.0)
 
-    ax.set_xlabel('Day of Year', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Number Spawning', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Day of Year', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Number Spawning', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Mass Spawning Event Profile (Year 2, Pre-Disease)',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     # Annotate peak
     total = female_arr + male_arr
@@ -484,7 +484,7 @@ def plot_spawning_event_profile(
         "Sharp peaks = biologically realistic broadcast spawning from individual-level rules."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -506,7 +506,7 @@ def plot_spawning_participation(
     cascade, lowering participation — an emergent Allee effect on
     reproduction that compounds population decline.
     """
-    fig, ax = dark_figure(figsize=(10, 6))
+    fig, ax = pub_figure(figsize=(10, 6))
 
     years = sorted(snapshots_by_year.keys())
     participation_rates = []
@@ -529,15 +529,15 @@ def plot_spawning_participation(
 
     for bar, rate in zip(bars, participation_rates):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.02,
-                f'{rate:.0%}', ha='center', va='bottom', fontsize=11, color=TEXT_COLOR)
+                f'{rate:.0%}', ha='center', va='bottom', fontsize=11, color=LIGHT_TEXT)
 
-    ax.set_xlabel('Simulation Year', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Spawning Participation Rate', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Simulation Year', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Spawning Participation Rate', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Spawning Participation by Year',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR)
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT)
     ax.set_ylim(0, 1.1)
-    ax.axhline(0.8, color=GRID_COLOR, linestyle='--', alpha=0.5, label='80% target')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR, fontsize=9)
+    ax.axhline(0.8, color=LIGHT_GRID, linestyle='--', alpha=0.5, label='80% target')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, labelcolor=LIGHT_TEXT, fontsize=9)
 
     caption = (
         "Fraction of adults spawning at least once per season.\n"
@@ -545,7 +545,7 @@ def plot_spawning_participation(
         "Low density → cascade failure → Allee effect on reproduction."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -567,7 +567,7 @@ def plot_readiness_cascade(
     (κ_fm=0.80, κ_mf=0.60). (4) Mass event — positive feedback creates
     an exponential burst. (5) Exhaustion — pool of ready individuals depleted.
     """
-    fig, axes = dark_figure(nrows=3, ncols=1, figsize=(14, 12))
+    fig, axes = pub_figure(nrows=3, ncols=1, figsize=(14, 12))
     ax_ready, ax_spawn, ax_done = axes
 
     doys = [s.doy for s in snapshots]
@@ -576,9 +576,9 @@ def plot_readiness_cascade(
     n_ready = [s.n_ready for s in snapshots]
     ax_ready.fill_between(doys, 0, n_ready, color='#3498db', alpha=0.4)
     ax_ready.plot(doys, n_ready, color='#3498db', linewidth=2, label='Ready to spawn')
-    ax_ready.set_ylabel('Count', fontsize=11, color=TEXT_COLOR)
-    ax_ready.set_title('Phase 1: Readiness Wave', fontsize=13, fontweight='bold', color=TEXT_COLOR)
-    ax_ready.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR, fontsize=9)
+    ax_ready.set_ylabel('Count', fontsize=11, color=LIGHT_TEXT)
+    ax_ready.set_title('Phase 1: Readiness Wave', fontsize=13, fontweight='bold', color=LIGHT_TEXT)
+    ax_ready.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Middle: daily spawning (spontaneous + cascade-induced)
     n_spawning = [s.n_spawning_today for s in snapshots]
@@ -586,22 +586,22 @@ def plot_readiness_cascade(
     ax_spawn.bar(doys, n_spawning, color='#f39c12', alpha=0.85, label='Spawning today', width=1.0)
     ax_spawn.plot(doys, n_recent, color='#e74c3c', linewidth=1.5, alpha=0.7,
                   label='Recently spawned (3d window)')
-    ax_spawn.set_ylabel('Count', fontsize=11, color=TEXT_COLOR)
+    ax_spawn.set_ylabel('Count', fontsize=11, color=LIGHT_TEXT)
     ax_spawn.set_title('Phase 2-4: Spontaneous → Cascade → Mass Event',
-                       fontsize=13, fontweight='bold', color=TEXT_COLOR)
-    ax_spawn.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR, fontsize=9)
+                       fontsize=13, fontweight='bold', color=LIGHT_TEXT)
+    ax_spawn.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Bottom: cumulative done
     n_done = [s.n_done for s in snapshots]
     ax_done.fill_between(doys, 0, n_done, color='#2ecc71', alpha=0.4)
     ax_done.plot(doys, n_done, color='#2ecc71', linewidth=2, label='Done for season')
-    ax_done.set_xlabel('Day of Year', fontsize=12, color=TEXT_COLOR)
-    ax_done.set_ylabel('Count', fontsize=11, color=TEXT_COLOR)
-    ax_done.set_title('Phase 5: Pool Exhaustion', fontsize=13, fontweight='bold', color=TEXT_COLOR)
-    ax_done.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR, fontsize=9)
+    ax_done.set_xlabel('Day of Year', fontsize=12, color=LIGHT_TEXT)
+    ax_done.set_ylabel('Count', fontsize=11, color=LIGHT_TEXT)
+    ax_done.set_title('Phase 5: Pool Exhaustion', fontsize=13, fontweight='bold', color=LIGHT_TEXT)
+    ax_done.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, labelcolor=LIGHT_TEXT, fontsize=9)
 
     fig.suptitle('Spawning Cascade Dynamics: Readiness → Trigger → Burst → Quiet',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.01)
+                 fontsize=15, fontweight='bold', color=LIGHT_TEXT, y=1.01)
 
     caption = (
         "Three-phase cascade: (1) Seasonal readiness wave builds spawner pool.\n"
@@ -609,7 +609,7 @@ def plot_readiness_cascade(
         "(3) Pool exhaustion as females reach single-spawn limit and males hit refractory."
     )
     fig.text(0.5, -0.02, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -633,7 +633,7 @@ def plot_spawning_vs_density(
     fertilization. This is the key mechanism linking population crash to
     delayed reproductive recovery.
     """
-    fig, ax = dark_figure(figsize=(10, 8))
+    fig, ax = pub_figure(figsize=(10, 8))
 
     for i, (label, snaps, K) in enumerate(snapshots_list):
         if not snaps:
@@ -659,18 +659,18 @@ def plot_spawning_vs_density(
         ax.scatter(densities, peak_fracs, color=color, s=80, alpha=0.7,
                    edgecolors='white', linewidths=0.5, label=label, zorder=3)
 
-    ax.set_xlabel('Population Density (fraction of K)', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Peak Daily Spawning Fraction', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Population Density (fraction of K)', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Peak Daily Spawning Fraction', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Spawning Intensity vs Population Density\n(Emergent Reproductive Allee Effect)',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR, fontsize=9)
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, labelcolor=LIGHT_TEXT, fontsize=9)
 
     caption = (
         "Each point = 30-day chunk. High density → effective cascade → concentrated spawning.\n"
         "Low density → cascade failure → diffuse spawning → reproductive Allee effect."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -692,7 +692,7 @@ def plot_spawning_before_after(
     The new system produces biologically realistic broadcast spawning bursts
     while maintaining extended seasonal coverage.
     """
-    fig, (ax_old, ax_new) = dark_figure(nrows=1, ncols=2, figsize=(16, 6))
+    fig, (ax_old, ax_new) = pub_figure(nrows=1, ncols=2, figsize=(16, 6))
 
     for ax, snaps, title, color in [
         (ax_old, snapshots_old, 'Old Parameters\n(1 bout, 21d refrac, κ_mf=0.30)', ACCENT_COLORS[0]),
@@ -701,9 +701,9 @@ def plot_spawning_before_after(
         doys = [s.doy for s in snaps]
         counts = [s.n_spawning_today for s in snaps]
         ax.bar(doys, counts, color=color, alpha=0.85, width=1.0)
-        ax.set_xlabel('Day of Year', fontsize=11, color=TEXT_COLOR)
-        ax.set_ylabel('Spawners/Day', fontsize=11, color=TEXT_COLOR)
-        ax.set_title(title, fontsize=12, fontweight='bold', color=TEXT_COLOR)
+        ax.set_xlabel('Day of Year', fontsize=11, color=LIGHT_TEXT)
+        ax.set_ylabel('Spawners/Day', fontsize=11, color=LIGHT_TEXT)
+        ax.set_title(title, fontsize=12, fontweight='bold', color=LIGHT_TEXT)
 
         # Stats annotation
         total = sum(counts)
@@ -712,11 +712,11 @@ def plot_spawning_before_after(
         ax.text(0.98, 0.95,
                 f'Total events: {total}\nPeak: {peak}/day\nActive days: {n_active_days}',
                 transform=ax.transAxes, ha='right', va='top', fontsize=9,
-                color=TEXT_COLOR, fontfamily='monospace',
-                bbox=dict(boxstyle='round', facecolor=DARK_PANEL, edgecolor=GRID_COLOR, alpha=0.8))
+                color=LIGHT_TEXT, fontfamily='monospace',
+                bbox=dict(boxstyle='round', facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID, alpha=0.8))
 
     fig.suptitle('Spawning Parameter Comparison: Before vs After Phase 12 Overhaul',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR, y=1.02)
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT, y=1.02)
 
     caption = (
         "LEFT: Old parameters produce diffuse spawning; weak cascade.\n"
@@ -724,7 +724,7 @@ def plot_spawning_before_after(
         "Both maintain extended seasonal coverage (~270 days)."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -755,7 +755,7 @@ def _make_spawning_animation_frame(
 
     if len(snap.x) == 0:
         ax.text(hab_side / 2, hab_side / 2, 'No agents',
-                ha='center', va='center', color=TEXT_COLOR, fontsize=14)
+                ha='center', va='center', color=LIGHT_TEXT, fontsize=14)
         return
 
     # Classify agents
@@ -787,7 +787,7 @@ def _make_spawning_animation_frame(
         f"Done: {snap.n_done}"
     )
     ax.set_title(f'{title_prefix}{info_text}',
-                 fontsize=10, color=TEXT_COLOR, fontweight='bold', pad=8)
+                 fontsize=10, color=LIGHT_TEXT, fontweight='bold', pad=8)
 
     # Remove axis ticks for cleaner look
     ax.set_xticks([])
@@ -849,7 +849,7 @@ def create_spawning_animation(
             fontsize=8,
             facecolor='#1a1a2e',
             edgecolor='#2a2a4a',
-            labelcolor=TEXT_COLOR,
+            labelcolor=LIGHT_TEXT,
             framealpha=0.9,
         )
 
@@ -929,7 +929,7 @@ def create_comparison_animation(
         ax_b.legend(
             handles=legend_patches, loc='lower left', fontsize=7,
             facecolor='#1a1a2e', edgecolor='#2a2a4a',
-            labelcolor=TEXT_COLOR, framealpha=0.9,
+            labelcolor=LIGHT_TEXT, framealpha=0.9,
         )
 
     anim = animation.FuncAnimation(

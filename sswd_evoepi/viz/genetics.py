@@ -35,8 +35,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -92,7 +92,7 @@ def plot_resistance_trajectory(
     years = np.arange(result.n_years)
     mean_r = result.yearly_mean_resistance
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Compute SD band from V_A if available and std_band not provided
     if std_band is None and result.yearly_va is not None:
@@ -121,23 +121,23 @@ def plot_resistance_trajectory(
             f'Pre: {mean_r[disease_year]:.3f}',
             xy=(disease_year, mean_r[disease_year]),
             xytext=(disease_year + 1.5, mean_r[disease_year] + 0.02),
-            color=TEXT_COLOR, fontsize=9,
-            arrowprops=dict(arrowstyle='->', color=TEXT_COLOR, lw=0.8),
+            color=LIGHT_TEXT, fontsize=9,
+            arrowprops=dict(arrowstyle='->', color=LIGHT_TEXT, lw=0.8),
         )
     if len(mean_r) > 0:
         ax.annotate(
             f'Final: {mean_r[-1]:.3f}',
             xy=(years[-1], mean_r[-1]),
             xytext=(years[-1] - 3, mean_r[-1] + 0.02),
-            color=TEXT_COLOR, fontsize=9,
-            arrowprops=dict(arrowstyle='->', color=TEXT_COLOR, lw=0.8),
+            color=LIGHT_TEXT, fontsize=9,
+            arrowprops=dict(arrowstyle='->', color=LIGHT_TEXT, lw=0.8),
         )
 
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Mean resistance ($\\bar{r}_i$)', fontsize=12)
     ax.set_title('Host Resistance Evolution', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper left')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper left')
     ax.set_xlim(0, result.n_years - 1)
 
     if save_path:
@@ -164,7 +164,7 @@ def plot_resistance_distribution(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     sorted_years = sorted(snapshots.keys())
     n = len(sorted_years)
@@ -186,8 +186,8 @@ def plot_resistance_distribution(
     ax.set_ylabel('Density', fontsize=12)
     ax.set_title('Resistance Distribution Shift Under Selection',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9, loc='upper right')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9, loc='upper right')
     ax.set_xlim(left=0)
 
     if save_path:
@@ -223,7 +223,7 @@ def plot_allele_frequency_spaghetti(
     """
     n_years, n_loci = yearly_allele_freq.shape
     years = np.arange(n_years)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Colour by effect size
     e_min, e_max = effect_sizes.min(), effect_sizes.max()
@@ -255,16 +255,16 @@ def plot_allele_frequency_spaghetti(
     sm = plt.cm.ScalarMappable(cmap=_RESISTANCE_CMAP, norm=norm)
     sm.set_array([])
     cbar = fig.colorbar(sm, ax=ax, pad=0.02)
-    cbar.set_label('Effect size', color=TEXT_COLOR, fontsize=10)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Effect size', color=LIGHT_TEXT, fontsize=10)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Allele frequency ($q_l$)', fontsize=12)
     ax.set_title('Per-Locus Allele Frequency Trajectories',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=8, loc='upper left')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=8, loc='upper left')
     ax.set_xlim(0, n_years - 1)
     ax.set_ylim(0, 1)
 
@@ -298,7 +298,7 @@ def plot_additive_variance_over_time(
     years = np.arange(result.n_years)
     va = result.yearly_va
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     ax.plot(years, va, color='#48c9b0', linewidth=2.5)
     ax.fill_between(years, va, alpha=0.15, color='#48c9b0')
@@ -308,19 +308,19 @@ def plot_additive_variance_over_time(
 
     # Annotate initial and final V_A
     ax.annotate(f'V_A₀ = {va[0]:.4f}', xy=(0, va[0]),
-                xytext=(2, va[0] + 0.001), fontsize=9, color=TEXT_COLOR,
-                arrowprops=dict(arrowstyle='->', color=TEXT_COLOR, lw=0.8))
+                xytext=(2, va[0] + 0.001), fontsize=9, color=LIGHT_TEXT,
+                arrowprops=dict(arrowstyle='->', color=LIGHT_TEXT, lw=0.8))
     ax.annotate(f'V_A_final = {va[-1]:.4f}', xy=(years[-1], va[-1]),
                 xytext=(years[-1] - 4, va[-1] + 0.001),
-                fontsize=9, color=TEXT_COLOR,
-                arrowprops=dict(arrowstyle='->', color=TEXT_COLOR, lw=0.8))
+                fontsize=9, color=LIGHT_TEXT,
+                arrowprops=dict(arrowstyle='->', color=LIGHT_TEXT, lw=0.8))
 
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Additive genetic variance ($V_A$)', fontsize=12)
     ax.set_title('Additive Genetic Variance Over Time', fontsize=14,
                  fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(0, result.n_years - 1)
     ax.set_ylim(bottom=0)
 
@@ -356,7 +356,7 @@ def plot_ef1a_dynamics(
     years = np.arange(result.n_years)
     ef1a_q = result.yearly_ef1a_freq
 
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(10, 8))
+    fig, (ax1, ax2) = pub_figure(nrows=2, ncols=1, figsize=(10, 8))
 
     # Top panel: allele frequency
     ax1.plot(years, ef1a_q, color='#f39c12', linewidth=2.5,
@@ -369,8 +369,8 @@ def plot_ef1a_dynamics(
     ax1.set_ylabel('Allele frequency ($q$)', fontsize=12)
     ax1.set_title('EF1A Overdominant Locus Dynamics', fontsize=14,
                   fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10)
     ax1.set_xlim(0, result.n_years - 1)
 
     # Bottom panel: expected heterozygosity 2pq
@@ -384,8 +384,8 @@ def plot_ef1a_dynamics(
                 alpha=0.8)
     ax2.set_xlabel('Year', fontsize=12)
     ax2.set_ylabel('Expected heterozygosity ($H_e$)', fontsize=12)
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10)
+    ax2.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10)
     ax2.set_xlim(0, result.n_years - 1)
 
     if save_path:
@@ -423,27 +423,27 @@ def plot_selection_differential(
     years = np.arange(1, n_years)
     delta_r = np.diff(yearly_mean_resistance)
 
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(10, 8))
+    fig, (ax1, ax2) = pub_figure(nrows=2, ncols=1, figsize=(10, 8))
 
     # Top: bar chart of selection differential
     colors = [RESISTANCE_HIGH if d > 0 else RESISTANCE_LOW for d in delta_r]
     ax1.bar(years, delta_r, color=colors, alpha=0.8, edgecolor='none',
             width=0.8)
-    ax1.axhline(0, color=TEXT_COLOR, linewidth=0.8, alpha=0.5)
+    ax1.axhline(0, color=LIGHT_TEXT, linewidth=0.8, alpha=0.5)
     ax1.axvline(disease_year, color='#e94560', linestyle=':', linewidth=1.5,
                 alpha=0.8, label=f'Disease intro')
 
     ax1.set_ylabel('$\\Delta \\bar{r}$ (selection differential)', fontsize=12)
     ax1.set_title('Annual Selection Differential', fontsize=14,
                   fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10)
 
     # Bottom: cumulative selection response
     cumulative = np.cumsum(delta_r)
     ax2.plot(years, cumulative, color='#48c9b0', linewidth=2.5)
     ax2.fill_between(years, cumulative, alpha=0.15, color='#48c9b0')
-    ax2.axhline(0, color=TEXT_COLOR, linewidth=0.8, alpha=0.5)
+    ax2.axhline(0, color=LIGHT_TEXT, linewidth=0.8, alpha=0.5)
     ax2.axvline(disease_year, color='#e94560', linestyle=':', linewidth=1.5,
                 alpha=0.8)
     ax2.set_xlabel('Year', fontsize=12)
@@ -486,7 +486,7 @@ def plot_heritability_over_time(
     # h² = V_A / V_P (guard against division by zero)
     h2 = np.where(yearly_vp > 1e-12, yearly_va / yearly_vp, 0.0)
 
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(10, 8))
+    fig, (ax1, ax2) = pub_figure(nrows=2, ncols=1, figsize=(10, 8))
 
     # Top: h² over time
     ax1.plot(years, h2, color='#f39c12', linewidth=2.5, label='$h^2$')
@@ -497,8 +497,8 @@ def plot_heritability_over_time(
     ax1.set_ylabel('$h^2 = V_A / V_P$', fontsize=12)
     ax1.set_title('Narrow-Sense Heritability Over Time',
                   fontsize=14, fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10)
     ax1.set_xlim(0, n_years - 1)
     ax1.set_ylim(0, 1)
 
@@ -517,8 +517,8 @@ def plot_heritability_over_time(
     ax2.set_xlabel('Year', fontsize=12)
     ax2.set_ylabel('Variance', fontsize=12)
     ax2.set_title('Variance Decomposition', fontsize=14, fontweight='bold')
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax2.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
     ax2.set_xlim(0, n_years - 1)
     ax2.set_ylim(bottom=0)
 
@@ -555,9 +555,9 @@ def plot_genotype_phenotype_map(
     alive_mask = agents['alive']
     alive_idx = np.where(alive_mask)[0]
     if len(alive_idx) == 0:
-        fig, ax = dark_figure()
+        fig, ax = pub_figure()
         ax.text(0.5, 0.5, 'No alive agents', transform=ax.transAxes,
-                ha='center', va='center', color=TEXT_COLOR, fontsize=14)
+                ha='center', va='center', color=LIGHT_TEXT, fontsize=14)
         if save_path:
             save_figure(fig, save_path)
         return fig
@@ -573,7 +573,7 @@ def plot_genotype_phenotype_map(
 
     r_i = agents['resistance'][alive_idx]
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Plot non-heterozygotes and heterozygotes with different markers
     non_het = ~has_od_bonus
@@ -586,7 +586,7 @@ def plot_genotype_phenotype_map(
 
     # Perfect-mapping reference line
     x_range = np.linspace(additive_score.min(), additive_score.max(), 100)
-    ax.plot(x_range, x_range, color=TEXT_COLOR, linestyle='--',
+    ax.plot(x_range, x_range, color=LIGHT_TEXT, linestyle='--',
             linewidth=1, alpha=0.5, label='1:1 additive')
     ax.plot(x_range, x_range + 0.160, color='#f39c12', linestyle='--',
             linewidth=1, alpha=0.5, label='1:1 + W_OD')
@@ -594,8 +594,8 @@ def plot_genotype_phenotype_map(
     ax.set_xlabel('Additive genotype score', fontsize=12)
     ax.set_ylabel('Resistance ($r_i$)', fontsize=12)
     ax.set_title('Genotype → Phenotype Map', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9)
 
     if save_path:
         save_figure(fig, save_path)
@@ -622,7 +622,7 @@ def plot_locus_effect_size_distribution(
         matplotlib Figure.
     """
     n = len(effect_sizes)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Sort descending for display
     sorted_e = np.sort(effect_sizes)[::-1]
@@ -642,7 +642,7 @@ def plot_locus_effect_size_distribution(
         popt, _ = curve_fit(_exp_func, locus_idx, sorted_e,
                             p0=[sorted_e[0], 0.05], maxfev=5000)
         fit_x = np.linspace(0, n - 1, 200)
-        ax.plot(fit_x, _exp_func(fit_x, *popt), color=TEXT_COLOR,
+        ax.plot(fit_x, _exp_func(fit_x, *popt), color=LIGHT_TEXT,
                 linewidth=1.5, linestyle='--', alpha=0.7,
                 label=f'Exp fit: {popt[0]:.3f}·e^(-{popt[1]:.3f}x)')
     except Exception:
@@ -652,8 +652,8 @@ def plot_locus_effect_size_distribution(
     ax.set_ylabel('Effect size ($\\tilde{e}_l$)', fontsize=12)
     ax.set_title('Additive Locus Effect Size Distribution',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(-0.5, n - 0.5)
 
     # Summary annotation
@@ -662,10 +662,10 @@ def plot_locus_effect_size_distribution(
             f'Top 5 = {sorted_e[:5].sum():.3f} '
             f'({sorted_e[:5].sum() / sorted_e.sum() * 100:.0f}%)\n'
             f'n = {n}',
-            transform=ax.transAxes, fontsize=9, color=TEXT_COLOR,
+            transform=ax.transAxes, fontsize=9, color=LIGHT_TEXT,
             ha='right', va='top',
-            bbox=dict(boxstyle='round,pad=0.3', facecolor=DARK_PANEL,
-                      edgecolor=GRID_COLOR, alpha=0.8))
+            bbox=dict(boxstyle='round,pad=0.3', facecolor=LIGHT_PANEL,
+                      edgecolor=LIGHT_GRID, alpha=0.8))
 
     if save_path:
         save_figure(fig, save_path)
@@ -693,7 +693,7 @@ def plot_resistance_by_node_violin(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(12, 6))
+    fig, ax = pub_figure(figsize=(12, 6))
 
     names = list(node_resistance.keys())
     data = [node_resistance[n] for n in names]
@@ -718,7 +718,7 @@ def plot_resistance_by_node_violin(
     for idx, name in enumerate(names):
         mean_r = np.mean(data[idx])
         ax.text(idx, mean_r + 0.01, f'{mean_r:.3f}',
-                ha='center', fontsize=8, color=TEXT_COLOR)
+                ha='center', fontsize=8, color=LIGHT_TEXT)
 
     ax.set_xticks(positions)
     ax.set_xticklabels(names, rotation=30, ha='right', fontsize=10)
@@ -755,7 +755,7 @@ def plot_genetic_drift_null(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     n_years = max(
         max((r.n_years for r in disease_results), default=0),
@@ -807,8 +807,8 @@ def plot_genetic_drift_null(
     ax.set_ylabel('Mean resistance ($\\bar{r}_i$)', fontsize=12)
     ax.set_title('Selection vs. Neutral Drift',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9)
     ax.set_xlim(0, n_years - 1)
 
     if save_path:
@@ -856,7 +856,7 @@ def plot_beta_init_visualization(
     rng = np.random.default_rng(seed)
     effects = initialize_effect_sizes(rng, n_additive=N_ADDITIVE)
 
-    fig, (ax1, ax2, ax3) = dark_figure(nrows=1, ncols=3, figsize=(18, 5))
+    fig, (ax1, ax2, ax3) = pub_figure(nrows=1, ncols=3, figsize=(18, 5))
 
     # Panel 1: Beta PDF
     x = np.linspace(0, 1, 500)
@@ -871,8 +871,8 @@ def plot_beta_init_visualization(
     mean_q = beta_a / (beta_a + beta_b)
     ax1.axvline(mean_q, color='#f39c12', linestyle='--', linewidth=1.5,
                 label=f'E[q] = {mean_q:.3f}')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Panel 2: Per-locus q values
     # Draw raw qs and scale
@@ -897,8 +897,8 @@ def plot_beta_init_visualization(
     ax2.set_ylabel('Allele frequency ($q_l$)', fontsize=11)
     ax2.set_title('Scaled Per-Locus Frequencies', fontsize=13,
                   fontweight='bold')
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax2.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Panel 3: Resulting population r_i distribution
     geno = initialize_genotypes(
@@ -922,13 +922,13 @@ def plot_beta_init_visualization(
     ax3.set_ylabel('Count', fontsize=11)
     ax3.set_title('Population $r_i$ at $t=0$', fontsize=13,
                   fontweight='bold')
-    ax3.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax3.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     fig.suptitle(
         f'Genetic Initialization: Beta({beta_a},{beta_b}) → '
         f'target $\\bar{{r}}$ = {target_mean_r}',
-        fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.02,
+        fontsize=15, fontweight='bold', color=LIGHT_TEXT, y=1.02,
     )
 
     if save_path:

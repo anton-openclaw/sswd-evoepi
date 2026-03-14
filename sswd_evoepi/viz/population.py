@@ -29,8 +29,8 @@ from sswd_evoepi.viz.style import (
     NODE_COLORS,
     STAGE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -60,7 +60,7 @@ def plot_population_trajectory(
         matplotlib Figure.
     """
     years = np.arange(result.n_years)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     ax.plot(years, result.yearly_pop, color=ACCENT_COLORS[0], linewidth=2.5,
             label='Total population', zorder=3)
@@ -74,8 +74,8 @@ def plot_population_trajectory(
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Population size', fontsize=12)
     ax.set_title('Population Trajectory', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(0, result.n_years - 1)
     ax.set_ylim(bottom=0)
 
@@ -110,7 +110,7 @@ def plot_stage_composition(
     from sswd_evoepi.types import Stage
 
     years = np.arange(result.n_years)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     if agents_history is not None and len(agents_history) == result.n_years:
         settlers = np.zeros(result.n_years, dtype=int)
@@ -144,8 +144,8 @@ def plot_stage_composition(
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Population', fontsize=12)
     ax.set_title('Stage Composition Over Time', fontsize=14, fontweight='bold')
-    ax.legend(loc='upper right', facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(loc='upper right', facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(0, result.n_years - 1)
     ax.set_ylim(bottom=0)
 
@@ -174,7 +174,7 @@ def plot_cause_of_death_breakdown(
         matplotlib Figure.
     """
     years = np.arange(result.n_years)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     disease = result.yearly_disease_deaths
     senescence = result.yearly_senescence_deaths if result.yearly_senescence_deaths is not None else np.zeros(result.n_years)
@@ -191,8 +191,8 @@ def plot_cause_of_death_breakdown(
     ax.set_xlabel('Year', fontsize=12)
     ax.set_ylabel('Deaths', fontsize=12)
     ax.set_title('Cause of Death Breakdown', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(-0.5, result.n_years - 0.5)
     ax.set_ylim(bottom=0)
 
@@ -226,7 +226,7 @@ def plot_age_size_pyramid(
     Returns:
         matplotlib Figure.
     """
-    fig, (ax_age, ax_size) = dark_figure(nrows=1, ncols=2, figsize=(14, 7))
+    fig, (ax_age, ax_size) = pub_figure(nrows=1, ncols=2, figsize=(14, 7))
 
     alive = agents['alive'].astype(bool)
     female = alive & (agents['sex'] == 0)
@@ -254,9 +254,9 @@ def plot_age_size_pyramid(
     ax_age.set_xlabel('Count', fontsize=11)
     ax_age.set_ylabel('Age (years)', fontsize=11)
     ax_age.set_title('Age Distribution', fontsize=12, fontweight='bold')
-    ax_age.axvline(0, color=GRID_COLOR, linewidth=0.8)
-    ax_age.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                  labelcolor=TEXT_COLOR, fontsize=9)
+    ax_age.axvline(0, color=LIGHT_GRID, linewidth=0.8)
+    ax_age.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                  labelcolor=LIGHT_TEXT, fontsize=9)
 
     # --- Size pyramid ---
     max_size = max(float(sizes[alive].max()), 10.0) if alive.any() else 1000.0
@@ -277,11 +277,11 @@ def plot_age_size_pyramid(
     ax_size.set_xlabel('Count', fontsize=11)
     ax_size.set_ylabel('Size (mm)', fontsize=11)
     ax_size.set_title('Size Distribution', fontsize=12, fontweight='bold')
-    ax_size.axvline(0, color=GRID_COLOR, linewidth=0.8)
-    ax_size.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                   labelcolor=TEXT_COLOR, fontsize=9)
+    ax_size.axvline(0, color=LIGHT_GRID, linewidth=0.8)
+    ax_size.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                   labelcolor=LIGHT_TEXT, fontsize=9)
 
-    fig.suptitle(title, fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.02)
+    fig.suptitle(title, fontsize=15, fontweight='bold', color=LIGHT_TEXT, y=1.02)
 
     if save_path:
         save_figure(fig, save_path)
@@ -315,7 +315,7 @@ def plot_population_heatmap(
     for i in range(n_nodes):
         frac[i] = spatial_result.yearly_pop[i] / max(K[i], 1)
 
-    fig, ax = dark_figure(figsize=(max(10, n_years * 0.5), max(4, n_nodes * 0.8)))
+    fig, ax = pub_figure(figsize=(max(10, n_years * 0.5), max(4, n_nodes * 0.8)))
 
     # Use a diverging colormap anchored at 1.0
     from matplotlib.colors import TwoSlopeNorm
@@ -326,9 +326,9 @@ def plot_population_heatmap(
                    interpolation='nearest')
 
     ax.set_xticks(np.arange(n_years))
-    ax.set_xticklabels(np.arange(n_years), fontsize=9, color=TEXT_COLOR)
+    ax.set_xticklabels(np.arange(n_years), fontsize=9, color=LIGHT_TEXT)
     ax.set_yticks(np.arange(n_nodes))
-    ax.set_yticklabels(names, fontsize=10, color=TEXT_COLOR)
+    ax.set_yticklabels(names, fontsize=10, color=LIGHT_TEXT)
     ax.set_xlabel('Year', fontsize=12)
     ax.set_title('Population as Fraction of K', fontsize=14, fontweight='bold')
 
@@ -342,7 +342,7 @@ def plot_population_heatmap(
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.02)
     cbar.ax.tick_params(colors=TEXT_COLOR)
-    cbar.set_label('N / K', color=TEXT_COLOR, fontsize=11)
+    cbar.set_label('N / K', color=LIGHT_TEXT, fontsize=11)
 
     if save_path:
         save_figure(fig, save_path)
@@ -367,7 +367,7 @@ def plot_recruitment_timeseries(
         matplotlib Figure.
     """
     years = np.arange(result.n_years)
-    fig, ax1 = dark_figure()
+    fig, ax1 = pub_figure()
 
     ax1.bar(years, result.yearly_recruits, color=STAGE_COLORS['settler'],
             alpha=0.85, label='Recruits (settlers)', zorder=2)
@@ -394,8 +394,8 @@ def plot_recruitment_timeseries(
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(lines1 + lines2, labels1 + labels2,
-               facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10, loc='upper right')
+               facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10, loc='upper right')
     ax1.set_xlim(-0.5, result.n_years - 0.5)
 
     if save_path:
@@ -426,7 +426,7 @@ def plot_survival_curves(
     """
     from sswd_evoepi.types import ANNUAL_SURVIVAL
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     max_years = min(result.n_years, 30)
     years = np.arange(max_years + 1)
@@ -445,7 +445,7 @@ def plot_survival_curves(
     # Observed population survival fraction (total)
     if result.yearly_pop is not None and result.initial_pop > 0:
         obs_frac = result.yearly_pop[:max_years] / result.initial_pop
-        ax.plot(np.arange(len(obs_frac)), obs_frac, color=TEXT_COLOR,
+        ax.plot(np.arange(len(obs_frac)), obs_frac, color=LIGHT_TEXT,
                 linewidth=2, linestyle='--', alpha=0.7,
                 label='Observed (total)')
 
@@ -454,8 +454,8 @@ def plot_survival_curves(
     ax.set_title('Stage-Specific Survival Curves', fontsize=14, fontweight='bold')
     ax.set_ylim(0, 1.05)
     ax.set_xlim(0, max_years)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -486,7 +486,7 @@ def plot_sex_ratio_over_time(
         matplotlib Figure.
     """
     years = np.arange(result.n_years)
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     if agents_history is not None and len(agents_history) == result.n_years:
         sex_ratio = np.zeros(result.n_years)
@@ -519,8 +519,8 @@ def plot_sex_ratio_over_time(
     ax.set_title('Sex Ratio Over Time', fontsize=14, fontweight='bold')
     ax.set_ylim(0.3, 0.7)
     ax.set_xlim(0, result.n_years - 1)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -549,7 +549,7 @@ def plot_density_dependence(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     pop = result.yearly_pop.astype(float)
     # Per-capita growth rate
@@ -567,10 +567,10 @@ def plot_density_dependence(
     for i in range(len(N_t)):
         if not np.isnan(r_pc[i]):
             ax.annotate(str(i), (N_t[i], r_pc[i]), fontsize=7,
-                        color=TEXT_COLOR, alpha=0.6, textcoords='offset points',
+                        color=LIGHT_TEXT, alpha=0.6, textcoords='offset points',
                         xytext=(5, 5))
 
-    ax.axhline(0, color=GRID_COLOR, linewidth=1, linestyle='-')
+    ax.axhline(0, color=LIGHT_GRID, linewidth=1, linestyle='-')
     ax.axvline(carrying_capacity, color=ACCENT_COLORS[3], linestyle='--',
                linewidth=1.5, alpha=0.7, label=f'K = {carrying_capacity}')
 
@@ -587,8 +587,8 @@ def plot_density_dependence(
     ax.set_xlabel('Population size (N)', fontsize=12)
     ax.set_ylabel('Per-capita growth rate (r)', fontsize=12)
     ax.set_title('Density Dependence', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -619,7 +619,7 @@ def plot_node_comparison_bars(
     initial = spatial_result.yearly_pop[:, 0]
     final = spatial_result.yearly_pop[:, -1]
 
-    fig, ax = dark_figure(figsize=(max(8, n_nodes * 1.5), 6))
+    fig, ax = pub_figure(figsize=(max(8, n_nodes * 1.5), 6))
 
     x = np.arange(n_nodes)
     w = 0.3
@@ -634,13 +634,13 @@ def plot_node_comparison_bars(
                linewidth=2.5, zorder=5, label='K')
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=11, color=TEXT_COLOR)
+    ax.set_xticklabels(names, fontsize=11, color=LIGHT_TEXT)
     ax.set_xlabel('Node', fontsize=12)
     ax.set_ylabel('Population', fontsize=12)
     ax.set_title('Node Population: Initial vs Final', fontsize=14,
                   fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_ylim(bottom=0)
 
     if save_path:

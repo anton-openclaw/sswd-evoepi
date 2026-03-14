@@ -31,8 +31,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -69,7 +69,7 @@ def plot_settlement_timing_heatmap(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     n_nodes = spatial_result.n_nodes
     n_years = spatial_result.n_years
@@ -118,9 +118,9 @@ def plot_settlement_timing_heatmap(
     )
 
     # Axis formatting
-    ax.set_xlabel('Day of Year', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Node', fontsize=12, color=TEXT_COLOR)
-    ax.set_title('Spawning Timing by Latitude', fontsize=14, fontweight='bold', color=TEXT_COLOR)
+    ax.set_xlabel('Day of Year', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Node', fontsize=12, color=LIGHT_TEXT)
+    ax.set_title('Spawning Timing by Latitude', fontsize=14, fontweight='bold', color=LIGHT_TEXT)
     ax.set_yticks(range(n_nodes))
     ax.set_yticklabels([names[i] for i in node_order], fontsize=10)
 
@@ -131,9 +131,9 @@ def plot_settlement_timing_heatmap(
     ax.set_xticklabels(month_labels, fontsize=10)
 
     cbar = fig.colorbar(im, ax=ax, pad=0.02)
-    cbar.set_label('Mean daily spawners', fontsize=11, color=TEXT_COLOR)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Mean daily spawners', fontsize=11, color=LIGHT_TEXT)
+    cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
 
     # Caption
     caption = (
@@ -141,7 +141,7 @@ def plot_settlement_timing_heatmap(
         "Warmer southern nodes spawn earlier; spread across months shows continuous settlement."
     )
     fig.text(0.5, -0.02, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic', wrap=True,
+             color=LIGHT_TEXT, style='italic', wrap=True,
              transform=ax.transAxes)
 
     if save_path:
@@ -176,7 +176,7 @@ def plot_settlement_spread(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(10, 6))
+    fig, ax = pub_figure(figsize=(10, 6))
 
     n_nodes = spatial_result.n_nodes
     names = spatial_result.node_names or [f'Node {i}' for i in range(n_nodes)]
@@ -213,23 +213,23 @@ def plot_settlement_spread(
         edgecolor='white', linewidth=0.5, alpha=0.85,
     )
 
-    ax.set_xlabel('Node', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Settlement Window (days)', fontsize=12, color=TEXT_COLOR)
-    ax.set_title('Settlement Window Width by Node', fontsize=14, fontweight='bold', color=TEXT_COLOR)
+    ax.set_xlabel('Node', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Settlement Window (days)', fontsize=12, color=LIGHT_TEXT)
+    ax.set_title('Settlement Window Width by Node', fontsize=14, fontweight='bold', color=LIGHT_TEXT)
     ax.set_xticks(range(n_nodes))
     ax.set_xticklabels(names, fontsize=10, rotation=30, ha='right')
 
     # Add value labels
     for bar, w in zip(bars, window_widths):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 2,
-                f'{w}d', ha='center', va='bottom', fontsize=10, color=TEXT_COLOR)
+                f'{w}d', ha='center', va='bottom', fontsize=10, color=LIGHT_TEXT)
 
     caption = (
         f"Days with ≥{threshold_frac*100:.0f}% of peak daily spawning rate.\n"
         "Wider windows = more continuous settlement, reducing epidemic artifacts."
     )
     fig.text(0.5, -0.05, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic', transform=ax.transAxes)
+             color=LIGHT_TEXT, style='italic', transform=ax.transAxes)
 
     if save_path:
         save_figure(fig, save_path)
@@ -266,7 +266,7 @@ def plot_pld_temperature_curve(
     """
     from sswd_evoepi.reproduction import pelagic_larval_duration
 
-    fig, ax = dark_figure(figsize=(10, 6))
+    fig, ax = pub_figure(figsize=(10, 6))
 
     # Default 5-node SSTs if not provided
     if node_ssts is None:
@@ -299,19 +299,19 @@ def plot_pld_temperature_curve(
                     xytext=(10, 8), fontsize=9, color=color,
                     fontweight='bold')
 
-    ax.set_xlabel('Sea Surface Temperature (°C)', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Pelagic Larval Duration (days)', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Sea Surface Temperature (°C)', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Pelagic Larval Duration (days)', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Temperature-Dependent Larval Duration', fontsize=14,
-                 fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+                 fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     caption = (
         "PLD(T) = 63 × exp(−0.05 × (T − 10.5)) days, clamped to [30, 150].\n"
         "Reference: Hodin et al. 2021. Cold northern waters → longer PLD → later settlement."
     )
     fig.text(0.5, -0.05, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic', transform=ax.transAxes)
+             color=LIGHT_TEXT, style='italic', transform=ax.transAxes)
 
     if save_path:
         save_figure(fig, save_path)
@@ -347,7 +347,7 @@ def plot_daily_recruitment(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     n_nodes = spatial_result.n_nodes
     names = spatial_result.node_names or [f'Node {i}' for i in range(n_nodes)]
@@ -375,25 +375,25 @@ def plot_daily_recruitment(
     # Year markers
     n_years = spatial_result.n_years
     for yr in range(1, n_years):
-        ax.axvline(yr * DAYS_PER_YEAR, color=GRID_COLOR, linewidth=0.5, linestyle='--', alpha=0.5)
+        ax.axvline(yr * DAYS_PER_YEAR, color=LIGHT_GRID, linewidth=0.5, linestyle='--', alpha=0.5)
 
-    ax.set_xlabel('Simulation Day', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Daily Spawners', fontsize=12, color=TEXT_COLOR)
-    ax.set_title('Daily Spawning Intensity', fontsize=14, fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9, loc='upper right')
+    ax.set_xlabel('Simulation Day', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Daily Spawners', fontsize=12, color=LIGHT_TEXT)
+    ax.set_title('Daily Spawning Intensity', fontsize=14, fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9, loc='upper right')
 
     # Add year labels
     for yr in range(n_years):
         ax.text(yr * DAYS_PER_YEAR + DAYS_PER_YEAR / 2, ax.get_ylim()[1] * 0.95,
-                f'Y{yr}', ha='center', fontsize=9, color=GRID_COLOR, alpha=0.7)
+                f'Y{yr}', ha='center', fontsize=9, color=LIGHT_GRID, alpha=0.7)
 
     caption = (
         f"7-day rolling average of daily spawning counts per node.\n"
         "Extended spawning season (Nov–Jul, ~270d) produces continuous larval output."
     )
     fig.text(0.5, -0.05, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic', transform=ax.transAxes)
+             color=LIGHT_TEXT, style='italic', transform=ax.transAxes)
 
     if save_path:
         save_figure(fig, save_path)
@@ -427,7 +427,7 @@ def plot_before_after_epidemic(
     Returns:
         matplotlib Figure.
     """
-    fig, (ax_old, ax_new) = dark_figure(nrows=1, ncols=2, figsize=(16, 6))
+    fig, (ax_old, ax_new) = pub_figure(nrows=1, ncols=2, figsize=(16, 6))
 
     if result_daily.daily_pop is not None:
         days = np.arange(len(result_daily.daily_pop))
@@ -438,7 +438,7 @@ def plot_before_after_epidemic(
         ax_new.plot(days, pop, color=ACCENT_COLORS[3], linewidth=1.2, alpha=0.9)
         ax_new.fill_between(days, 0, pop, color=ACCENT_COLORS[3], alpha=0.15)
         ax_new.set_title('Continuous Settlement (Current)', fontsize=13,
-                         fontweight='bold', color=TEXT_COLOR)
+                         fontweight='bold', color=LIGHT_TEXT)
 
         # LEFT panel: simulate what sawtooth WOULD look like
         # Take yearly recruits and pile them all on day 1 of each year
@@ -463,24 +463,24 @@ def plot_before_after_epidemic(
         ax_old.plot(days, sawtooth_pop, color=ACCENT_COLORS[0], linewidth=1.2, alpha=0.9)
         ax_old.fill_between(days, 0, sawtooth_pop, color=ACCENT_COLORS[0], alpha=0.15)
         ax_old.set_title('Annual Pulse (Sawtooth Artifact)', fontsize=13,
-                         fontweight='bold', color=TEXT_COLOR)
+                         fontweight='bold', color=LIGHT_TEXT)
 
         # Formatting for both panels
         for ax in (ax_old, ax_new):
-            ax.set_xlabel('Simulation Day', fontsize=11, color=TEXT_COLOR)
-            ax.set_ylabel('Population', fontsize=11, color=TEXT_COLOR)
+            ax.set_xlabel('Simulation Day', fontsize=11, color=LIGHT_TEXT)
+            ax.set_ylabel('Population', fontsize=11, color=LIGHT_TEXT)
             for yr in range(1, n_years):
-                ax.axvline(yr * DAYS_PER_YEAR, color=GRID_COLOR,
+                ax.axvline(yr * DAYS_PER_YEAR, color=LIGHT_GRID,
                            linewidth=0.5, linestyle='--', alpha=0.4)
             ax.set_ylim(bottom=0)
     else:
         for ax in (ax_old, ax_new):
             ax.text(0.5, 0.5, 'No daily data\n(enable record_daily=True)',
-                    ha='center', va='center', fontsize=12, color=TEXT_COLOR,
+                    ha='center', va='center', fontsize=12, color=LIGHT_TEXT,
                     transform=ax.transAxes)
 
     fig.suptitle('Settlement System Comparison: Sawtooth vs Continuous',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.02)
+                 fontsize=15, fontweight='bold', color=LIGHT_TEXT, y=1.02)
 
     caption = (
         "LEFT: Annual pulse settlement creates artificial population spikes synchronized with epidemic timing.\n"
@@ -488,7 +488,7 @@ def plot_before_after_epidemic(
         "producing realistic dynamics."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -522,7 +522,7 @@ def plot_spawning_intensity(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 7))
+    fig, ax = pub_figure(figsize=(14, 7))
 
     n_nodes = spatial_result.n_nodes
     names = spatial_result.node_names or [f'Node {i}' for i in range(n_nodes)]
@@ -550,15 +550,15 @@ def plot_spawning_intensity(
     # Year markers
     n_years = spatial_result.n_years
     for yr in range(1, n_years):
-        ax.axvline(yr * DAYS_PER_YEAR, color=GRID_COLOR, linewidth=0.5,
+        ax.axvline(yr * DAYS_PER_YEAR, color=LIGHT_GRID, linewidth=0.5,
                    linestyle='--', alpha=0.4)
 
-    ax.set_xlabel('Simulation Day', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Number of Spawners', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Simulation Day', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Number of Spawners', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Daily Spawning Intensity', fontsize=14,
-                 fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9, loc='upper right')
+                 fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9, loc='upper right')
 
     caption = (
         "Daily spawning counts per node. Triangles mark mass spawning events (>3σ above mean).\n"
@@ -566,7 +566,7 @@ def plot_spawning_intensity(
         "At high density, cascade propagation concentrates spawning into sharp multi-day bursts."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -600,7 +600,7 @@ def plot_spawning_heatmap(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     n_nodes = spatial_result.n_nodes
     names = spatial_result.node_names or [f'Node {i}' for i in range(n_nodes)]
@@ -641,25 +641,25 @@ def plot_spawning_heatmap(
         ax.set_xticklabels(month_labels, fontsize=10)
 
         cbar = fig.colorbar(im, ax=ax, pad=0.02)
-        cbar.set_label('Fraction of population spawning', fontsize=11, color=TEXT_COLOR)
-        cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-        plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+        cbar.set_label('Fraction of population spawning', fontsize=11, color=LIGHT_TEXT)
+        cbar.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
+        plt.setp(cbar.ax.yaxis.get_ticklabels(), color=LIGHT_TEXT)
     else:
         ax.text(0.5, 0.5, 'No daily spawning data available',
-                ha='center', va='center', fontsize=12, color=TEXT_COLOR,
+                ha='center', va='center', fontsize=12, color=LIGHT_TEXT,
                 transform=ax.transAxes)
 
-    ax.set_xlabel('Day of Year', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Node', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Day of Year', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Node', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Spawning Intensity Heatmap (fraction of population)',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR)
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT)
 
     caption = (
         "Fraction of node population spawning each day, averaged across years.\n"
         "Horizontal synchrony = coastwide mass spawning; diagonal shift = latitude-dependent timing (3d/°N)."
     )
     fig.text(0.5, -0.02, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic', transform=ax.transAxes)
+             color=LIGHT_TEXT, style='italic', transform=ax.transAxes)
 
     if save_path:
         save_figure(fig, save_path)
@@ -702,7 +702,7 @@ def plot_spawning_density_dependence(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(10, 8))
+    fig, ax = pub_figure(figsize=(10, 8))
 
     n_nodes = spatial_result.n_nodes
     n_years = spatial_result.n_years
@@ -764,12 +764,12 @@ def plot_spawning_density_dependence(
                 ax.plot(x_smooth, p(x_smooth), color='white', linewidth=1.5,
                         linestyle='--', alpha=0.5, label='Quadratic trend')
 
-    ax.set_xlabel('Population Density (fraction of K)', fontsize=12, color=TEXT_COLOR)
-    ax.set_ylabel('Peak Daily Spawning Fraction', fontsize=12, color=TEXT_COLOR)
+    ax.set_xlabel('Population Density (fraction of K)', fontsize=12, color=LIGHT_TEXT)
+    ax.set_ylabel('Peak Daily Spawning Fraction', fontsize=12, color=LIGHT_TEXT)
     ax.set_title('Mass Spawning vs Population Density\n(Emergent Reproductive Allee Effect)',
-                 fontsize=14, fontweight='bold', color=TEXT_COLOR)
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9, loc='upper left')
+                 fontsize=14, fontweight='bold', color=LIGHT_TEXT)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9, loc='upper left')
 
     # Annotate density regions
     ax.axvspan(0, 0.1, color=ACCENT_COLORS[0], alpha=0.05)
@@ -786,7 +786,7 @@ def plot_spawning_density_dependence(
         "Low density → cascade failure → diffuse spawning → reproductive Allee effect."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)
@@ -825,7 +825,7 @@ def plot_spawning_cascade(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(12, 6))
+    fig, ax = pub_figure(figsize=(12, 6))
 
     names = spatial_result.node_names or [f'Node {i}' for i in range(spatial_result.n_nodes)]
     node_name = names[node_idx] if node_idx < len(names) else f'Node {node_idx}'
@@ -883,25 +883,25 @@ def plot_spawning_cascade(
                     ax.plot(x_line - peak_in_window, y_line, color='white',
                             linewidth=1.5, linestyle='--', alpha=0.5,
                             label=f'Exp. fit (doubling ~{0.693/max(coeffs[0], 0.01):.1f}d)')
-                    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                              labelcolor=TEXT_COLOR, fontsize=9)
+                    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                              labelcolor=LIGHT_TEXT, fontsize=9)
                 except (np.linalg.LinAlgError, ValueError):
                     pass
 
-        ax.set_xlabel(f'Days relative to peak (sim day {peak_day})', fontsize=12, color=TEXT_COLOR)
-        ax.set_ylabel('Number of Spawners', fontsize=12, color=TEXT_COLOR)
+        ax.set_xlabel(f'Days relative to peak (sim day {peak_day})', fontsize=12, color=LIGHT_TEXT)
+        ax.set_ylabel('Number of Spawners', fontsize=12, color=LIGHT_TEXT)
         ax.set_title(f'Spawning Cascade at {node_name} (±{half_w} days around peak)',
-                     fontsize=14, fontweight='bold', color=TEXT_COLOR)
+                     fontsize=14, fontweight='bold', color=LIGHT_TEXT)
 
         # DOY annotation
         peak_doy = peak_day % DAYS_PER_YEAR + 1
         peak_year = peak_day // DAYS_PER_YEAR
         ax.text(0.98, 0.95, f'Year {peak_year}, DOY {peak_doy}',
                 transform=ax.transAxes, ha='right', va='top',
-                fontsize=10, color=GRID_COLOR)
+                fontsize=10, color=LIGHT_GRID)
     else:
         ax.text(0.5, 0.5, 'No daily spawning data available',
-                ha='center', va='center', fontsize=12, color=TEXT_COLOR,
+                ha='center', va='center', fontsize=12, color=LIGHT_TEXT,
                 transform=ax.transAxes)
 
     caption = (
@@ -910,7 +910,7 @@ def plot_spawning_cascade(
         "Cascade propagation requires sufficient density for pheromone-like signal range."
     )
     fig.text(0.5, -0.06, caption, ha='center', va='top', fontsize=9,
-             color=TEXT_COLOR, style='italic')
+             color=LIGHT_TEXT, style='italic')
 
     if save_path:
         save_figure(fig, save_path)

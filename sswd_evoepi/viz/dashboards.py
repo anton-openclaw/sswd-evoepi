@@ -37,8 +37,8 @@ from sswd_evoepi.viz.style import (
     NODE_COLORS,
     STAGE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -80,8 +80,8 @@ def _legend(ax, **kwargs):
     handles, labels = ax.get_legend_handles_labels()
     if not labels:
         return
-    defaults = dict(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                    labelcolor=TEXT_COLOR, fontsize=9)
+    defaults = dict(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+                    labelcolor=LIGHT_TEXT, fontsize=9)
     defaults.update(kwargs)
     ax.legend(**defaults)
 
@@ -120,7 +120,7 @@ def plot_simulation_dashboard(
     fig, axes = plt.subplots(2, 3, figsize=(20, 12))
     fig.patch.set_facecolor(DARK_BG)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     years = np.arange(result.n_years)
 
@@ -223,7 +223,7 @@ def plot_simulation_dashboard(
             ax.set_title('Environmental Vibrio', fontsize=12, fontweight='bold')
         else:
             ax.text(0.5, 0.5, 'No PE / Vibrio data', transform=ax.transAxes,
-                    ha='center', va='center', color=TEXT_COLOR, fontsize=12)
+                    ha='center', va='center', color=LIGHT_TEXT, fontsize=12)
             ax.set_title('Virulence / Vibrio', fontsize=12, fontweight='bold')
     ax.set_xlabel('Year')
     _legend(ax)
@@ -251,17 +251,17 @@ def plot_simulation_dashboard(
                                     norm=plt.Normalize(0, result.n_years))
         sm.set_array([])
         cb = fig.colorbar(sm, ax=ax, label='Year', shrink=0.8)
-        cb.ax.yaxis.set_tick_params(color=TEXT_COLOR)
+        cb.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
         cb.ax.yaxis.label.set_color(TEXT_COLOR)
-        plt.setp(cb.ax.get_yticklabels(), color=TEXT_COLOR)
+        plt.setp(cb.ax.get_yticklabels(), color=LIGHT_TEXT)
     else:
         ax.text(0.5, 0.5, 'Co-evolution requires PE', transform=ax.transAxes,
-                ha='center', va='center', color=TEXT_COLOR, fontsize=12)
+                ha='center', va='center', color=LIGHT_TEXT, fontsize=12)
         ax.set_title('Co-evolution Phase Portrait', fontsize=12,
                       fontweight='bold')
     _legend(ax)
 
-    fig.suptitle(title, fontsize=16, fontweight='bold', color=TEXT_COLOR, y=0.98)
+    fig.suptitle(title, fontsize=16, fontweight='bold', color=LIGHT_TEXT, y=0.98)
     fig.subplots_adjust(hspace=0.35, wspace=0.3, top=0.92)
     if save_path:
         save_figure(fig, save_path)
@@ -300,7 +300,7 @@ def plot_spatial_dashboard(
     fig, axes = plt.subplots(2, 3, figsize=(20, 12))
     fig.patch.set_facecolor(DARK_BG)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     sr = spatial_result
     n_nodes = sr.n_nodes
@@ -328,7 +328,7 @@ def plot_spatial_dashboard(
                linewidth=0.5)
         ax.set_xticks(x)
         ax.set_xticklabels(names, fontsize=9, rotation=30, ha='right',
-                           color=TEXT_COLOR)
+                           color=LIGHT_TEXT)
     ax.set_ylabel('Total Disease Deaths')
     ax.set_title('Cumulative Disease Mortality', fontsize=12, fontweight='bold')
 
@@ -349,7 +349,7 @@ def plot_spatial_dashboard(
                linewidth=0.8, zorder=5)
     for i, name in enumerate(names):
         ax.annotate(name, (lons[i], lats[i]), textcoords='offset points',
-                    xytext=(8, 4), fontsize=8, color=TEXT_COLOR)
+                    xytext=(8, 4), fontsize=8, color=LIGHT_TEXT)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_title('Network Map (bubble = final pop)', fontsize=12,
@@ -381,7 +381,7 @@ def plot_spatial_dashboard(
                 alpha=0.85, edgecolor='white', linewidth=0.5)
         ax.set_yticks(np.arange(n_nodes))
         sorted_names = [names[i] for i in sort_idx]
-        ax.set_yticklabels(sorted_names, fontsize=9, color=TEXT_COLOR)
+        ax.set_yticklabels(sorted_names, fontsize=9, color=LIGHT_TEXT)
         ax.set_xlabel('Mortality Fraction (deaths/K)')
     elif sr.yearly_disease_deaths is not None:
         total_dd = sr.yearly_disease_deaths.sum(axis=1)
@@ -391,7 +391,7 @@ def plot_spatial_dashboard(
                 color=[NODE_COLORS[i % len(NODE_COLORS)] for i in range(n_nodes)],
                 alpha=0.85)
         ax.set_yticks(np.arange(n_nodes))
-        ax.set_yticklabels(names, fontsize=9, color=TEXT_COLOR)
+        ax.set_yticklabels(names, fontsize=9, color=LIGHT_TEXT)
         ax.set_xlabel('Mortality Fraction')
     ax.set_title('North → South Mortality Gradient', fontsize=12,
                   fontweight='bold')
@@ -414,16 +414,16 @@ def plot_spatial_dashboard(
                 label=f'Fjord (n={len(fjord_idx)})')
         ax.plot(years, open_norm, color='#e94560', linewidth=2.5,
                 label=f'Open coast (n={len(open_idx)})')
-        ax.axhline(1.0, color=GRID_COLOR, linestyle='--', alpha=0.5)
+        ax.axhline(1.0, color=LIGHT_GRID, linestyle='--', alpha=0.5)
         ax.set_ylabel('Population (fraction of initial)')
     else:
         ax.text(0.5, 0.5, 'No fjord/open distinction', transform=ax.transAxes,
-                ha='center', va='center', color=TEXT_COLOR, fontsize=11)
+                ha='center', va='center', color=LIGHT_TEXT, fontsize=11)
     ax.set_xlabel('Year')
     ax.set_title('Fjord vs Open Coast', fontsize=12, fontweight='bold')
     _legend(ax)
 
-    fig.suptitle(title, fontsize=16, fontweight='bold', color=TEXT_COLOR, y=0.98)
+    fig.suptitle(title, fontsize=16, fontweight='bold', color=LIGHT_TEXT, y=0.98)
     fig.subplots_adjust(hspace=0.35, wspace=0.3, top=0.92)
     if save_path:
         save_figure(fig, save_path)
@@ -473,7 +473,7 @@ def plot_scenario_comparison(
     if n_scenarios == 1:
         axes = axes.reshape(-1, 1)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     scenario_colors = [ACCENT_COLORS[i % len(ACCENT_COLORS)] for i in range(n_scenarios)]
 
@@ -505,7 +505,7 @@ def plot_scenario_comparison(
                     color=scenario_colors[col], linewidth=2)
         else:
             ax.text(0.5, 0.5, 'No PE', transform=ax.transAxes,
-                    ha='center', va='center', color=TEXT_COLOR, fontsize=10)
+                    ha='center', va='center', color=LIGHT_TEXT, fontsize=10)
         if col == 0:
             ax.set_ylabel('Virulence')
 
@@ -519,7 +519,7 @@ def plot_scenario_comparison(
             ax.set_ylabel('Deaths/yr')
         ax.set_xlabel('Year')
 
-    fig.suptitle(title, fontsize=16, fontweight='bold', color=TEXT_COLOR, y=0.98)
+    fig.suptitle(title, fontsize=16, fontweight='bold', color=LIGHT_TEXT, y=0.98)
     fig.subplots_adjust(hspace=0.35, wspace=0.3, top=0.92)
     if save_path:
         save_figure(fig, save_path)
@@ -559,7 +559,7 @@ def plot_sensitivity_tornado(
     # Sort by ST descending
     order = np.argsort(-ST)[:top_n]
 
-    fig, ax = dark_figure(figsize=(12, max(6, top_n * 0.45)))
+    fig, ax = pub_figure(figsize=(12, max(6, top_n * 0.45)))
 
     y = np.arange(len(order))
     bar_h = 0.35
@@ -574,7 +574,7 @@ def plot_sensitivity_tornado(
 
     ax.set_yticks(y)
     ax.set_yticklabels([params[i].split('.')[-1] for i in order],
-                       fontsize=10, color=TEXT_COLOR)
+                       fontsize=10, color=LIGHT_TEXT)
     ax.invert_yaxis()
     ax.set_xlabel('Sobol Index', fontsize=12)
 
@@ -592,8 +592,8 @@ def plot_sensitivity_tornado(
                   label=cat.replace('_', ' ').title())
         )
     ax.legend(handles=legend_elements, loc='lower right',
-              facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=9)
+              facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=9)
 
     if title is None:
         title = f'Sobol Sensitivity — {metric}'
@@ -648,7 +648,7 @@ def plot_sensitivity_heatmap(
     metric_labels = [m.replace('_', '\n') for m in metrics]
 
     fig_h = max(6, len(order) * 0.5)
-    fig, ax = dark_figure(figsize=(max(10, n_metrics * 0.9), fig_h))
+    fig, ax = pub_figure(figsize=(max(10, n_metrics * 0.9), fig_h))
 
     # Custom colormap: dark → bright
     cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -657,10 +657,10 @@ def plot_sensitivity_heatmap(
                    vmin=0, vmax=0.8)
 
     ax.set_xticks(np.arange(n_metrics))
-    ax.set_xticklabels(metric_labels, fontsize=8, color=TEXT_COLOR,
+    ax.set_xticklabels(metric_labels, fontsize=8, color=LIGHT_TEXT,
                        rotation=45, ha='right')
     ax.set_yticks(np.arange(len(order)))
-    ax.set_yticklabels(param_labels, fontsize=9, color=TEXT_COLOR)
+    ax.set_yticklabels(param_labels, fontsize=9, color=LIGHT_TEXT)
 
     # Highlight top 5 cells
     top5_flat = np.argsort(-ST_sorted.ravel())[:5]
@@ -679,9 +679,9 @@ def plot_sensitivity_heatmap(
                                     clip_on=False))
 
     cb = fig.colorbar(im, ax=ax, label='Sobol ST', shrink=0.8)
-    cb.ax.yaxis.set_tick_params(color=TEXT_COLOR)
+    cb.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
     cb.ax.yaxis.label.set_color(TEXT_COLOR)
-    plt.setp(cb.ax.get_yticklabels(), color=TEXT_COLOR)
+    plt.setp(cb.ax.get_yticklabels(), color=LIGHT_TEXT)
 
     ax.set_title(title, fontsize=14, fontweight='bold')
     if save_path:
@@ -740,7 +740,7 @@ def plot_parameter_interaction_web(
     param_labels = [params[i].split('.')[-1] for i in order]
 
     fig_size = max(8, n * 0.7)
-    fig, ax = dark_figure(figsize=(fig_size, fig_size))
+    fig, ax = pub_figure(figsize=(fig_size, fig_size))
 
     cmap = mcolors.LinearSegmentedColormap.from_list(
         'interact', ['#1a1a2e', '#3498db', '#f39c12', '#e74c3c'], N=256)
@@ -748,10 +748,10 @@ def plot_parameter_interaction_web(
                    vmin=0, vmax=max(ST[order].max(), 0.5))
 
     ax.set_xticks(np.arange(n))
-    ax.set_xticklabels(param_labels, fontsize=8, color=TEXT_COLOR,
+    ax.set_xticklabels(param_labels, fontsize=8, color=LIGHT_TEXT,
                        rotation=45, ha='right')
     ax.set_yticks(np.arange(n))
-    ax.set_yticklabels(param_labels, fontsize=8, color=TEXT_COLOR)
+    ax.set_yticklabels(param_labels, fontsize=8, color=LIGHT_TEXT)
 
     # Annotate values
     for i in range(n):
@@ -762,9 +762,9 @@ def plot_parameter_interaction_web(
                         fontsize=7, color='white' if val > 0.15 else TEXT_COLOR)
 
     cb = fig.colorbar(im, ax=ax, label='Index', shrink=0.8)
-    cb.ax.yaxis.set_tick_params(color=TEXT_COLOR)
+    cb.ax.yaxis.set_tick_params(color=LIGHT_TEXT)
     cb.ax.yaxis.label.set_color(TEXT_COLOR)
-    plt.setp(cb.ax.get_yticklabels(), color=TEXT_COLOR)
+    plt.setp(cb.ax.get_yticklabels(), color=LIGHT_TEXT)
 
     if title is None:
         title = f'Parameter Interaction Web — {metric}'
@@ -810,7 +810,7 @@ def plot_evolutionary_rescue_assessment(
     fig, axes = plt.subplots(2, 2, figsize=(16, 10))
     fig.patch.set_facecolor(DARK_BG)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     years = np.arange(result.n_years)
     pop = result.yearly_pop
@@ -829,7 +829,7 @@ def plot_evolutionary_rescue_assessment(
     ax.plot(years, pop, color=status_color, linewidth=2.5, label='Population')
     ax.axhline(rescue_pop, color='#f39c12', linestyle='--', linewidth=1.5,
                label=f'Rescue threshold ({rescue_threshold:.0%} K)')
-    ax.axhline(carrying_capacity, color=GRID_COLOR, linestyle=':', alpha=0.5,
+    ax.axhline(carrying_capacity, color=LIGHT_GRID, linestyle=':', alpha=0.5,
                label=f'K={carrying_capacity}')
     ax.axvline(disease_year, color=COMPARTMENT_COLORS['E'], linestyle=':',
                alpha=0.7)
@@ -846,13 +846,13 @@ def plot_evolutionary_rescue_assessment(
         dr = np.diff(r)
         ax.bar(years[1:], dr, color=[('#2ecc71' if d > 0 else '#e74c3c')
                for d in dr], alpha=0.8, edgecolor='white', linewidth=0.3)
-        ax.axhline(0, color=GRID_COLOR, linewidth=0.5)
+        ax.axhline(0, color=LIGHT_GRID, linewidth=0.5)
         # Show cumulative shift
         total_shift = r[-1] - r[disease_year] if disease_year < len(r) else 0
         ax.text(0.95, 0.95, f'Δr̄ = {total_shift:+.4f}',
                 transform=ax.transAxes, ha='right', va='top',
-                fontsize=11, color=TEXT_COLOR,
-                bbox=dict(boxstyle='round', facecolor=DARK_PANEL, alpha=0.8))
+                fontsize=11, color=LIGHT_TEXT,
+                bbox=dict(boxstyle='round', facecolor=LIGHT_PANEL, alpha=0.8))
     ax.set_xlabel('Year')
     ax.set_ylabel('Δ Mean Resistance / yr')
     ax.set_title('Resistance Increase Rate', fontsize=12, fontweight='bold')
@@ -869,8 +869,8 @@ def plot_evolutionary_rescue_assessment(
                    label='Critical V_A (30%)')
         ax.text(0.95, 0.05, f'V_A retention: {va_norm[-1]:.1%}',
                 transform=ax.transAxes, ha='right', va='bottom',
-                fontsize=11, color=TEXT_COLOR,
-                bbox=dict(boxstyle='round', facecolor=DARK_PANEL, alpha=0.8))
+                fontsize=11, color=LIGHT_TEXT,
+                bbox=dict(boxstyle='round', facecolor=LIGHT_PANEL, alpha=0.8))
     ax.set_xlabel('Year')
     ax.set_ylabel('V_A / V_A₀')
     ax.set_ylim(0, 1.1)
@@ -907,15 +907,15 @@ def plot_evolutionary_rescue_assessment(
                 ax.barh([0, 1], values, color=colors_bar, alpha=0.8,
                         edgecolor='white', linewidth=0.5)
                 ax.set_yticks([0, 1])
-                ax.set_yticklabels(stages, fontsize=11, color=TEXT_COLOR)
+                ax.set_yticklabels(stages, fontsize=11, color=LIGHT_TEXT)
                 ax.set_xlabel('Mean Resistance')
 
                 est_text = (f'{gens_needed:.0f} gen ({years_needed:.0f} yr)'
                            if np.isfinite(gens_needed) else '∞ (no selection)')
                 ax.text(0.95, 0.95, f'Estimate: {est_text}',
                         transform=ax.transAxes, ha='right', va='top',
-                        fontsize=11, color=TEXT_COLOR,
-                        bbox=dict(boxstyle='round', facecolor=DARK_PANEL,
+                        fontsize=11, color=LIGHT_TEXT,
+                        bbox=dict(boxstyle='round', facecolor=LIGHT_PANEL,
                                   alpha=0.8))
     ax.set_title('Generations to Recovery', fontsize=12, fontweight='bold')
 
@@ -959,7 +959,7 @@ def plot_conservation_scenario_matrix(
     if n_rows == 1:
         axes = axes.reshape(1, -1)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     scenario_colors = ['#95a5a6', '#2ecc71', '#3498db', '#f39c12', '#e94560']
 
@@ -997,7 +997,7 @@ def plot_conservation_scenario_matrix(
         if row == n_rows - 1:
             ax.set_xlabel('Year')
 
-    fig.suptitle(title, fontsize=16, fontweight='bold', color=TEXT_COLOR, y=0.98)
+    fig.suptitle(title, fontsize=16, fontweight='bold', color=LIGHT_TEXT, y=0.98)
     fig.subplots_adjust(hspace=0.35, wspace=0.3, top=0.92)
     if save_path:
         save_figure(fig, save_path)
@@ -1043,7 +1043,7 @@ def plot_model_validation_panel(
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     fig.patch.set_facecolor(DARK_BG)
     for ax in axes.flat:
-        apply_dark_theme(ax=ax)
+        apply_light_theme(ax=ax)
 
     years = np.arange(result.n_years)
     pop = result.yearly_pop
@@ -1066,7 +1066,7 @@ def plot_model_validation_panel(
     ax.axhspan(hamilton_low, hamilton_high, color='#f39c12', alpha=0.2,
                label=f'Hamilton 2021 ({hamilton_low:.0%}–{hamilton_high:.0%})')
     ax.set_xticks([0])
-    ax.set_xticklabels(['Peak crash'], color=TEXT_COLOR)
+    ax.set_xticklabels(['Peak crash'], color=LIGHT_TEXT)
     ax.set_ylabel('Mortality Fraction')
     ax.set_ylim(0, 1.05)
     ax.set_title('Mortality vs Field Data', fontsize=12, fontweight='bold')
@@ -1076,7 +1076,7 @@ def plot_model_validation_panel(
     badge_c = '#2ecc71' if in_range else '#e74c3c'
     ax.text(0.95, 0.95, badge, transform=ax.transAxes, ha='right', va='top',
             fontsize=13, color=badge_c, fontweight='bold',
-            bbox=dict(boxstyle='round', facecolor=DARK_PANEL, alpha=0.8))
+            bbox=dict(boxstyle='round', facecolor=LIGHT_PANEL, alpha=0.8))
     _legend(ax)
 
     # ── [1] Recovery timeline ────────────────────────────────────────
@@ -1116,7 +1116,7 @@ def plot_model_validation_panel(
     ax.set_title('Decline Pattern', fontsize=12, fontweight='bold')
     _legend(ax)
 
-    fig.suptitle(title, fontsize=16, fontweight='bold', color=TEXT_COLOR, y=0.98)
+    fig.suptitle(title, fontsize=16, fontweight='bold', color=LIGHT_TEXT, y=0.98)
     fig.subplots_adjust(hspace=0.35, wspace=0.3, top=0.88)
     if save_path:
         save_figure(fig, save_path)
@@ -1164,7 +1164,7 @@ def plot_parameter_space_exploration(
     assert len(morris_params) == len(sobol_params), \
         f"Param count mismatch: Morris={len(morris_params)}, Sobol={len(sobol_params)}"
 
-    fig, ax = dark_figure(figsize=(10, 10))
+    fig, ax = pub_figure(figsize=(10, 10))
 
     # Scatter with category colors
     for i, param in enumerate(morris_params):
@@ -1177,7 +1177,7 @@ def plot_parameter_space_exploration(
             ax.annotate(param.split('.')[-1],
                         (mu_star[i], ST[i]),
                         textcoords='offset points', xytext=(6, 6),
-                        fontsize=8, color=TEXT_COLOR, alpha=0.9)
+                        fontsize=8, color=LIGHT_TEXT, alpha=0.9)
 
     # Diagonal line (proportional relationship)
     max_mu = mu_star.max()
@@ -1185,7 +1185,7 @@ def plot_parameter_space_exploration(
     if max_mu > 0 and max_st > 0:
         scale = max_st / max_mu
         diag_x = np.linspace(0, max_mu * 1.1, 100)
-        ax.plot(diag_x, diag_x * scale, color=GRID_COLOR, linestyle='--',
+        ax.plot(diag_x, diag_x * scale, color=LIGHT_GRID, linestyle='--',
                 alpha=0.4, label='Proportional')
 
     ax.set_xlabel('Morris μ* (elementary effect)', fontsize=12)
@@ -1199,8 +1199,8 @@ def plot_parameter_space_exploration(
             color=SA_CATEGORY_COLORS.get(cat, '#95a5a6'),
             label=cat.replace('_', ' ').title()))
     ax.legend(handles=handles, loc='upper left',
-              facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+              facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     # Quadrant annotations
     ax.text(0.02, 0.98, 'Low μ*, High ST\n→ Strong interactions',

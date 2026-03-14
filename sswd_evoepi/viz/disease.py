@@ -31,8 +31,8 @@ from sswd_evoepi.viz.style import (
     GRID_COLOR,
     NODE_COLORS,
     TEXT_COLOR,
-    apply_dark_theme,
-    dark_figure,
+    apply_light_theme,
+    pub_figure,
     save_figure,
 )
 
@@ -91,7 +91,7 @@ def plot_epidemic_curve(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 7))
+    fig, ax = pub_figure(figsize=(14, 7))
 
     has_daily = (result.daily_pop is not None
                  and result.daily_infected is not None)
@@ -110,7 +110,7 @@ def plot_epidemic_curve(
         ax.fill_between(days, susceptible, susceptible + infected,
                          color=COMPARTMENT_COLORS['I1'], alpha=0.8,
                          label='Infected (I₁ + I₂)')
-        ax.plot(days, pop, color=TEXT_COLOR, linewidth=1.5,
+        ax.plot(days, pop, color=LIGHT_TEXT, linewidth=1.5,
                 alpha=0.8, label='Total alive')
 
         _day_to_year_axis(n_days, ax)
@@ -132,8 +132,8 @@ def plot_epidemic_curve(
 
     ax.set_ylabel('Individuals', fontsize=12)
     ax.set_title('Epidemic Curve — SSWD', fontsize=15, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper right')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper right')
     ax.set_ylim(bottom=0)
 
     if save_path:
@@ -162,7 +162,7 @@ def plot_vibrio_concentration(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     if result.daily_vibrio is not None:
         n_days = len(result.daily_vibrio)
@@ -188,14 +188,14 @@ def plot_vibrio_concentration(
     else:
         ax.text(0.5, 0.5, 'No daily Vibrio data\n(run with record_daily=True)',
                 transform=ax.transAxes, ha='center', va='center',
-                fontsize=14, color=TEXT_COLOR, alpha=0.5)
+                fontsize=14, color=LIGHT_TEXT, alpha=0.5)
         ax.set_xlabel('Day', fontsize=12)
 
     ax.set_ylabel('Vibrio concentration (bact/mL)', fontsize=12)
     ax.set_title('Environmental V. pectenicida Dynamics', fontsize=14,
                   fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -234,9 +234,9 @@ def plot_force_of_infection_distribution(
     alive_idx = np.where(alive)[0]
 
     if len(alive_idx) == 0:
-        fig, ax = dark_figure()
+        fig, ax = pub_figure()
         ax.text(0.5, 0.5, 'No alive agents', transform=ax.transAxes,
-                ha='center', va='center', fontsize=14, color=TEXT_COLOR)
+                ha='center', va='center', fontsize=14, color=LIGHT_TEXT)
         if save_path:
             save_figure(fig, save_path)
         return fig
@@ -252,7 +252,7 @@ def plot_force_of_infection_distribution(
             cfg=cfg,
         )
 
-    fig, (ax1, ax2) = dark_figure(nrows=1, ncols=2, figsize=(14, 6))
+    fig, (ax1, ax2) = pub_figure(nrows=1, ncols=2, figsize=(14, 6))
 
     # Main histogram
     n_bins = min(50, max(10, len(lambdas) // 10))
@@ -266,8 +266,8 @@ def plot_force_of_infection_distribution(
     ax1.set_ylabel('Count', fontsize=12)
     ax1.set_title('Force of Infection Distribution', fontsize=13,
                    fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
 
     # Scatter: resistance vs λ
     r_vals = agents['resistance'][alive_idx]
@@ -280,10 +280,10 @@ def plot_force_of_infection_distribution(
                    fontweight='bold')
     cbar = fig.colorbar(sc, ax=ax2, shrink=0.8, pad=0.02)
     cbar.ax.tick_params(colors=TEXT_COLOR)
-    cbar.set_label('Body size (mm)', color=TEXT_COLOR, fontsize=10)
+    cbar.set_label('Body size (mm)', color=LIGHT_TEXT, fontsize=10)
 
     fig.suptitle(f'P = {vibrio_concentration:.0f} bact/mL, salinity = {salinity} psu',
-                 fontsize=11, color=TEXT_COLOR, alpha=0.7, y=1.02)
+                 fontsize=11, color=LIGHT_TEXT, alpha=0.7, y=1.02)
 
     if save_path:
         save_figure(fig, save_path)
@@ -330,7 +330,7 @@ def plot_R0_over_time(
         mean_r = float(result.yearly_mean_resistance[y])
         R0_vals[y] = compute_R0(T_celsius, S0, phi_k, cfg, salinity, mean_r)
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Color bars by above/below threshold
     above = R0_vals >= 1.0
@@ -341,7 +341,7 @@ def plot_R0_over_time(
     ax.bar(years[below], R0_vals[below], color=COMPARTMENT_COLORS['R'],
            alpha=0.85, label='R₀ < 1 (declining)', zorder=2)
 
-    ax.axhline(1.0, color=TEXT_COLOR, linestyle='--', linewidth=2,
+    ax.axhline(1.0, color=LIGHT_TEXT, linestyle='--', linewidth=2,
                alpha=0.7, label='R₀ = 1 threshold', zorder=3)
     ax.axvline(disease_year, color=COMPARTMENT_COLORS['E'],
                linestyle=':', linewidth=1.5, alpha=0.7,
@@ -351,8 +351,8 @@ def plot_R0_over_time(
     ax.set_ylabel('R₀', fontsize=12)
     ax.set_title('Basic Reproduction Number Over Time', fontsize=14,
                   fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10)
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10)
     ax.set_xlim(-0.5, result.n_years - 0.5)
     ax.set_ylim(bottom=0)
 
@@ -393,7 +393,7 @@ def plot_disease_mortality_by_node(
     lat_order = np.argsort(mort_frac)[::-1]  # sort by mortality for visual clarity
     cmap = plt.cm.coolwarm
 
-    fig, ax = dark_figure(figsize=(max(8, n_nodes * 1.8), 6))
+    fig, ax = pub_figure(figsize=(max(8, n_nodes * 1.8), 6))
 
     x = np.arange(n_nodes)
     # Color by latitude gradient (higher index = more south = warmer)
@@ -406,10 +406,10 @@ def plot_disease_mortality_by_node(
     # Annotate with percentage
     for i, (xi, mf) in enumerate(zip(x, mort_frac)):
         ax.text(xi, mf + 0.01, f'{mf:.1%}', ha='center', va='bottom',
-                fontsize=10, color=TEXT_COLOR, fontweight='bold')
+                fontsize=10, color=LIGHT_TEXT, fontweight='bold')
 
     ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=11, color=TEXT_COLOR)
+    ax.set_xticklabels(names, fontsize=11, color=LIGHT_TEXT)
     ax.set_xlabel('Node (North → South)', fontsize=12)
     ax.set_ylabel('Cumulative disease mortality fraction', fontsize=12)
     ax.set_title('Disease Mortality by Node', fontsize=14, fontweight='bold')
@@ -421,7 +421,7 @@ def plot_disease_mortality_by_node(
     cbar = fig.colorbar(sm, ax=ax, shrink=0.6, pad=0.02, aspect=20)
     cbar.ax.tick_params(colors=TEXT_COLOR, length=0)
     cbar.ax.set_yticklabels([])
-    cbar.set_label('Cold ← Latitude → Warm', color=TEXT_COLOR, fontsize=10)
+    cbar.set_label('Cold ← Latitude → Warm', color=LIGHT_TEXT, fontsize=10)
 
     if save_path:
         save_figure(fig, save_path)
@@ -455,7 +455,7 @@ def plot_epidemic_wave_timing(
     names = spatial_result.node_names or [f'Node {i}' for i in range(n_nodes)]
     K = spatial_result.node_K
 
-    fig, ax = dark_figure(figsize=(12, max(4, n_nodes * 1.2)))
+    fig, ax = pub_figure(figsize=(12, max(4, n_nodes * 1.2)))
 
     # Disease deaths per node per year: (n_nodes, n_years)
     dd = spatial_result.yearly_disease_deaths
@@ -501,10 +501,10 @@ def plot_epidemic_wave_timing(
             ax.plot(onset_years[i], i, 'o', color='white', markersize=8,
                     zorder=5)
             ax.text(onset_years[i] - 0.3, i, f'yr {onset_years[i]}',
-                    ha='right', va='center', fontsize=9, color=TEXT_COLOR)
+                    ha='right', va='center', fontsize=9, color=LIGHT_TEXT)
 
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(names, fontsize=11, color=TEXT_COLOR)
+    ax.set_yticklabels(names, fontsize=11, color=LIGHT_TEXT)
     ax.set_xlabel('Year', fontsize=12)
     ax.set_title('Epidemic Wave Propagation', fontsize=14, fontweight='bold')
     ax.set_xlim(-0.5, n_years)
@@ -535,7 +535,7 @@ def plot_compartment_flow_sankey(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(14, 7))
+    fig, ax = pub_figure(figsize=(14, 7))
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 6)
     ax.axis('off')
@@ -600,7 +600,7 @@ def plot_compartment_flow_sankey(
         mid_x = (sx + dx) / 2
         mid_y = sy - 0.5
         ax.text(mid_x, mid_y, f'{flow:,}', ha='center', va='top',
-                fontsize=9, color=TEXT_COLOR, alpha=0.8)
+                fontsize=9, color=LIGHT_TEXT, alpha=0.8)
 
     # Recovery arrows (I₂→R and I₁→R)
     recovery_flows = [
@@ -625,7 +625,7 @@ def plot_compartment_flow_sankey(
                 fontsize=9, color=COMPARTMENT_COLORS['R'], alpha=0.9)
 
     ax.set_title('Disease Compartment Flows', fontsize=15, fontweight='bold',
-                  color=TEXT_COLOR)
+                  color=LIGHT_TEXT)
 
     # Legend
     legend_text = (
@@ -634,9 +634,9 @@ def plot_compartment_flow_sankey(
         f"Recoveries ≈ {total_I2_to_R + total_I1_to_R:,}"
     )
     ax.text(5.0, 0.5, legend_text, ha='center', va='center',
-            fontsize=10, color=TEXT_COLOR, alpha=0.7,
-            bbox=dict(boxstyle='round,pad=0.5', facecolor=DARK_PANEL,
-                      edgecolor=GRID_COLOR, alpha=0.8))
+            fontsize=10, color=LIGHT_TEXT, alpha=0.7,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor=LIGHT_PANEL,
+                      edgecolor=LIGHT_GRID, alpha=0.8))
 
     if save_path:
         save_figure(fig, save_path)
@@ -669,7 +669,7 @@ def plot_shedding_timeseries(
     from sswd_evoepi.disease import shedding_rate_I1, shedding_rate_I2
     from sswd_evoepi.config import DiseaseSection
 
-    fig, ax = dark_figure(figsize=(14, 6))
+    fig, ax = pub_figure(figsize=(14, 6))
 
     cfg = DiseaseSection()
 
@@ -706,13 +706,13 @@ def plot_shedding_timeseries(
     else:
         ax.text(0.5, 0.5, 'No daily data available',
                 transform=ax.transAxes, ha='center', va='center',
-                fontsize=14, color=TEXT_COLOR, alpha=0.5)
+                fontsize=14, color=LIGHT_TEXT, alpha=0.5)
         ax.set_xlabel('Day', fontsize=12)
 
     ax.set_ylabel('Shedding rate (bact/mL/d)', fontsize=12)
     ax.set_title('Pathogen Shedding by Source', fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper right')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper right')
     ax.set_ylim(bottom=0)
 
     if save_path:
@@ -750,7 +750,7 @@ def plot_disease_state_heatmap(
     denom[denom == 0] = 1.0
     prevalence = dd / denom
 
-    fig, ax = dark_figure(figsize=(max(10, n_years * 0.5),
+    fig, ax = pub_figure(figsize=(max(10, n_years * 0.5),
                                     max(4, n_nodes * 1.0)))
 
     im = ax.imshow(prevalence, aspect='auto', cmap='YlOrRd',
@@ -758,9 +758,9 @@ def plot_disease_state_heatmap(
                    interpolation='nearest')
 
     ax.set_xticks(np.arange(n_years))
-    ax.set_xticklabels(np.arange(n_years), fontsize=9, color=TEXT_COLOR)
+    ax.set_xticklabels(np.arange(n_years), fontsize=9, color=LIGHT_TEXT)
     ax.set_yticks(np.arange(n_nodes))
-    ax.set_yticklabels(names, fontsize=10, color=TEXT_COLOR)
+    ax.set_yticklabels(names, fontsize=10, color=LIGHT_TEXT)
     ax.set_xlabel('Year', fontsize=12)
     ax.set_title('Disease Impact Heatmap (mortality fraction)',
                   fontsize=14, fontweight='bold')
@@ -776,7 +776,7 @@ def plot_disease_state_heatmap(
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.02)
     cbar.ax.tick_params(colors=TEXT_COLOR)
-    cbar.set_label('Disease mortality fraction', color=TEXT_COLOR, fontsize=11)
+    cbar.set_label('Disease mortality fraction', color=LIGHT_TEXT, fontsize=11)
 
     if save_path:
         save_figure(fig, save_path)
@@ -811,7 +811,7 @@ def plot_immunosuppression_overlap(
     spawn_cfg = SpawningSection()
     dis_cfg = DiseaseSection()
 
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(14, 8),
+    fig, (ax1, ax2) = pub_figure(nrows=2, ncols=1, figsize=(14, 8),
                                    gridspec_kw={'height_ratios': [2, 1]})
 
     days = np.arange(365)
@@ -885,8 +885,8 @@ def plot_immunosuppression_overlap(
     ax1.set_ylabel('Relative intensity', fontsize=12)
     ax1.set_title('Spawning–Immunosuppression–VBNC Overlap',
                    fontsize=14, fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9, loc='upper right')
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9, loc='upper right')
     ax1.set_xlim(0, 364)
     ax1.set_ylim(0, 1.1)
 
@@ -902,8 +902,8 @@ def plot_immunosuppression_overlap(
     ax2.set_xticklabels(months, fontsize=9)
     ax2.set_ylabel('SST (°C)', fontsize=12)
     ax2.set_xlabel('Month', fontsize=12)
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9)
+    ax2.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9)
     ax2.set_xlim(0, 364)
 
     if save_path:
@@ -935,7 +935,7 @@ def plot_recovery_vs_resistance(
     """
     from sswd_evoepi.disease import recovery_probability_I2, recovery_probability_I1
 
-    fig, ax = dark_figure()
+    fig, ax = pub_figure()
 
     # Theoretical curve
     r_range = np.linspace(0, 1, 200)
@@ -978,8 +978,8 @@ def plot_recovery_vs_resistance(
     ax.set_ylabel('Daily recovery probability', fontsize=12)
     ax.set_title('Recovery Probability vs Resistance', fontsize=14,
                   fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='upper left')
+    ax.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+              labelcolor=LIGHT_TEXT, fontsize=10, loc='upper left')
     ax.set_xlim(0, 1)
     ax.set_ylim(0, max(rho_rec * 1.1, 0.06))
 
@@ -1013,7 +1013,7 @@ def plot_cfr_over_time(
     Returns:
         matplotlib Figure.
     """
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(12, 9),
+    fig, (ax1, ax2) = pub_figure(nrows=2, ncols=1, figsize=(12, 9),
                                    gridspec_kw={'height_ratios': [2, 1]})
 
     years = np.arange(result.n_years)
@@ -1047,8 +1047,8 @@ def plot_cfr_over_time(
     ax1.set_ylabel('Case Fatality Rate (%)', fontsize=12)
     ax1.set_title('Case Fatality Rate Over Time', fontsize=14,
                    fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10)
+    ax1.legend(facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=10)
     ax1.set_xlim(-0.5, result.n_years - 0.5)
     ax1.set_ylim(0, 105)
 
@@ -1075,8 +1075,8 @@ def plot_cfr_over_time(
     lines1, labels1 = ax2.get_legend_handles_labels()
     lines2, labels2 = ax2_r.get_legend_handles_labels()
     ax2.legend(lines1 + lines2, labels1 + labels2,
-               facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9, loc='upper right')
+               facecolor=LIGHT_PANEL, edgecolor=LIGHT_GRID,
+               labelcolor=LIGHT_TEXT, fontsize=9, loc='upper right')
 
     if save_path:
         save_figure(fig, save_path)
