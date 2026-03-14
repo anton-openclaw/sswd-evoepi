@@ -13,6 +13,8 @@ from sswd_evoepi.salinity import (
     freshwater_melt_pulse,
     latitude_melt_factor,
     compute_salinity_array,
+    _monthly_to_daily,
+    _load_woa23,
     _PEAK_DAY,
     DAYS_PER_YEAR,
 )
@@ -107,13 +109,29 @@ class TestLatitudeMeltFactor:
 # ── compute_salinity_array ─────────────────────────────────────────
 
 class TestComputeSalinityArray:
-    def test_backward_compat_fw_zero(self):
-        """fw_strength=0 should return ocean baseline for all days."""
+    def test_parametric_fallback_fw_zero(self):
+        """fw_strength=0 with no WOA23 should return parametric baseline."""
         nodes = [_make_node(lat=50.0, fjord_depth_norm=0.5)]
-        sal = compute_salinity_array(nodes, fw_strength=0.0)
+        sal = compute_salinity_array(nodes, fw_strength=0.0,
+                                     woa23_path='/nonexistent/path.npz')
         expected = ocean_baseline(50.0)
         assert sal.shape == (1, 365)
         np.testing.assert_allclose(sal[0, :], expected)
+
+    def test_woa23_baseline_has_seasonal_variation(self):
+        """fw_strength=0 with WOA23 should have seasonal variation."""
+        woa = _load_woa23()
+        if woa is None:
+            pytest.skip("WOA23 data not available")
+        nodes = [_make_node(lat=50.0, lon=-125.0, fjord_depth_norm=0.5)]
+        sal = compute_salinity_array(nodes, fw_strength=0.0)
+        assert sal.shape == (1, 365)
+        sal_range = float(sal[0, :].max() - sal[0, :].min())
+        # WOA23 should show some seasonal variation (>0.1 psu)
+        assert sal_range > 0.1
+        # But baseline should be in reasonable range
+        assert sal[0, :].min() > 20.0
+        assert sal[0, :].max() < 36.0
 
     def test_shape(self):
         """Output should be (N, 365)."""
@@ -128,46 +146,46 @@ class TestComputeSalinityArray:
         assert sal.dtype == np.float32
 
     def test_no_depression_open_coast(self):
-        """Open-coast node (fjord_depth_norm=0) should have no depression."""
-        nodes = [_make_node(lat=57.0, fjord_depth_norm=0.0)]
-        sal = compute_salinity_array(nodes, fw_strength=20.0)
-        expected = ocean_baseline(57.0)
-        np.testing.assert_allclose(sal[0, :], expected, atol=1e-5)
+        """Open-coast node (fjord_depth_norm=0) should have no fjord depression."""
+        nodes = [_make_node(lat=57.0, lon=-135.0, fjord_depth_norm=0.0)]
+        sal_fw0 = compute_salinity_array(nodes, fw_strength=0.0)
+        sal_fw20 = compute_salinity_array(nodes, fw_strength=20.0)
+        # With fd_norm=0, fw_strength shouldn't matter
+        np.testing.assert_allclose(sal_fw0[0, :], sal_fw20[0, :], atol=1e-5)
 
     def test_depression_at_fjord_peak(self):
-        """Deep fjord at high latitude should show max depression in June."""
-        nodes = [_make_node(lat=58.0, fjord_depth_norm=0.9, name="AK-fjord")]
-        sal = compute_salinity_array(nodes, fw_strength=15.0)
-        base = ocean_baseline(58.0)
-        june_15_sal = float(sal[0, _PEAK_DAY])
-        # Should be depressed from baseline
-        assert june_15_sal < base - 5.0
-        # Winter should be near baseline
-        jan_1_sal = float(sal[0, 0])
-        assert jan_1_sal == pytest.approx(base, abs=0.1)
+        """Deep fjord at high latitude should show depression from baseline in June."""
+        nodes = [_make_node(lat=58.0, lon=-135.0, fjord_depth_norm=0.9, name="AK-fjord")]
+        sal_baseline = compute_salinity_array(nodes, fw_strength=0.0)
+        sal_depressed = compute_salinity_array(nodes, fw_strength=15.0)
+        june_base = float(sal_baseline[0, _PEAK_DAY])
+        june_dep = float(sal_depressed[0, _PEAK_DAY])
+        # Should be significantly depressed from baseline
+        assert june_dep < june_base - 5.0
+        # Winter should be near baseline (pulse ≈ 0)
+        jan_base = float(sal_baseline[0, 0])
+        jan_dep = float(sal_depressed[0, 0])
+        assert jan_dep == pytest.approx(jan_base, abs=0.1)
 
     def test_no_depression_at_low_latitude(self):
         """CA node (36°N, fjord_depth_norm=0.5) should have near-zero depression."""
-        nodes = [_make_node(lat=36.0, fjord_depth_norm=0.5, name="CA-site")]
-        sal = compute_salinity_array(nodes, fw_strength=15.0)
-        base = ocean_baseline(36.0)
+        nodes = [_make_node(lat=36.0, lon=-122.0, fjord_depth_norm=0.5, name="CA-site")]
+        sal_baseline = compute_salinity_array(nodes, fw_strength=0.0)
+        sal_depressed = compute_salinity_array(nodes, fw_strength=15.0)
         # latitude_melt_factor(36) = (36-35)/25 = 0.04, very small
-        june_val = float(sal[0, _PEAK_DAY])
-        assert june_val > base - 1.0  # < 1 psu depression
+        june_base = float(sal_baseline[0, _PEAK_DAY])
+        june_dep = float(sal_depressed[0, _PEAK_DAY])
+        assert june_base - june_dep < 1.0  # < 1 psu depression
 
     def test_ak_ca_asymmetry(self):
         """AK fjord should have much more depression than CA site in June."""
-        ak = _make_node(lat=58.0, fjord_depth_norm=0.8, name="AK-fjord")
-        ca = _make_node(lat=36.0, fjord_depth_norm=0.3, name="CA-coast")
-        sal = compute_salinity_array([ak, ca], fw_strength=15.0)
+        ak = _make_node(lat=58.0, lon=-135.0, fjord_depth_norm=0.8, name="AK-fjord")
+        ca = _make_node(lat=36.0, lon=-122.0, fjord_depth_norm=0.3, name="CA-coast")
+        sal_base = compute_salinity_array([ak, ca], fw_strength=0.0)
+        sal_dep = compute_salinity_array([ak, ca], fw_strength=15.0)
 
-        ak_june = float(sal[0, _PEAK_DAY])
-        ca_june = float(sal[1, _PEAK_DAY])
-        ak_base = ocean_baseline(58.0)
-        ca_base = ocean_baseline(36.0)
-
-        ak_depression = ak_base - ak_june
-        ca_depression = ca_base - ca_june
+        ak_depression = float(sal_base[0, _PEAK_DAY] - sal_dep[0, _PEAK_DAY])
+        ca_depression = float(sal_base[1, _PEAK_DAY] - sal_dep[1, _PEAK_DAY])
 
         # AK depression should be >>10× CA depression
         assert ak_depression > 5.0
@@ -176,13 +194,13 @@ class TestComputeSalinityArray:
 
     def test_floor_enforced(self):
         """Salinity should never drop below s_floor."""
-        nodes = [_make_node(lat=60.0, fjord_depth_norm=1.0)]
+        nodes = [_make_node(lat=60.0, lon=-140.0, fjord_depth_norm=1.0)]
         sal = compute_salinity_array(nodes, fw_strength=50.0, s_floor=5.0)
         assert sal.min() >= 5.0
 
     def test_fw_depth_exp_sqrt(self):
         """fw_depth_exp=0.5 should amplify moderate fjord_depth_norm values."""
-        node_moderate = _make_node(lat=55.0, fjord_depth_norm=0.25, name="moderate")
+        node_moderate = _make_node(lat=55.0, lon=-130.0, fjord_depth_norm=0.25, name="moderate")
         sal_linear = compute_salinity_array([node_moderate], fw_strength=15.0, fw_depth_exp=1.0)
         sal_sqrt = compute_salinity_array([node_moderate], fw_strength=15.0, fw_depth_exp=0.5)
 
@@ -190,6 +208,29 @@ class TestComputeSalinityArray:
         june_linear = float(sal_linear[0, _PEAK_DAY])
         june_sqrt = float(sal_sqrt[0, _PEAK_DAY])
         assert june_sqrt < june_linear  # more depression with sqrt
+
+
+class TestMonthlyToDaily:
+    def test_shape(self):
+        """Output should be (365,)."""
+        monthly = np.array([30.0 + i * 0.1 for i in range(12)])
+        daily = _monthly_to_daily(monthly)
+        assert daily.shape == (365,)
+
+    def test_preserves_mean(self):
+        """Daily mean should be close to monthly mean."""
+        monthly = np.array([30.0 + i * 0.2 for i in range(12)])
+        daily = _monthly_to_daily(monthly)
+        assert abs(float(daily.mean()) - monthly.mean()) < 0.15
+
+    def test_smooth_interpolation(self):
+        """Daily values should not have discontinuities."""
+        monthly = np.array([32.0, 31.8, 31.5, 31.0, 30.0, 29.0,
+                           28.5, 29.0, 30.0, 31.0, 31.5, 31.8])
+        daily = _monthly_to_daily(monthly)
+        # Max day-to-day change should be small (< 0.2 psu)
+        diffs = np.abs(np.diff(daily))
+        assert diffs.max() < 0.2
 
 
 # ── Integration tests ─────────────────────────────────────────────
@@ -248,21 +289,23 @@ class TestSalinityPredictions:
     """Test predictions from salinity implementation sketch analysis."""
 
     def test_ak_fn_june_depression(self):
-        """AK-FN-like site at fw_strength=15: ~8+ psu depression in June."""
+        """AK-FN-like site at fw_strength=15: significant depression in June."""
         # AK-FN median fjord_depth_norm ≈ 0.77, lat ≈ 57.5
-        node = _make_node(lat=57.5, fjord_depth_norm=0.77, name="AK-FN")
-        sal = compute_salinity_array([node], fw_strength=15.0)
-        base = ocean_baseline(57.5)
-        june_val = float(sal[0, _PEAK_DAY])
-        depression = base - june_val
+        node = _make_node(lat=57.5, lon=-135.0, fjord_depth_norm=0.77, name="AK-FN")
+        sal_base = compute_salinity_array([node], fw_strength=0.0)
+        sal_dep = compute_salinity_array([node], fw_strength=15.0)
+        june_base = float(sal_base[0, _PEAK_DAY])
+        june_dep = float(sal_dep[0, _PEAK_DAY])
+        depression = june_base - june_dep
         # Expected: fw_strength(15) × fd_norm(0.77) × f_melt(0.9) × pulse(1.0) ≈ 10.4
         assert depression > 8.0
         assert depression < 13.0
 
     def test_or_no_depression(self):
         """OR coast (lat=44, fjord_depth_norm≈0.0): near-zero depression."""
-        node = _make_node(lat=44.0, fjord_depth_norm=0.0, name="OR-coast")
-        sal = compute_salinity_array([node], fw_strength=15.0)
-        base = ocean_baseline(44.0)
-        june_val = float(sal[0, _PEAK_DAY])
-        assert abs(base - june_val) < 0.01
+        node = _make_node(lat=44.0, lon=-124.0, fjord_depth_norm=0.0, name="OR-coast")
+        sal_base = compute_salinity_array([node], fw_strength=0.0)
+        sal_dep = compute_salinity_array([node], fw_strength=15.0)
+        june_base = float(sal_base[0, _PEAK_DAY])
+        june_dep = float(sal_dep[0, _PEAK_DAY])
+        assert abs(june_base - june_dep) < 0.01
