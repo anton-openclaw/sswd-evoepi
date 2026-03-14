@@ -66,6 +66,107 @@ if TYPE_CHECKING:
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# COASTLINE / LAND POLYGON HELPERS
+# ═══════════════════════════════════════════════════════════════════════
+
+_COASTLINE_CACHE: Optional[object] = None  # lazy-loaded GeoDataFrame
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_LAND_SHP = _REPO_ROOT / 'data' / 'shorelines' / 'ne_10m_land' / 'ne_10m_land.shp'
+_COASTLINE_GEOJSON = _REPO_ROOT / 'data' / 'shorelines' / 'ne_pacific_coastline.geojson'
+
+# Land fill colours
+LAND_FILL_LIGHT = '#e8e8e8'      # light grey for light theme
+LAND_FILL_DARK = '#2a2a2a'       # dark grey for dark theme
+LAND_EDGE_LIGHT = '#999999'      # medium grey edge
+LAND_EDGE_DARK = '#555555'
+OCEAN_FILL_LIGHT = '#f0f7ff'     # very pale blue
+OCEAN_FILL_DARK = '#0a1628'      # deep navy
+
+
+def _load_coastline() -> Optional[object]:
+    """Lazy-load NE 10m land polygons. Returns GeoDataFrame or None."""
+    global _COASTLINE_CACHE
+    if _COASTLINE_CACHE is not None:
+        return _COASTLINE_CACHE
+    try:
+        import geopandas as gpd
+        from shapely.geometry import box
+
+        if _LAND_SHP.exists():
+            gdf = gpd.read_file(_LAND_SHP)
+        elif _COASTLINE_GEOJSON.exists():
+            gdf = gpd.read_file(_COASTLINE_GEOJSON)
+        else:
+            return None
+
+        # Clip to NE Pacific (reduces vertices for faster rendering)
+        ne_pacific = box(-180, 25, -110, 65)
+        gdf = gdf.clip(ne_pacific)
+        _COASTLINE_CACHE = gdf
+        return gdf
+    except ImportError:
+        return None
+    except Exception:
+        return None
+
+
+def _add_coastline(
+    ax: plt.Axes,
+    theme: str = 'light',
+    ocean_fill: bool = True,
+    land_fill: bool = True,
+    edge_width: float = 0.4,
+) -> None:
+    """Add coastline land polygons to a geographic axes.
+
+    Renders filled land polygons and optional ocean background.
+    Falls back silently if geopandas is not available or shapefile
+    is missing.
+
+    Args:
+        ax: Matplotlib axes with lon/lat extent already set.
+        theme: 'dark' or 'light'.
+        ocean_fill: Whether to fill axes background with ocean colour.
+        land_fill: Whether to fill land polygons.
+        edge_width: Line width for coastline edges.
+    """
+    gdf = _load_coastline()
+    if gdf is None:
+        return
+
+    try:
+        from shapely.geometry import box as shapely_box
+
+        # Set ocean background
+        if ocean_fill:
+            ocean_c = OCEAN_FILL_DARK if theme == 'dark' else OCEAN_FILL_LIGHT
+            ax.set_facecolor(ocean_c)
+
+        # Clip to current view extent for performance
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        view_box = shapely_box(xlim[0] - 1, ylim[0] - 1,
+                               xlim[1] + 1, ylim[1] + 1)
+        clipped = gdf.clip(view_box)
+
+        if clipped.empty:
+            return
+
+        fill_c = LAND_FILL_DARK if theme == 'dark' else LAND_FILL_LIGHT
+        edge_c = LAND_EDGE_DARK if theme == 'dark' else LAND_EDGE_LIGHT
+
+        clipped.plot(
+            ax=ax,
+            facecolor=fill_c if land_fill else 'none',
+            edgecolor=edge_c,
+            linewidth=edge_width,
+            zorder=1,  # below data points (zorder=3)
+        )
+    except Exception:
+        pass  # fail silently — coastline is cosmetic
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # COLOUR CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -302,6 +403,7 @@ def plot_suppression_map(
     month: int = 5,  # June (0-indexed)
     s_min: float = 10.0,
     s_full: float = 28.0,
+    theme: str = 'light',
     title: Optional[str] = None,
     save_path: Optional[str] = None,
 ) -> plt.Figure:
@@ -309,6 +411,7 @@ def plot_suppression_map(
 
     Each node plotted at lat/lon, coloured by salinity modifier (sal_mod)
     for a given month. Green = strong suppression, red = no suppression.
+    Coastline land polygons are rendered underneath for geographic context.
 
     Args:
         nodes: List of NodeDefinition objects.
@@ -316,6 +419,7 @@ def plot_suppression_map(
         fw_depth_exp: Exponent on fjord_depth_norm.
         month: Month index (0=Jan, 5=Jun, etc.).
         s_min, s_full: Salinity modifier parameters.
+        theme: 'dark' or 'light'.
         title: Plot title.
         save_path: Optional path to save figure.
 
@@ -338,6 +442,14 @@ def plot_suppression_map(
     lats = np.array([nd.lat for nd in nodes])
 
     fig, ax = themed_figure(theme=theme, figsize=(10, 12))
+
+    # Set limits before adding coastline so clipping works
+    margin = 2.0
+    ax.set_xlim(lons.min() - margin, lons.max() + margin)
+    ax.set_ylim(lats.min() - margin, lats.max() + margin)
+
+    # Add coastline before data
+    _add_coastline(ax, theme=theme)
 
     # Custom diverging colourmap: red (no suppression) → green (full)
     cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -1462,6 +1574,13 @@ def plot_suppression_regional_zoom(
             ax.set_title(region_name, fontsize=13, fontweight='bold')
             continue
 
+        # Set limits first so coastline clips correctly
+        ax.set_xlim(lon_min, lon_max)
+        ax.set_ylim(lat_min, lat_max)
+
+        # Add coastline (land polygons + ocean background)
+        _add_coastline(ax, theme=theme)
+
         vmax = max(suppression[idx].max(), 5.0)
         sc = ax.scatter(
             lons[idx], lats[idx], c=suppression[idx], cmap=cmap,
@@ -1485,9 +1604,6 @@ def plot_suppression_regional_zoom(
                     bbox=dict(boxstyle='round,pad=0.15', facecolor=panel,
                               edgecolor=grid, alpha=0.85),
                 )
-
-        ax.set_xlim(lon_min, lon_max)
-        ax.set_ylim(lat_min, lat_max)
         ax.set_xlabel('Longitude', fontsize=10)
         ax.set_ylabel('Latitude (°N)', fontsize=10)
         ax.set_title(f'{region_name}  ({len(idx)} sites)', fontsize=13,
