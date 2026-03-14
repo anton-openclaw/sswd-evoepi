@@ -19,12 +19,20 @@ from sswd_evoepi.viz.style import (  # noqa: F401
     DARK_PANEL,
     DEATH_COLORS,
     GRID_COLOR,
+    LIGHT_BG,
+    LIGHT_GRID,
+    LIGHT_PANEL,
+    LIGHT_SPINE,
+    LIGHT_TEXT,
     NODE_COLORS,
     STAGE_COLORS,
     TEXT_COLOR,
     apply_dark_theme,
+    apply_light_theme,
     dark_figure,
+    pub_figure,
     save_figure,
+    themed_figure,
 )
 
 from sswd_evoepi.viz.population import (  # noqa: F401
@@ -142,6 +150,7 @@ from sswd_evoepi.viz.salinity import (  # noqa: F401
     SALT_WATER,
     SUPPRESSION,
     REGION_COLORS,
+    REGION_BOUNDS,
     plot_salinity_heatmap,
     plot_depression_heatmap,
     plot_suppression_map,
@@ -156,4 +165,7 @@ from sswd_evoepi.viz.salinity import (  # noqa: F401
     plot_fjord_depth_by_region,
     plot_suppression_monthly_panels,
     plot_suppression_vs_recovery,
+    plot_suppression_regional_zoom,
+    plot_salinity_regional_profiles,
+    plot_depression_regional_scatter,
 )

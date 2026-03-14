@@ -38,11 +38,19 @@ from sswd_evoepi.viz.style import (
     DARK_BG,
     DARK_PANEL,
     GRID_COLOR,
+    LIGHT_BG,
+    LIGHT_GRID,
+    LIGHT_PANEL,
+    LIGHT_TEXT,
     NODE_COLORS,
     TEXT_COLOR,
     apply_dark_theme,
+    apply_light_theme,
     dark_figure,
+    pub_figure,
     save_figure,
+    themed_figure,
+    _theme_colors,
 )
 from sswd_evoepi.salinity import (
     ocean_baseline,
@@ -102,6 +110,20 @@ def _sal_mod(salinity: float, s_min: float = 10.0, s_full: float = 28.0,
     return x ** eta
 
 
+
+
+def _tc(theme='dark'):
+    """Get text color for theme."""
+    return LIGHT_TEXT if theme == 'light' else TEXT_COLOR
+
+def _pc(theme='dark'):
+    """Get panel color for theme."""
+    return LIGHT_PANEL if theme == 'light' else DARK_PANEL
+
+def _gc(theme='dark'):
+    """Get grid color for theme."""
+    return LIGHT_GRID if theme == 'light' else GRID_COLOR
+
 def _sal_mod_array(salinity_arr: np.ndarray, s_min: float = 10.0,
                    s_full: float = 28.0, eta: float = 2.0) -> np.ndarray:
     """Vectorized salinity modifier."""
@@ -119,6 +141,7 @@ def plot_salinity_heatmap(
     fw_depth_exp: float = 1.0,
     sort_by: str = 'latitude',
     title: Optional[str] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Heatmap of daily salinity for all nodes across a year.
@@ -152,7 +175,7 @@ def plot_salinity_heatmap(
     sal_sorted = sal[order, :]
     names_sorted = [f"{nodes[i].name} ({nodes[i].lat:.1f}°N)" for i in order]
 
-    fig, ax = dark_figure(figsize=(14, max(6, N * 0.12)))
+    fig, ax = themed_figure(theme=theme, figsize=(14, max(6, N * 0.12)))
 
     im = ax.imshow(
         sal_sorted, aspect='auto', cmap='YlGnBu_r',
@@ -182,9 +205,9 @@ def plot_salinity_heatmap(
     ax.set_title(title, fontsize=14, fontweight='bold')
 
     cbar = fig.colorbar(im, ax=ax, pad=0.02, shrink=0.8)
-    cbar.set_label('Salinity (psu)', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Salinity (psu)', color=_tc(theme), fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=_tc(theme))
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     if save_path:
         save_figure(fig, save_path)
@@ -199,6 +222,7 @@ def plot_depression_heatmap(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Heatmap of salinity DEPRESSION (baseline - actual) across nodes × months.
@@ -233,7 +257,7 @@ def plot_depression_heatmap(
     monthly_sorted = monthly_depression[order, :]
     names_sorted = [f"{nodes[i].name}" for i in order]
 
-    fig, ax = dark_figure(figsize=(12, max(6, N * 0.12)))
+    fig, ax = themed_figure(theme=theme, figsize=(12, max(6, N * 0.12)))
 
     im = ax.imshow(
         monthly_sorted, aspect='auto', cmap='Blues',
@@ -258,9 +282,9 @@ def plot_depression_heatmap(
                  fontsize=14, fontweight='bold')
 
     cbar = fig.colorbar(im, ax=ax, pad=0.02, shrink=0.8)
-    cbar.set_label('Depression (psu)', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Depression (psu)', color=_tc(theme), fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=_tc(theme))
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     if save_path:
         save_figure(fig, save_path)
@@ -313,7 +337,7 @@ def plot_suppression_map(
     lons = np.array([nd.lon for nd in nodes])
     lats = np.array([nd.lat for nd in nodes])
 
-    fig, ax = dark_figure(figsize=(10, 12))
+    fig, ax = themed_figure(theme=theme, figsize=(10, 12))
 
     # Custom diverging colourmap: red (no suppression) → green (full)
     cmap = mcolors.LinearSegmentedColormap.from_list(
@@ -335,9 +359,9 @@ def plot_suppression_map(
     ax.set_title(title, fontsize=14, fontweight='bold')
 
     cbar = fig.colorbar(scatter, ax=ax, pad=0.02, shrink=0.7)
-    cbar.set_label('Disease suppression (1 − sal_mod)', color=TEXT_COLOR, fontsize=11)
-    cbar.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cbar.set_label('Disease suppression (1 − sal_mod)', color=_tc(theme), fontsize=11)
+    cbar.ax.yaxis.set_tick_params(color=_tc(theme))
+    plt.setp(cbar.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     if save_path:
         save_figure(fig, save_path)
@@ -353,6 +377,7 @@ def plot_regional_salinity_profiles(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     regions: Optional[List[str]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Seasonal salinity curves averaged per region.
@@ -384,7 +409,7 @@ def plot_regional_salinity_profiles(
         regions = [r for r in regions if r in region_nodes]
 
     days = np.arange(DAYS_PER_YEAR)
-    fig, ax = dark_figure(figsize=(12, 7))
+    fig, ax = themed_figure(theme=theme, figsize=(12, 7))
 
     for region in regions:
         idxs = region_nodes.get(region, [])
@@ -403,7 +428,7 @@ def plot_regional_salinity_profiles(
     # Mark June peak
     ax.axvline(_PEAK_DAY, color='white', linestyle=':', linewidth=1, alpha=0.5)
     ax.text(_PEAK_DAY + 3, ax.get_ylim()[0] + 0.5, 'June 15\n(peak melt)',
-            color=TEXT_COLOR, fontsize=9, alpha=0.7)
+            color=_tc(theme), fontsize=9, alpha=0.7)
 
     ax.set_xticks(MONTH_STARTS)
     ax.set_xticklabels(MONTH_LABELS, fontsize=10)
@@ -411,8 +436,8 @@ def plot_regional_salinity_profiles(
     ax.set_ylabel('Salinity (psu)', fontsize=12)
     ax.set_title(f'Regional Seasonal Salinity (fw_strength={fw_strength})',
                  fontsize=14, fontweight='bold')
-    ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-              labelcolor=TEXT_COLOR, fontsize=10, loc='lower left')
+    ax.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+              labelcolor=_tc(theme), fontsize=10, loc='lower left')
 
     if save_path:
         save_figure(fig, save_path)
@@ -427,6 +452,7 @@ def plot_latitude_asymmetry(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Scatter: latitude vs peak salinity depression at each node.
@@ -459,7 +485,7 @@ def plot_latitude_asymmetry(
     lats = np.array([nd.lat for nd in nodes])
     fd = np.array([nd.fjord_depth_norm for nd in nodes])
 
-    fig, (ax1, ax2) = dark_figure(nrows=1, ncols=2, figsize=(16, 7))
+    fig, (ax1, ax2) = themed_figure(theme=theme, nrows=1, ncols=2, figsize=(16, 7))
 
     # Left: depression
     sc1 = ax1.scatter(lats, depression, c=fd, cmap='viridis',
@@ -468,9 +494,9 @@ def plot_latitude_asymmetry(
     ax1.set_ylabel('Peak salinity depression (psu)', fontsize=12)
     ax1.set_title('Freshwater Depression by Latitude', fontsize=13, fontweight='bold')
     cb1 = fig.colorbar(sc1, ax=ax1, pad=0.02, shrink=0.8)
-    cb1.set_label('fjord_depth_norm', color=TEXT_COLOR, fontsize=10)
-    cb1.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cb1.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cb1.set_label('fjord_depth_norm', color=_tc(theme), fontsize=10)
+    cb1.ax.yaxis.set_tick_params(color=_tc(theme))
+    plt.setp(cb1.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     # Trend line
     mask = depression > 0.1
@@ -487,9 +513,9 @@ def plot_latitude_asymmetry(
     ax2.set_ylabel('Peak disease suppression (%)', fontsize=12)
     ax2.set_title('Disease Suppression by Latitude', fontsize=13, fontweight='bold')
     cb2 = fig.colorbar(sc2, ax=ax2, pad=0.02, shrink=0.8)
-    cb2.set_label('fjord_depth_norm', color=TEXT_COLOR, fontsize=10)
-    cb2.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-    plt.setp(cb2.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+    cb2.set_label('fjord_depth_norm', color=_tc(theme), fontsize=10)
+    cb2.ax.yaxis.set_tick_params(color=_tc(theme))
+    plt.setp(cb2.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     # Annotate asymmetry ratio
     ak_mask = lats > 55
@@ -502,11 +528,11 @@ def plot_latitude_asymmetry(
                  f'Asymmetry: {ratio:.0f}×',
                  transform=ax2.transAxes, fontsize=10, color=SUPPRESSION,
                  verticalalignment='top',
-                 bbox=dict(boxstyle='round', facecolor=DARK_PANEL,
-                           edgecolor=GRID_COLOR, alpha=0.9))
+                 bbox=dict(boxstyle='round', facecolor=_pc(theme),
+                           edgecolor=_gc(theme), alpha=0.9))
 
     fig.suptitle(f'Latitude-Dependent Salinity Asymmetry (fw_strength={fw_strength})',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.02)
+                 fontsize=15, fontweight='bold', color=_tc(theme), y=1.02)
 
     if save_path:
         save_figure(fig, save_path)
@@ -522,6 +548,7 @@ def plot_fw_strength_sensitivity(
     fw_values: Optional[List[float]] = None,
     fw_depth_exp: float = 1.0,
     representative_nodes: Optional[Dict[str, int]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Show how fw_strength affects salinity and disease suppression.
@@ -563,7 +590,7 @@ def plot_fw_strength_sensitivity(
             if len(representative_nodes) >= 4:
                 break
 
-    fig, (ax1, ax2, ax3) = dark_figure(nrows=3, ncols=1, figsize=(12, 14))
+    fig, (ax1, ax2, ax3) = themed_figure(theme=theme, nrows=3, ncols=1, figsize=(12, 14))
 
     rep_colors = [FJORD_COLOR, FRESH_WATER, NEUTRAL, SALT_WATER, '#9b59b6']
 
@@ -588,15 +615,15 @@ def plot_fw_strength_sensitivity(
 
     ax1.set_ylabel('June 15 salinity (psu)', fontsize=12)
     ax1.set_title('Salinity Dose-Response', fontsize=13, fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9, loc='best')
-    ax1.axhline(28, color=GRID_COLOR, linestyle=':', alpha=0.5)
-    ax1.text(fw_values[-1], 28.5, 's_full=28', color=GRID_COLOR, fontsize=8)
+    ax1.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=9, loc='best')
+    ax1.axhline(28, color=_gc(theme), linestyle=':', alpha=0.5)
+    ax1.text(fw_values[-1], 28.5, 's_full=28', color=_gc(theme), fontsize=8)
 
     ax2.set_ylabel('June disease suppression (%)', fontsize=12)
     ax2.set_title('Disease Suppression Dose-Response', fontsize=13, fontweight='bold')
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9, loc='best')
+    ax2.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=9, loc='best')
 
     # Bottom: regional mean suppression by fw_strength
     region_nodes: Dict[str, List[int]] = {}
@@ -621,11 +648,11 @@ def plot_fw_strength_sensitivity(
     ax3.set_xlabel('fw_strength (psu)', fontsize=12)
     ax3.set_ylabel('Regional mean June suppression (%)', fontsize=12)
     ax3.set_title('Regional Suppression Sensitivity', fontsize=13, fontweight='bold')
-    ax3.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=9, loc='best')
+    ax3.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=9, loc='best')
 
     fig.suptitle('Freshwater Strength Sensitivity Analysis',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.01)
+                 fontsize=15, fontweight='bold', color=_tc(theme), y=1.01)
 
     if save_path:
         save_figure(fig, save_path)
@@ -640,6 +667,7 @@ def plot_depth_exp_comparison(
     nodes: List['NodeDefinition'],
     fw_strength: float = 15.0,
     exponents: Optional[List[float]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Compare different fw_depth_exp values on the spatial gradient.
@@ -665,7 +693,7 @@ def plot_depth_exp_comparison(
 
     exp_colors = ['#3498db', '#f39c12', '#e74c3c', '#2ecc71', '#9b59b6']
 
-    fig, (ax1, ax2) = dark_figure(nrows=1, ncols=2, figsize=(16, 7))
+    fig, (ax1, ax2) = themed_figure(theme=theme, nrows=1, ncols=2, figsize=(16, 7))
 
     # Left: transform curve
     x = np.linspace(0, 1, 100)
@@ -677,9 +705,9 @@ def plot_depth_exp_comparison(
     ax1.set_xlabel('fjord_depth_norm (raw)', fontsize=12)
     ax1.set_ylabel('Effective depth (fd^exp)', fontsize=12)
     ax1.set_title('Depth Exponent Transform', fontsize=13, fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=11)
-    ax1.plot([0, 1], [0, 1], color=GRID_COLOR, linestyle=':', alpha=0.5)
+    ax1.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=11)
+    ax1.plot([0, 1], [0, 1], color=_gc(theme), linestyle=':', alpha=0.5)
 
     # Right: spatial impact
     for ci, exp in enumerate(exponents):
@@ -694,8 +722,8 @@ def plot_depth_exp_comparison(
     ax2.set_ylabel('June peak suppression (%)', fontsize=12)
     ax2.set_title(f'Spatial Impact (fw_strength={fw_strength})',
                   fontsize=13, fontweight='bold')
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10, loc='best')
+    ax2.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=10, loc='best')
 
     if save_path:
         save_figure(fig, save_path)
@@ -711,6 +739,7 @@ def plot_sal_mod_transfer(
     s_full: float = 28.0,
     eta: float = 2.0,
     annotate_sites: Optional[Dict[str, float]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Plot the salinity → disease modifier transfer function.
@@ -728,7 +757,7 @@ def plot_sal_mod_transfer(
     Returns:
         matplotlib Figure.
     """
-    fig, ax = dark_figure(figsize=(10, 6))
+    fig, ax = themed_figure(theme=theme, figsize=(10, 6))
 
     sal_range = np.linspace(0, 35, 500)
     mod = _sal_mod_array(sal_range, s_min=s_min, s_full=s_full, eta=eta)
@@ -752,10 +781,10 @@ def plot_sal_mod_transfer(
             ax.annotate(
                 f'{label}\n{sal_val:.1f} psu → {y_val:.2f}',
                 (sal_val, y_val), xytext=(15, 15),
-                textcoords='offset points', fontsize=9, color=TEXT_COLOR,
-                arrowprops=dict(arrowstyle='->', color=GRID_COLOR, lw=1),
-                bbox=dict(boxstyle='round', facecolor=DARK_PANEL,
-                          edgecolor=GRID_COLOR, alpha=0.9),
+                textcoords='offset points', fontsize=9, color=_tc(theme),
+                arrowprops=dict(arrowstyle='->', color=_gc(theme), lw=1),
+                bbox=dict(boxstyle='round', facecolor=_pc(theme),
+                          edgecolor=_gc(theme), alpha=0.9),
             )
 
     ax.set_xlabel('Salinity (psu)', fontsize=12)
@@ -781,6 +810,7 @@ def plot_sal_mod_transfer(
 # ═══════════════════════════════════════════════════════════════════════
 
 def plot_mechanism_components(
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Three-panel plot showing the three multiplicative components.
@@ -796,7 +826,7 @@ def plot_mechanism_components(
     Returns:
         matplotlib Figure.
     """
-    fig, (ax1, ax2, ax3) = dark_figure(nrows=3, ncols=1, figsize=(12, 12))
+    fig, (ax1, ax2, ax3) = themed_figure(theme=theme, nrows=3, ncols=1, figsize=(12, 12))
 
     days = np.arange(DAYS_PER_YEAR)
     pulse = np.array([freshwater_melt_pulse(d) for d in days])
@@ -810,15 +840,15 @@ def plot_mechanism_components(
     ax1.set_ylabel('Melt pulse', fontsize=12)
     ax1.set_title('Seasonal Meltwater Pulse', fontsize=13, fontweight='bold')
     ax1.set_ylim(-0.05, 1.1)
-    ax1.text(_PEAK_DAY + 5, 0.95, 'June 15 peak', color=TEXT_COLOR, fontsize=10)
+    ax1.text(_PEAK_DAY + 5, 0.95, 'June 15 peak', color=_tc(theme), fontsize=10)
 
     # Middle: latitude factor
     lats = np.linspace(30, 65, 200)
     f_melt = np.array([latitude_melt_factor(lat) for lat in lats])
     ax2.plot(lats, f_melt, color=FJORD_COLOR, linewidth=2.5)
     ax2.fill_between(lats, f_melt, 0, color=FJORD_COLOR, alpha=0.15)
-    ax2.axhline(0, color=GRID_COLOR, linewidth=0.5)
-    ax2.axhline(1, color=GRID_COLOR, linewidth=0.5, linestyle=':')
+    ax2.axhline(0, color=_gc(theme), linewidth=0.5)
+    ax2.axhline(1, color=_gc(theme), linewidth=0.5, linestyle=':')
     ax2.axvline(35, color=SALT_WATER, linestyle='--', linewidth=1, alpha=0.5)
     ax2.axvline(60, color=SUPPRESSION, linestyle='--', linewidth=1, alpha=0.5)
     ax2.text(35.5, 0.85, 'CA: zero', color=SALT_WATER, fontsize=10)
@@ -843,10 +873,10 @@ def plot_mechanism_components(
         sal = np.maximum(5.0, base - depression)
         ax3.plot(days, sal, color=color, linewidth=2.2, label=label)
 
-    ax3.axhline(28, color=GRID_COLOR, linestyle=':', alpha=0.5)
-    ax3.text(5, 28.3, 's_full', color=GRID_COLOR, fontsize=8)
-    ax3.axhline(10, color=GRID_COLOR, linestyle=':', alpha=0.5)
-    ax3.text(5, 10.3, 's_min', color=GRID_COLOR, fontsize=8)
+    ax3.axhline(28, color=_gc(theme), linestyle=':', alpha=0.5)
+    ax3.text(5, 28.3, 's_full', color=_gc(theme), fontsize=8)
+    ax3.axhline(10, color=_gc(theme), linestyle=':', alpha=0.5)
+    ax3.text(5, 10.3, 's_min', color=_gc(theme), fontsize=8)
 
     ax3.set_xticks(MONTH_STARTS)
     ax3.set_xticklabels(MONTH_LABELS)
@@ -854,8 +884,8 @@ def plot_mechanism_components(
     ax3.set_ylabel('Salinity (psu)', fontsize=12)
     ax3.set_title(f'Combined Salinity Profiles (fw_strength={fw_strength})',
                   fontsize=13, fontweight='bold')
-    ax3.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=10, loc='lower left')
+    ax3.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=10, loc='lower left')
 
     if save_path:
         save_figure(fig, save_path)
@@ -871,6 +901,7 @@ def plot_dfo_validation(
     nodes: Optional[List['NodeDefinition']] = None,
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Compare model salinity predictions against DFO lighthouse observations.
@@ -920,15 +951,15 @@ def plot_dfo_validation(
                 stations[name] = {'lat': lat, 'months': months_data}
 
     if not stations:
-        fig, ax = dark_figure()
+        fig, ax = themed_figure(theme=theme, )
         ax.text(0.5, 0.5, f'No data loaded from {dfo_csv_path}',
-                ha='center', va='center', color=TEXT_COLOR, fontsize=14,
+                ha='center', va='center', color=_tc(theme), fontsize=14,
                 transform=ax.transAxes)
         if save_path:
             save_figure(fig, save_path)
         return fig
 
-    fig, (ax1, ax2) = dark_figure(nrows=2, ncols=1, figsize=(14, 10))
+    fig, (ax1, ax2) = themed_figure(theme=theme, nrows=2, ncols=1, figsize=(14, 10))
     months_x = np.arange(12)
 
     from sswd_evoepi.spatial import NodeDefinition
@@ -983,8 +1014,8 @@ def plot_dfo_validation(
     ax1.set_ylabel('Salinity (psu)', fontsize=12)
     ax1.set_title('Model vs DFO Lighthouse Observations', fontsize=13,
                   fontweight='bold')
-    ax1.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=8, ncol=2, loc='lower left')
+    ax1.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=8, ncol=2, loc='lower left')
 
     ax2.axhline(0, color='white', linewidth=0.8, alpha=0.5)
     ax2.set_xticks(range(12))
@@ -992,8 +1023,8 @@ def plot_dfo_validation(
     ax2.set_xlabel('Month', fontsize=12)
     ax2.set_ylabel('Residual (model − obs, psu)', fontsize=12)
     ax2.set_title('Residuals', fontsize=13, fontweight='bold')
-    ax2.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-               labelcolor=TEXT_COLOR, fontsize=8, ncol=2, loc='best')
+    ax2.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+               labelcolor=_tc(theme), fontsize=8, ncol=2, loc='best')
 
     if save_path:
         save_figure(fig, save_path)
@@ -1009,6 +1040,7 @@ def plot_regional_suppression_bars(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     month: int = 5,  # June
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Bar chart of mean disease suppression per region.
@@ -1056,7 +1088,7 @@ def plot_regional_suppression_bars(
         })
     region_stats.sort(key=lambda x: -x['mean_lat'])
 
-    fig, ax = dark_figure(figsize=(14, 7))
+    fig, ax = themed_figure(theme=theme, figsize=(14, 7))
 
     x = np.arange(len(region_stats))
     bars = ax.bar(
@@ -1086,7 +1118,7 @@ def plot_regional_suppression_bars(
         if s['mean_sup'] > 1:
             ax.text(i, s['mean_sup'] + s['std_sup'] + 1,
                     f"{s['mean_sup']:.1f}%", ha='center', fontsize=8,
-                    color=TEXT_COLOR)
+                    color=_tc(theme))
 
     if save_path:
         save_figure(fig, save_path)
@@ -1099,6 +1131,7 @@ def plot_regional_suppression_bars(
 
 def plot_fjord_depth_by_region(
     nodes: List['NodeDefinition'],
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Box plot of fjord_depth_norm by region.
@@ -1125,16 +1158,16 @@ def plot_fjord_depth_by_region(
     regions_sorted = sorted(region_data.keys(),
                             key=lambda r: -np.mean(region_lats[r]))
 
-    fig, ax = dark_figure(figsize=(14, 7))
+    fig, ax = themed_figure(theme=theme, figsize=(14, 7))
 
     bp = ax.boxplot(
         [region_data[r] for r in regions_sorted],
         labels=[f'{r}\n({np.mean(region_lats[r]):.0f}°N)' for r in regions_sorted],
         patch_artist=True,
         medianprops=dict(color='white', linewidth=2),
-        whiskerprops=dict(color=TEXT_COLOR),
-        capprops=dict(color=TEXT_COLOR),
-        flierprops=dict(markerfacecolor=GRID_COLOR, markersize=3),
+        whiskerprops=dict(color=_tc(theme)),
+        capprops=dict(color=_tc(theme)),
+        flierprops=dict(markerfacecolor=_gc(theme), markersize=3),
     )
 
     for i, (patch, region) in enumerate(zip(bp['boxes'], regions_sorted)):
@@ -1153,7 +1186,7 @@ def plot_fjord_depth_by_region(
         med = np.median(region_data[r])
         n = len(region_data[r])
         ax.text(i + 1, ax.get_ylim()[1] * 0.95,
-                f'n={n}', ha='center', fontsize=7, color=TEXT_COLOR)
+                f'n={n}', ha='center', fontsize=7, color=_tc(theme))
 
     if save_path:
         save_figure(fig, save_path)
@@ -1169,6 +1202,7 @@ def plot_suppression_monthly_panels(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     months: Optional[List[int]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Multi-panel geographic maps of disease suppression for key months.
@@ -1197,7 +1231,7 @@ def plot_suppression_monthly_panels(
     ncols = min(3, n_panels)
     nrows = int(np.ceil(n_panels / ncols))
 
-    fig, axes = dark_figure(nrows=nrows, ncols=ncols,
+    fig, axes = themed_figure(theme=theme, nrows=nrows, ncols=ncols,
                             figsize=(6 * ncols, 8 * nrows))
     if isinstance(axes, np.ndarray):
         axes_flat = axes.flat
@@ -1224,9 +1258,9 @@ def plot_suppression_monthly_panels(
 
         if idx == n_panels - 1 or idx == ncols - 1:
             cb = fig.colorbar(sc, ax=ax, pad=0.02, shrink=0.7)
-            cb.set_label('Suppression %', color=TEXT_COLOR, fontsize=9)
-            cb.ax.yaxis.set_tick_params(color=TEXT_COLOR)
-            plt.setp(cb.ax.yaxis.get_ticklabels(), color=TEXT_COLOR)
+            cb.set_label('Suppression %', color=_tc(theme), fontsize=9)
+            cb.ax.yaxis.set_tick_params(color=_tc(theme))
+            plt.setp(cb.ax.yaxis.get_ticklabels(), color=_tc(theme))
 
     # Hide unused axes
     for idx in range(n_panels, nrows * ncols):
@@ -1234,7 +1268,7 @@ def plot_suppression_monthly_panels(
             list(axes_flat)[idx].set_visible(False)
 
     fig.suptitle(f'Seasonal Disease Suppression (fw={fw_strength}, exp={fw_depth_exp})',
-                 fontsize=15, fontweight='bold', color=TEXT_COLOR, y=1.02)
+                 fontsize=15, fontweight='bold', color=_tc(theme), y=1.02)
 
     if save_path:
         save_figure(fig, save_path)
@@ -1251,6 +1285,7 @@ def plot_suppression_vs_recovery(
     fw_strength: float = 15.0,
     fw_depth_exp: float = 1.0,
     recovery_targets: Optional[Dict[str, float]] = None,
+    theme: str = 'dark',
     save_path: Optional[str] = None,
 ) -> plt.Figure:
     """Scatter: regional mean suppression vs observed/simulated recovery.
@@ -1277,7 +1312,7 @@ def plot_suppression_vs_recovery(
     for i, nd in enumerate(nodes):
         region_nodes.setdefault(nd.subregion, []).append(i)
 
-    fig, ax = dark_figure(figsize=(10, 8))
+    fig, ax = themed_figure(theme=theme, figsize=(10, 8))
 
     regions_both = set(region_nodes.keys()) & set(region_recovery.keys())
 
@@ -1292,9 +1327,9 @@ def plot_suppression_vs_recovery(
                    linewidths=1.5, zorder=3)
         ax.annotate(
             region, (sup, rec), xytext=(8, 8), textcoords='offset points',
-            fontsize=10, color=TEXT_COLOR, fontweight='bold',
-            bbox=dict(boxstyle='round', facecolor=DARK_PANEL,
-                      edgecolor=GRID_COLOR, alpha=0.8),
+            fontsize=10, color=_tc(theme), fontweight='bold',
+            bbox=dict(boxstyle='round', facecolor=_pc(theme),
+                      edgecolor=_gc(theme), alpha=0.8),
         )
 
         # Target if available
@@ -1318,25 +1353,345 @@ def plot_suppression_vs_recovery(
         try:
             z = np.polyfit(sups, recs, 1)
             x_fit = np.linspace(0, max(sups) * 1.1, 50)
-            ax.plot(x_fit, np.polyval(z, x_fit), color=GRID_COLOR,
+            ax.plot(x_fit, np.polyval(z, x_fit), color=_gc(theme),
                     linestyle='--', linewidth=1.5, alpha=0.7)
             r_corr = np.corrcoef(sups, recs)[0, 1]
             ax.text(0.95, 0.05, f'r = {r_corr:.3f}', transform=ax.transAxes,
-                    fontsize=12, color=TEXT_COLOR, ha='right',
-                    bbox=dict(boxstyle='round', facecolor=DARK_PANEL,
-                              edgecolor=GRID_COLOR))
+                    fontsize=12, color=_tc(theme), ha='right',
+                    bbox=dict(boxstyle='round', facecolor=_pc(theme),
+                              edgecolor=_gc(theme)))
         except (np.linalg.LinAlgError, ValueError):
             pass  # Polyfit can fail with edge-case data
 
     if recovery_targets:
-        ax.plot([], [], 'x', color=GRID_COLOR, markersize=8, label='Target')
-        ax.legend(facecolor=DARK_PANEL, edgecolor=GRID_COLOR,
-                  labelcolor=TEXT_COLOR, fontsize=10)
+        ax.plot([], [], 'x', color=_gc(theme), markersize=8, label='Target')
+        ax.legend(facecolor=_pc(theme), edgecolor=_gc(theme),
+                  labelcolor=_tc(theme), fontsize=10)
 
     ax.set_xlabel('June disease suppression from salinity (%)', fontsize=12)
     ax.set_ylabel('Population recovery (%)', fontsize=12)
     ax.set_title('Salinity Suppression vs Recovery',
                  fontsize=14, fontweight='bold')
+
+    if save_path:
+        save_figure(fig, save_path)
+    return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# REGION BOUNDING BOXES for zoom panels
+# ═══════════════════════════════════════════════════════════════════════
+
+REGION_BOUNDS = {
+    'Alaska': {'lat': (54.5, 62.0), 'lon': (-155, -130), 'regions': ['AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS']},
+    'British Columbia': {'lat': (48.0, 55.0), 'lon': (-134, -122), 'regions': ['BC-N', 'BC-C']},
+    'Salish Sea & WA': {'lat': (46.5, 49.5), 'lon': (-126, -121.5), 'regions': ['SS-N', 'SS-S', 'JDF', 'WA-O']},
+    'Oregon & California': {'lat': (32.0, 47.0), 'lon': (-126, -116), 'regions': ['OR', 'CA-N', 'CA-C', 'CA-S', 'BJ']},
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 15. REGIONAL ZOOM: SUPPRESSION MAP (4-panel geographic zooms)
+# ═══════════════════════════════════════════════════════════════════════
+
+def plot_suppression_regional_zoom(
+    nodes: List['NodeDefinition'],
+    fw_strength: float = 15.0,
+    fw_depth_exp: float = 1.0,
+    month: int = 5,  # June
+    s_min: float = 10.0,
+    s_full: float = 28.0,
+    theme: str = 'dark',
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Four-panel regional zoom of disease suppression.
+
+    Each panel zooms into a geographic region (Alaska, BC, Salish Sea,
+    OR/CA) showing individual site suppression at high resolution.
+
+    Args:
+        nodes: List of NodeDefinition objects.
+        fw_strength: Freshwater depression strength.
+        fw_depth_exp: Exponent on fjord_depth_norm.
+        month: Month index (0=Jan, 5=Jun).
+        s_min, s_full: Salinity modifier parameters.
+        theme: 'dark' or 'light'.
+        save_path: Optional path to save figure.
+
+    Returns:
+        matplotlib Figure.
+    """
+    sal = compute_salinity_array(nodes, fw_strength, fw_depth_exp=fw_depth_exp)
+    N = len(nodes)
+
+    start = MONTH_STARTS[month]
+    end = MONTH_STARTS[month + 1] if month < 11 else 365
+    monthly_sal = sal[:, start:end].mean(axis=1)
+    sal_mod = _sal_mod_array(monthly_sal, s_min=s_min, s_full=s_full)
+    suppression = (1.0 - sal_mod) * 100
+
+    lons = np.array([nd.lon for nd in nodes])
+    lats = np.array([nd.lat for nd in nodes])
+    names = [nd.name for nd in nodes]
+    regions_arr = [nd.subregion for nd in nodes]
+
+    bg, panel, text, grid = _theme_colors(theme)
+
+    cmap = mcolors.LinearSegmentedColormap.from_list(
+        'suppression', [SALT_WATER, NEUTRAL, SUPPRESSION], N=256
+    )
+
+    region_list = list(REGION_BOUNDS.items())
+    fig, axes = themed_figure(theme=theme, nrows=2, ncols=2, figsize=(16, 14))
+
+    for ax, (region_name, bounds) in zip(axes.flat, region_list):
+        lat_min, lat_max = bounds['lat']
+        lon_min, lon_max = bounds['lon']
+        valid_regions = set(bounds['regions'])
+
+        # Filter nodes in this region
+        mask = np.array([
+            (lat_min <= nd.lat <= lat_max and lon_min <= nd.lon <= lon_max)
+            for nd in nodes
+        ])
+        idx = np.where(mask)[0]
+
+        if len(idx) == 0:
+            ax.text(0.5, 0.5, 'No nodes', ha='center', va='center',
+                    color=text, transform=ax.transAxes)
+            ax.set_title(region_name, fontsize=13, fontweight='bold')
+            continue
+
+        vmax = max(suppression[idx].max(), 5.0)
+        sc = ax.scatter(
+            lons[idx], lats[idx], c=suppression[idx], cmap=cmap,
+            vmin=0, vmax=vmax,
+            s=60, edgecolors='white' if theme == 'dark' else '#333333',
+            linewidths=0.4, alpha=0.85, zorder=3,
+        )
+
+        # Label top-5 most suppressed sites in this region
+        region_sup = suppression[idx]
+        top5 = np.argsort(region_sup)[-5:]
+        for ti in top5:
+            gi = idx[ti]  # global index
+            if suppression[gi] > 1.0:
+                short = nodes[gi].name.split(',')[0][:15]
+                ax.annotate(
+                    f'{short}\n{suppression[gi]:.0f}%',
+                    (lons[gi], lats[gi]),
+                    xytext=(6, 6), textcoords='offset points',
+                    fontsize=7, color=text,
+                    bbox=dict(boxstyle='round,pad=0.15', facecolor=panel,
+                              edgecolor=grid, alpha=0.85),
+                )
+
+        ax.set_xlim(lon_min, lon_max)
+        ax.set_ylim(lat_min, lat_max)
+        ax.set_xlabel('Longitude', fontsize=10)
+        ax.set_ylabel('Latitude (°N)', fontsize=10)
+        ax.set_title(f'{region_name}  ({len(idx)} sites)', fontsize=13,
+                     fontweight='bold')
+
+        cb = fig.colorbar(sc, ax=ax, pad=0.02, shrink=0.8)
+        cb.set_label('Suppression %', color=text, fontsize=9)
+        cb.ax.yaxis.set_tick_params(color=text)
+        plt.setp(cb.ax.yaxis.get_ticklabels(), color=text)
+
+    fig.suptitle(
+        f'Regional Disease Suppression — {MONTH_LABELS[month]}\n'
+        f'(fw_strength={fw_strength}, exp={fw_depth_exp})',
+        fontsize=15, fontweight='bold', color=text, y=1.02,
+    )
+
+    if save_path:
+        save_figure(fig, save_path)
+    return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 16. REGIONAL ZOOM: SALINITY PROFILES (4 panels, per-site lines)
+# ═══════════════════════════════════════════════════════════════════════
+
+def plot_salinity_regional_profiles(
+    nodes: List['NodeDefinition'],
+    fw_strength: float = 15.0,
+    fw_depth_exp: float = 1.0,
+    theme: str = 'dark',
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Four-panel seasonal salinity profiles, one panel per region.
+
+    Each panel shows individual site salinity curves (thin lines) and
+    the regional mean (thick line), revealing within-region variability.
+
+    Args:
+        nodes: List of NodeDefinition objects.
+        fw_strength: Freshwater depression strength.
+        fw_depth_exp: Exponent on fjord_depth_norm.
+        theme: 'dark' or 'light'.
+        save_path: Optional path to save figure.
+
+    Returns:
+        matplotlib Figure.
+    """
+    sal = compute_salinity_array(nodes, fw_strength, fw_depth_exp=fw_depth_exp)
+    days = np.arange(DAYS_PER_YEAR)
+    bg, panel, text, grid = _theme_colors(theme)
+
+    region_list = list(REGION_BOUNDS.items())
+    fig, axes = themed_figure(theme=theme, nrows=2, ncols=2, figsize=(16, 12))
+
+    for ax, (region_name, bounds) in zip(axes.flat, region_list):
+        lat_min, lat_max = bounds['lat']
+        lon_min, lon_max = bounds['lon']
+
+        mask = np.array([
+            (lat_min <= nd.lat <= lat_max and lon_min <= nd.lon <= lon_max)
+            for nd in nodes
+        ])
+        idx = np.where(mask)[0]
+
+        if len(idx) == 0:
+            ax.set_title(region_name, fontsize=13, fontweight='bold')
+            continue
+
+        # Individual site lines (thin, low alpha)
+        for i in idx:
+            fd = nodes[i].fjord_depth_norm
+            # Colour by fjord depth: blue=deep fjord, grey=open coast
+            alpha = 0.15 + 0.3 * fd
+            color = FRESH_WATER if fd > 0.3 else (grid if theme == 'dark' else '#aaaaaa')
+            ax.plot(days, sal[i, :], color=color, linewidth=0.5, alpha=alpha)
+
+        # Regional mean (thick)
+        mean_sal = sal[idx, :].mean(axis=0)
+        ax.plot(days, mean_sal, color=ACCENT_COLORS[0], linewidth=2.5,
+                label=f'Mean (n={len(idx)})')
+
+        # Highlight most-depressed site
+        min_june = sal[idx, _PEAK_DAY]
+        most_depressed = idx[np.argmin(min_june)]
+        md_name = nodes[most_depressed].name.split(',')[0][:20]
+        ax.plot(days, sal[most_depressed, :], color=FRESH_WATER, linewidth=2,
+                linestyle='--', label=f'{md_name} (fd={nodes[most_depressed].fjord_depth_norm:.2f})')
+
+        # Reference lines
+        ax.axhline(28, color=grid, linestyle=':', alpha=0.5, linewidth=0.8)
+        ax.axhline(10, color=grid, linestyle=':', alpha=0.5, linewidth=0.8)
+        ax.axvline(_PEAK_DAY, color=grid, linestyle=':', alpha=0.3)
+
+        ax.set_xticks(MONTH_STARTS)
+        ax.set_xticklabels(MONTH_LABELS, fontsize=8)
+        ax.set_ylabel('Salinity (psu)', fontsize=10)
+        ax.set_title(region_name, fontsize=13, fontweight='bold')
+        ax.legend(fontsize=8, loc='lower left',
+                  facecolor=panel, edgecolor=grid, labelcolor=text)
+        ax.set_ylim(bottom=max(0, sal[idx, :].min() - 2))
+
+    fig.suptitle(
+        f'Regional Salinity Profiles (fw_strength={fw_strength})',
+        fontsize=15, fontweight='bold', color=text, y=1.02,
+    )
+
+    if save_path:
+        save_figure(fig, save_path)
+    return fig
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 17. REGIONAL ZOOM: DEPRESSION SCATTER (lat vs depression, per region)
+# ═══════════════════════════════════════════════════════════════════════
+
+def plot_depression_regional_scatter(
+    nodes: List['NodeDefinition'],
+    fw_strength: float = 15.0,
+    fw_depth_exp: float = 1.0,
+    theme: str = 'dark',
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Four-panel scatter: fjord_depth_norm vs peak depression, per region.
+
+    Shows within-region structure — which individual sites get the most
+    freshwater influence.
+
+    Args:
+        nodes: List of NodeDefinition objects.
+        fw_strength: Freshwater depression strength.
+        fw_depth_exp: Exponent on fjord_depth_norm.
+        theme: 'dark' or 'light'.
+        save_path: Optional path to save figure.
+
+    Returns:
+        matplotlib Figure.
+    """
+    sal = compute_salinity_array(nodes, fw_strength, fw_depth_exp=fw_depth_exp)
+    sal_base = compute_salinity_array(nodes, fw_strength=0.0)
+    peak_dep = (sal_base - sal).max(axis=1)  # max depression per node
+
+    fd = np.array([nd.fjord_depth_norm for nd in nodes])
+    bg, panel, text, grid = _theme_colors(theme)
+
+    region_list = list(REGION_BOUNDS.items())
+    fig, axes = themed_figure(theme=theme, nrows=2, ncols=2, figsize=(16, 12))
+
+    for ax, (region_name, bounds) in zip(axes.flat, region_list):
+        lat_min, lat_max = bounds['lat']
+        lon_min, lon_max = bounds['lon']
+
+        mask = np.array([
+            (lat_min <= nd.lat <= lat_max and lon_min <= nd.lon <= lon_max)
+            for nd in nodes
+        ])
+        idx = np.where(mask)[0]
+
+        if len(idx) == 0:
+            ax.set_title(region_name, fontsize=13, fontweight='bold')
+            continue
+
+        # Colour by subregion
+        for i in idx:
+            r = nodes[i].subregion
+            c = REGION_COLORS.get(r, ACCENT_COLORS[0])
+            ax.scatter(fd[i], peak_dep[i], color=c, s=40,
+                       edgecolors='white' if theme == 'dark' else '#333',
+                       linewidths=0.3, alpha=0.7, zorder=3)
+
+        # Label top-3 most depressed
+        region_dep = peak_dep[idx]
+        top3 = idx[np.argsort(region_dep)[-3:]]
+        for gi in top3:
+            if peak_dep[gi] > 0.5:
+                short = nodes[gi].name.split(',')[0][:18]
+                ax.annotate(
+                    f'{short}\n{peak_dep[gi]:.1f} psu',
+                    (fd[gi], peak_dep[gi]),
+                    xytext=(8, 5), textcoords='offset points',
+                    fontsize=7, color=text,
+                    bbox=dict(boxstyle='round,pad=0.15', facecolor=panel,
+                              edgecolor=grid, alpha=0.85),
+                )
+
+        # Legend by subregion
+        seen = set()
+        for i in idx:
+            r = nodes[i].subregion
+            if r not in seen:
+                seen.add(r)
+                c = REGION_COLORS.get(r, ACCENT_COLORS[0])
+                ax.scatter([], [], color=c, s=30, label=r)
+        ax.legend(fontsize=7, loc='upper left', facecolor=panel,
+                  edgecolor=grid, labelcolor=text, ncol=2)
+
+        ax.set_xlabel('fjord_depth_norm', fontsize=10)
+        ax.set_ylabel('Peak salinity depression (psu)', fontsize=10)
+        ax.set_title(f'{region_name}  ({len(idx)} sites)', fontsize=13,
+                     fontweight='bold')
+
+    fig.suptitle(
+        f'Fjord Depth vs Salinity Depression by Region (fw={fw_strength})',
+        fontsize=15, fontweight='bold', color=text, y=1.02,
+    )
 
     if save_path:
         save_figure(fig, save_path)
