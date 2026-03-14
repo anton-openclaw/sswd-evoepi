@@ -10,6 +10,7 @@ Modules:
   - dashboards: Dashboards & composite views (10 plots)
   - settlement: Continuous settlement & spawning event tracking (9 plots)
   - spawning_viz: Spawning dynamics deep visualization + animated GIFs (5 plots + 4 GIFs)
+  - salinity: Salinity & freshwater influence (14 plots)
 """
 
 from sswd_evoepi.viz.style import (  # noqa: F401
@@ -134,4 +135,25 @@ from sswd_evoepi.viz.spawning_viz import (  # noqa: F401
     plot_spawning_before_after,
     create_spawning_animation,
     create_comparison_animation,
+)
+
+from sswd_evoepi.viz.salinity import (  # noqa: F401
+    FRESH_WATER,
+    SALT_WATER,
+    SUPPRESSION,
+    REGION_COLORS,
+    plot_salinity_heatmap,
+    plot_depression_heatmap,
+    plot_suppression_map,
+    plot_regional_salinity_profiles,
+    plot_latitude_asymmetry,
+    plot_fw_strength_sensitivity,
+    plot_depth_exp_comparison,
+    plot_sal_mod_transfer,
+    plot_mechanism_components,
+    plot_dfo_validation,
+    plot_regional_suppression_bars,
+    plot_fjord_depth_by_region,
+    plot_suppression_monthly_panels,
+    plot_suppression_vs_recovery,
 )
