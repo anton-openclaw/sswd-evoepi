@@ -232,6 +232,7 @@ class NodeDefinition:
     sst_amplitude: float = 3.0   # annual cycle half-range (°C)
     sst_trend: float = 0.02      # °C/yr warming trend
     salinity: float = 32.0       # effective mean salinity (psu)
+    fjord_depth_norm: float = 0.0  # normalised fjord depth [0, 1] from site_enclosedness.csv
     depth_range: Tuple[float, float] = (5.0, 60.0)  # min, max depth (m)
 
 
@@ -761,6 +762,7 @@ def get_5node_definitions() -> List[NodeDefinition]:
             sst_amplitude=3.5,
             sst_trend=0.015,
             salinity=32.0,
+            fjord_depth_norm=0.0,    # open coast
             depth_range=(5.0, 60.0),
         ),
         NodeDefinition(
@@ -777,6 +779,7 @@ def get_5node_definitions() -> List[NodeDefinition]:
             sst_amplitude=4.0,
             sst_trend=0.02,
             salinity=22.0,           # freshwater influence
+            fjord_depth_norm=0.5,    # fjord
             depth_range=(5.0, 100.0),
         ),
         NodeDefinition(
@@ -793,6 +796,7 @@ def get_5node_definitions() -> List[NodeDefinition]:
             sst_amplitude=4.0,
             sst_trend=0.02,
             salinity=30.0,
+            fjord_depth_norm=0.0,    # open coast
             depth_range=(5.0, 40.0),
         ),
         NodeDefinition(
@@ -809,6 +813,7 @@ def get_5node_definitions() -> List[NodeDefinition]:
             sst_amplitude=3.0,
             sst_trend=0.02,
             salinity=33.0,
+            fjord_depth_norm=0.0,    # open coast
             depth_range=(5.0, 50.0),
         ),
         NodeDefinition(
@@ -825,6 +830,7 @@ def get_5node_definitions() -> List[NodeDefinition]:
             sst_amplitude=2.5,
             sst_trend=0.025,
             salinity=33.5,
+            fjord_depth_norm=0.0,    # open coast
             depth_range=(10.0, 60.0),
         ),
     ]
@@ -861,6 +867,7 @@ def save_node_definitions_yaml(node_defs: List[NodeDefinition],
             "sst_amplitude": nd.sst_amplitude,
             "sst_trend": nd.sst_trend,
             "salinity": nd.salinity,
+            "fjord_depth_norm": nd.fjord_depth_norm,
             "depth_range": list(nd.depth_range),
         }
         data["nodes"].append(entry)
@@ -902,6 +909,7 @@ def load_node_definitions_yaml(path: str) -> List[NodeDefinition]:
             sst_amplitude=entry.get("sst_amplitude", 3.0),
             sst_trend=entry.get("sst_trend", 0.02),
             salinity=entry.get("salinity", 32.0),
+            fjord_depth_norm=entry.get("fjord_depth_norm", 0.0),
             depth_range=tuple(entry.get("depth_range", [5.0, 60.0])),
         )
         nodes.append(nd)

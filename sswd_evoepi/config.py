@@ -194,6 +194,7 @@ class DiseaseSection:
     # Salinity
     s_min: float = 10.0           # Salinity minimum for Vibrio (psu)
     s_full: float = 28.0          # Full-marine salinity (psu)
+    fw_strength: float = 0.0     # Freshwater depression strength (psu); 0 = OFF (backward compat)
 
     # Post-spawning immunosuppression (Phase 4)
     immunosuppression_enabled: bool = True    # Enable post-spawning susceptibility increase

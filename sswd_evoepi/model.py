@@ -85,6 +85,7 @@ from sswd_evoepi.reproduction import (
     _compute_resistance,
 )
 from sswd_evoepi.perf import PerfMonitor
+from sswd_evoepi.salinity import compute_salinity_array
 from sswd_evoepi.spawning import (
     spawning_step,
     reset_spawning_season,
@@ -2227,6 +2228,12 @@ def run_spatial_simulation(
                 _fnd.flushing_rate, _fm, _fnd.is_fjord,
             )
 
+    # ── Pre-compute seasonal salinity per node per day-of-year ───────
+    _salinity_precomputed = compute_salinity_array(
+        [n.definition for n in network.nodes],
+        dis_cfg.fw_strength,
+    )
+
     # ── Main simulation loop ─────────────────────────────────────────
     start_year = 2000  # reference year for SST
 
@@ -2260,7 +2267,7 @@ def run_spatial_simulation(
                         nd.sst_trend, reference_year=start_year,
                     )
                 node.current_flushing = _flushing_precomputed[i, day]
-                node.current_salinity = nd.salinity
+                node.current_salinity = float(_salinity_precomputed[i, day])
 
             # 1b. Release events scheduled for today
             if sim_day in release_schedule_spatial:

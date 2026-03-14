@@ -140,6 +140,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
             sst_amplitude=_estimate_sst_amplitude(lat),
             sst_trend=0.02,
             salinity=22.0 if is_fjord else 32.0,
+            fjord_depth_norm=depth_norm if encl else 0.0,
             depth_range=(5.0, 60.0),
         )
         # Store effective enclosedness for continuous alpha_self
