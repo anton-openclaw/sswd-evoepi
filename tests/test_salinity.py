@@ -132,6 +132,21 @@ class TestComputeSalinityArray:
         result = compute_salinity_array(nodes, fw_strength=100.0, s_floor=5.0)
         assert result.min() >= 5.0
 
+    def test_fw_depth_exp_sqrt(self):
+        """fw_depth_exp=0.5 boosts moderate-depth sites relative to linear."""
+        nodes = [_make_node(lat=58.0, fjord_depth_norm=0.25)]
+        linear = compute_salinity_array(nodes, fw_strength=15.0, fw_depth_exp=1.0)
+        sqrt = compute_salinity_array(nodes, fw_strength=15.0, fw_depth_exp=0.5)
+        # sqrt(0.25) = 0.5 > 0.25 → more depression with exp=0.5
+        assert float(sqrt[0, 166]) < float(linear[0, 166])
+
+    def test_fw_depth_exp_default_matches_linear(self):
+        """Default fw_depth_exp=1.0 gives same result as not passing it."""
+        nodes = [_make_node(lat=58.0, fjord_depth_norm=0.7)]
+        default = compute_salinity_array(nodes, fw_strength=15.0)
+        explicit = compute_salinity_array(nodes, fw_strength=15.0, fw_depth_exp=1.0)
+        np.testing.assert_array_equal(default, explicit)
+
 
 # ─── Backward compatibility ─────────────────────────────────────────
 

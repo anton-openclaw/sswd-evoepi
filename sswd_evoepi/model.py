@@ -2232,6 +2232,7 @@ def run_spatial_simulation(
     _salinity_precomputed = compute_salinity_array(
         [n.definition for n in network.nodes],
         dis_cfg.fw_strength,
+        fw_depth_exp=dis_cfg.fw_depth_exp,
     )
 
     # ── Main simulation loop ─────────────────────────────────────────

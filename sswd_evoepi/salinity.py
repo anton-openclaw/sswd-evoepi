@@ -77,6 +77,7 @@ def latitude_melt_factor(lat: float) -> float:
 def compute_salinity_array(
     nodes: List["NodeDefinition"],
     fw_strength: float,
+    fw_depth_exp: float = 1.0,
     s_floor: float = 5.0,
 ) -> np.ndarray:
     """Pre-compute daily salinity for all nodes over one year.
@@ -88,6 +89,8 @@ def compute_salinity_array(
     Args:
         nodes: List of NodeDefinition objects (need .lat, .fjord_depth_norm).
         fw_strength: Freshwater strength parameter (psu). 0 = mechanism OFF.
+        fw_depth_exp: Exponent applied to fjord_depth_norm before use.
+            1.0 = linear (default), 0.5 = sqrt (boosts moderate-depth sites).
         s_floor: Minimum physically reasonable salinity (psu).
 
     Returns:
@@ -109,8 +112,9 @@ def compute_salinity_array(
             salinity[i, :] = base
         else:
             fd_norm = getattr(nd, 'fjord_depth_norm', 0.0)
+            fd_effective = fd_norm ** fw_depth_exp if fd_norm > 0.0 else 0.0
             f_melt = latitude_melt_factor(nd.lat)
-            depression = fw_strength * fd_norm * f_melt * pulse
+            depression = fw_strength * fd_effective * f_melt * pulse
             daily = np.maximum(s_floor, base - depression)
             salinity[i, :] = daily
 
