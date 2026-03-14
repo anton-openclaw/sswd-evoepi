@@ -2233,6 +2233,8 @@ def run_spatial_simulation(
         [n.definition for n in network.nodes],
         dis_cfg.fw_strength,
         fw_depth_exp=dis_cfg.fw_depth_exp,
+        fw_lat_min=dis_cfg.fw_lat_min,
+        fw_lat_max=dis_cfg.fw_lat_max,
     )
 
     # ── Main simulation loop ─────────────────────────────────────────

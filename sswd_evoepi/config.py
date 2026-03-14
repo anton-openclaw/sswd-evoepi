@@ -196,6 +196,8 @@ class DiseaseSection:
     s_full: float = 28.0          # Full-marine salinity (psu)
     fw_strength: float = 0.0     # Freshwater depression strength (psu); 0 = OFF (backward compat)
     fw_depth_exp: float = 1.0    # Exponent on fjord_depth_norm; 0.5 = sqrt (boosts moderate sites)
+    fw_lat_min: float = 48.0     # Latitude where glacial melt factor = 0 (°N)
+    fw_lat_max: float = 60.0     # Latitude where glacial melt factor = 1 (°N)
 
     # Post-spawning immunosuppression (Phase 4)
     immunosuppression_enabled: bool = True    # Enable post-spawning susceptibility increase

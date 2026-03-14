@@ -127,18 +127,26 @@ def freshwater_melt_pulse(day_of_year: int) -> float:
     return max(0.0, math.cos(2.0 * math.pi * (day_of_year - _PEAK_DAY) / DAYS_PER_YEAR))
 
 
-def latitude_melt_factor(lat: float) -> float:
-    """Latitude-dependent melt amplitude.
+def latitude_melt_factor(lat: float, lat_min: float = 48.0,
+                         lat_max: float = 60.0) -> float:
+    """Latitude-dependent glacial melt amplitude.
 
-    0 at 35°N (no glacial melt), 1 at 60°N (full glacial influence).
+    0 at lat_min (no glacial melt), 1 at lat_max (full glacial influence).
+    Default range 48-60°N reflects that glacial meltwater influence begins
+    around coastal Alaska; river-driven freshwater at lower latitudes
+    (e.g. Puget Sound) is already captured by the WOA23 baseline.
 
     Args:
         lat: Latitude in decimal degrees N.
+        lat_min: Latitude where melt factor = 0 (default 48°N).
+        lat_max: Latitude where melt factor = 1 (default 60°N).
 
     Returns:
         Melt factor in [0, 1].
     """
-    return max(0.0, min(1.0, (lat - 35.0) / 25.0))
+    if lat_max <= lat_min:
+        return 1.0 if lat >= lat_min else 0.0
+    return max(0.0, min(1.0, (lat - lat_min) / (lat_max - lat_min)))
 
 
 # ─── Daily interpolation from monthly WOA23 ─────────────────────────
@@ -175,12 +183,18 @@ def compute_salinity_array(
     fw_depth_exp: float = 1.0,
     s_floor: float = 5.0,
     woa23_path: Optional[str] = None,
+    fw_lat_min: float = 48.0,
+    fw_lat_max: float = 60.0,
 ) -> np.ndarray:
     """Pre-compute daily salinity for all nodes over one year.
 
     Two-layer model:
       1. WOA23 monthly climatology → daily interpolation (or parametric fallback)
-      2. Fjord freshwater depression: fw_strength × fd_norm^exp × pulse(day)
+      2. Fjord freshwater depression: fw_strength × fd_norm^exp × f_melt(lat) × pulse(day)
+
+    The glacial melt factor transitions from 0 at fw_lat_min to 1 at fw_lat_max.
+    Default 48-60°N reflects that glacial meltwater starts in coastal Alaska;
+    river-driven freshwater at lower latitudes is captured by WOA23 baseline.
 
     When fw_strength=0, every node gets its WOA23 baseline for all 365 days.
     When WOA23 is unavailable, falls back to parametric ocean_baseline(lat).
@@ -192,6 +206,8 @@ def compute_salinity_array(
             1.0 = linear (default), 0.5 = sqrt (boosts moderate-depth sites).
         s_floor: Minimum physically reasonable salinity (psu).
         woa23_path: Optional explicit path to WOA23 npz file (overrides search).
+        fw_lat_min: Latitude where glacial melt factor = 0 (default 48°N).
+        fw_lat_max: Latitude where glacial melt factor = 1 (default 60°N).
 
     Returns:
         (N, 365) float32 array of daily salinity values.
@@ -237,7 +253,7 @@ def compute_salinity_array(
             # Depression scales with: fjord depth × latitude melt factor × seasonal pulse
             fd_norm = getattr(nd, 'fjord_depth_norm', 0.0)
             fd_effective = fd_norm ** fw_depth_exp if fd_norm > 0.0 else 0.0
-            f_melt = latitude_melt_factor(nd.lat)
+            f_melt = latitude_melt_factor(nd.lat, fw_lat_min, fw_lat_max)
             depression = fw_strength * fd_effective * f_melt * pulse
             daily = np.maximum(s_floor, baseline - depression)
             salinity[i, :] = daily

@@ -85,25 +85,39 @@ class TestFreshwaterMeltPulse:
 # ── latitude_melt_factor ──────────────────────────────────────────
 
 class TestLatitudeMeltFactor:
-    def test_zero_at_35N(self):
-        """No glacial melt at 35°N."""
-        assert latitude_melt_factor(35.0) == 0.0
+    def test_zero_at_lat_min(self):
+        """No glacial melt at lat_min (default 48°N)."""
+        assert latitude_melt_factor(48.0) == 0.0
 
-    def test_one_at_60N(self):
-        """Full glacial influence at 60°N."""
+    def test_one_at_lat_max(self):
+        """Full glacial influence at lat_max (default 60°N)."""
         assert latitude_melt_factor(60.0) == 1.0
 
-    def test_half_at_47_5N(self):
-        """Half-way at 47.5°N."""
-        assert latitude_melt_factor(47.5) == pytest.approx(0.5)
+    def test_half_at_midpoint(self):
+        """Half-way at midpoint of default range (54°N)."""
+        assert latitude_melt_factor(54.0) == pytest.approx(0.5)
 
-    def test_clamped_below_35(self):
-        """Below 35°N should clamp to 0."""
+    def test_clamped_below_lat_min(self):
+        """Below lat_min should clamp to 0."""
         assert latitude_melt_factor(30.0) == 0.0
+        assert latitude_melt_factor(47.0) == 0.0
 
-    def test_clamped_above_60(self):
-        """Above 60°N should clamp to 1."""
+    def test_clamped_above_lat_max(self):
+        """Above lat_max should clamp to 1."""
         assert latitude_melt_factor(65.0) == 1.0
+
+    def test_custom_range(self):
+        """Custom lat_min/lat_max bounds."""
+        assert latitude_melt_factor(50.0, lat_min=50.0, lat_max=60.0) == 0.0
+        assert latitude_melt_factor(55.0, lat_min=50.0, lat_max=60.0) == pytest.approx(0.5)
+        assert latitude_melt_factor(60.0, lat_min=50.0, lat_max=60.0) == 1.0
+        # Old 35-60 range
+        assert latitude_melt_factor(47.5, lat_min=35.0, lat_max=60.0) == pytest.approx(0.5)
+
+    def test_degenerate_range(self):
+        """lat_max == lat_min should return step function."""
+        assert latitude_melt_factor(49.0, lat_min=50.0, lat_max=50.0) == 0.0
+        assert latitude_melt_factor(50.0, lat_min=50.0, lat_max=50.0) == 1.0
 
 
 # ── compute_salinity_array ─────────────────────────────────────────
@@ -172,7 +186,7 @@ class TestComputeSalinityArray:
         nodes = [_make_node(lat=36.0, lon=-122.0, fjord_depth_norm=0.5, name="CA-site")]
         sal_baseline = compute_salinity_array(nodes, fw_strength=0.0)
         sal_depressed = compute_salinity_array(nodes, fw_strength=15.0)
-        # latitude_melt_factor(36) = (36-35)/25 = 0.04, very small
+        # latitude_melt_factor(36) = 0.0 (below lat_min=48), no depression
         june_base = float(sal_baseline[0, _PEAK_DAY])
         june_dep = float(sal_depressed[0, _PEAK_DAY])
         assert june_base - june_dep < 1.0  # < 1 psu depression
@@ -297,8 +311,8 @@ class TestSalinityPredictions:
         june_base = float(sal_base[0, _PEAK_DAY])
         june_dep = float(sal_dep[0, _PEAK_DAY])
         depression = june_base - june_dep
-        # Expected: fw_strength(15) × fd_norm(0.77) × f_melt(0.9) × pulse(1.0) ≈ 10.4
-        assert depression > 8.0
+        # Expected: fw_strength(15) × fd_norm(0.77) × f_melt(0.79) × pulse(1.0) ≈ 9.1
+        assert depression > 7.0
         assert depression < 13.0
 
     def test_or_no_depression(self):
