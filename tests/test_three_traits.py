@@ -235,13 +235,14 @@ class TestToleranceExtendsI2:
         for _ in range(n_samples):
             # High tolerance (t_i=0.8): effective_rate = mu_I2D * (1 - 0.8*0.85) = mu_I2D * 0.32
             t_high = 0.8
-            eff_rate_high = mu_I2D * (1.0 - t_high * cfg.tau_max)
+            tau_max = default_config().genetics.tau_max
+            eff_rate_high = mu_I2D * (1.0 - t_high * tau_max)
             eff_rate_high = max(eff_rate_high, mu_I2D * 0.05)
             timers_high_tol.append(sample_stage_duration(eff_rate_high, 3, rng))
 
             # Low tolerance (t_i=0.1): effective_rate = mu_I2D * (1 - 0.1*0.85) = mu_I2D * 0.915
             t_low = 0.1
-            eff_rate_low = mu_I2D * (1.0 - t_low * cfg.tau_max)
+            eff_rate_low = mu_I2D * (1.0 - t_low * tau_max)
             eff_rate_low = max(eff_rate_low, mu_I2D * 0.05)
             timers_low_tol.append(sample_stage_duration(eff_rate_low, 3, rng))
 

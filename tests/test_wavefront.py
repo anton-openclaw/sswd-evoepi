@@ -168,7 +168,10 @@ class TestWavefrontSpatial:
         """wavefront_enabled=False → disease_arrival_day is None."""
         from sswd_evoepi.model import run_spatial_simulation
         network = make_5node_network(seed=42)
-        config = SimulationConfig(disease=DiseaseSection(scenario="ubiquitous"))
+        config = SimulationConfig(disease=DiseaseSection(
+            scenario="ubiquitous", wavefront_enabled=False,
+            disease_origin_nodes=None,
+        ))
 
         result = run_spatial_simulation(
             network=network, config=config,
@@ -301,9 +304,9 @@ class TestCumulativeDose:
     """Tests for the cumulative dose wavefront activation mechanism."""
 
     def test_cumulative_dose_config_defaults(self):
-        """New config fields exist with correct defaults."""
+        """New config fields exist with correct defaults (W201 calibrated)."""
         cfg = DiseaseSection()
-        assert cfg.cumulative_dose_threshold == 0.0
+        assert cfg.cumulative_dose_threshold == 1000.0
         assert cfg.dose_decay_rate == 0.0
 
     def test_cumulative_dose_config_custom(self):
