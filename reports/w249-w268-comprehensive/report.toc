@@ -1,0 +1,12 @@
+\contentsline {section}{\numberline {1}Executive Summary}{2}{section.1}%
+\contentsline {section}{\numberline {2}Sweep Design \& Parameters}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Sweep Rationale}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Configuration Table}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Calibration Targets}{3}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Calibration Performance}{5}{section.3}%
+\contentsline {section}{\numberline {4}Temporal Dynamics}{9}{section.4}%
+\contentsline {section}{\numberline {5}Parameter Analysis}{13}{section.5}%
+\contentsline {section}{\numberline {6}Conclusions \& Next Steps}{15}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Key Findings}{15}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Recommended Next Steps}{15}{subsection.6.2}%
+\contentsline {section}{\numberline {A}Full Metrics}{16}{appendix.A}%

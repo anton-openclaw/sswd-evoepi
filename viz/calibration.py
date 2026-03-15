@@ -579,6 +579,73 @@ def plot_seed_variability(
     return fig
 
 
+def plot_config_vs_targets(
+    data: CalibrationData,
+    config: str,
+    targets: Optional[Dict[str, float]] = None,
+    regions: Optional[List[str]] = None,
+    config_color: str = '#2196F3',
+    target_color: str = '#4CAF50',
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """Side-by-side bar chart comparing a config's regional recovery to targets.
+
+    Args:
+        data: CalibrationData instance
+        config: config name (e.g. 'W257')
+        targets: recovery targets dict (default: DEFAULT_TARGETS)
+        regions: list of regions to show (default: SCORED_REGIONS)
+        config_color: color for actual recovery bars
+        target_color: color for target bars
+        save_path: optional path to save figure
+    """
+    apply_pub_style()
+    if targets is None:
+        targets = DEFAULT_TARGETS
+    if regions is None:
+        regions = SCORED_REGIONS
+
+    x = np.arange(len(regions))
+    width = 0.35
+
+    target_vals = [targets.get(reg, 0) * 100 for reg in regions]
+    actual_vals = [data.recovery(config, reg) * 100 for reg in regions]
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    bars_target = ax.bar(x - width / 2, target_vals, width, label='Target',
+                         color=target_color, edgecolor='white', alpha=0.85)
+    bars_actual = ax.bar(x + width / 2, actual_vals, width,
+                         label=f'{config} actual', color=config_color,
+                         edgecolor='white', alpha=0.85)
+
+    # Value labels on bars
+    for bar, val in zip(bars_target, target_vals):
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                f'{val:.1f}%', ha='center', va='bottom', fontsize=8, color=target_color)
+    for bar, val in zip(bars_actual, actual_vals):
+        text = f'{val:.1f}%' if val >= 1 else f'{val:.2f}%'
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                text, ha='center', va='bottom', fontsize=8, color=config_color)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(regions, rotation=45, ha='right')
+    ax.set_ylabel('Recovery (%)')
+    desc = data.descriptions.get(config, '')
+    rmse = data.mean_rmse(config)
+    title = f'{config} vs Calibration Targets'
+    if desc:
+        title += f' — {desc}'
+    title += f' (RMSE={rmse:.3f})'
+    ax.set_title(title)
+    ax.legend()
+    ax.set_ylim(0, max(max(target_vals), max(actual_vals)) * 1.2)
+
+    plt.tight_layout()
+    if save_path:
+        fig.savefig(save_path, bbox_inches='tight')
+    return fig
+
+
 # ══════════════════════════════════════════════════════════════════════
 # CONVENIENCE: Generate all standard calibration figures
 # ══════════════════════════════════════════════════════════════════════

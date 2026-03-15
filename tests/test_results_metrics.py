@@ -222,8 +222,8 @@ class TestLoadSeed:
 
 class TestRecoveryTargets:
     def test_values(self):
-        assert RECOVERY_TARGETS["AK-PWS"] == 0.30
-        assert RECOVERY_TARGETS["AK-FN"] == 0.30
+        assert RECOVERY_TARGETS["AK-PWS"] == 0.20
+        assert RECOVERY_TARGETS["AK-FN"] == 0.20
         assert RECOVERY_TARGETS["AK-FS"] == 0.20
         assert RECOVERY_TARGETS["BC-N"] == 0.20
         assert RECOVERY_TARGETS["SS-S"] == 0.05
