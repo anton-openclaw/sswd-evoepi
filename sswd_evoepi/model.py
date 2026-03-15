@@ -2710,6 +2710,12 @@ def run_spatial_simulation(
                     disease_reached[i] = True
                     disease_arrival_day_arr[i] = year * 365
 
+                # Seed environmental Vibrio at origin nodes (fast onset)
+                if dis_cfg.seed_vibrio is not None:
+                    node_disease_states[i].vibrio_concentration = dis_cfg.seed_vibrio
+                    if dis_cfg.P_env_dynamic:
+                        node_disease_states[i].P_env_pool = dis_cfg.seed_vibrio
+
                 alive_idx = np.where(node.agents['alive'])[0]
                 n_to_infect = min(initial_infected_per_node, len(alive_idx))
                 if n_to_infect > 0:

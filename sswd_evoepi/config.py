@@ -219,6 +219,7 @@ class DiseaseSection:
     activation_threshold: float = 50.0        # Vibrio concentration (bact/mL) that triggers node activation (calibrated W201)
     cumulative_dose_threshold: float = 1000.0 # Cumulative dispersal dose to trigger activation (calibrated W201)
     dose_decay_rate: float = 0.0              # Daily decay of accumulated dose (0 = no decay; e.g. 0.02 = 2%/day)
+    seed_vibrio: Optional[float] = 2000.0     # Seed origin nodes with this environmental Vibrio concentration at disease_year (bact/mL). None = legacy behavior (seed individuals only). Default P_env_max for realistic fast onset.
     wavefront_D_P: float = 300.0             # Wavefront dispersal scale (km) (calibrated W201)
     wavefront_D_P_max_range: float = 3000.0 # Wavefront dispersal max range (km) (calibrated W201)
 
