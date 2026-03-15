@@ -70,9 +70,9 @@ class TestBackwardCompatibility:
         np.testing.assert_array_equal(r1.yearly_disease_deaths, r2.yearly_disease_deaths)
         np.testing.assert_array_equal(r1.yearly_mean_resistance, r2.yearly_mean_resistance)
 
-        # PE-specific fields should be None when disabled
-        assert r1.yearly_mean_virulence is None
-        assert r2.yearly_mean_virulence is None
+        # PE-specific fields should be arrays of zeros when disabled (W201 behavior)
+        np.testing.assert_array_equal(r1.yearly_mean_virulence, [0., 0.])
+        np.testing.assert_array_equal(r2.yearly_mean_virulence, [0., 0.])
 
     def test_pe_disabled_deterministic(self):
         """Same seed → same result, multiple runs, PE disabled."""

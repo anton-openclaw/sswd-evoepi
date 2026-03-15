@@ -42,11 +42,11 @@ def _default_disease_cfg(**overrides) -> DiseaseSection:
 class TestWavefrontConfig:
     """Test wavefront config fields and validation."""
 
-    def test_default_wavefront_disabled(self):
+    def test_default_wavefront_enabled(self):
         cfg = DiseaseSection()
-        assert cfg.wavefront_enabled is False
-        assert cfg.disease_origin_nodes is None
-        assert cfg.activation_threshold == 1.0
+        assert cfg.wavefront_enabled is True
+        assert cfg.disease_origin_nodes == [322, 319, 632, 633, 634]
+        assert cfg.activation_threshold == 50.0
 
     def test_wavefront_enabled_requires_origin_nodes(self):
         cfg = SimulationConfig(

@@ -397,10 +397,10 @@ class TestDailyDiseaseUpdateVirulenceScaling:
 class TestConfigDefaults:
     """Test that virulence evolution config fields have correct defaults."""
 
-    def test_virulence_evolution_default_false(self):
-        """virulence_evolution defaults to False (backward compatible)."""
+    def test_virulence_evolution_default_true(self):
+        """virulence_evolution defaults to True (W201 calibrated)."""
         cfg = DiseaseSection()
-        assert cfg.virulence_evolution is False
+        assert cfg.virulence_evolution is True
 
     def test_v_adapt_rate_default(self):
         assert DiseaseSection().v_adapt_rate == 0.001
@@ -429,8 +429,8 @@ class TestConfigDefaults:
         assert pe.gamma_early == 0.3
 
     def test_backward_compatible_disabled(self):
-        """With defaults, virulence_evolution is off → no behavior change."""
-        cfg = DiseaseSection()
+        """With virulence_evolution=False, there is no behavior change."""
+        cfg = DiseaseSection(virulence_evolution=False)
         ns = _make_node_state(v_local=0.5, P_env_pool=1000.0)
         adapt_community_virulence(ns, T_celsius=15.0, n_hosts=100, K=200, cfg=cfg)
         assert ns.v_local == 0.5  # no change
