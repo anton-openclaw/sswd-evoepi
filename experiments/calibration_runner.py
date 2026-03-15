@@ -27,22 +27,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from sswd_evoepi.config import SimulationConfig, default_config, validate_config
 from sswd_evoepi.spatial import NodeDefinition, build_network
 from sswd_evoepi.model import run_spatial_simulation, SpatialSimResult
+from sswd_evoepi.metrics import RECOVERY_TARGETS, ARRIVAL_TARGETS, rmse_log, score_regions
 
 # ── Paths ─────────────────────────────────────────────────────────────
 SITES_PATH = 'data/nodes/all_sites.json'
 DISTANCE_MATRIX_PATH = 'results/overwater/distance_matrix.npz'
-
-# ── Calibration targets: recovery fraction by ~2024 (11yr post-crash) ──
-RECOVERY_TARGETS = {
-    'AK-PWS': 0.30,   # Prince William Sound — 30%
-    'AK-FN': 0.30,    # North inshore SE Alaska — 30%
-    'AK-FS': 0.20,    # South inshore SE Alaska — 20%
-    'BC-N': 0.20,     # Northern BC — 20%
-    'SS-S': 0.05,     # Puget Sound — 5%
-    'JDF': 0.02,      # Juan de Fuca — 2%
-    'OR': 0.0025,     # Oregon outer coast — 0.25%
-    'CA-N': 0.001,    # Northern California — 0.1%
-}
 
 
 def _estimate_mean_sst(lat: float) -> float:
@@ -294,67 +283,36 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
 
 
 def score_against_targets(region_recovery: dict) -> dict:
-    """Score using log-space RMSE (targets span 3 orders of magnitude)."""
+    """Score using log-space RMSE (targets span 3 orders of magnitude).
+
+    Delegates to sswd_evoepi.metrics.{rmse_log, score_regions} and
+    reformats the output into the JSON-compatible dict expected by
+    downstream tools (format_results, viz, results.py).
+    """
+    per_region = score_regions(region_recovery)
+    overall_rmse = rmse_log(region_recovery)
+
+    # Build per-region dict with extra fields for JSON compatibility
     scores = {}
-    total_log_sq_error = 0.0
-    n_targets = 0
-    eps = 1e-6
-    
-    for region, target in RECOVERY_TARGETS.items():
-        actual = region_recovery.get(region, 0.0)
-        
-        log_target = np.log10(max(target, eps))
-        log_actual = np.log10(max(actual, eps))
-        log_error = log_actual - log_target
-        
+    for region, info in per_region.items():
         scores[region] = {
-            'target': float(target),
-            'actual': float(actual),
-            'target_pct': float(target * 100),
-            'actual_pct': float(actual * 100),
-            'log_error': float(log_error),
-            'log_sq_error': float(log_error ** 2),
-            'within_2x': bool(abs(log_error) < 0.301),  # log10(2)
-            'within_5x': bool(abs(log_error) < 0.699),  # log10(5)
+            'target': info['target'],
+            'actual': info['actual'],
+            'target_pct': float(info['target'] * 100),
+            'actual_pct': float(info['actual'] * 100),
+            'log_error': info['log_error'],
+            'log_sq_error': float(info['log_error'] ** 2),
+            'within_2x': info['within_2x'],
+            'within_5x': info['within_5x'],
         }
-        
-        total_log_sq_error += log_error ** 2
-        n_targets += 1
-    
-    rmse_log = np.sqrt(total_log_sq_error / n_targets) if n_targets > 0 else float('inf')
-    within_2x = sum(1 for s in scores.values() if s['within_2x'])
-    within_5x = sum(1 for s in scores.values() if s['within_5x'])
-    
+
     return {
         'per_region': scores,
-        'rmse_log': float(rmse_log),
-        'within_2x': within_2x,
-        'within_5x': within_5x,
-        'n_targets': n_targets,
+        'rmse_log': float(overall_rmse),
+        'within_2x': sum(1 for s in scores.values() if s['within_2x']),
+        'within_5x': sum(1 for s in scores.values() if s['within_5x']),
+        'n_targets': len(scores),
     }
-
-
-# Observed disease arrival timing (months after origin, ~June 2013)
-# From Gravem et al. 2021 Supplement Figure 3
-ARRIVAL_TARGETS = {
-    'CA-S': 0,       # origin
-    'CA-C': 6,       # Jan 2014
-    'CA-N': 6,       # Jan 2014
-    'OR': 15,        # mid 2014 - early 2015
-    'WA-O': 15,      # mid 2014 - early 2015
-    'JDF': 26,       # Aug 2015
-    'SS-S': 26,      # Aug 2015
-    'SS-N': 26,      # Aug 2015
-    'BC-C': 26,      # Aug 2015
-    'BC-N': 26,      # Aug 2015
-    'AK-FS': 26,     # Aug 2015
-    'AK-FN': 26,     # Aug 2015
-    'AK-PWS': 33,    # late 2015 - 2016
-    'AK-EG': 33,     # late 2015 - 2016
-    'AK-OC': 33,     # late 2015 - 2016
-    'AK-WG': 42,     # Jan 2017
-    'AK-AL': 42,     # Jan 2017
-}
 
 
 def score_arrival_timing(result, sites: list, disease_year: int = 1) -> dict:

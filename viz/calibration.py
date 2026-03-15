@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import sys
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -23,6 +24,14 @@ from matplotlib.patches import Patch
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Any
+
+# Ensure project root is on path for sswd_evoepi imports
+_PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+from sswd_evoepi.results import REGION_ORDER, SCORED_REGIONS   # noqa: E402
+from sswd_evoepi.metrics import RECOVERY_TARGETS               # noqa: E402
 
 
 # ── Style ──────────────────────────────────────────────────────────────
@@ -49,20 +58,13 @@ def apply_pub_style():
     })
 
 
-# ── Region definitions ─────────────────────────────────────────────────
+# ── Region definitions (from consolidated modules) ─────────────────────
+# REGION_ORDER, SCORED_REGIONS imported from sswd_evoepi.results
+# RECOVERY_TARGETS imported from sswd_evoepi.metrics
 
-REGIONS_NS = [
-    'AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS',
-    'BC-N', 'BC-C', 'SS-N', 'SS-S', 'JDF', 'WA-O', 'OR',
-    'CA-N', 'CA-C', 'CA-S', 'BJ',
-]
-
-SCORED_REGIONS = ['AK-PWS', 'AK-FN', 'AK-FS', 'BC-N', 'SS-S', 'JDF', 'OR', 'CA-N']
-
-DEFAULT_TARGETS = {
-    'AK-PWS': 0.30, 'AK-FN': 0.30, 'AK-FS': 0.20, 'BC-N': 0.20,
-    'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001,
-}
+# Local aliases for backward compatibility
+REGIONS_NS = REGION_ORDER
+DEFAULT_TARGETS = RECOVERY_TARGETS
 
 
 # ── Group coloring ─────────────────────────────────────────────────────
