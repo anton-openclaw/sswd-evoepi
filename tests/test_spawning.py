@@ -516,15 +516,17 @@ class TestUtilityFunctions:
         # Set up some spawning state
         agents['spawning_ready'][:5] = 1
         agents['has_spawned'][:5] = np.array([1, 2, 0, 1, 3])
+        agents['last_spawn_day'][:5] = np.array([100, 200, 0, 150, 300])
         agents['spawn_refractory'][:5] = np.array([0, 10, 0, 5, 15])
         agents['spawn_gravity_timer'][:5] = np.array([0, 5, 10, 0, 3])
         agents['immunosuppression_timer'][:5] = np.array([0, 0, 20, 15, 0])
         
         reset_spawning_season(agents)
         
-        # Readiness and spawn counts should be reset
+        # Readiness, spawn counts, and last_spawn_day should be reset
         assert np.all(agents['spawning_ready'] == 0)
         assert np.all(agents['has_spawned'] == 0)
+        assert np.all(agents['last_spawn_day'] == 0)
         
         # But timers should persist (may extend beyond season)
         assert not np.all(agents['spawn_refractory'][:5] == 0)
@@ -1583,7 +1585,7 @@ class TestImmounosuppressionTimers:
         assert second_timer == disease_config.immunosuppression_duration
     
     def test_immunosuppression_timer_countdown(self):
-        """Immunosuppression timers should count down daily."""
+        """spawning_step should NOT decrement immunosuppression timers (main loop owns that)."""
         rng = np.random.default_rng(42)
         agents = allocate_agents(20)
         genotypes = allocate_genotypes(20)
@@ -1596,20 +1598,21 @@ class TestImmounosuppressionTimers:
             agents[i]['spawning_ready'] = 1
             agents[i]['immunosuppression_timer'] = i + 1  # Timers from 1 to 20
         
+        initial_timers = agents['immunosuppression_timer'].copy()
+        
         spawning_config = SpawningSection()
         disease_config = DiseaseSection()
         
-        # Run spawning step (should decrement timers)
+        # Run spawning step — should NOT decrement timers
         spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
                      spawning_config=spawning_config, disease_config=disease_config, rng=rng)
         
-        # All timers should have decreased by 1
+        # Timers should be unchanged (decrement is main loop's job)
         for i in range(20):
-            expected = max(0, i)  # Timer i+1 decremented by 1 = i, but min 0
-            assert agents[i]['immunosuppression_timer'] == expected
+            assert agents[i]['immunosuppression_timer'] == initial_timers[i]
     
     def test_immunosuppression_timer_stops_at_zero(self):
-        """Immunosuppression timers should not go below zero."""
+        """spawning_step should not modify zero-valued immunosuppression timers."""
         rng = np.random.default_rng(42)
         agents = allocate_agents(10)
         genotypes = allocate_genotypes(10)
@@ -1625,7 +1628,7 @@ class TestImmounosuppressionTimers:
         spawning_config = SpawningSection()
         disease_config = DiseaseSection()
         
-        # Run spawning step multiple times
+        # Run spawning step multiple times — timers should stay at 0
         for _ in range(5):
             spawning_step(agents, genotypes, day_of_year=105, node_latitude=40.0,
                          spawning_config=spawning_config, disease_config=disease_config, rng=rng)

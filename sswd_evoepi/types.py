@@ -57,7 +57,9 @@ class DiseaseState(IntEnum):
     I1 = 2   # Early infectious (pre-symptomatic shedding)
     I2 = 3   # Late infectious (wasting, high shedding)
     D  = 4   # Dead from disease
-    R  = 5   # Recovered (returns to S — no adaptive immunity in echinoderms)
+    R  = 5   # Reserved/unused — agents recover I→S directly (echinoderms
+             # lack adaptive immunity so there is no lasting recovered state).
+             # Kept for bincount minlength=6 compatibility.
 
 
 class DeathCause(IntEnum):

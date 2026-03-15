@@ -26,7 +26,7 @@ References:
   - three-trait-genetic-architecture-spec.md §6
   - ERRATA E1: E_a/R for I₂→D = 2,000 K (not 6,000)
   - ERRATA E2: Field-effective shedding σ₁=5, σ₂=50 at 20°C
-  - ERRATA E14: σ_D = 150 bact/mL/d/carcass
+  - ERRATA E14: σ_D = 15.0 bact/mL/d/carcass (CE-6)
   - CODE_ERRATA CE-2: ubiquitous vs invasion via config
 
 Build target: Phase 3 (three-trait disease wiring).
@@ -65,8 +65,9 @@ SIGMA_L = 100.0        # mm — normalization
 # Salinity modifier exponent
 ETA_SAL = 2.0
 
-# VBNC dynamics — default steepness (overridden by cfg.k_vbnc when available)
-K_VBNC = 1.0           # °C⁻¹ — transition steepness (legacy constant)
+# VBNC dynamics — legacy fallback (DiseaseSection always defines k_vbnc;
+# retained only as getattr() default for defensive compatibility).
+_LEGACY_K_VBNC = 1.0   # °C⁻¹ — transition steepness
 
 # Carcass shedding duration (days)
 CARCASS_SHED_DAYS = 3
@@ -101,13 +102,6 @@ def arrhenius(rate_ref: float, Ea_over_R: float, T_celsius: float) -> float:
     Returns:
         Rate at T_celsius.
     """
-    T_K = T_celsius + 273.15
-    return rate_ref * np.exp(Ea_over_R * (1.0 / T_REF_K - 1.0 / T_K))
-
-
-def arrhenius_vec(rate_ref: float, Ea_over_R: float,
-                  T_celsius: np.ndarray) -> np.ndarray:
-    """Vectorized Arrhenius for arrays of temperatures."""
     T_K = T_celsius + 273.15
     return rate_ref * np.exp(Ea_over_R * (1.0 / T_REF_K - 1.0 / T_K))
 
@@ -242,7 +236,7 @@ def environmental_vibrio(
         return 0.0
 
     # VBNC resuscitation sigmoid (use configurable steepness)
-    k = getattr(cfg, 'k_vbnc', K_VBNC)
+    k = getattr(cfg, 'k_vbnc', _LEGACY_K_VBNC)
     T_mid = T_vbnc_local if T_vbnc_local is not None else cfg.T_vbnc
     vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - T_mid)))
 
@@ -323,7 +317,7 @@ def update_vibrio_concentration(
     if disease_reached:
         if getattr(cfg, 'P_env_dynamic', False):
             # Dynamic P_env: floor (community maintenance, SST-modulated) + host-amplified pool
-            k = getattr(cfg, 'k_vbnc', K_VBNC)
+            k = getattr(cfg, 'k_vbnc', _LEGACY_K_VBNC)
             T_mid = T_vbnc_local if T_vbnc_local is not None else cfg.T_vbnc
             vbnc_activation = 1.0 / (1.0 + np.exp(-k * (T_celsius - T_mid)))
             g_peak = thermal_performance(3000.0, T_celsius, rate_ref=1.0)
@@ -713,8 +707,9 @@ def adapt_pathogen_thermal(
 
     When temperature is below the local threshold and the bacterial
     community (P_env_pool) is present, cold-adapted strains are
-    selected. Rate follows Michaelis-Menten saturation with
-    ``P_adapt_half`` and scales with the temperature gap.
+    selected. Rate follows a linear ramp with saturation at
+    ``P_adapt_half`` (i.e. min(P/K, 1.0)) and scales with the
+    temperature gap.
 
     When P_env_pool == 0, adapted strains revert toward
     T_vbnc_initial (controlled by ``pathogen_revert_rate``,
@@ -756,6 +751,9 @@ def adapt_community_virulence(
     - High host density → high optimal virulence (fast transmission viable)
     - Low host density → low optimal virulence (need longer infectious period)
     - Cold temperature → lower max virulence (metabolic constraint)
+
+    Pool factor uses a linear ramp with saturation at ``P_adapt_half``
+    (i.e. min(P/K, 1.0)), same as ``adapt_pathogen_thermal``.
     """
     if not cfg.virulence_evolution:
         return

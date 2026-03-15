@@ -561,6 +561,22 @@ class TestAdditiveVariance:
         va_no_slice = compute_additive_variance(freq, effect_sizes_r)
         assert np.isclose(va_with_slice, va_no_slice)
 
+    def test_va_analytical_single_locus(self):
+        """V_A matches analytical value for single-locus case.
+
+        For trait = Σ e_l × (g0 + g1)/2, allele substitution effect α = e/2.
+        V_A = Σ 2pq × α² = Σ 2pq × (e/2)² = Σ e²pq/2.
+
+        Single locus, q=0.5, e=1.0:
+            V_A = 1.0² × 0.5 × 0.5 / 2 = 0.125
+        """
+        freq = np.array([0.5])
+        effects = np.array([1.0])
+        va = compute_additive_variance(freq, effects)
+        assert va == pytest.approx(0.125), (
+            f"Single-locus V_A should be 0.125, got {va}"
+        )
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # HARDY-WEINBERG EQUILIBRIUM MAINTENANCE

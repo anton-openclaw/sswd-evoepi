@@ -32,7 +32,6 @@ Build target: Phase 5 (single-node) + Phase 7 (genetics) + Phase 9 (spatial).
 
 from __future__ import annotations
 
-import bisect
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -47,7 +46,6 @@ from sswd_evoepi.config import (
     default_config,
 )
 from sswd_evoepi.disease import (
-    CarcassTracker,
     NodeDiseaseState,
     adapt_community_virulence,
     adapt_pathogen_thermal,
@@ -55,7 +53,6 @@ from sswd_evoepi.disease import (
     environmental_vibrio,
     vibrio_decay_rate,
     arrhenius,
-    compute_R0,
 )
 from sswd_evoepi.genetics import (
     compute_allele_frequencies,
@@ -96,7 +93,9 @@ from sswd_evoepi.types import (
     ANNUAL_SURVIVAL,
     LarvalCohort,
     N_LOCI,
+    N_RECOVERY_DEFAULT,
     N_RESISTANCE_DEFAULT,
+    N_TOLERANCE_DEFAULT,
     STAGE_SIZE_THRESHOLDS,
     DiseaseState,
     Origin,
@@ -569,9 +568,10 @@ def daily_growth_and_aging(
     decay = np.exp(-k * _INV_365)  # scalar, same for all
     deterministic = L_inf - (L_inf - old_size) * decay
 
-    # Growth noise: multiplicative log-normal (daily-scaled σ)
-    sigma_daily = 2.0 / np.sqrt(365.0)
-    noise = np.exp(rng.normal(0.0, sigma_daily * _INV_365, size=n))
+    # Growth noise: multiplicative log-normal, σ_step = 0.15/√365 ≈ 0.00785
+    # so that 365 daily steps compound to σ_annual ≈ 0.15 (matching annual path)
+    sigma_per_step = 0.15 / np.sqrt(365.0)
+    noise = np.exp(rng.normal(0.0, sigma_per_step, size=n))
     # Apply noise to the increment only (not to existing size)
     increment = (deterministic - old_size) * noise
     new_size = old_size + np.maximum(increment, 0.0)
@@ -611,7 +611,6 @@ def annual_reproduction(
     pop_cfg: PopulationSection,
     rng: np.random.Generator,
     sim_day: int = 0,
-    w_od: float = 0.0,  # deprecated, ignored
 ) -> dict:
     """Full annual reproduction: spawning → fertilization → SRS → settlement.
 
@@ -745,27 +744,6 @@ def annual_reproduction(
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════════════
-# LARVAL SOURCE (lightweight count-based dispersal descriptor)
-# ═══════════════════════════════════════════════════════════════════════
-
-@dataclass
-class LarvalSource:
-    """Per-source-node descriptor for count-based larval dispersal.
-
-    Instead of shipping genotype arrays through the C matrix, we store
-    only the larval COUNT and mean cohort metadata.  Genotypes are
-    created at the destination node *after* Beverton-Holt filtering
-    determines how many actually recruit.
-    """
-    source_node: int
-    n_larvae: int          # true larval count (no artificial cap)
-    mean_spawn_day: int    # mean spawn day across accumulated cohorts
-    mean_pld_days: float   # mean pelagic larval duration
-    mean_sst: float        # mean SST at spawning
-
-
-# ═══════════════════════════════════════════════════════════════════════
 # CONTINUOUS SETTLEMENT (daily cohort settlement)
 # ═══════════════════════════════════════════════════════════════════════
 
@@ -801,9 +779,6 @@ def _pop_ready_cohorts(
     return ready
 
 
-# Keep old name as alias for any external callers / tests
-_insort_cohort = _add_cohort
-
 
 def settle_daily_cohorts(
     cohorts: List[LarvalCohort],
@@ -816,7 +791,6 @@ def settle_daily_cohorts(
     node_id: int = 0,
     habitat_area: float = 1e6,
     sim_day: int = 0,
-    w_od: float = 0.0,  # deprecated, ignored
     effects_t: np.ndarray = None,
     effects_c: np.ndarray = None,
     res_slice: slice = None,
@@ -871,7 +845,7 @@ def settle_daily_cohorts(
 
         if pre_filtered:
             # Cohorts from new multi-node spawning flow already have exact genotypes needed
-            n_recruits = cohort.n_competent
+            n_recruits = min(cohort.n_competent, available_slots)
             settler_geno = cohort.genotypes
         else:
             # Original flow: apply settlement cue modifier and Beverton-Holt
@@ -1853,7 +1827,7 @@ class SpatialSimResult:
     yearly_va_tolerance: Optional[np.ndarray] = None
     yearly_va_recovery: Optional[np.ndarray] = None
     yearly_allele_freq_top3: Optional[np.ndarray] = None  # (n_nodes, n_years, 3)
-    yearly_ne_ratio: Optional[np.ndarray] = None
+    yearly_ne_ratio: Optional[np.ndarray] = None  # TODO: allocated but never populated (always zeros); remove once viz code is updated
     # Pre/post-epidemic snapshots per node: shape (n_nodes, N_LOCI)
     pre_epidemic_allele_freq: Optional[np.ndarray] = None
     post_epidemic_allele_freq: Optional[np.ndarray] = None
@@ -2068,7 +2042,7 @@ def run_spatial_simulation(
     yearly_va_t = np.zeros((N, n_years), dtype=np.float64)
     yearly_va_c = np.zeros((N, n_years), dtype=np.float64)
     yearly_allele_freq_top3 = np.zeros((N, n_years, 3), dtype=np.float64)
-    yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)
+    yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)  # TODO: never populated; remove once viz code is updated
 
     # Pre/post-epidemic allele frequency snapshots (n_nodes, N_LOCI)
     from sswd_evoepi.types import N_LOCI as _N_LOCI

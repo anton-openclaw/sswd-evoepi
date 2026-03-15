@@ -266,7 +266,7 @@ def initialize_genotypes_three_trait(
     rng: np.random.Generator,
     target_mean_r: float = 0.15,
     target_mean_t: float = 0.10,
-    target_mean_c: float = 0.08,
+    target_mean_c: float = 0.02,
     beta_a: float = 2.0,
     beta_b: float = 8.0,
     n_resistance: int = N_RESISTANCE_DEFAULT,
@@ -286,7 +286,7 @@ def initialize_genotypes_three_trait(
         rng: Random generator.
         target_mean_r: Target population-mean resistance (default 0.15).
         target_mean_t: Target population-mean tolerance (default 0.10).
-        target_mean_c: Target population-mean recovery (default 0.08).
+        target_mean_c: Target population-mean recovery (default 0.02).
         beta_a: Beta distribution shape a.
         beta_b: Beta distribution shape b.
         n_resistance: Number of resistance loci.
@@ -534,7 +534,7 @@ def compute_additive_variance(
 ) -> float:
     """Compute additive genetic variance V_A for a trait.
 
-    V_A = Σ 2 × e_l² × q_l × (1 − q_l)
+    V_A = Σ e_l² × q_l × (1 − q_l) / 2
 
     Args:
         allele_freq: (N_LOCI,) float64 allele frequencies (full array).
@@ -549,7 +549,7 @@ def compute_additive_variance(
         q = allele_freq[locus_slice]
     else:
         q = allele_freq[:len(effects)]
-    return float(2.0 * np.sum(effects**2 * q * (1.0 - q)))
+    return float(0.5 * np.sum(effects**2 * q * (1.0 - q)))
 
 
 # ═══════════════════════════════════════════════════════════════════════

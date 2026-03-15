@@ -166,7 +166,7 @@ def spawning_step(
         - Updates agents['has_spawned'] (spawning counts/flags)
         - Updates agents['spawn_refractory'] (male refractory timers)
         - Updates agents['spawn_gravity_timer'] (gravity phase timers)
-        - Updates agents['immunosuppression_timer'] (post-spawn immunosuppression)
+        - Updates agents['immunosuppression_timer'] (set on spawning; countdown in main loop)
         - Updates agents['last_spawn_day'] (tracking for future cascade)
     """
     cohorts = []
@@ -224,9 +224,8 @@ def spawning_step(
     gravity_mask = agents['spawn_gravity_timer'] > 0
     agents['spawn_gravity_timer'][gravity_mask] -= 1
     
-    # 2c. Post-spawning immunosuppression timers (Phase 4)
-    immuno_mask = agents['immunosuppression_timer'] > 0
-    agents['immunosuppression_timer'][immuno_mask] -= 1
+    # 2c. Post-spawning immunosuppression timers — decremented in main loop only
+    #     (not here, to avoid double-decrement during spawning season)
     
     # 3. Spontaneous spawning attempts
     spawners_today = []
@@ -899,5 +898,6 @@ def reset_spawning_season(agents: np.ndarray) -> None:
     """
     agents['spawning_ready'][:] = 0
     agents['has_spawned'][:] = 0
+    agents['last_spawn_day'][:] = 0
     # Note: Refractory, gravity, and immunosuppression timers continue
     # counting down as they may extend beyond the spawning season

@@ -24,7 +24,7 @@ from sswd_evoepi.disease import (
     shedding_rate_I2,
     thermal_performance,
     salinity_modifier,
-    K_VBNC,
+    _LEGACY_K_VBNC as K_VBNC,
 )
 
 
