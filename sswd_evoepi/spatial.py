@@ -299,7 +299,7 @@ def construct_larval_connectivity(
     D_L: float = 400.0,
     alpha_self: Optional[np.ndarray] = None,
     barriers: Optional[Dict[Tuple[int, int], float]] = None,
-    r_total: float = 0.02,
+    r_total: float = 0.003,
 ) -> np.ndarray:
     """Construct larval connectivity matrix C.
 
@@ -645,14 +645,14 @@ def build_network(
     D_L: float = 400.0,
     D_P: float = 15.0,
     D_P_max_range: Optional[float] = None,
-    r_total: float = 0.02,
+    r_total: float = 0.003,
     f_out: float = 0.2,
     barriers: Optional[Dict[Tuple[int, int], float]] = None,
     tortuosity: float = 1.5,
     seed: int = 42,
     overwater_npz: Optional[str] = None,
-    alpha_self_fjord: float = 0.30,
-    alpha_self_open: float = 0.10,
+    alpha_self_fjord: float = 0.70,
+    alpha_self_open: float = 0.02,
     alpha_self: Optional[np.ndarray] = None,
 ) -> MetapopulationNetwork:
     """Build a MetapopulationNetwork from node definitions.

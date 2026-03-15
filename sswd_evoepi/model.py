@@ -90,7 +90,6 @@ from sswd_evoepi.spawning import (
 )
 from sswd_evoepi.types import (
     AGENT_DTYPE,
-    ANNUAL_SURVIVAL,
     LarvalCohort,
     N_LOCI,
     N_RECOVERY_DEFAULT,
@@ -181,10 +180,13 @@ def assign_stage(size_mm: float, current_stage: int) -> int:
 # ═══════════════════════════════════════════════════════════════════════
 
 def natural_mortality_prob(stage: int, age: float,
-                           annual_survival: np.ndarray = ANNUAL_SURVIVAL,
+                           annual_survival: np.ndarray = None,
                            senescence_age: float = 50.0,
                            senescence_mortality: float = 0.10) -> float:
     """Annual probability of natural death for one individual."""
+    if annual_survival is None:
+        from sswd_evoepi.config import PopulationSection
+        annual_survival = np.array(PopulationSection().annual_survival, dtype=np.float64)
     base_mort = 1.0 - annual_survival[stage]
     if age > senescence_age:
         extra = senescence_mortality * (age - senescence_age) / 20.0
@@ -1446,6 +1448,7 @@ def run_coupled_simulation(
                         cfg=dis_cfg,
                         rng=rng,
                         pe_cfg=pe_cfg,
+                        tau_max=gen_cfg.tau_max,
                     )
                     new_deaths = node_disease.cumulative_deaths - deaths_before
                     cumulative_disease_deaths += new_deaths
@@ -2317,6 +2320,7 @@ def run_spatial_simulation(
                     pe_cfg=pe_cfg,
                     disease_reached=disease_reached[i],
                     T_vbnc_local=_T_vbnc_local_i,
+                    tau_max=gen_cfg.tau_max,
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before

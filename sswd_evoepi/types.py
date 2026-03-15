@@ -261,15 +261,11 @@ class NodeSnapshot:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# ANNUAL SURVIVAL (by stage)
+# ANNUAL SURVIVAL — DEPRECATED
 # ═══════════════════════════════════════════════════════════════════════
-
-# Annual survival probabilities indexed by Stage enum value
-# Stage 0 (EGG_LARVA) is a placeholder — larvae are LarvalCohorts, not agents
-ANNUAL_SURVIVAL = np.array([
-    0.001,   # EGG_LARVA (placeholder; handled by larval module)
-    0.03,    # SETTLER: 3% annual survival (Sewell & Watson / Miner 2018)
-    0.90,    # JUVENILE
-    0.95,    # SUBADULT
-    0.98,    # ADULT
-], dtype=np.float64)
+# Single source of truth is config.population.annual_survival.
+# This constant is retained only for backward-compatible imports in
+# tests and viz code.  It mirrors the PopulationSection defaults.
+from sswd_evoepi.config import PopulationSection as _PopSection
+ANNUAL_SURVIVAL = np.array(_PopSection().annual_survival, dtype=np.float64)
+del _PopSection

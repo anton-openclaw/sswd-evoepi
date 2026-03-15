@@ -424,7 +424,8 @@ def plot_survival_curves(
     Returns:
         matplotlib Figure.
     """
-    from sswd_evoepi.types import ANNUAL_SURVIVAL
+    from sswd_evoepi.config import PopulationSection
+    _annual_survival = np.array(PopulationSection().annual_survival, dtype=np.float64)
 
     fig, ax = pub_figure()
 
@@ -438,7 +439,7 @@ def plot_survival_curves(
               STAGE_COLORS['subadult'], STAGE_COLORS['adult']]
 
     for name, si, color in zip(stage_names, stage_indices, colors):
-        annual_s = float(ANNUAL_SURVIVAL[si])
+        annual_s = float(_annual_survival[si])
         survival = annual_s ** years
         ax.plot(years, survival, color=color, linewidth=2.5, label=name)
 

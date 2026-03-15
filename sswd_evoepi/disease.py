@@ -476,7 +476,7 @@ def compute_R0(
         R₀ estimate.
     """
     if tau_max is None:
-        tau_max = cfg.tau_max
+        tau_max = 0.85  # default from GeneticsSection
 
     sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
     suscept = (1.0 - mean_resistance) * sal_mod
@@ -800,6 +800,7 @@ def daily_disease_update(
     pe_cfg: "PathogenEvolutionSection | None" = None,
     disease_reached: bool = True,
     T_vbnc_local: float = None,
+    tau_max: float = 0.85,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -1087,7 +1088,7 @@ def daily_disease_update(
                 rates = np.full(len(i1_idx), mu_I2D * v_mult_kill)
             # Tolerance → longer I₂ timer
             t_arr = agents['tolerance'][i1_idx].astype(np.float64)
-            effective_rates = rates * (1.0 - t_arr * cfg.tau_max)
+            effective_rates = rates * (1.0 - t_arr * tau_max)
             effective_rates = np.maximum(effective_rates, rates * 0.05)
             dt_rem[i1_idx] = batch_sample_stage_duration(
                 effective_rates, K_SHAPE_I2, rng,
