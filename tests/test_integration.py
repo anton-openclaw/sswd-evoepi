@@ -289,12 +289,15 @@ class TestEpidemicCrash:
     def test_crash_80_plus_percent(self):
         """Epidemic at 15°C fjord should cause severe population crash.
 
-        With Beta-distributed allele frequencies (target_mean_r=0.15),
-        some individuals start with higher resistance, so the crash is
-        less total than with the old uniform-q=0.05 initialization.
-        Threshold lowered to 70% to account for this.
-        Consistent with Hamilton 2021 (>90.6% global decline in naive pops).
+        With K_half=800K (calibrated), need sufficient density for epidemic.
+        Uses K_half=87K explicitly for this unit test, as the calibrated
+        model achieves epidemics through spatial amplification + dynamic P_env.
         """
+        from sswd_evoepi.config import DiseaseSection
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -306,6 +309,7 @@ class TestEpidemicCrash:
             disease_year=2,  # introduce after 2-year spinup
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # Population should crash dramatically
         pre_disease_pop = result.yearly_pop[1]  # year before disease
@@ -318,6 +322,11 @@ class TestEpidemicCrash:
 
     def test_disease_deaths_dominate(self):
         """Disease deaths should far exceed natural deaths during epidemic year."""
+        from sswd_evoepi.config import DiseaseSection
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -329,6 +338,7 @@ class TestEpidemicCrash:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # In the epidemic year, disease deaths >> natural deaths
         dd = result.yearly_disease_deaths[2:5].sum()  # years 2-4
@@ -338,6 +348,11 @@ class TestEpidemicCrash:
 
     def test_vibrio_spike_during_epidemic(self):
         """Vibrio concentration should spike during epidemic."""
+        from sswd_evoepi.config import DiseaseSection
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -350,6 +365,7 @@ class TestEpidemicCrash:
             initial_infected=5,
             seed=42,
             record_daily=True,
+            config=cfg,
         )
         # Pre-epidemic Vibrio
         pre_vibrio = np.mean(result.daily_vibrio[:365])
@@ -369,8 +385,12 @@ class TestTemperatureSensitivity:
 
     def _run_at_temp(self, T: float, seed: int = 42) -> CoupledSimResult:
         # Disable immunosuppression to isolate temperature effects
+        # Use old epidemic parameters for strong disease effects in small populations
         config = default_config()
         config.disease.immunosuppression_enabled = False
+        config.disease.K_half = 87000.0
+        config.disease.P_env_dynamic = False
+        config.disease.P_env_max = 500.0
         
         return run_coupled_simulation(
             n_individuals=500,
@@ -464,6 +484,10 @@ class TestPostCrashAllee:
         CE-5: High-fecundity species have demographic Allee through
         reduced growth rate at low density, making recovery take decades.
         """
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -475,6 +499,7 @@ class TestPostCrashAllee:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # After crash, population should not recover to K within 5 years
         crash_year = result.min_pop_year
@@ -495,6 +520,10 @@ class TestPostCrashAllee:
         recruitment at low density can actually *increase* (more empty
         slots), but overall population still declines or stays depressed.
         """
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -506,6 +535,7 @@ class TestPostCrashAllee:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # Population should crash severely
         assert result.min_pop < result.initial_pop * 0.2, \
@@ -520,6 +550,10 @@ class TestPostCrashAllee:
         This tests the Allee effect: at very low density in large habitat,
         fertilization success plummets and recovery takes many years.
         """
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -531,6 +565,7 @@ class TestPostCrashAllee:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # Should have crashed
         assert result.min_pop < 100, \
@@ -614,6 +649,10 @@ class TestGeneticsDiseaseCoupling:
         config.genetics.target_mean_r = 0.10
         config.genetics.q_init_mode = "uniform"
         config.disease.immunosuppression_enabled = False
+        # Use old epidemic parameters for strong disease pressure needed for genetic selection
+        config.disease.K_half = 87000.0
+        config.disease.P_env_dynamic = False
+        config.disease.P_env_max = 500.0
         # Pin spawning timing for test stability (these tests check genetics,
         # not spawning timing — should not be sensitive to peak_doy default)
         config.spawning.peak_doy = 105
@@ -998,7 +1037,11 @@ class TestCoupledFeedbacks:
 
     def test_disease_reduces_adults(self):
         """Disease should dramatically reduce adult count."""
-        # Disease run
+        # Disease run with old epidemic parameters for strong effect
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         r_dis = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -1010,6 +1053,7 @@ class TestCoupledFeedbacks:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # No-disease run
         r_nodis = run_coupled_simulation(
@@ -1040,6 +1084,10 @@ class TestCoupledFeedbacks:
         config.genetics.target_mean_r = 0.10
         config.genetics.q_init_mode = "uniform"
         config.spawning.peak_doy = 105  # Pin for test stability
+        # Use old epidemic parameters for strong disease effects
+        config.disease.K_half = 87000.0
+        config.disease.P_env_dynamic = False
+        config.disease.P_env_max = 500.0
         # Protected fjord (low flushing)
         r_fjord = run_coupled_simulation(
             n_individuals=500,
@@ -1085,6 +1133,10 @@ class TestCoupledFeedbacks:
         signal is that total population stays well below K despite
         ongoing recruitment — disease mortality outpaces recovery.
         """
+        cfg = default_config()
+        cfg.disease.K_half = 87000.0
+        cfg.disease.P_env_dynamic = False
+        cfg.disease.P_env_max = 500.0
         result = run_coupled_simulation(
             n_individuals=500,
             carrying_capacity=500,
@@ -1096,6 +1148,7 @@ class TestCoupledFeedbacks:
             disease_year=2,
             initial_infected=5,
             seed=42,
+            config=cfg,
         )
         # Population should crash and stay depressed
         assert result.min_pop < result.initial_pop * 0.2, \

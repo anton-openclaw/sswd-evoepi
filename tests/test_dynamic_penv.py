@@ -34,8 +34,8 @@ from sswd_evoepi.disease import (
 
 @pytest.fixture
 def cfg_static() -> DiseaseSection:
-    """Static P_env config (default, backward compatible)."""
-    return DiseaseSection()
+    """Static P_env config for backward-compatibility tests."""
+    return DiseaseSection(P_env_dynamic=False, P_env_max=500.0, P_env_floor=50.0)
 
 
 @pytest.fixture
@@ -366,25 +366,25 @@ class TestWarmVsColdDifferential:
 class TestConfigDefaults:
     """P_env_dynamic defaults to False, verify all defaults."""
 
-    def test_penv_dynamic_defaults_false(self):
-        """P_env_dynamic should default to False."""
+    def test_penv_dynamic_defaults_true(self):
+        """P_env_dynamic should default to True (calibrated W201)."""
         cfg = DiseaseSection()
-        assert cfg.P_env_dynamic is False
+        assert cfg.P_env_dynamic is True
 
     def test_penv_floor_default(self):
-        """P_env_floor should default to 50.0."""
+        """P_env_floor should default to 500.0 (calibrated W201)."""
         cfg = DiseaseSection()
-        assert cfg.P_env_floor == 50.0
+        assert cfg.P_env_floor == 500.0
 
     def test_alpha_env_default(self):
-        """alpha_env should default to 0.1."""
+        """alpha_env should default to 0.18 (calibrated W201)."""
         cfg = DiseaseSection()
-        assert cfg.alpha_env == 0.1
+        assert cfg.alpha_env == 0.18
 
     def test_delta_env_default(self):
-        """delta_env should default to 0.05."""
+        """delta_env should default to 0.02 (calibrated W201)."""
         cfg = DiseaseSection()
-        assert cfg.delta_env == 0.05
+        assert cfg.delta_env == 0.02
 
     def test_node_state_pool_defaults_zero(self):
         """NodeDiseaseState.P_env_pool should default to 0.0."""
@@ -392,6 +392,6 @@ class TestConfigDefaults:
         assert ns.P_env_pool == 0.0
 
     def test_getattr_backward_compat(self):
-        """getattr with default should work for old configs without P_env_dynamic."""
+        """getattr should work for P_env_dynamic (now defaults True)."""
         cfg = DiseaseSection()
-        assert getattr(cfg, 'P_env_dynamic', False) is False
+        assert getattr(cfg, 'P_env_dynamic', False) is True

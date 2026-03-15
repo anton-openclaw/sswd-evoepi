@@ -47,13 +47,19 @@ def _make_node_state(T_vbnc_local: float = 12.0) -> NodeDiseaseState:
 class TestAdaptationDisabled:
     """When pathogen_adaptation=False, T_vbnc_local should never change."""
 
-    def test_adaptation_disabled_by_default(self):
-        cfg = DiseaseSection()  # pathogen_adaptation=False by default
+    def test_adaptation_enabled_by_default(self):
+        """Default config now has pathogen_adaptation=True (calibrated W201)."""
+        cfg = DiseaseSection()
+        assert cfg.pathogen_adaptation is True
+
+    def test_adaptation_disabled_explicit(self):
+        """Explicitly disabled pathogen_adaptation should not change T_vbnc_local."""
+        cfg = DiseaseSection(pathogen_adaptation=False)
         nds = _make_node_state(12.0)
         adapt_pathogen_thermal(nds, T_celsius=8.0, P_env_pool=1000.0, cfg=cfg)
         assert nds.T_vbnc_local == 12.0
 
-    def test_adaptation_disabled_explicit(self):
+    def test_adaptation_disabled_with_helper(self):
         cfg = _make_cfg(pathogen_adaptation=False)
         nds = _make_node_state(12.0)
         adapt_pathogen_thermal(nds, T_celsius=5.0, P_env_pool=1000.0, cfg=cfg)

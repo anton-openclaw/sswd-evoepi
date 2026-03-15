@@ -61,7 +61,7 @@ def load_sites() -> List[dict]:
 
 
 def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
-                    seed: int = 42, n_connectivity: float = 1.0) -> List[NodeDefinition]:
+                    seed: int = 42, n_connectivity: float = 0.3) -> List[NodeDefinition]:
     """Build NodeDefinition list from site JSON.
 
     Args:
@@ -151,7 +151,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
 
 def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        D_P: float = 15.0, D_P_max_range: float = None,
-                       K_cv: float = 0.0, n_connectivity: float = 1.0,
+                       K_cv: float = 0.0, n_connectivity: float = 0.3,
                        alpha_self_open: float = 0.05,
                        alpha_self_fjord: float = 0.50,
                        r_total: float = 0.02):
@@ -741,7 +741,7 @@ def main():
     D_P = param_overrides.pop('spatial.D_P', 15.0)
     D_P_max_range = param_overrides.pop('spatial.D_P_max_range', None)
     D_L = param_overrides.pop('spatial.D_L', args.D_L)
-    n_connectivity = float(param_overrides.pop('spatial.n_connectivity', 1.0))
+    n_connectivity = float(param_overrides.pop('spatial.n_connectivity', 0.3))
     alpha_self_open = float(param_overrides.pop('spatial.alpha_self_open', 0.05))
     alpha_self_fjord = float(param_overrides.pop('spatial.alpha_self_fjord', 0.50))
     r_total = float(param_overrides.pop('spatial.r_total', 0.02))

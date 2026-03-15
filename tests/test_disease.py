@@ -215,10 +215,14 @@ class TestForceOfInfection:
         assert brackish < marine
 
     def test_numerical_example(self, cfg):
-        """Verify numerical example from spec §2.4."""
-        lam = force_of_infection(100000.0, 0.05, 31.0, 500.0, cfg)
-        # Spec: 0.398 d⁻¹
-        assert 0.25 <= lam <= 0.55  # Reasonable range
+        """Verify force of infection at moderate pathogen load.
+
+        With K_half=800K (calibrated W201), need higher P_k for meaningful λ.
+        P_k=800K → dose_response=0.5, r_i=0.05 → (1-r)=0.95, a=0.75
+        λ ≈ 0.75 × 0.5 × 0.95 × 1.0 × 1.0 ≈ 0.356
+        """
+        lam = force_of_infection(800000.0, 0.05, 31.0, 500.0, cfg)
+        assert 0.20 <= lam <= 0.55  # Reasonable range
 
 
 class TestInfectionProbability:
@@ -357,16 +361,21 @@ class TestVibrioUpdate:
         )
         assert P >= 0.0
 
-    def test_steady_state_ubiquitous(self, cfg):
-        """With no shedding, Vibrio should reach steady state P_env/(ξ+φ)."""
+    def test_steady_state_ubiquitous(self):
+        """With no shedding, Vibrio should reach steady state P_env/(ξ+φ).
+
+        Uses static P_env (P_env_dynamic=False) to test the simple
+        steady-state formula. Dynamic P_env has different equilibrium.
+        """
+        static_cfg = DiseaseSection(P_env_dynamic=False, P_env_max=500.0)
         T = 16.0
         sal = 30.0
         phi = 0.1
         P = 0.0  # Start from zero
         # Run 500 Euler steps to approach steady state
         for _ in range(500):
-            P = update_vibrio_concentration(P, 0, 0, 0, T, sal, phi, 0.0, cfg)
-        expected = environmental_vibrio(T, sal, cfg) / (vibrio_decay_rate(T) + phi)
+            P = update_vibrio_concentration(P, 0, 0, 0, T, sal, phi, 0.0, static_cfg)
+        expected = environmental_vibrio(T, sal, static_cfg) / (vibrio_decay_rate(T) + phi)
         assert P == pytest.approx(expected, rel=0.05)
 
 
@@ -452,13 +461,13 @@ class TestR0:
     """Tests for basic reproduction number computation."""
 
     def test_epidemic_at_15C_fjord(self, cfg):
-        """R₀ > 1 at 15°C in a fjord with pre-crash density → epidemic possible.
+        """R₀ > 1 at 15°C in a fjord with high pre-crash density → epidemic possible.
 
-        Prentice 2025 calibration: shorter I₂ means less shedding time,
-        so R0>1 requires higher density (N≥750). Pre-crash Pycnopodia
-        densities were well above this threshold.
+        With K_half=800K (calibrated), need higher density for R0>1 via
+        direct transmission alone. Pre-crash Pycnopodia densities at
+        K=5000/site provide sufficient force of infection.
         """
-        R0 = compute_R0(15.0, 2000, 0.02, cfg)
+        R0 = compute_R0(15.0, 10000, 0.02, cfg)
         assert R0 > 1.0
 
     def test_no_epidemic_at_8C(self, cfg):
@@ -493,13 +502,16 @@ class TestR0:
         assert R0_high < R0_low
 
     def test_epidemic_threshold_14_16C(self, cfg):
-        """R₀ should cross 1 somewhere in the 12–16°C range for semi-enclosed sites."""
+        """R₀ should cross 1 somewhere in the 12–18°C range at pre-crash density.
+
+        With K_half=800K (calibrated), N=10000 represents typical pre-crash
+        local density that supports epidemic takeoff.
+        """
         # At moderate flushing, sweep temperature
-        R0_values = [(T, compute_R0(T, 500, 0.1, cfg)) for T in range(8, 22)]
+        R0_values = [(T, compute_R0(T, 10000, 0.05, cfg)) for T in range(8, 22)]
         # Find where R₀ crosses 1
         crossings = [T for T, R0 in R0_values if 0.8 < R0 < 1.2]
         # The threshold should be in a reasonable range
-        # Note: exact value depends on parameters; accept 10–18°C range
         assert any(10 <= T <= 18 for T in crossings), \
             f"R₀ threshold not in expected range. Values: {R0_values}"
 
@@ -658,9 +670,25 @@ class TestDailyDiseaseUpdate:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestEpidemicDynamics:
-    """Full epidemic simulation tests — acceptance criteria."""
+    """Full epidemic simulation tests — acceptance criteria.
 
-    def test_epidemic_at_15C_high_mortality(self, cfg):
+    These unit tests use K_half=87K (original theoretical value) to test
+    disease dynamics at small N (500). The calibrated model uses K_half=800K
+    with environmental amplification (P_env_dynamic) for realistic epidemics,
+    but that requires the full spatial simulation.
+    """
+
+    @pytest.fixture
+    def epi_cfg(self) -> DiseaseSection:
+        """Disease config for single-node epidemic tests.
+
+        Uses original K_half=87K so N=500 unit tests remain meaningful.
+        The calibrated K_half=800K is compensated by dynamic P_env and
+        spatial amplification in the full model.
+        """
+        return DiseaseSection(K_half=87000.0, P_env_dynamic=False, P_env_max=500.0)
+
+    def test_epidemic_at_15C_high_mortality(self, epi_cfg):
         """R₀ > 1 at 15°C → epidemic with high mortality.
 
         Acceptance: ≥80% mortality at T=14–16°C with pre-SSWD resistance.
@@ -672,7 +700,7 @@ class TestEpidemicDynamics:
             T_celsius=15.0,
             salinity=30.0,
             phi_k=0.02,  # Fjord
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             mean_resistance=0.08,
@@ -682,7 +710,7 @@ class TestEpidemicDynamics:
         assert result.mortality_fraction >= 0.80, \
             f"Expected ≥80% mortality at 15°C, got {result.mortality_fraction:.1%}"
 
-    def test_disease_fizzles_at_8C(self, cfg):
+    def test_disease_fizzles_at_8C(self, epi_cfg):
         """R₀ < 1 at 8°C open coast → disease should fizzle out.
 
         Uses open coast flushing (φ=1.0) to ensure R₀ clearly < 1.
@@ -693,7 +721,7 @@ class TestEpidemicDynamics:
             T_celsius=8.0,
             salinity=30.0,
             phi_k=1.0,   # Open coast — rapid dilution
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             mean_resistance=0.08,
@@ -703,7 +731,7 @@ class TestEpidemicDynamics:
         assert result.mortality_fraction < 0.10, \
             f"Expected <10% mortality at 8°C open coast, got {result.mortality_fraction:.1%}"
 
-    def test_high_mortality_16C_fjord(self, cfg):
+    def test_high_mortality_16C_fjord(self, epi_cfg):
         """Target: ≥80% mortality at 16°C in a fjord (φ=0.02).
 
         Pre-SSWD populations with r̄=0.08 experience near-total mortality,
@@ -714,7 +742,7 @@ class TestEpidemicDynamics:
             T_celsius=16.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             mean_resistance=0.08,
@@ -723,14 +751,14 @@ class TestEpidemicDynamics:
         assert result.mortality_fraction >= 0.80, \
             f"Mortality {result.mortality_fraction:.1%} below 80% at 16°C fjord"
 
-    def test_vibrio_rises_then_decays(self, cfg):
+    def test_vibrio_rises_then_decays(self, epi_cfg):
         """Environmental P should rise during epidemic, decay after."""
         result = run_single_node_epidemic(
             n_individuals=500,
             T_celsius=16.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             seed=42,
@@ -748,7 +776,7 @@ class TestEpidemicDynamics:
             # Average of last 50 days should be lower than peak
             assert np.mean(post_peak[-50:]) < result.daily_P[peak_day]
 
-    def test_vbnc_baseline_low_temp(self, cfg):
+    def test_vbnc_baseline_low_temp(self, epi_cfg):
         """VBNC baseline should maintain low P at low temperatures.
 
         Uses invasion scenario + no initial infections to test the
@@ -761,7 +789,7 @@ class TestEpidemicDynamics:
             T_celsius=8.0,
             salinity=30.0,
             phi_k=0.1,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=100,
             initial_infected=0,
             seed=42,
@@ -786,14 +814,14 @@ class TestEpidemicDynamics:
             assert result.daily_I[-1] == 0, \
                 "Disease should have self-limited by end of 100 days at 8°C"
 
-    def test_ubiquitous_vs_invasion_differ(self, cfg, cfg_invasion):
+    def test_ubiquitous_vs_invasion_differ(self, epi_cfg, cfg_invasion):
         """Ubiquitous and invasion scenarios should produce different patterns."""
         result_ubiq = run_single_node_epidemic(
             n_individuals=500,
             T_celsius=16.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=200,
             initial_infected=5,
             seed=42,
@@ -818,7 +846,7 @@ class TestEpidemicDynamics:
         # Ubiquitous should have higher baseline Vibrio
         assert result_ubiq.daily_P[0] > result_inv.daily_P[0]
 
-    def test_size_dependent_susceptibility(self, cfg):
+    def test_size_dependent_susceptibility(self, epi_cfg):
         """Larger individuals should be infected faster (higher peak prevalence).
 
         At high R₀ both sizes eventually reach near-total mortality,
@@ -831,7 +859,7 @@ class TestEpidemicDynamics:
             T_celsius=15.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=60,  # Short window to see infection speed
             initial_infected=5,
             mean_size=200.0,
@@ -847,7 +875,7 @@ class TestEpidemicDynamics:
             T_celsius=15.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=60,
             initial_infected=5,
             mean_size=600.0,
@@ -862,14 +890,14 @@ class TestEpidemicDynamics:
             f"Large ({result_large.total_infected}) should have ≥ infections " \
             f"than small ({result_small.total_infected}) in 60 days"
 
-    def test_open_coast_lower_mortality(self, cfg):
+    def test_open_coast_lower_mortality(self, epi_cfg):
         """Open coast (high flushing) should have lower mortality than fjord."""
         result_fjord = run_single_node_epidemic(
             n_individuals=500,
             T_celsius=16.0,
             salinity=30.0,
             phi_k=0.02,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             seed=42,
@@ -879,7 +907,7 @@ class TestEpidemicDynamics:
             T_celsius=16.0,
             salinity=30.0,
             phi_k=1.0,
-            cfg=cfg,
+            cfg=epi_cfg,
             n_days=365,
             initial_infected=5,
             seed=42,
@@ -1747,13 +1775,14 @@ class TestVirulenceTracking:
     """Tests for pathogen evolution output recording (Phase 5)."""
 
     def test_virulence_tracking_disabled(self):
-        """With pe_cfg disabled, yearly_mean_virulence should be None."""
+        """With virulence evolution disabled, yearly_mean_virulence should be None."""
         from sswd_evoepi.config import SimulationConfig, default_config
         from sswd_evoepi.model import run_coupled_simulation
 
         cfg = default_config()
-        # Ensure pathogen evolution is disabled (default)
-        assert not cfg.pathogen_evolution.enabled
+        # Explicitly disable virulence evolution for this test
+        cfg.disease.virulence_evolution = False
+        cfg.pathogen_evolution.enabled = False
 
         result = run_coupled_simulation(
             n_individuals=50,

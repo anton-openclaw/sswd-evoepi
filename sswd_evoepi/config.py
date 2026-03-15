@@ -55,9 +55,9 @@ class SpatialSection:
     D_L: float = 400.0           # Larval dispersal scale (km)
     D_P: float = 15.0            # Pathogen dispersal scale (km)
     D_P_max_range: float = 50.0  # Maximum pathogen dispersal range (km); cutoff for D matrix
-    r_total: float = 0.02        # Total settlement success fraction
-    alpha_self_fjord: float = 0.30   # Larval self-recruitment fraction for fjord nodes
-    alpha_self_open: float = 0.10    # Larval self-recruitment fraction for open coast
+    r_total: float = 0.003       # Total settlement success fraction (calibrated W201)
+    alpha_self_fjord: float = 0.70   # Larval self-recruitment fraction for fjord nodes (calibrated W201)
+    alpha_self_open: float = 0.02    # Larval self-recruitment fraction for open coast (calibrated W201)
 
 
 @dataclass
@@ -138,7 +138,7 @@ class DiseaseSection:
 
     # Transmission
     a_exposure: float = 0.75      # Exposure rate (d⁻¹)
-    K_half: float = 87000.0       # Half-infective dose (bact/mL)
+    K_half: float = 800000.0      # Half-infective dose (bact/mL) (calibrated W201)
 
     # Shedding (field-effective; ERRATA E2)
     sigma_1_eff: float = 5.0      # I₁ shedding (bact/mL/d/host)
@@ -162,15 +162,15 @@ class DiseaseSection:
     rho_rec: float = 0.05         # Base recovery rate (d⁻¹) — no empirical basis
 
     # Environmental pathogen
-    P_env_max: float = 500.0      # Background Vibrio input (bact/mL/d)
+    P_env_max: float = 2000.0     # Background Vibrio input (bact/mL/d) (calibrated W201)
 
     # Temperature
     T_vbnc: float = 12.0          # VBNC midpoint (°C)
-    k_vbnc: float = 1.0           # VBNC sigmoid steepness (°C⁻¹)
+    k_vbnc: float = 2.0           # VBNC sigmoid steepness (°C⁻¹) (calibrated W201)
     T_ref: float = 20.0           # V. pectenicida T_opt (°C)
 
     # Pathogen thermal adaptation
-    pathogen_adaptation: bool = False       # Enable per-node T_vbnc evolution
+    pathogen_adaptation: bool = True        # Enable per-node T_vbnc evolution (calibrated W201)
     T_vbnc_initial: float = 12.0           # Starting VBNC threshold (°C)
     T_vbnc_min: float = 9.0                # Biophysical floor — hard limit on cold adaptation
     #   Justification for T_vbnc_min = 9°C:
@@ -217,22 +217,22 @@ class DiseaseSection:
     invasion_nodes: Optional[List[int]] = None
 
     # Wavefront disease spread (spatial spread from origin)
-    wavefront_enabled: bool = False           # If True, P_env gated per-node; disease spreads as wavefront
-    disease_origin_nodes: Optional[List[int]] = None  # Node IDs where disease starts. None = all nodes (backward compat)
-    activation_threshold: float = 1.0         # Vibrio concentration (bact/mL) that triggers node activation
-    cumulative_dose_threshold: float = 0.0    # Cumulative dispersal dose to trigger activation (0 = disabled, use instantaneous)
+    wavefront_enabled: bool = True            # If True, P_env gated per-node; disease spreads as wavefront (calibrated W201)
+    disease_origin_nodes: Optional[List[int]] = field(default_factory=lambda: [322, 319, 632, 633, 634])  # Channel Islands origin nodes (calibrated W201)
+    activation_threshold: float = 50.0        # Vibrio concentration (bact/mL) that triggers node activation (calibrated W201)
+    cumulative_dose_threshold: float = 1000.0 # Cumulative dispersal dose to trigger activation (calibrated W201)
     dose_decay_rate: float = 0.0              # Daily decay of accumulated dose (0 = no decay; e.g. 0.02 = 2%/day)
-    wavefront_D_P: float = 0.0              # Wavefront dispersal scale (km); 0 = use standard kernel
-    wavefront_D_P_max_range: float = 0.0    # Wavefront dispersal max range (km); 0 = use standard
+    wavefront_D_P: float = 300.0             # Wavefront dispersal scale (km) (calibrated W201)
+    wavefront_D_P_max_range: float = 3000.0 # Wavefront dispersal max range (km) (calibrated W201)
 
     # Dynamic P_env (host-amplified environmental reservoir)
-    P_env_dynamic: bool = False       # Enable dynamic P_env (False = backward compat, uses static P_env_max)
-    P_env_floor: float = 50.0         # Community-maintained vibrio floor (bact/mL/d)
-    alpha_env: float = 0.1            # Fraction of shedding that enters environmental pool
-    delta_env: float = 0.05           # Environmental pool decay rate (d⁻¹), ~14 day half-life
+    P_env_dynamic: bool = True        # Enable dynamic P_env (calibrated W201)
+    P_env_floor: float = 500.0        # Community-maintained vibrio floor (bact/mL/d) (calibrated W201)
+    alpha_env: float = 0.18           # Fraction of shedding that enters environmental pool (calibrated W201)
+    delta_env: float = 0.02           # Environmental pool decay rate (d⁻¹) (calibrated W201)
 
     # Community virulence evolution
-    virulence_evolution: bool = False  # Enable community virulence evolution
+    virulence_evolution: bool = True   # Enable community virulence evolution (calibrated W201)
     v_adapt_rate: float = 0.001       # Rate of virulence drift toward optimum
     v_max_warm: float = 0.7           # Max optimal virulence at warm, dense sites
     T_v_mid: float = 12.0             # Temperature midpoint for virulence constraint
