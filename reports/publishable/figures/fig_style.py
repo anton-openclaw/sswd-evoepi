@@ -1,8 +1,10 @@
 """Shared style and utilities for all publishable figures."""
+import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 import json, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[3]))
 
 # ── Paths ──────────────────────────────────────────────────────────────
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent.parent  # sswd-evoepi/
@@ -45,12 +47,14 @@ SCENARIO_LABELS = {
     'F04': 'SSP5-8.5, all evo ON',
 }
 
-# ── Region ordering (N→S) ─────────────────────────────────────────────
-REGIONS_NS = [
-    'AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS',
-    'BC-N', 'BC-C', 'SS-N', 'SS-S', 'JDF', 'WA-O', 'OR',
-    'CA-N', 'CA-C', 'CA-S', 'BJ',
-]
+# CENTRALIZED: moved to sswd_evoepi.results
+from sswd_evoepi.results import REGION_ORDER
+REGIONS_NS = REGION_ORDER
+# REGIONS_NS = [
+#     'AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS',
+#     'BC-N', 'BC-C', 'SS-N', 'SS-S', 'JDF', 'WA-O', 'OR',
+#     'CA-N', 'CA-C', 'CA-S', 'BJ',
+# ]
 KEY_REGIONS = ['AK-PWS', 'AK-FN', 'BC-N', 'OR', 'CA-C', 'CA-S']
 
 SEEDS = [42, 123, 999]

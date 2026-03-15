@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Generate all figures for the W154 calibration report."""
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import json
 import matplotlib
@@ -9,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 import matplotlib.ticker as mticker
 from scipy.interpolate import UnivariateSpline
+from sswd_evoepi.metrics import RECOVERY_TARGETS
 
 plt.style.use('seaborn-v0_8-whitegrid')
 
@@ -32,10 +36,12 @@ K = 5000
 regions_order = ['AK-WG','AK-AL','AK-OC','AK-EG','AK-PWS','AK-FN','AK-FS',
                  'BC-N','BC-C','SS-N','SS-S','JDF','WA-O','OR','CA-N','CA-C','CA-S','BJ']
 
-targets = {
-    'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
-    'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+targets = RECOVERY_TARGETS
+# targets = {
+#     'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
+#     'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
+# }
 
 # Build site → region mapping
 site_names = npz_data[42]['site_names']

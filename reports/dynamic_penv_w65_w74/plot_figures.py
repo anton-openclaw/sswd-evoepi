@@ -2,12 +2,16 @@
 """Generate figures for Dynamic P_env calibration report (W65-W74)."""
 
 import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import matplotlib.ticker as mticker
+from sswd_evoepi.metrics import RECOVERY_TARGETS
 
 # Load data
 with open("/tmp/w65_w74_all_data.json") as f:
@@ -17,9 +21,10 @@ OUT = "/home/starbot/.openclaw/workspace/sswd-evoepi/reports/dynamic_penv_w65_w7
 import os
 os.makedirs(OUT, exist_ok=True)
 
-# Targets
-targets = {"AK-PWS": 0.50, "AK-FN": 0.50, "AK-FS": 0.20, "BC-N": 0.20,
-           "SS-S": 0.05, "JDF": 0.02, "OR": 0.0025, "CA-N": 0.001}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+targets = RECOVERY_TARGETS
+# targets = {"AK-PWS": 0.50, "AK-FN": 0.50, "AK-FS": 0.20, "BC-N": 0.20,
+#            "SS-S": 0.05, "JDF": 0.02, "OR": 0.0025, "CA-N": 0.001}
 
 scored_regions = ["AK-PWS", "AK-FN", "AK-FS", "BC-N", "SS-S", "JDF", "OR", "CA-N"]
 years = np.arange(2012, 2025)  # 13 years

@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # Configuration
 BASE_DIR = Path('/home/starbot/.openclaw/workspace/sswd-evoepi')
@@ -37,17 +38,19 @@ CONFIGS = {
     'W114': {'s0': 0.001, 'v_adapt': 0.001, 'v_max': None, 'vir_evo': False, 'rmse': 0.690},
 }
 
-# Calibration targets from Willem's expert estimates
-TARGETS = {
-    'AK-PWS': 0.50,
-    'AK-FN': 0.50,
-    'AK-FS': 0.20,
-    'BC-N': 0.20,
-    'SS-S': 0.05,
-    'JDF': 0.02,
-    'OR': 0.0025,
-    'CA-N': 0.001
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+from sswd_evoepi.metrics import RECOVERY_TARGETS
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {
+#     'AK-PWS': 0.50,
+#     'AK-FN': 0.50,
+#     'AK-FS': 0.20,
+#     'BC-N': 0.20,
+#     'SS-S': 0.05,
+#     'JDF': 0.02,
+#     'OR': 0.0025,
+#     'CA-N': 0.001
+# }
 
 # Target regions in order (from north to south roughly)
 TARGET_REGIONS = ['AK-PWS', 'AK-FN', 'AK-FS', 'BC-N', 'SS-S', 'JDF', 'OR', 'CA-N']

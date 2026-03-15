@@ -4,12 +4,14 @@ Generate figures for the SSWD-EvoEpi site enclosedness analysis with fjord depth
 """
 
 import json
+import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.patches import Rectangle
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -50,7 +52,10 @@ plt.rcParams['savefig.dpi'] = 300
 plt.rcParams['font.size'] = 10
 plt.style.use('default')
 
-# Define region ordering (roughly N to S)
+# CENTRALIZED: moved to sswd_evoepi.results (canonical 18-region ordering)
+# NOTE: This file uses a different, more granular region list than the canonical one.
+# Keeping the local version since it includes sub-regions not in the canonical ordering.
+from sswd_evoepi.results import REGION_ORDER as _CANONICAL_REGION_ORDER
 REGION_ORDER = [
     "AK-FN", "AK-PWS", "AK-AL", "AK-BS", "AK-SE", 
     "BC-N", "BC-C", "BC-HG", "BC-S", 

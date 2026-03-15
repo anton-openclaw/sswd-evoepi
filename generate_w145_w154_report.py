@@ -4,27 +4,32 @@ Generate comprehensive LaTeX PDF report for W145-W154 calibration comparison.
 """
 import json
 import os
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from datetime import datetime
+from sswd_evoepi.metrics import RECOVERY_TARGETS
 
 # Configuration
 RESULTS_DIR = "results/calibration"
 REPORT_DIR = "reports/w145_w154_analysis"
 BASELINE_RUN = "W142"
 
-# Calibration targets
-TARGETS = {
-    "AK-PWS": 0.50,
-    "AK-FN": 0.50,
-    "AK-FS": 0.20,
-    "BC-N": 0.20,
-    "SS-S": 0.05,
-    "JDF": 0.02,
-    "OR": 0.0025,
-    "CA-N": 0.001
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {
+#     "AK-PWS": 0.50,
+#     "AK-FN": 0.50,
+#     "AK-FS": 0.20,
+#     "BC-N": 0.20,
+#     "SS-S": 0.05,
+#     "JDF": 0.02,
+#     "OR": 0.0025,
+#     "CA-N": 0.001
+# }
 
 # Target display names 
 TARGET_NAMES = {

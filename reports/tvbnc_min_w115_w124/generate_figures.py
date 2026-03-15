@@ -3,6 +3,9 @@
 
 import json
 import os
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -17,10 +20,13 @@ os.makedirs(FIGDIR, exist_ok=True)
 RUNS = ['W115','W116','W117','W118','W119','W120','W121','W122','W123','W124']
 PREV_RUNS = ['W105','W106','W107','W108','W109','W110']
 
-TARGETS = {
-    'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
-    'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+from sswd_evoepi.metrics import RECOVERY_TARGETS
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {
+#     'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
+#     'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
+# }
 CALIB_REGIONS = list(TARGETS.keys())
 KEY_REGIONS = ['AK-PWS', 'BC-N', 'SS-S', 'CA-N']
 ALL_REGIONS_ORDERED = [

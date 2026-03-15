@@ -2,6 +2,7 @@
 """Generate SSWD-EvoEpi network map with Salish Sea inset panel."""
 
 import json
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -9,6 +10,7 @@ from matplotlib.patches import FancyBboxPatch
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 # --- Paths ---
 BASE = Path("/home/starbot/.openclaw/workspace/sswd-evoepi")
@@ -31,12 +33,13 @@ lats = np.array([s.get("lat", s.get("latitude")) for s in sites], dtype=float)
 lons = np.array([s.get("lon", s.get("longitude")) for s in sites], dtype=float)
 regions = np.array([s["region"] for s in sites])
 
-# --- Region order and colormap ---
-REGION_ORDER = [
-    "AK-AL", "AK-WG", "AK-PWS", "AK-EG", "AK-OC", "AK-FN", "AK-FS",
-    "BC-N", "BC-C", "SS-N", "SS-S", "JDF", "WA-O", "OR",
-    "CA-N", "CA-C", "CA-S", "BJ"
-]
+# CENTRALIZED: moved to sswd_evoepi.results
+from sswd_evoepi.results import REGION_ORDER
+# REGION_ORDER = [
+#     "AK-AL", "AK-WG", "AK-PWS", "AK-EG", "AK-OC", "AK-FN", "AK-FS",
+#     "BC-N", "BC-C", "SS-N", "SS-S", "JDF", "WA-O", "OR",
+#     "CA-N", "CA-C", "CA-S", "BJ"
+# ]
 
 cmap = plt.cm.tab20
 region_colors = {r: cmap(i / len(REGION_ORDER)) for i, r in enumerate(REGION_ORDER)}

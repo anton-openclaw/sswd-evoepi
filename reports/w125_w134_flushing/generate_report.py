@@ -8,16 +8,20 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pathlib import Path
 import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 BASE = Path('/home/starbot/.openclaw/workspace/sswd-evoepi')
 RESULTS = BASE / 'results' / 'calibration'
 FIGURES = BASE / 'reports' / 'w125_w134_flushing' / 'figures'
 FIGURES.mkdir(parents=True, exist_ok=True)
 
-TARGETS = {
-    'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
-    'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+from sswd_evoepi.metrics import RECOVERY_TARGETS
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {
+#     'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
+#     'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001
+# }
 TARGET_ORDER = list(TARGETS.keys())
 
 CONFIGS = {

@@ -2,12 +2,16 @@
 """Generate all figures for the W75-W84 calibration report."""
 
 import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import os
+from sswd_evoepi.metrics import RECOVERY_TARGETS
 
 # ── Configuration ──────────────────────────────────────────────────────────
 REPORT_DIR = '/home/starbot/.openclaw/workspace/sswd-evoepi/reports/khalf_sweep_w75_w84'
@@ -16,8 +20,10 @@ os.makedirs(FIG_DIR, exist_ok=True)
 
 YEARS = list(range(2012, 2025))  # 13 years
 TARGET_REGIONS = ['AK-PWS', 'AK-FN', 'AK-FS', 'BC-N', 'SS-S', 'JDF', 'OR', 'CA-N']
-TARGETS = {'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
-           'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {'AK-PWS': 0.50, 'AK-FN': 0.50, 'AK-FS': 0.20, 'BC-N': 0.20,
+#            'SS-S': 0.05, 'JDF': 0.02, 'OR': 0.0025, 'CA-N': 0.001}
 TARGET_PCT = {k: v*100 for k, v in TARGETS.items()}
 
 REGION_COLORS = {

@@ -5,12 +5,14 @@ Generates figures and analysis for the first calibration batch.
 """
 
 import json
+import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -19,17 +21,19 @@ DATA_DIR = Path("/home/starbot/.openclaw/workspace/sswd-evoepi/data/calibration"
 OUTPUT_DIR = Path("/home/starbot/.openclaw/workspace/sswd-evoepi/reports/calibration_r1/figures")
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-# Target regions and their expert estimates
-TARGETS = {
-    'AK-PWS': 0.50,  # 50%
-    'AK-FN': 0.50,   # 50%
-    'AK-FS': 0.20,   # 20%
-    'BC-N': 0.20,    # 20%
-    'SS-S': 0.05,    # 5%
-    'JDF': 0.02,     # 2%
-    'OR': 0.0025,    # 0.25%
-    'CA-N': 0.001    # 0.1%
-}
+# CENTRALIZED: moved to sswd_evoepi.metrics
+from sswd_evoepi.metrics import RECOVERY_TARGETS
+TARGETS = RECOVERY_TARGETS
+# TARGETS = {
+#     'AK-PWS': 0.50,  # 50%
+#     'AK-FN': 0.50,   # 50%
+#     'AK-FS': 0.20,   # 20%
+#     'BC-N': 0.20,    # 20%
+#     'SS-S': 0.05,    # 5%
+#     'JDF': 0.02,     # 2%
+#     'OR': 0.0025,    # 0.25%
+#     'CA-N': 0.001    # 0.1%
+# }
 
 REGION_ORDER = list(TARGETS.keys())
 

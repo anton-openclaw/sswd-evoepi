@@ -4,6 +4,9 @@ Extract all F01-F04 forecast data into a clean JSON summary for report generatio
 Reads combined_results.json from each scenario and produces summary_data.json.
 """
 import json
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import os
 
@@ -15,10 +18,12 @@ SCENARIOS = {
     'F04': 'SSP5-8.5 Baseline (all evolution)',
 }
 
-REGION_ORDER = [
-    'AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS',
-    'BC-N', 'BC-C', 'SS-N', 'SS-S', 'JDF', 'WA-O', 'OR', 'CA-N', 'CA-C', 'CA-S', 'BJ'
-]
+# CENTRALIZED: moved to sswd_evoepi.results
+from sswd_evoepi.results import REGION_ORDER
+# REGION_ORDER = [
+#     'AK-AL', 'AK-WG', 'AK-OC', 'AK-EG', 'AK-PWS', 'AK-FN', 'AK-FS',
+#     'BC-N', 'BC-C', 'SS-N', 'SS-S', 'JDF', 'WA-O', 'OR', 'CA-N', 'CA-C', 'CA-S', 'BJ'
+# ]
 
 REGION_LABELS = {
     'AK-AL': 'Alaska - Aleutians',

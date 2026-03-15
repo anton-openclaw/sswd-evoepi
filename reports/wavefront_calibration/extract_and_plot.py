@@ -4,7 +4,10 @@
 import json
 import os
 import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
+from sswd_evoepi.metrics import RECOVERY_TARGETS
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -28,12 +31,13 @@ ROUND_PARAMS = {
     "W04": {"D_P": 200, "D_P_max_range": 700},
 }
 
-# Recovery targets (south to north)
+# CENTRALIZED: moved to sswd_evoepi.metrics
+# RECOVERY_TARGETS imported above from sswd_evoepi.metrics
 RECOVERY_REGIONS = ["CA-N", "OR", "JDF", "SS-S", "BC-N", "AK-FS", "AK-FN", "AK-PWS"]
-RECOVERY_TARGETS = {
-    "CA-N": 0.001, "OR": 0.0025, "JDF": 0.02, "SS-S": 0.05,
-    "BC-N": 0.2, "AK-FS": 0.2, "AK-FN": 0.5, "AK-PWS": 0.5
-}
+# RECOVERY_TARGETS = {
+#     "CA-N": 0.001, "OR": 0.0025, "JDF": 0.02, "SS-S": 0.05,
+#     "BC-N": 0.2, "AK-FS": 0.2, "AK-FN": 0.5, "AK-PWS": 0.5
+# }
 
 # Arrival timing targets (south to north)
 TIMING_REGIONS = [
