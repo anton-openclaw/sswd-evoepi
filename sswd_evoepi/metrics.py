@@ -73,7 +73,7 @@ def rmse_log(
     actual: Dict[str, float],
     targets: Optional[Dict[str, float]] = None,
 ) -> float:
-    """Compute log-space RMSE between actual and target recovery fractions.
+    """Compute log10-space RMSE between actual and target recovery fractions.
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def rmse_log(
     Returns
     -------
     float
-        Root mean squared error in log space.
+        Root mean squared error in log10 space.
     """
     if targets is None:
         targets = RECOVERY_TARGETS
@@ -93,7 +93,7 @@ def rmse_log(
     sq_errors: list[float] = []
     for region, target in targets.items():
         act = actual.get(region, 0.0)
-        log_err = math.log(max(act, _EPS)) - math.log(max(target, _EPS))
+        log_err = math.log10(max(act, _EPS)) - math.log10(max(target, _EPS))
         sq_errors.append(log_err * log_err)
 
     if not sq_errors:
@@ -126,8 +126,8 @@ def score_regions(
     results: Dict[str, dict] = {}
     for region, target in targets.items():
         act = actual.get(region, 0.0)
-        log_act = math.log(max(act, _EPS))
-        log_tgt = math.log(max(target, _EPS))
+        log_act = math.log10(max(act, _EPS))
+        log_tgt = math.log10(max(target, _EPS))
         log_error = log_act - log_tgt
 
         ratio = max(act, _EPS) / max(target, _EPS)
