@@ -140,7 +140,7 @@ class CalibrationData:
         vals = []
         for s in self.seeds:
             if s in self.results.get(config, {}):
-                v = self.results[config][s]['scoring']['rmse_log']
+                v = self.results[config][s]['scoring'].get('rmsle', self.results[config][s]['scoring'].get('rmse_log'))
                 vals.append(v if v is not None and v != float('inf') else np.inf)
             else:
                 vals.append(np.nan)

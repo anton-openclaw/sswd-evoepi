@@ -61,7 +61,7 @@ def format_round(round_dir: Path) -> str:
     if early_stopped:
         lines.append(f"Early-stopped seeds: {early_stopped}/{len(run.seeds)}")
     
-    finite_rmse = [s.rmse_log for s in run.seeds if s.rmse_log != float('inf')]
+    finite_rmse = [s.rmsle for s in run.seeds if s.rmsle != float('inf')]
     mean_rmse_val = np.mean(finite_rmse) if finite_rmse else float('inf')
     mean_crash = np.mean([s.raw['overall']['pop_crash_pct'] for s in run.seeds])
     lines.append(f"Mean RMSE(log): {mean_rmse_val:.3f}" if mean_rmse_val != float('inf') else "Mean RMSE(log): INF")
