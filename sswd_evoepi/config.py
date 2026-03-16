@@ -262,7 +262,7 @@ class GeneticsSection:
     # Per-trait initialization targets
     target_mean_r: float = 0.15   # Population-mean resistance at t=0
     target_mean_t: float = 0.10   # Population-mean tolerance at t=0
-    target_mean_c: float = 0.02   # Population-mean recovery at t=0 — rare standing variation
+    target_mean_c: float = 0.05   # Population-mean recovery at t=0 — increased standing variation
 
     # Tolerance mechanics
     tau_max: float = 0.85         # Max I₂→D mortality reduction at t_i=1

@@ -50,7 +50,8 @@ def load_sites() -> List[dict]:
 
 
 def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
-                    seed: int = 42, n_connectivity: float = 0.3) -> List[NodeDefinition]:
+                    seed: int = 42, n_connectivity: float = 0.3,
+                    phi_open: float = 0.8, phi_fjord: float = 0.03) -> List[NodeDefinition]:
     """Build NodeDefinition list from site JSON.
 
     Args:
@@ -85,9 +86,7 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
     else:
         print("WARNING: site_enclosedness.json not found — using uniform φ=0.5")
 
-    # Connectivity parameters
-    phi_open = 0.8    # flushing rate for fully open coast
-    phi_fjord = 0.03  # flushing rate for maximally enclosed fjord head
+    # Connectivity parameters (phi_open/phi_fjord now passed as arguments)
     n_conn = n_connectivity  # nonlinearity exponent (1=linear, >1=sharper contrast)
 
     node_defs = []
@@ -143,7 +142,9 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        K_cv: float = 0.0, n_connectivity: float = 0.3,
                        alpha_self_open: float = 0.05,
                        alpha_self_fjord: float = 0.50,
-                       r_total: float = 0.02):
+                       r_total: float = 0.02,
+                       phi_open: float = 0.8,
+                       phi_fjord: float = 0.03):
     """Build 896-node network with overwater distances.
 
     alpha_self is computed continuously from enclosedness:
@@ -152,7 +153,8 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
     """
     sites = load_sites()
     node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed,
-                                n_connectivity=n_connectivity)
+                                n_connectivity=n_connectivity,
+                                phi_open=phi_open, phi_fjord=phi_fjord)
     npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
 
     # Compute continuous alpha_self from enclosedness
@@ -705,21 +707,27 @@ def main():
     alpha_self_open = float(param_overrides.pop('spatial.alpha_self_open', 0.05))
     alpha_self_fjord = float(param_overrides.pop('spatial.alpha_self_fjord', 0.50))
     r_total = float(param_overrides.pop('spatial.r_total', 0.02))
+    phi_open = float(param_overrides.pop('spatial.phi_open', 0.8))
+    phi_fjord = float(param_overrides.pop('spatial.phi_fjord', 0.03))
     # Store back so they appear in output metadata
     param_overrides['spatial.n_connectivity'] = n_connectivity
     param_overrides['spatial.alpha_self_open'] = alpha_self_open
     param_overrides['spatial.alpha_self_fjord'] = alpha_self_fjord
     param_overrides['spatial.r_total'] = r_total
+    param_overrides['spatial.phi_open'] = phi_open
+    param_overrides['spatial.phi_fjord'] = phi_fjord
     
     # Build network (once, shared across seeds)
-    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity}, α_self=[{alpha_self_open:.2f},{alpha_self_fjord:.2f}], r_total={r_total})...")
+    print(f"\nBuilding {len(load_sites())}-node network (D_P={D_P}, max_range={D_P_max_range}, n_conn={n_connectivity}, α_self=[{alpha_self_open:.2f},{alpha_self_fjord:.2f}], r_total={r_total}, φ=[{phi_open:.2f},{phi_fjord:.3f}])...")
     t0 = time.time()
     sites, network = build_full_network(K=args.K, seed=seeds[0], D_L=D_L,
                                          D_P=D_P, D_P_max_range=D_P_max_range,
                                          K_cv=K_cv, n_connectivity=n_connectivity,
                                          alpha_self_open=alpha_self_open,
                                          alpha_self_fjord=alpha_self_fjord,
-                                         r_total=r_total)
+                                         r_total=r_total,
+                                         phi_open=phi_open,
+                                         phi_fjord=phi_fjord)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config
