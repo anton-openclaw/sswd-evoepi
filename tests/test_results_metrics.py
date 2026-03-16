@@ -345,7 +345,7 @@ class TestFormatComparisonTable:
         runs = load_sweep(sweep_dir)
         table = format_comparison_table(runs)
         assert "Config" in table
-        assert "RMSE" in table
+        assert "RMSLE" in table
         assert "W1" in table
         assert "W10" in table
 
@@ -358,6 +358,6 @@ class TestQuickScore:
     def test_quick_score(self, sweep_dir):
         result = quick_score(sweep_dir / "W1")
         assert "W1" in result
-        assert "RMSE=" in result
+        assert "RMSLE=" in result
         assert "AK-PWS" in result
         assert "within 2×" in result

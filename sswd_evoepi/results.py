@@ -55,13 +55,18 @@ class SeedResult:
 
     seed: int
     wall_time: float
-    rmse_log: float
+    rmsle: float
     region_recovery: Dict[str, float]
     region_details: Dict[str, dict]
     scoring: dict
     overall: dict
     arrival_timing: dict
     raw: dict = field(repr=False)
+
+    @property
+    def rmse_log(self) -> float:
+        """Backward-compatible alias for rmsle."""
+        return self.rmsle
 
     @classmethod
     def from_json(cls, data: dict) -> SeedResult:
@@ -70,7 +75,7 @@ class SeedResult:
         return cls(
             seed=data.get("seed", 0),
             wall_time=data.get("wall_time_seconds", 0.0),
-            rmse_log=scoring.get("rmse_log", float("inf")),
+            rmsle=scoring.get("rmsle", scoring.get("rmse_log", float("inf"))),
             region_recovery=data.get("region_recovery", {}),
             region_details=data.get("region_details", {}),
             scoring=scoring,
@@ -145,11 +150,15 @@ class RunResult:
         seeds = [SeedResult.from_file(f) for f in files]
         return cls(config_name=config_name, seeds=seeds)
 
-    def mean_rmse(self) -> float:
-        """Mean RMSE (log-space) across seeds."""
+    def mean_rmsle(self) -> float:
+        """Mean RMSLE across seeds."""
         if not self.seeds:
             return float("inf")
-        return float(np.mean([s.rmse_log for s in self.seeds]))
+        return float(np.mean([s.rmsle for s in self.seeds]))
+
+    def mean_rmse(self) -> float:
+        """Backward-compatible alias for mean_rmsle."""
+        return self.mean_rmsle()
 
     def mean_recovery(self, region: str) -> float:
         """Mean recovery fraction for a region across seeds."""

@@ -27,7 +27,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from sswd_evoepi.config import SimulationConfig, default_config, validate_config
 from sswd_evoepi.spatial import NodeDefinition, build_network
 from sswd_evoepi.model import run_spatial_simulation, SpatialSimResult
-from sswd_evoepi.metrics import RECOVERY_TARGETS, ARRIVAL_TARGETS, rmse_log, score_regions
+from sswd_evoepi.metrics import RECOVERY_TARGETS, ARRIVAL_TARGETS, rmsle, rmse_log, score_regions
 
 # ── Paths ─────────────────────────────────────────────────────────────
 SITES_PATH = 'data/nodes/all_sites.json'
@@ -285,12 +285,12 @@ def compute_regional_recovery(result: SpatialSimResult, sites: List[dict]) -> Tu
 def score_against_targets(region_recovery: dict) -> dict:
     """Score using log-space RMSE (targets span 3 orders of magnitude).
 
-    Delegates to sswd_evoepi.metrics.{rmse_log, score_regions} and
+    Delegates to sswd_evoepi.metrics.{rmsle, score_regions} and
     reformats the output into the JSON-compatible dict expected by
     downstream tools (format_results, viz, results.py).
     """
     per_region = score_regions(region_recovery)
-    overall_rmse = rmse_log(region_recovery)
+    overall_rmse = rmsle(region_recovery)
 
     # Build per-region dict with extra fields for JSON compatibility
     scores = {}
@@ -308,7 +308,8 @@ def score_against_targets(region_recovery: dict) -> dict:
 
     return {
         'per_region': scores,
-        'rmse_log': float(overall_rmse),
+        'rmsle': float(overall_rmse),
+        'rmse_log': float(overall_rmse),  # backward compat
         'within_2x': sum(1 for s in scores.values() if s['within_2x']),
         'within_5x': sum(1 for s in scores.values() if s['within_5x']),
         'n_targets': len(scores),
@@ -532,7 +533,8 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
             'seed': seed,
             'wall_time_seconds': float(elapsed),
             'scoring': {
-                'rmse_log': float('inf'),
+                'rmsle': float('inf'),
+                'rmse_log': float('inf'),  # backward compat
                 'within_2x': 0,
                 'within_5x': 0,
                 'n_targets': len(RECOVERY_TARGETS),
@@ -612,11 +614,11 @@ def print_summary(results: List[dict], param_overrides: dict):
             'std': float(np.std(actuals)) if len(actuals) > 1 else 0.0,
         }
     
-    avg_rmse = float(np.mean([r['scoring']['rmse_log'] for r in results]))
+    avg_rmse = float(np.mean([r['scoring'].get('rmsle', r['scoring'].get('rmse_log', float('inf'))) for r in results]))
     avg_crash = float(np.mean([r['overall']['pop_crash_pct'] for r in results]))
     
     print(f"\nOverall crash: {avg_crash:.1f}%")
-    print(f"RMSE(log10):   {avg_rmse:.3f}  (0 = perfect, <0.3 = within 2×)")
+    print(f"RMSLE:   {avg_rmse:.3f}  (0 = perfect, <0.3 = within 2×)")
     
     print(f"\n{'Region':<10s} {'Target':>10s} {'Actual':>12s} {'LogErr':>10s} {'Grade'}")
     print(f"{'-'*50}")
@@ -740,7 +742,7 @@ def main():
         # Save individual result
         with open(output_dir / f'result_seed{seed}.json', 'w') as f:
             json.dump(result, f, indent=2)
-        print(f"  RMSE(log10) = {result['scoring']['rmse_log']:.3f}, "
+        print(f"  RMSLE = {result['scoring'].get('rmsle', result['scoring'].get('rmse_log', float('inf'))):.3f}, "
               f"crash = {result['overall']['pop_crash_pct']:.1f}%, "
               f"time = {result['wall_time_seconds']:.0f}s")
     
@@ -756,7 +758,8 @@ def main():
         'disease_year': args.disease_year,
         'seeds': seeds,
         'results': results,
-        'mean_rmse_log': float(np.mean([r['scoring']['rmse_log'] for r in results])),
+        'mean_rmsle': float(np.mean([r['scoring'].get('rmsle', r['scoring'].get('rmse_log', float('inf'))) for r in results])),
+        'mean_rmse_log': float(np.mean([r['scoring'].get('rmsle', r['scoring'].get('rmse_log', float('inf'))) for r in results])),  # backward compat
     }
     with open(output_dir / 'combined_results.json', 'w') as f:
         json.dump(combined, f, indent=2)

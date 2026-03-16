@@ -17,7 +17,8 @@ from .results import SCORED_REGIONS, RunResult, SeedResult, load_run
 __all__ = [
     "RECOVERY_TARGETS",
     "ARRIVAL_TARGETS",
-    "rmse_log",
+    "rmsle",
+    "rmse_log",  # deprecated alias
     "score_regions",
     "score_run",
     "score_seed",
@@ -69,11 +70,17 @@ _EPS = 1e-6
 # Pure scoring functions (no dependency on dataclasses)
 # ---------------------------------------------------------------------------
 
-def rmse_log(
+def rmsle(
     actual: Dict[str, float],
     targets: Optional[Dict[str, float]] = None,
 ) -> float:
-    """Compute log10-space RMSE between actual and target recovery fractions.
+    """Root Mean Squared Log Error (RMSLE) for recovery fractions.
+
+    Computes RMSE in log10 space:  sqrt(mean((log10(actual) - log10(target))²))
+
+    This is a *ratio* metric: an RMSLE of 0.3 means the average region is
+    off by 10^0.3 ≈ 2× from its target, regardless of absolute scale.
+    Symmetric — being 5× too high penalises the same as being 5× too low.
 
     Parameters
     ----------
@@ -85,7 +92,7 @@ def rmse_log(
     Returns
     -------
     float
-        Root mean squared error in log10 space.
+        Root mean squared log10 error.
     """
     if targets is None:
         targets = RECOVERY_TARGETS
@@ -100,6 +107,10 @@ def rmse_log(
         return float("inf")
 
     return math.sqrt(sum(sq_errors) / len(sq_errors))
+
+
+# Backward-compatible alias (used in old report scripts and result JSONs)
+rmse_log = rmsle
 
 
 def score_regions(
@@ -168,12 +179,13 @@ def _build_score_dict(
         targets = RECOVERY_TARGETS
 
     per_region = score_regions(actual, targets)
-    rmse = rmse_log(actual, targets)
+    rmse = rmsle(actual, targets)
     n_2x = sum(1 for v in per_region.values() if v["within_2x"])
     n_5x = sum(1 for v in per_region.values() if v["within_5x"])
 
     return {
-        "rmse_log": rmse,
+        "rmsle": rmse,
+        "rmse_log": rmse,  # backward compat with existing result JSONs
         "per_region": per_region,
         "within_2x": n_2x,
         "within_5x": n_5x,
@@ -235,7 +247,7 @@ def compare_runs(
     Returns
     -------
     list of dict
-        Each dict has: config, rmse, recovery, within_2x, within_5x, description.
+        Each dict has: config, rmsle, recovery, within_2x, within_5x, description.
     """
     comparisons: list[dict] = []
 
@@ -248,7 +260,8 @@ def compare_runs(
 
         comparisons.append({
             "config": config,
-            "rmse": scored["rmse_log"],
+            "rmsle": scored["rmsle"],
+            "rmse": scored["rmsle"],  # backward compat
             "recovery": recovery,
             "within_2x": scored["within_2x"],
             "within_5x": scored["within_5x"],
@@ -274,7 +287,7 @@ def format_comparison_table(runs: Dict[str, RunResult]) -> str:
 
     regions = SCORED_REGIONS
     # Header
-    header_parts = [f"{'Config':<8}", f"{'RMSE':>6}"]
+    header_parts = [f"{'Config':<8}", f"{'RMSLE':>6}"]
     for r in regions:
         header_parts.append(f"{r:>7}")
     header_parts.append(f"{'Grade':>8}")
@@ -284,7 +297,7 @@ def format_comparison_table(runs: Dict[str, RunResult]) -> str:
     lines.append("-" * len(header))
 
     for comp in comparisons:
-        parts = [f"{comp['config']:<8}", f"{comp['rmse']:>6.3f}"]
+        parts = [f"{comp['config']:<8}", f"{comp['rmsle']:>6.3f}"]
         for r in regions:
             val = comp["recovery"].get(r, 0.0) * 100
             parts.append(f"{val:>6.1f}%")
@@ -306,7 +319,7 @@ def quick_score(run_dir: Path) -> str:
     pws_recovery = run.mean_recovery("AK-PWS") * 100
 
     return (
-        f"{run.config_name}: RMSE={scored['rmse_log']:.3f}"
+        f"{run.config_name}: RMSLE={scored['rmsle']:.3f}"
         f" | AK-PWS {pws_recovery:.1f}%"
         f" | {scored['within_2x']}/{scored['n_targets']} within 2×"
     )
