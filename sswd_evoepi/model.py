@@ -1396,6 +1396,25 @@ def run_coupled_simulation(
         year_disease_deaths_before = cumulative_disease_deaths
         yearly_recruits_accum = 0  # Daily settlement accumulator for this year
 
+        # ── Disease end (counterfactual) ─────────────────────────────
+        if (dis_cfg.disease_end_year is not None
+                and year == dis_cfg.disease_end_year
+                and disease_active):
+            disease_active = False
+            vibrio = 0.0
+            node_disease.vibrio_concentration = 0.0
+            node_disease.P_env_pool = 0.0
+            # Cure all infected/exposed
+            alive = agents['alive']
+            ds = agents['disease_state']
+            sick = alive & (
+                (ds == DiseaseState.E) |
+                (ds == DiseaseState.I1) |
+                (ds == DiseaseState.I2)
+            )
+            agents['disease_state'][sick] = DiseaseState.S
+            agents['disease_timer'][sick] = 0.0
+
         # Reset daily demographic accumulators for this year
         daily_nat_deaths_accum = 0
         daily_senes_deaths_accum = 0
@@ -2221,6 +2240,35 @@ def run_spatial_simulation(
         cal_year = start_year + year
         year_dd_before = list(cumulative_dis_deaths)
         year_rec_before = list(cumulative_recoveries)
+
+        # ── Disease end (counterfactual) ─────────────────────────────
+        # If disease_end_year is set and we've reached it, remove all
+        # pathogen and deactivate disease at every node. Existing infected
+        # individuals are cured (moved to S). This tests whether ongoing
+        # disease pressure is what suppresses populations.
+        if (dis_cfg.disease_end_year is not None
+                and year == dis_cfg.disease_end_year
+                and any(disease_active_flags)):
+            for i, node in enumerate(network.nodes):
+                disease_active_flags[i] = False
+                # Zero out all pathogen
+                node_disease_states[i].vibrio_concentration = 0.0
+                node_disease_states[i].P_env_pool = 0.0
+                node.vibrio_concentration = 0.0
+                # Cure all infected/exposed individuals
+                alive = node.agents['alive']
+                ds = node.agents['disease_state']
+                sick = alive & (
+                    (ds == DiseaseState.E) |
+                    (ds == DiseaseState.I1) |
+                    (ds == DiseaseState.I2)
+                )
+                node.agents['disease_state'][sick] = DiseaseState.S
+                node.agents['disease_timer'][sick] = 0.0
+            if progress_callback and hasattr(progress_callback, 'log'):
+                progress_callback.log(f"Year {year}: disease_end_year reached — all pathogen removed")
+            else:
+                print(f"  Year {year}: disease_end_year reached — all pathogen removed, {sum(1 for f in disease_active_flags if not f)} nodes cleared")
 
         # Reset per-year accumulators
         yearly_recruits_accum = [0] * N

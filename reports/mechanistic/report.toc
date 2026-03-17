@@ -1,0 +1,44 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Spatial Architecture}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}The 896-Node Metapopulation Network}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Overwater Distance Computation}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Larval Connectivity Matrix}{6}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Pathogen Dispersal Matrix}{7}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Enclosedness-Based Flushing}{8}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}The Fjord Paradox}{9}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Sea Surface Temperature Forcing}{10}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Two-Layer Salinity Model}{11}{subsection.2.8}%
+\contentsline {subsection}{\numberline {2.9}Wavefront Disease Spread}{13}{subsection.2.9}%
+\contentsline {subsection}{\numberline {2.10}Environmental Vibrio Dynamics}{14}{subsection.2.10}%
+\contentsline {subsection}{\numberline {2.11}Node Density and Regional Structure}{14}{subsection.2.11}%
+\contentsline {section}{\numberline {3}Disease Dynamics}{16}{section.3}%
+\contentsline {subsection}{\numberline {3.1}The SEIPD+R Compartmental Model}{16}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Force of Infection}{17}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Environmental Vibrio Pool Dynamics}{19}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}VBNC Dormancy}{19}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Arrhenius Temperature Scaling}{20}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Temperature-Dependent Vibrio Decay}{21}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Pathogen Thermal Adaptation}{22}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Community Virulence Evolution}{23}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Salinity-Based Vibrio Suppression}{24}{subsection.3.9}%
+\contentsline {subsection}{\numberline {3.10}Basic Reproduction Number and Sensitivity}{24}{subsection.3.10}%
+\contentsline {subsection}{\numberline {3.11}Single-Node Epidemic Demonstration}{25}{subsection.3.11}%
+\contentsline {section}{\numberline {4}Population Ecology and Genetics}{26}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Annual Life Cycle}{26}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Beverton-Holt Density-Dependent Recruitment}{29}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Broadcast Spawning Allee Effects}{29}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Extended Spawning Season and Immunosuppression}{30}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Three-Trait Genetic Architecture}{30}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Directional Selection on Resistance}{32}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Additive Genetic Variance Dynamics}{32}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Tolerance: Extended Symptomatic Survival}{33}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}Mendelian Inheritance and Parent Selection}{33}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}Recovery: Daily Clearance Probability}{35}{subsection.4.10}%
+\contentsline {subsection}{\numberline {4.11}Evolutionary Trajectories}{35}{subsection.4.11}%
+\contentsline {subsection}{\numberline {4.12}Latitudinal Variation in Trait Distributions}{37}{subsection.4.12}%
+\contentsline {subsection}{\numberline {4.13}The Fitness Landscape: Why Resistance Dominates}{37}{subsection.4.13}%
+\contentsline {section}{\numberline {5}Model Integration and Demonstration}{39}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Daily and Annual Loop Coupling}{39}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}W285 Demonstration}{39}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}The Latitudinal Gradient Challenge}{39}{subsection.5.3}%
+\contentsline {section}{\numberline {A}Parameter Table}{41}{appendix.A}%

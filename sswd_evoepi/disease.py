@@ -905,7 +905,15 @@ def daily_disease_update(
                               + shedding_rate_I2(T_celsius, cfg) * n_I2
                               + cfg.sigma_D * n_D_fresh)
         pool_input = cfg.alpha_env * total_shedding
-        pool_decay = cfg.delta_env * node_state.P_env_pool
+        # Temperature-dependent δ_env: cold water → VBNC Vibrio can't replicate
+        # to offset natural losses → faster net decay. Warm water → active growth
+        # on chitin/biofilm partially offsets losses → slower net decay.
+        if getattr(cfg, 'delta_env_T_dependent', False):
+            _sigmoid = 1.0 / (1.0 + math.exp(cfg.k_delta_env * (T_celsius - cfg.T_delta_env)))
+            delta_local = cfg.delta_env_warm + (cfg.delta_env_cold - cfg.delta_env_warm) * _sigmoid
+        else:
+            delta_local = cfg.delta_env
+        pool_decay = delta_local * node_state.P_env_pool
         node_state.P_env_pool = max(0.0, node_state.P_env_pool + pool_input - pool_decay)
 
     P_k = update_vibrio_concentration(
@@ -1112,13 +1120,22 @@ def daily_disease_update(
         ne_idx = diseased_idx[not_expired_mask]
         ne_states = states[not_expired_mask]
 
+        # P_env-gated recovery: suppression factor when environmental
+        # Vibrio is high. Hosts bathed in pathogen cannot clear infection.
+        # Uses Hill function: suppression = 1 / (1 + (P_env/P_half)^n)
+        if getattr(cfg, 'recovery_P_env_gated', False) and node_state.P_env_pool > 0:
+            _p_ratio = node_state.P_env_pool / max(cfg.recovery_P_env_half, 1e-9)
+            _recovery_suppression = 1.0 / (1.0 + _p_ratio ** cfg.recovery_P_env_hill)
+        else:
+            _recovery_suppression = 1.0
+
         # ── I2 recovery ──────────────────────────────────────────────
         # Recovered → S (echinoderms lack adaptive immunity; can be reinfected)
         i2_ne_mask = ne_states == DiseaseState.I2
         i2_ne_idx = ne_idx[i2_ne_mask]
         if len(i2_ne_idx) > 0:
             c_arr = agents['recovery_ability'][i2_ne_idx].astype(np.float64)
-            p_rec = cfg.rho_rec * c_arr
+            p_rec = cfg.rho_rec * c_arr * _recovery_suppression
             draws = rng.random(len(i2_ne_idx))
             rec_mask = draws < p_rec
             rec_idx = i2_ne_idx[rec_mask]
@@ -1138,7 +1155,7 @@ def daily_disease_update(
             i1_cand = i1_ne_idx[above]
             if len(i1_cand) > 0:
                 c_cand = c_arr[above]
-                p_early = cfg.rho_rec * 2.0 * (c_cand - C_EARLY_THRESH)
+                p_early = cfg.rho_rec * 2.0 * (c_cand - C_EARLY_THRESH) * _recovery_suppression
                 draws = rng.random(len(i1_cand))
                 rec_mask = draws < p_early
                 rec_idx = i1_cand[rec_mask]

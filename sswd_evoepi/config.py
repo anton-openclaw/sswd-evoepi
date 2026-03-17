@@ -160,6 +160,12 @@ class DiseaseSection:
 
     # Recovery
     rho_rec: float = 0.05         # Base recovery rate (d⁻¹) — no empirical basis
+    # P_env-gated recovery: recovery suppressed when environmental Vibrio is high.
+    # Hosts bathed in pathogen cannot clear infection. Recovery only succeeds
+    # when P_env drops below threshold (winter disease-free window in cold water).
+    recovery_P_env_gated: bool = False    # Enable P_env-gated recovery (default OFF for backward compat)
+    recovery_P_env_half: float = 200.0    # P_env at which recovery rate is halved (bact/mL)
+    recovery_P_env_hill: float = 2.0      # Hill coefficient controlling steepness
 
     # Environmental pathogen
     P_env_max: float = 2000.0     # Background Vibrio input (bact/mL/d) (calibrated W201)
@@ -209,6 +215,11 @@ class DiseaseSection:
                                        # 0 = immediate (backward compatible)
                                        # SA range: [0, 180]
 
+    # Disease end (counterfactual experiments)
+    disease_end_year: Optional[int] = None  # If set, all pathogen is removed at this simulation year
+                                             # and disease transmission stops. Use for counterfactual
+                                             # "what if disease disappeared" experiments.
+
     # Invasion scenario extras
     invasion_year: Optional[int] = None
     invasion_nodes: Optional[List[int]] = None
@@ -227,7 +238,15 @@ class DiseaseSection:
     P_env_dynamic: bool = True        # Enable dynamic P_env (calibrated W201)
     P_env_floor: float = 500.0        # Community-maintained vibrio floor (bact/mL/d) (calibrated W201)
     alpha_env: float = 0.18           # Fraction of shedding that enters environmental pool (calibrated W201)
-    delta_env: float = 0.02           # Environmental pool decay rate (d⁻¹) (calibrated W201)
+    delta_env: float = 0.02           # Environmental pool decay rate (d⁻¹) — used when delta_env_T_dependent=False
+    # Temperature-dependent δ_env: cold VBNC Vibrio can't replicate to offset
+    # natural losses (UV, predation, dilution) → faster net decay. Warm active
+    # Vibrio grows on chitin/biofilm → partially offsets losses → slower net decay.
+    delta_env_T_dependent: bool = False  # Enable temperature-dependent decay (default OFF for backward compat)
+    delta_env_cold: float = 0.05      # Net decay in cold water (VBNC, no growth to offset losses; half-life ~14d)
+    delta_env_warm: float = 0.01      # Net decay in warm water (active growth partially offsets losses; half-life ~69d)
+    T_delta_env: float = 12.0         # Sigmoid midpoint for δ_env transition (°C), near T_vbnc
+    k_delta_env: float = 2.0          # Sigmoid steepness for δ_env transition (°C⁻¹)
 
     # Community virulence evolution
     virulence_evolution: bool = True   # Enable community virulence evolution (calibrated W201)
