@@ -508,7 +508,9 @@ def compute_R0(
                          + sigma2 / effective_I2_exit
                          + cfg.sigma_D * CARCASS_SHED_DAYS)
 
-    R0 = (cfg.a_exposure * S_0 * suscept) / (cfg.K_half * total_removal) * shedding_integral
+    # Density-invariant scaling: S_0 represents K_ref/K actual individuals
+    _ds = getattr(cfg, 'density_scale', 1.0)
+    R0 = (cfg.a_exposure * S_0 * _ds * suscept) / (cfg.K_half * total_removal) * shedding_integral
     return R0
 
 
@@ -895,6 +897,22 @@ def daily_disease_update(
         shed_I2 = shedding_rate_I2(T_celsius, cfg) * v_mult_shed * n_I2
         shed_D = cfg.sigma_D * n_D_fresh
         override_shed = shed_I1 + shed_I2 + shed_D
+
+    # ── Density-invariant K scaling ──────────────────────────────────
+    # When density_scale != 1.0 (i.e. K != K_ref), multiply all
+    # host-sourced shedding by K_ref/K so that pathogen concentration
+    # equals the concentration at K_ref for the same *fraction* infected.
+    # The implicit water volume scales with K, keeping density constant.
+    _ds = cfg.density_scale
+    if _ds != 1.0:
+        if override_shed is not None:
+            override_shed *= _ds
+        else:
+            # Force an explicit shedding value so update_vibrio_concentration
+            # uses the scaled amount instead of raw counts.
+            override_shed = _ds * (shedding_rate_I1(T_celsius, cfg) * n_I1
+                                   + shedding_rate_I2(T_celsius, cfg) * n_I2
+                                   + cfg.sigma_D * n_D_fresh)
 
     # Dynamic P_env pool update (host-amplified environmental reservoir)
     if getattr(cfg, 'P_env_dynamic', False):

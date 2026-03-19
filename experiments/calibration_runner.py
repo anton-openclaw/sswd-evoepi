@@ -51,7 +51,8 @@ def load_sites() -> List[dict]:
 
 def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
                     seed: int = 42, n_connectivity: float = 0.3,
-                    phi_open: float = 0.8, phi_fjord: float = 0.03) -> List[NodeDefinition]:
+                    phi_open: float = 0.8, phi_fjord: float = 0.03,
+                    K_ref: int = 5000) -> List[NodeDefinition]:
     """Build NodeDefinition list from site JSON.
 
     Args:
@@ -113,13 +114,18 @@ def build_node_defs(sites: List[dict], K: int = 5000, K_cv: float = 0.0,
             phi = 0.03 if is_fjord else 0.5
             effective_nl = 1.0 if is_fjord else 0.0
 
+        # Density-invariant K scaling: scale habitat area so that population
+        # density (individuals/m²) stays the same as at K_ref.
+        _area_scale = int(K_values[i]) / K_ref if K_ref > 0 else 1.0
+        _habitat_area = 25000.0 * _area_scale
+
         nd = NodeDefinition(
             node_id=i,
             name=site_name,
             lat=lat,
             lon=lon,
             subregion=region,
-            habitat_area=25000.0,
+            habitat_area=_habitat_area,
             carrying_capacity=int(K_values[i]),
             is_fjord=is_fjord,
             sill_depth=30.0 if is_fjord else np.inf,
@@ -144,17 +150,22 @@ def build_full_network(K: int = 5000, seed: int = 42, D_L: float = 400.0,
                        alpha_self_fjord: float = 0.50,
                        r_total: float = 0.02,
                        phi_open: float = 0.8,
-                       phi_fjord: float = 0.03):
+                       phi_fjord: float = 0.03,
+                       K_ref: int = 5000):
     """Build 896-node network with overwater distances.
 
     alpha_self is computed continuously from enclosedness:
         alpha_self[i] = alpha_self_open + (alpha_self_fjord - alpha_self_open) * effective_enclosedness[i]
     This means enclosed sites retain more larvae locally (higher self-recruitment).
+
+    When K != K_ref, habitat_area is scaled by K/K_ref so that population
+    density (ind/m²) is preserved (density-invariant K scaling).
     """
     sites = load_sites()
     node_defs = build_node_defs(sites, K=K, K_cv=K_cv, seed=seed,
                                 n_connectivity=n_connectivity,
-                                phi_open=phi_open, phi_fjord=phi_fjord)
+                                phi_open=phi_open, phi_fjord=phi_fjord,
+                                K_ref=K_ref)
     npz_path = str(PROJECT_ROOT / DISTANCE_MATRIX_PATH)
 
     # Compute continuous alpha_self from enclosedness
@@ -662,6 +673,10 @@ def main():
     parser.add_argument('--seeds', type=str, default=None, help='Comma-separated seeds')
     parser.add_argument('--output', type=str, required=True, help='Output directory')
     parser.add_argument('--K', type=int, default=5000, help='Carrying capacity per node')
+    parser.add_argument('--K-ref', type=int, default=5000,
+                        help='Reference K for density-invariant scaling. When K != K_ref, '
+                             'habitat area and shedding are scaled so population density '
+                             'and disease dynamics match K_ref behavior. Default 5000.')
     parser.add_argument('--K-cv', type=float, default=0.0, help='CV for per-node K variability (lognormal, 0=uniform)')
     parser.add_argument('--years', type=int, default=13, help='Simulation years (1yr spinup + 12yr 2013-2024)')
     parser.add_argument('--disease-year', type=int, default=1, help='Year disease starts (1 = 2013)')
@@ -694,9 +709,13 @@ def main():
     if 'population.K_cv' in param_overrides:
         K_cv = float(param_overrides.pop('population.K_cv'))
 
+    K_ref = args.K_ref
+    density_scale = K_ref / args.K if args.K > 0 else 1.0
+
     print(f"=== Agentic Calibration Runner ===")
     print(f"Seeds: {seeds}")
-    print(f"K: {args.K}, K_cv: {K_cv}, Years: {args.years}, Disease year: {args.disease_year}")
+    print(f"K: {args.K}, K_ref: {K_ref}, density_scale: {density_scale:.2f}, K_cv: {K_cv}")
+    print(f"Years: {args.years}, Disease year: {args.disease_year}")
     print(f"Overrides: {len(param_overrides)} params")
     
     # Extract spatial params from overrides (needed before network build)
@@ -727,7 +746,8 @@ def main():
                                          alpha_self_fjord=alpha_self_fjord,
                                          r_total=r_total,
                                          phi_open=phi_open,
-                                         phi_fjord=phi_fjord)
+                                         phi_fjord=phi_fjord,
+                                         K_ref=K_ref)
     print(f"  Network built in {time.time()-t0:.1f}s ({len(sites)} nodes)")
     
     # Build config
@@ -736,6 +756,12 @@ def main():
     config.simulation.sst_data_dir = str(PROJECT_ROOT / 'data' / 'sst' / 'site_sst')
     config.simulation.sst_start_year = 2012  # align SST with simulation calendar
     apply_param_overrides(config, param_overrides)
+
+    # Density-invariant K scaling: set disease shedding scale factor
+    config.disease.density_scale = density_scale
+    if density_scale != 1.0:
+        print(f"  Density-invariant scaling: shedding ×{density_scale:.1f}, "
+              f"habitat area ×{args.K/K_ref:.2f}")
     
     # Run simulations
     round_id = output_dir.name  # e.g. "round_00"
@@ -761,6 +787,8 @@ def main():
     combined = {
         'param_overrides': param_overrides,
         'K': args.K,
+        'K_ref': K_ref,
+        'density_scale': density_scale,
         'K_cv': K_cv,
         'years': args.years,
         'disease_year': args.disease_year,

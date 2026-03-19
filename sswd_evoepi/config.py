@@ -248,6 +248,13 @@ class DiseaseSection:
     T_delta_env: float = 12.0         # Sigmoid midpoint for δ_env transition (°C), near T_vbnc
     k_delta_env: float = 2.0          # Sigmoid steepness for δ_env transition (°C⁻¹)
 
+    # Density-invariant K scaling
+    # When K differs from K_ref, shedding counts are scaled by K_ref/K so that
+    # pathogen concentration is the same for the same fraction infected.  This
+    # lets you reduce K for computational speed without changing disease dynamics.
+    # Habitat area should be scaled by K/K_ref externally (calibration_runner).
+    density_scale: float = 1.0        # K_ref / K_actual  (set by runner; 1.0 = no scaling)
+
     # Community virulence evolution
     virulence_evolution: bool = True   # Enable community virulence evolution (calibrated W201)
     v_adapt_rate: float = 0.001       # Rate of virulence drift toward optimum
