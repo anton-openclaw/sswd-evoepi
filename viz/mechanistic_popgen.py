@@ -78,6 +78,15 @@ REGION_LATS = {
     "CA-N": 40.0, "CA-C": 36.0, "CA-S": 33.5, "BJ": 28.5,
 }
 
+# Coastline order (S→N): follows the coast from Baja northward to the Aleutians.
+# Use this instead of sorting by latitude to avoid misplacing AK-AL and AK-WG.
+COASTLINE_ORDER = [
+    "BJ", "CA-S", "CA-C", "CA-N", "OR", "WA-O", "JDF", "SS-S", "SS-N",
+    "BC-C", "BC-N", "AK-FS", "AK-FN", "AK-PWS", "AK-EG", "AK-OC",
+    "AK-WG", "AK-AL",
+]
+_COASTLINE_RANK = {r: i for i, r in enumerate(COASTLINE_ORDER)}
+
 RD = W285["region_details"]
 N_YEARS = len(RD[REGIONS_NS[0]]["yearly_totals"])  # 13 (year 0 .. 12)
 YEARS = np.arange(N_YEARS)
@@ -379,7 +388,7 @@ def fig_pg05():
     per-locus selection response, since per-locus data isn't logged."""
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5.5))
 
-    regions_sorted = sorted(REGIONS_NS, key=lambda r: REGION_LATS.get(r, 45))
+    regions_sorted = COASTLINE_ORDER  # S→N along coast
 
     # Extract Δ mean traits per region
     dr, dt, dc = [], [], []
@@ -725,8 +734,8 @@ def fig_pg09():
 def fig_pg10():
     fig, axes = plt.subplots(1, 3, figsize=(17, 10), sharey=True)
 
-    # Order regions by latitude (south → north for y-axis bottom → top)
-    regions_by_lat = sorted(REGIONS_NS, key=lambda r: REGION_LATS.get(r, 45))
+    # Order regions by coastline position (south → north for y-axis bottom → top)
+    regions_by_lat = COASTLINE_ORDER
     n_reg = len(regions_by_lat)
 
     trait_info = [

@@ -29,11 +29,17 @@ __all__ = [
 ]
 
 # Canonical north-to-south ordering of all 18 regions
+# Coastline order (N→S): follows the coast from the Aleutians southward to Baja.
+# Within Alaska, the order follows the coastline from the Aleutians east through
+# the Western Gulf, then south through SE Alaska.
 REGION_ORDER: List[str] = [
     "AK-AL", "AK-WG", "AK-OC", "AK-EG", "AK-PWS", "AK-FN", "AK-FS",
     "BC-N", "BC-C", "SS-N", "SS-S", "JDF", "WA-O", "OR",
     "CA-N", "CA-C", "CA-S", "BJ",
 ]
+
+# Same ordering, south → north (for plots with S at bottom, N at top)
+COASTLINE_ORDER_SN: List[str] = list(reversed(REGION_ORDER))
 
 # The 8 regions with calibration targets
 SCORED_REGIONS: List[str] = [

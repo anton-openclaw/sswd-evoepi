@@ -45,7 +45,19 @@ LATS = np.array([s['latitude'] for s in ALL_SITES])
 LONS = np.array([s['longitude'] for s in ALL_SITES])
 NAMES = np.array([s['name'] for s in ALL_SITES])
 REGIONS_ARR = np.array([s['region'] for s in ALL_SITES])
-REGIONS_SORTED = sorted(set(REGIONS_ARR))
+
+# Coastline order (S→N): follows the coast from Baja northward to the Aleutians.
+# This is the reverse of REGION_ORDER in results.py (which is N→S).
+COASTLINE_ORDER = [
+    "BJ", "CA-S", "CA-C", "CA-N", "OR", "WA-O", "JDF", "SS-S", "SS-N",
+    "BC-C", "BC-N", "AK-FS", "AK-FN", "AK-PWS", "AK-EG", "AK-OC",
+    "AK-WG", "AK-AL",
+]
+# Validate: make sure all regions are present
+_all_regions = set(REGIONS_ARR)
+assert set(COASTLINE_ORDER) == _all_regions, \
+    f"COASTLINE_ORDER mismatch: {set(COASTLINE_ORDER) ^ _all_regions}"
+REGIONS_SORTED = COASTLINE_ORDER  # replaces old sorted(set(...))
 
 # Enclosedness arrays (aligned by name)
 enc_map = {e['name']: e for e in ENCLOSEDNESS}
@@ -73,14 +85,18 @@ SST_START_YEAR = int(W285['sst_start_year'])
 _tab20 = plt.cm.get_cmap('tab20', 20)
 REGION_COLORS = {r: _tab20(i) for i, r in enumerate(REGIONS_SORTED)}
 
-# Lat-sorted index for matrices
-LAT_ORDER = np.argsort(LATS)
+# Coastline-sorted index for matrices: first by region's coastline position,
+# then by latitude within each region.
+_region_rank = {r: i for i, r in enumerate(COASTLINE_ORDER)}
+_sort_keys = np.array([(_region_rank[r], lat) for r, lat in zip(REGIONS_ARR, LATS)],
+                       dtype=[('region_rank', int), ('lat', float)])
+LAT_ORDER = np.argsort(_sort_keys, order=('region_rank', 'lat'))
 
 # Common projection
 PROJ = ccrs.LambertConformal(central_longitude=-135, central_latitude=45)
 PC = ccrs.PlateCarree()
 
-# Region boundaries in lat-sorted order
+# Region boundaries in coastline-sorted order
 _lat_sorted_regions = REGIONS_ARR[LAT_ORDER]
 REGION_BOUNDARIES = []
 for i in range(1, len(LAT_ORDER)):

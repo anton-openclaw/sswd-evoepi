@@ -120,7 +120,7 @@ def fig_D01():
     """SEIPD+R compartmental model flow diagram."""
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
     ax.set_xlim(-0.5, 14.5)
-    ax.set_ylim(-1.5, 8.5)
+    ax.set_ylim(-1.5, 9.5)
     ax.axis('off')
     ax.set_aspect('equal')
 
@@ -165,15 +165,15 @@ def fig_D01():
         ax.text((x1+x2)/2, y1 + offset + 0.3, label, ha='center', va='bottom',
                 fontsize=8, color='#333', style='italic')
 
-    # Recovery arrows (I1→S and I2→S) - curved green dashed
-    for src_x, src_label in [(7.5, 'I₁'), (10.5, 'I₂')]:
-        ax.annotate("", xy=(1.5, 5.5 - box_h/2 - 0.1),
-                    xytext=(src_x, 5.5 - box_h/2 - 0.1),
+    # Recovery arrows (I1→S and I2→S) - curved green dashed, arcing UP over boxes
+    for src_x, src_label, rad in [(7.5, 'I₁', -0.35), (10.5, 'I₂', -0.3)]:
+        ax.annotate("", xy=(1.5, 5.5 + box_h/2 + 0.1),
+                    xytext=(src_x, 5.5 + box_h/2 + 0.1),
                     arrowprops=dict(arrowstyle='->', color=C_R, lw=2,
                                     linestyle='dashed',
-                                    connectionstyle=f'arc3,rad=0.4'))
+                                    connectionstyle=f'arc3,rad={rad}'))
 
-    ax.text(5.5, 3.3, 'Recovery (cᵢ × ρ_rec)', ha='center', va='center',
+    ax.text(5.5, 8.1, 'Recovery (cᵢ × ρ_rec)', ha='center', va='center',
             fontsize=9, color=C_R, fontweight='bold')
 
     # Genetic trait shields
@@ -191,8 +191,8 @@ def fig_D01():
     ax.text(11.8, 7.4, 'Tolerance\n(τ_max × tᵢ)', ha='center', va='center',
             fontsize=7, color=C_P)
 
-    # Recovery shield on I1/I2→S
-    ax.text(9.0, 3.8, '[C]', ha='center', va='center', fontsize=11,
+    # Recovery shield on I1/I2→S (above the forward arrows)
+    ax.text(9.0, 7.6, '[C]', ha='center', va='center', fontsize=11,
             color=C_R, fontweight='bold',
             bbox=dict(boxstyle='round,pad=0.3', facecolor=C_R, alpha=0.15))
 
