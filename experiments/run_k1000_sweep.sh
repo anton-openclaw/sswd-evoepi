@@ -3,6 +3,14 @@
 # Runs configs in parallel batches of 3 (each ~714MB, total ~2.1GB)
 set -e
 
+# CRITICAL: Limit threads per process to avoid thrashing
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export NUMBA_NUM_THREADS=1
+export NUMBA_THREADING_LAYER=omp
+
 cd "$(dirname "$0")/.."
 OUTDIR="results/k1000_scaled_sweep"
 mkdir -p "$OUTDIR"
