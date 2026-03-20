@@ -213,10 +213,10 @@ def load_npz_regional(npz_path: str | Path) -> Dict[str, Any]:
     sim_days = d['sim_days']
     start_year = int(d.get('sst_start_year', 2012))
 
+    from sswd_evoepi.results import site_to_region
     region_idx = {}
     for i, name in enumerate(names):
-        parts = str(name).split('-')
-        prefix = '-'.join(p for p in parts if not p.isdigit())
+        prefix = site_to_region(name)
         region_idx.setdefault(prefix, []).append(i)
 
     result = {}

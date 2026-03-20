@@ -81,12 +81,10 @@ def load_monthly_regional(scenario, seed):
     pops = d['populations']
     sim_days = d['sim_days']
     # Build region -> indices
+    from sswd_evoepi.results import site_to_region
     region_idx = {}
     for i, name in enumerate(names):
-        parts = str(name).split('-')
-        # Region prefix is everything except the last numeric segment
-        # e.g. AK-AL-001 -> AK-AL, OR-048 -> OR, JDF-005 -> JDF, BJ-031 -> BJ
-        prefix = '-'.join(p for p in parts if not p.isdigit())
+        prefix = site_to_region(name)
         region_idx.setdefault(prefix, []).append(i)
     result = {}
     for reg in REGIONS_NS:

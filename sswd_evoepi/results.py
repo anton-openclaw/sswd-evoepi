@@ -19,7 +19,10 @@ import numpy as np
 
 __all__ = [
     "REGION_ORDER",
+    "COASTLINE_ORDER_SN",
     "SCORED_REGIONS",
+    "site_to_region",
+    "sites_to_regions",
     "SeedResult",
     "RunResult",
     "load_seed",
@@ -45,6 +48,46 @@ COASTLINE_ORDER_SN: List[str] = list(reversed(REGION_ORDER))
 SCORED_REGIONS: List[str] = [
     "AK-PWS", "AK-FN", "AK-FS", "BC-N", "SS-S", "JDF", "OR", "CA-N",
 ]
+
+
+def site_to_region(site_name: str) -> str:
+    """Map a site name to its region.
+
+    Site names follow two formats:
+    - 2-part: 'BJ-001', 'JDF-023', 'OR-006' → region is first part
+    - 3-part: 'AK-PWS-001', 'CA-N-042' → region is first two parts
+
+    The rule: region = everything before the final numeric segment.
+
+    >>> site_to_region('AK-PWS-001')
+    'AK-PWS'
+    >>> site_to_region('JDF-023')
+    'JDF'
+    >>> site_to_region('BJ-007')
+    'BJ'
+    >>> site_to_region('OR-006')
+    'OR'
+    """
+    parts = str(site_name).split('-')
+    # Strip the trailing numeric site ID
+    if len(parts) >= 2 and parts[-1].isdigit():
+        return '-'.join(parts[:-1])
+    # Fallback: strip any trailing all-digit segments
+    while len(parts) > 1 and parts[-1].isdigit():
+        parts = parts[:-1]
+    return '-'.join(parts)
+
+
+def sites_to_regions(site_names) -> List[str]:
+    """Map an array of site names to region names.
+
+    Args:
+        site_names: array-like of site name strings (e.g., from NPZ site_names)
+
+    Returns:
+        List of region names, one per site.
+    """
+    return [site_to_region(n) for n in site_names]
 
 
 def _extract_seed_number(path: Path) -> int:
