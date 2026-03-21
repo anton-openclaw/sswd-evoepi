@@ -1,0 +1,1385 @@
+{
+  "param_overrides": {
+    "disease.K_half": 800000.0,
+    "disease.T_vbnc_min": 10.0,
+    "disease.seed_vibrio": 2000.0,
+    "disease.fw_strength": 25.0,
+    "disease.alpha_env": 0.18,
+    "disease.k_vbnc": 2.0,
+    "disease.pathogen_adapt_rate": 0.001,
+    "disease.v_max_warm": 0.7,
+    "disease.cumulative_dose_threshold": 1000.0,
+    "disease.wavefront_D_P": 300.0,
+    "spatial.n_connectivity": 0.3,
+    "spatial.r_total": 0.003,
+    "spatial.alpha_self_open": 0.05,
+    "spatial.alpha_self_fjord": 0.5,
+    "disease.delta_env_T_dependent": true,
+    "disease.delta_env_cold": 0.05,
+    "disease.delta_env_warm": 0.01,
+    "disease.recovery_P_env_gated": true,
+    "disease.recovery_P_env_half": 800.0,
+    "disease.recovery_P_env_hill": 2.0
+  },
+  "release_events": [
+    {
+      "time_step": 4745,
+      "node_id": 413,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 414,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 415,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 416,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 417,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 418,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 419,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 420,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 421,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 424,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 425,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 426,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 427,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 428,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 429,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 430,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 431,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 432,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 433,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 434,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 436,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 437,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 443,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 444,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 445,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 446,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 447,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 448,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 449,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 450,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 451,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 452,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 453,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 454,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 455,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 456,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 457,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 458,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 459,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 460,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 461,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 462,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 463,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 464,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 465,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 466,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 467,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 468,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 469,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 470,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 471,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 472,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 473,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 474,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 475,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 476,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 477,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 478,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 479,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 480,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 481,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 482,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 483,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 484,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 485,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 486,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 487,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 488,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 489,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 490,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 491,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 492,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 493,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 494,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 495,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 496,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 497,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 498,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 499,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 500,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 501,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 502,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 503,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 504,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 505,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 506,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 507,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 508,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 509,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 510,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 511,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 512,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 513,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 514,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 515,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 516,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 517,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 518,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 519,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 520,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 521,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 522,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 523,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 524,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 525,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 526,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 527,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 528,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 529,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 530,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 531,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 532,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 533,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 645,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 646,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 647,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 648,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 649,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 650,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 651,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 652,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 653,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 654,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 655,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 656,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 657,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 658,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 659,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 660,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 661,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 662,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 663,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 664,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 665,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 666,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 667,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 668,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 669,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 670,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 671,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 672,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 673,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 674,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 675,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 677,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 678,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 684,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 685,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 686,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 890,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    },
+    {
+      "time_step": 4745,
+      "node_id": 891,
+      "n_individuals": 200,
+      "genetics_mode": "trait_targets",
+      "trait_targets": {
+        "resistance": 0.31
+      }
+    }
+  ]
+}

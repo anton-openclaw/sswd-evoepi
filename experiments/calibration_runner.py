@@ -803,6 +803,23 @@ def main():
             if k in {'enabled', 'n_per_site', 'shedding_fraction', 'site_filter', 'custom_node_ids'}
         })
 
+    # Apply release events if present
+    release_events_raw = config_data.get('release_events', [])
+    if release_events_raw:
+        from sswd_evoepi.config import ReleaseEvent
+        release_events = []
+        for re_dict in release_events_raw:
+            re = ReleaseEvent(
+                time_step=re_dict['time_step'],
+                node_id=re_dict.get('node_id', 0),
+                n_individuals=re_dict.get('n_individuals', 100),
+                genetics_mode=re_dict.get('genetics_mode', 'trait_targets'),
+                trait_targets=re_dict.get('trait_targets', None),
+            )
+            release_events.append(re)
+        config.release_events = release_events
+        print(f"  Release events: {len(release_events)} events")
+
     # Density-invariant K scaling: set disease shedding scale factor
     config.disease.density_scale = density_scale
     if density_scale != 1.0:
