@@ -1,0 +1,32 @@
+=== W155-W162 Calibration Batch ===
+Start: Mon Mar  9 15:13:09 PDT 2026
+Max parallel: 24
+
+LAUNCH: W155 seed=42 K_cv=0.3
+LAUNCH: W155 seed=123 K_cv=0.3
+LAUNCH: W155 seed=999 K_cv=0.3
+LAUNCH: W156 seed=42 K_cv=0.5
+LAUNCH: W156 seed=123 K_cv=0.5
+LAUNCH: W156 seed=999 K_cv=0.5
+LAUNCH: W157 seed=42 K_cv=0.8
+LAUNCH: W157 seed=123 K_cv=0.8
+LAUNCH: W157 seed=999 K_cv=0.8
+LAUNCH: W158 seed=42 K_cv=1.0
+LAUNCH: W158 seed=123 K_cv=1.0
+LAUNCH: W158 seed=999 K_cv=1.0
+LAUNCH: W159 seed=42 K_cv=0.3
+LAUNCH: W159 seed=123 K_cv=0.3
+LAUNCH: W159 seed=999 K_cv=0.3
+LAUNCH: W160 seed=42 K_cv=0.5
+LAUNCH: W160 seed=123 K_cv=0.5
+LAUNCH: W160 seed=999 K_cv=0.5
+LAUNCH: W161 seed=42 K_cv=0.8
+LAUNCH: W161 seed=123 K_cv=0.8
+LAUNCH: W161 seed=999 K_cv=0.8
+LAUNCH: W162 seed=42 K_cv=1.0
+LAUNCH: W162 seed=123 K_cv=1.0
+LAUNCH: W162 seed=999 K_cv=1.0
+Waiting for batch (24 running)...
+
+All jobs launched. Waiting for completion...
+=== BATCH COMPLETE: Tue Mar 10 02:28:48 PDT 2026 ===

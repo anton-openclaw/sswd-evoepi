@@ -1,0 +1,193 @@
+\section{\pyc{}-Specific Considerations}
+\label{sec:biology}
+
+The general theory above must be grounded in the specific 
+biology of \pyc{} to generate realistic predictions. This 
+section collects the biological parameters and constraints 
+relevant to breeding program design.
+
+\subsection{Reproductive biology}
+
+\subsubsection{Sexual reproduction}
+\pyc{} is gonochoristic (separate sexes) with external 
+fertilization via broadcast spawning. Key parameters:
+\begin{itemize}
+    \item \textbf{Sexual maturity}: $\sim$2 years (estimated 
+    from growth rates; not precisely known in captivity)
+    \item \textbf{Spawning}: Annual, triggered by temperature 
+    cues (spring--summer)
+    \item \textbf{Fecundity}: Females release millions of eggs 
+    per spawning event. Fertilization success depends on 
+    proximity and synchrony.
+    \item \textbf{Larval duration}: 6--10 weeks as a 
+    planktotrophic bipinnaria/brachiolaria larva
+    \item \textbf{Settlement}: Larvae settle onto hard substrate 
+    and metamorphose
+\end{itemize}
+
+\subsubsection{Implications for breeding}
+\begin{enumerate}
+    \item \textbf{Generation time $\sim$2 years}: 8 generations 
+    of selective breeding = $\sim$16 years. This is long but 
+    not unprecedented for conservation breeding programs 
+    (cf.\ California condor, black-footed ferret).
+    
+    \item \textbf{Very high fecundity}: Not a bottleneck. 
+    A single cross can produce thousands of juveniles for 
+    screening. This makes within-family selection 
+    (\Cref{subsec:family_selection}) highly effective.
+    
+    \item \textbf{Equal sex ratio assumed}: No sex-linked 
+    resistance known. Equal allocation to both sexes.
+    
+    \item \textbf{No clonal reproduction}: Unlike some 
+    echinoderms, \pyc{} does not reproduce asexually. 
+    Every generation requires sexual crossing.
+\end{enumerate}
+
+\subsection{Immune system}
+
+Echinoderms possess only innate immunity — no adaptive immune 
+system, no immunological memory, no antibodies.
+
+\subsubsection{Implications for the model}
+\begin{enumerate}
+    \item \textbf{No acquired immunity}: Recovered individuals 
+    return to the susceptible state (R $\to$ S in our model). 
+    They can be reinfected.
+    
+    \item \textbf{Resistance is genetic, not learned}: There is 
+    no vaccination or immunization strategy. Resistance must 
+    come from heritable genetic variation — exactly what a 
+    breeding program provides.
+    
+    \item \textbf{No maternal antibody transfer}: Offspring do 
+    not inherit any immunological protection from parents 
+    beyond genetic resistance alleles.
+\end{enumerate}
+
+\subsection{Disease ecology relevant to breeding}
+
+\subsubsection{Vibrio pectenicida as the causative agent}
+\citet{prentice2025koch} established Koch's postulates for 
+\textit{Vibrio pectenicida} in \pyc{} SSWD. Key findings:
+\begin{itemize}
+    \item 92\% attack rate in experimental challenge (46/50)
+    \item Exposure to death: $11.6 \pm 3.3$ days at $\sim$13°C
+    \item Temperature-dependent virulence (Arrhenius-scaled)
+\end{itemize}
+
+\subsubsection{Implications for breeding}
+\begin{enumerate}
+    \item \textbf{High attack rate} means most wild \pyc{} 
+    have been exposed. Survivors represent the tail of the 
+    resistance distribution — already screened by nature.
+    
+    \item \textbf{Temperature dependence} means different 
+    latitudes experience different selection pressures. 
+    Southern populations (warmer water) face stronger 
+    disease pressure and therefore stronger selection for 
+    resistance.
+    
+    \item \textbf{Challenge assays are possible}: The Prentice 
+    protocol provides a standardized method for phenotyping 
+    disease resistance in captive individuals. This could 
+    be used to validate genotype-based predictions from the 
+    model.
+\end{enumerate}
+
+\subsection{Population status}
+\label{subsec:pop_status}
+
+\subsubsection{Wild populations}
+\begin{itemize}
+    \item Pre-epidemic (pre-2013): Abundant throughout range, 
+    though not precisely censused at most sites
+    \item Post-epidemic: 90--99\% decline across the range 
+    \citep{montecino2020sunflower}. IUCN Critically Endangered 
+    (2020).
+    \item Recovery signs: Sporadic observations of juveniles 
+    at some sites, but recurrent wasting events prevent 
+    sustained recovery
+    \item Genetic bottleneck: Small surviving populations 
+    have reduced $N_e$, increasing drift and inbreeding
+\end{itemize}
+
+\subsubsection{Captive populations}
+\begin{itemize}
+    \item Multiple facilities maintaining broodstock 
+    (Friday Harbor Labs, Birch Aquarium, others)
+    \item First releases: FHL 2023 (caged), FHL 2024 
+    (20 stars, open release), California 2025 (47 stars, 
+    46/47 survived 1 month)
+    \item Genetic composition of broodstock: not well 
+    characterized for resistance loci
+\end{itemize}
+
+\subsection{Practical constraints}
+\label{subsec:practical}
+
+\begin{enumerate}
+    \item \textbf{No resistance assay yet}: The Schiebelhut 
+    GWAS loci have not been validated as markers for 
+    resistance phenotype. Until they are, ``screening for 
+    resistance'' means phenotypic challenge assays (slow, 
+    lethal to non-resistant individuals) rather than 
+    genotyping (fast, non-lethal).
+    
+    \item \textbf{Generation time}: 2 years minimum in 
+    captivity, possibly longer under suboptimal conditions.
+    
+    \item \textbf{Captive space}: Sea star aquaculture is 
+    space-intensive. Maintaining hundreds of adults through 
+    multiple breeding generations requires significant 
+    facility capacity.
+    
+    \item \textbf{Pedigree tracking}: Difficult in broadcast 
+    spawners. May require genetic parentage assignment 
+    (microsatellites or SNP panels) rather than physical 
+    tracking.
+    
+    \item \textbf{Regulatory constraints}: Releases of 
+    captive-bred individuals may require permits and 
+    environmental review, especially across state/provincial 
+    boundaries.
+    
+    \item \textbf{Disease management in captivity}: Captive 
+    populations can experience SSWD outbreaks. Biosecurity 
+    protocols are essential to protect broodstock.
+\end{enumerate}
+
+\subsection{What the model can and cannot predict}
+
+\begin{center}
+\begin{tabular}{p{0.45\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{The model CAN predict} & 
+\textbf{The model CANNOT predict} \\
+\midrule
+Expected trait distributions of 
+wild survivors at each site & 
+Actual genetic composition of 
+specific living individuals \\
+\addlinespace
+Relative effectiveness of breeding 
+strategies & 
+Absolute generation counts (depends 
+on real $h^2$) \\
+\addlinespace
+Optimal release sizes and locations 
+for genetic impact & 
+Captive husbandry success rates \\
+\addlinespace
+Allele frequency trajectories under 
+different scenarios & 
+Inbreeding depression magnitude 
+(not modeled) \\
+\addlinespace
+Cost-benefit trade-offs between 
+breeding program designs & 
+Regulatory or political feasibility \\
+\bottomrule
+\end{tabular}
+\end{center}

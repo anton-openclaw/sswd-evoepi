@@ -396,6 +396,24 @@ class PathogenEvolutionSection:
 
 
 @dataclass
+class SentinelSection:
+    """Sentinel agents — multi-host disease reservoir.
+
+    Models non-Pycnopodia sea star species (Pisaster, Dermasterias, etc.)
+    as immortal, non-reproducing agents that carry and shed SSWD pathogen
+    at a reduced rate. Creates a persistent disease reservoir.
+
+    When enabled=False (default), no sentinel agents are created and
+    simulation behavior is identical to pre-sentinel code.
+    """
+    enabled: bool = False
+    n_per_site: int = 20                    # Sentinel individuals per eligible site
+    shedding_fraction: float = 0.1          # Shed at 10% of Pyc rate
+    site_filter: str = 'rocky'              # 'rocky', 'all', or 'custom'
+    custom_node_ids: List[int] = field(default_factory=list)
+
+
+@dataclass
 class OutputSection:
     """Output control."""
     directory: str = "results/"
@@ -421,6 +439,7 @@ class SimulationConfig:
     pathogen_evolution: PathogenEvolutionSection = field(default_factory=PathogenEvolutionSection)
     movement: MovementSection = field(default_factory=MovementSection)
     conservation: ConservationSection = field(default_factory=ConservationSection)
+    sentinel: SentinelSection = field(default_factory=SentinelSection)
     output: OutputSection = field(default_factory=OutputSection)
     release_events: List[ReleaseEvent] = field(default_factory=list)
 
@@ -476,6 +495,7 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
         'pathogen_evolution': PathogenEvolutionSection,
         'movement': MovementSection,
         'conservation': ConservationSection,
+        'sentinel': SentinelSection,
         'output': OutputSection,
     }
     for key, cls in section_map.items():
@@ -647,6 +667,24 @@ def validate_config(config: SimulationConfig) -> None:
             raise ValueError(
                 f"disease.P_adapt_half must be > 0, "
                 f"got {config.disease.P_adapt_half}"
+            )
+
+    # Sentinel section
+    if config.sentinel.enabled:
+        valid_site_filters = {'rocky', 'all', 'custom'}
+        if config.sentinel.site_filter not in valid_site_filters:
+            raise ValueError(
+                f"sentinel.site_filter must be one of {valid_site_filters}, "
+                f"got '{config.sentinel.site_filter}'"
+            )
+        if config.sentinel.n_per_site < 1:
+            raise ValueError(
+                f"sentinel.n_per_site must be >= 1, got {config.sentinel.n_per_site}"
+            )
+        if not (0.0 < config.sentinel.shedding_fraction <= 1.0):
+            raise ValueError(
+                f"sentinel.shedding_fraction must be in (0, 1], "
+                f"got {config.sentinel.shedding_fraction}"
             )
 
     # Positive parameters

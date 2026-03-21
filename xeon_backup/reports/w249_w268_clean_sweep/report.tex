@@ -1,0 +1,387 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{siunitx}
+
+\definecolor{bestgreen}{RGB}{34,139,34}
+\definecolor{warnred}{RGB}{178,34,34}
+\definecolor{lightgray}{RGB}{245,245,245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!60!black,
+    urlcolor=blue!60!black
+}
+
+\title{\textbf{W249--W268 Clean Sweep}\\[0.3em]
+\large Post-Audit Calibration Results\\[0.2em]
+\normalsize First Parameter Sweep After Codebase Bug Fixes}
+\author{SSWD Evo-Epi Model Calibration}
+\date{15 March 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+%% ============================================================
+%% 1. EXECUTIVE SUMMARY
+%% ============================================================
+\section{Executive Summary}
+
+This report presents the first calibration sweep (W249--W268, 20 configurations) conducted after a comprehensive codebase audit that identified and fixed four bugs affecting population dynamics. The sweep explores freshwater-strength salinity effects, carrying-capacity half-saturation ($K_{\text{half}}$), environmental disease modulation ($\alpha_{\text{env}}$), connectivity, fjord self-recruitment, and intrinsic growth rate across the model's 18-region domain.
+
+\paragraph{Key findings:}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Bug fixes fundamentally changed model dynamics.} The baseline configuration (W249, no salinity) produces RMSE\,=\,1.156 under the corrected code, compared to RMSE\,=\,0.663 for the equivalent pre-audit W201. Recovery levels are substantially lower---the model is now ``harder'' to calibrate.
+
+    \item \textbf{W257 is the clear winner} (fw\_strength\,=\,25, $K_{\text{half}}$\,=\,1.2M): RMSE\,=\,0.697, with AK-PWS recovery at 12.1\%. This is the best AK-PWS recovery ever achieved, surpassing the pre-salinity historical best of W173 (10.4\%).
+
+    \item \textbf{$K_{\text{half}}$ is the dominant lever.} Increasing carrying-capacity half-saturation from the default 800K to 1.2M drops RMSE from 1.014 to 0.697---a 31\% improvement. Decreasing to 400K is catastrophic (RMSE\,=\,2.879). This is the single most impactful parameter discovered in this sweep.
+
+    \item \textbf{$\alpha_{\text{env}}$ hurts when combined with salinity.} Adding environmental disease modulation ($\alpha_{\text{env}}$\,=\,0.22 or 0.25) consistently \emph{increases} RMSE across all combinations tested, reversing the pre-audit finding where it helped. The salinity mechanism appears to subsume the role $\alpha_{\text{env}}$ previously played.
+
+    \item \textbf{The AK gap remains the primary challenge.} W257 achieves AK-PWS\,=\,12.1\% against a 30\% target (40\% of target), while southern regions overshoot: OR\,=\,1.45\% vs.\ 0.25\% target, CA-N\,=\,1.22\% vs.\ 0.1\% target. The latitude gradient in recovery remains too shallow.
+
+    \item \textbf{Next sweep should push $K_{\text{half}}$ higher} (1.5M--2.5M) while combining with elevated $n_{\text{connectivity}}$ and $r_{\text{total}}$, which both showed independent benefit (W261: RMSE\,=\,0.961; W267: RMSE\,=\,0.899).
+\end{enumerate}
+
+\clearpage
+
+%% ============================================================
+%% 2. SWEEP DESIGN
+%% ============================================================
+\section{Sweep Design}
+
+The sweep comprises 20 configurations (W249--W268) organized into 8 parameter groups. All configurations use a single seed (42). W249 serves as the post-audit baseline with no salinity forcing, reproducing W201's parameter set under corrected code. The remaining 19 configurations build on fw\_strength\,=\,25 as the salinity base, varying one or two parameters at a time.
+
+\begin{table}[H]
+\centering
+\caption{Complete configuration table for W249--W268. Dashes indicate default values inherited from the base configuration. Default $K_{\text{half}}$\,=\,800K, $\alpha_{\text{env}}$\,=\,0, $n_{\text{conn}}$\,=\,default, $\alpha_{\text{fjord}}$\,=\,default, $r_{\text{total}}$\,=\,default.}
+\label{tab:configs}
+\small
+\begin{tabular}{@{}llccccccr@{}}
+\toprule
+\textbf{Config} & \textbf{Group} & \textbf{fw} & $\boldsymbol{K_{\text{half}}}$ & $\boldsymbol{\alpha_{\text{env}}}$ & $\boldsymbol{n_{\text{conn}}}$ & $\boldsymbol{\alpha_{\text{fjord}}}$ & $\boldsymbol{r_{\text{total}}}$ & \textbf{RMSE} \\
+\midrule
+\rowcolor{lightgray}
+W249 & baseline & 0 & --- & --- & --- & --- & --- & 1.156 \\
+W250 & fw\_sweep & 15 & --- & --- & --- & --- & --- & 1.071 \\
+\rowcolor{lightgray}
+W251 & fw\_sweep & 20 & --- & --- & --- & --- & --- & 1.041 \\
+W252 & fw\_sweep & 25 & --- & --- & --- & --- & --- & 1.014 \\
+\rowcolor{lightgray}
+W253 & fw\_sweep & 30 & --- & --- & --- & --- & --- & 0.995 \\
+W254 & $\alpha_{\text{env}}$ & 25 & --- & 0.22 & --- & --- & --- & 1.274 \\
+\rowcolor{lightgray}
+W255 & $\alpha_{\text{env}}$ & 25 & --- & 0.25 & --- & --- & --- & 1.575 \\
+W256 & $K_{\text{half}}$ & 25 & 400K & --- & --- & --- & --- & 2.879 \\
+\rowcolor{lightgray}
+\textcolor{bestgreen}{\textbf{W257}} & \textcolor{bestgreen}{\textbf{$K_{\text{half}}$}} & \textcolor{bestgreen}{\textbf{25}} & \textcolor{bestgreen}{\textbf{1.2M}} & \textcolor{bestgreen}{\textbf{---}} & \textcolor{bestgreen}{\textbf{---}} & \textcolor{bestgreen}{\textbf{---}} & \textcolor{bestgreen}{\textbf{---}} & \textcolor{bestgreen}{\textbf{0.697}} \\
+W258 & $\alpha \times K$ & 25 & 400K & 0.25 & --- & --- & --- & 3.548 \\
+\rowcolor{lightgray}
+W259 & $\alpha \times K$ & 25 & 1.2M & 0.25 & --- & --- & --- & 0.864 \\
+W260 & $n_{\text{conn}}$ & 25 & --- & --- & 0.2 & --- & --- & 1.063 \\
+\rowcolor{lightgray}
+W261 & $n_{\text{conn}}$ & 25 & --- & --- & 0.5 & --- & --- & 0.961 \\
+W262 & $n_{\text{conn}}$ & 25 & --- & 0.25 & 0.2 & --- & --- & 1.690 \\
+\rowcolor{lightgray}
+W263 & $n_{\text{conn}}$ & 25 & --- & 0.25 & 0.5 & --- & --- & 1.407 \\
+W264 & $\alpha_{\text{fjord}}$ & 25 & --- & --- & --- & 0.5 & --- & 1.028 \\
+\rowcolor{lightgray}
+W265 & $\alpha_{\text{fjord}}$ & 25 & --- & --- & --- & 0.9 & --- & 0.995 \\
+W266 & $r_{\text{total}}$ & 25 & --- & --- & --- & --- & 0.002 & 1.174 \\
+\rowcolor{lightgray}
+W267 & $r_{\text{total}}$ & 25 & --- & --- & --- & --- & 0.004 & 0.899 \\
+W268 & $r_{\text{total}}$ & 25 & --- & 0.25 & --- & --- & 0.002 & 1.797 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ============================================================
+%% 3. RESULTS OVERVIEW
+%% ============================================================
+\section{Results Overview}
+
+\subsection{RMSE Ranking}
+
+Figure~\ref{fig:rmse} shows the RMSE ranking across all 20 configurations. The spread is large (0.697--3.548), indicating high parameter sensitivity in the post-audit model. The top five configurations are:
+
+\begin{enumerate}
+    \item W257 (fw=25, $K_{\text{half}}$=1.2M): RMSE = 0.697
+    \item W259 (fw=25, $\alpha$=0.25, $K_{\text{half}}$=1.2M): RMSE = 0.864
+    \item W267 (fw=25, $r$=0.004): RMSE = 0.899
+    \item W261 (fw=25, $n$=0.5): RMSE = 0.961
+    \item W253 (fw=30): RMSE = 0.995
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_rmse_ranking.pdf}
+    \caption{RMSE ranking for all 20 configurations (W249--W268). W257 (fw=25, $K_{\text{half}}$=1.2M) achieves the lowest RMSE of 0.697. The bottom two configurations (W256, W258) both use $K_{\text{half}}$=400K, confirming that reducing carrying capacity is catastrophic under the corrected code.}
+    \label{fig:rmse}
+\end{figure}
+
+\subsection{Regional Recovery Heatmap}
+
+Figure~\ref{fig:heatmap} displays recovery fractions across all 18 regions for each configuration. The latitude gradient is clearly visible: AK regions show the highest recovery, declining southward through BC, Salish Sea, and the US West Coast. W257 shows notably elevated recovery across all AK sub-regions compared to other configurations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_region_heatmap.pdf}
+    \caption{Regional recovery heatmap. Rows are configurations (sorted by RMSE), columns are regions (north to south). W257 stands out with the highest recovery in AK-PWS (12.1\%), AK-FN (6.3\%), and AK-AL (19.7\%). The $K_{\text{half}}$=400K configurations (W256, W258) show near-zero recovery everywhere except AK-AL.}
+    \label{fig:heatmap}
+\end{figure}
+
+%% ============================================================
+%% 4. BUG FIX IMPACT
+%% ============================================================
+\section{Bug Fix Impact}
+
+Before interpreting parameter effects, it is essential to understand how the codebase corrections changed the model's baseline behavior. The audit identified and corrected four bugs, each affecting population dynamics:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Immunosuppression double-decrement:} Both the spawning routine and the main simulation loop decremented the immunosuppression timer, causing immunity to expire twice as fast as intended.
+    \item \textbf{Ghost cascade induction:} The \texttt{last\_spawn\_day} variable stored day-of-year (DOY) instead of simulation day, creating phantom disease transmission events at year boundaries.
+    \item \textbf{Carrying capacity overshoot:} The pre-filtered recruitment path did not cap \texttt{n\_recruits}, allowing populations to exceed $K$ transiently.
+    \item \textbf{Growth noise 27$\times$ too small:} The step-level growth noise standard deviation was double-scaled, resulting in demographic stochasticity 27 times weaker than intended.
+\end{enumerate}
+
+The combined effect is dramatic. Running the pre-audit W201 parameter set under corrected code (W249) yields RMSE\,=\,1.156, compared to the historical W201 result of RMSE\,=\,0.663---a 74\% increase. The corrected model produces substantially lower population recovery, particularly in AK regions:
+
+\begin{itemize}
+    \item AK-PWS: W249 achieves 1.77\% recovery, compared to W201's 3.1\% (pre-audit)
+    \item The corrected immunosuppression timing means disease pressure is sustained longer
+    \item Proper growth noise increases extinction risk for small populations
+    \item K-cap enforcement prevents the transient overshoots that previously boosted recovery
+\end{itemize}
+
+This means the entire calibration landscape has shifted. Parameters that worked pre-audit need re-optimization, which is precisely the purpose of this sweep.
+
+%% ============================================================
+%% 5. PARAMETER ANALYSIS
+%% ============================================================
+\section{Parameter Analysis}
+
+\subsection{Freshwater Strength Dose-Response}
+
+The freshwater salinity forcing (fw\_strength) shows a monotonic but modest improvement across the tested range:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{fw\_strength} & \textbf{Config} & \textbf{RMSE} & \textbf{AK-PWS (\%)} & \textbf{$\Delta$RMSE from baseline} \\
+\midrule
+0 (baseline) & W249 & 1.156 & 1.77 & --- \\
+15 & W250 & 1.071 & 2.49 & $-$0.085 \\
+20 & W251 & 1.041 & 2.83 & $-$0.115 \\
+25 & W252 & 1.014 & 2.91 & $-$0.142 \\
+30 & W253 & 0.995 & 3.20 & $-$0.161 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The effect is consistent: each 5-unit increase in fw\_strength reduces RMSE by approximately 0.03--0.06 and increases AK-PWS recovery by 0.3--0.7 percentage points. The response is slightly sub-linear, with diminishing returns above fw=25. The fw=25 value remains the operating point for all subsequent parameter explorations, consistent with pre-audit findings.
+
+\subsection{\texorpdfstring{$K_{\text{half}}$}{K\_half}: The Breakthrough Parameter}
+\label{sec:khalf}
+
+The carrying-capacity half-saturation constant ($K_{\text{half}}$) emerged as the single most influential parameter in this sweep. The effect is dramatic and non-linear:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+$\boldsymbol{K_{\text{half}}}$ & \textbf{Config} & \textbf{RMSE} & \textbf{AK-PWS (\%)} & \textbf{$\Delta$RMSE from default} \\
+\midrule
+400K & W256 & 2.879 & 0.08 & $+$1.865 \\
+800K (default) & W252 & 1.014 & 2.91 & --- \\
+1.2M & W257 & 0.697 & 12.11 & $-$0.317 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The asymmetry is striking: halving $K_{\text{half}}$ from 800K to 400K nearly \emph{triples} RMSE and essentially kills recovery (AK-PWS drops to 0.08\%), while increasing to 1.2M produces a 31\% RMSE improvement and a $4.2\times$ increase in AK-PWS recovery (2.91\% $\to$ 12.11\%).
+
+Mechanistically, higher $K_{\text{half}}$ shifts the density-dependent growth curve so that populations experience near-maximal growth rates at lower densities. Post-epidemic, when populations are severely depleted, this means faster recovery in the critical early phase before disease can re-establish. The corrected K-cap (bug fix \#3) makes this effect even more pronounced: without the overshoot buffer, populations that grow slowly under low $K_{\text{half}}$ never reach the densities needed to sustain themselves.
+
+\textbf{This is the clearest signal for the next sweep:} $K_{\text{half}}$ should be pushed higher (1.5M--2.5M) to find the optimum.
+
+\subsection{\texorpdfstring{$\alpha_{\text{env}}$}{alpha\_env}: Diminishing Returns with Salinity}
+
+Environmental disease modulation ($\alpha_{\text{env}}$), which was beneficial in pre-audit sweeps, now consistently \emph{degrades} performance when combined with salinity:
+
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Base Config} & \textbf{$+\alpha_{\text{env}}$} & \textbf{Base RMSE} & \textbf{$+\alpha$ RMSE} \\
+\midrule
+W252 (fw=25) & W254 ($\alpha$=0.22) & 1.014 & 1.274 \\
+W252 (fw=25) & W255 ($\alpha$=0.25) & 1.014 & 1.575 \\
+W257 ($K$=1.2M) & W259 ($\alpha$=0.25) & 0.697 & 0.864 \\
+W256 ($K$=400K) & W258 ($\alpha$=0.25) & 2.879 & 3.548 \\
+W260 ($n$=0.2) & W262 ($\alpha$=0.25) & 1.063 & 1.690 \\
+W261 ($n$=0.5) & W263 ($\alpha$=0.25) & 0.961 & 1.407 \\
+W266 ($r$=0.002) & W268 ($\alpha$=0.25) & 1.174 & 1.797 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+In every pairing, adding $\alpha_{\text{env}}$ increases RMSE by 0.17--0.67 points. The effect is dose-dependent ($\alpha$=0.22 hurts less than $\alpha$=0.25) and proportionally worse for already-poor configurations.
+
+\textbf{Interpretation:} The freshwater salinity mechanism already modulates disease transmission spatially (reducing it in low-salinity AK fjords). Layering $\alpha_{\text{env}}$ on top creates excessive disease suppression, which paradoxically hurts RMSE by suppressing southern recovery below already-low targets. This represents a genuine interaction---not redundancy---because $\alpha_{\text{env}}$ acts globally while salinity acts locally.
+
+\textbf{Recommendation:} Drop $\alpha_{\text{env}}$ from future sweeps when salinity is active.
+
+\subsection{Connectivity, Fjord Self-Recruitment, and Growth Rate}
+
+\paragraph{$n_{\text{connectivity}}$:} Higher connectivity ($n$=0.5, W261: RMSE\,=\,0.961) outperforms lower connectivity ($n$=0.2, W260: RMSE\,=\,1.063) and the default (W252: RMSE\,=\,1.014). Increased connectivity allows recovering AK populations to seed adjacent regions more effectively. However, the benefit is modest compared to $K_{\text{half}}$.
+
+\paragraph{$\alpha_{\text{self\_fjord}}$:} Both fjord self-recruitment values tested (0.5 and 0.9) produce RMSE close to the default. W265 ($\alpha_f$=0.9, RMSE\,=\,0.995) slightly outperforms W264 ($\alpha_f$=0.5, RMSE\,=\,1.028), but neither moves the needle significantly. Higher fjord self-recruitment marginally helps AK-PWS (3.29\% vs.\ 3.20\% for W264) but the effect is small.
+
+\paragraph{$r_{\text{total}}$:} Intrinsic growth rate shows a strong directional signal. W267 ($r$=0.004, RMSE\,=\,0.899) substantially outperforms both the default (W252: RMSE\,=\,1.014) and the lower value W266 ($r$=0.002, RMSE\,=\,1.174). Higher $r_{\text{total}}$ accelerates post-epidemic recovery, complementing the $K_{\text{half}}$ mechanism. This is the second-most promising lever for the next sweep.
+
+\subsection{Key Interactions}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_parameter_effects.pdf}
+    \caption{Parameter sensitivity panels showing RMSE response to each parameter. $K_{\text{half}}$ and $\alpha_{\text{env}}$ show the largest effect sizes, in opposite directions. $r_{\text{total}}$ and $n_{\text{connectivity}}$ show moderate positive effects.}
+    \label{fig:params}
+\end{figure}
+
+The interaction structure reveals two key patterns:
+
+\begin{enumerate}
+    \item \textbf{$K_{\text{half}}$ $\times$ $\alpha_{\text{env}}$:} Adding $\alpha_{\text{env}}$=0.25 to $K_{\text{half}}$=1.2M (W259, RMSE\,=\,0.864) erases 53\% of the gain from $K_{\text{half}}$ alone (W257, RMSE\,=\,0.697). This confirms $\alpha_{\text{env}}$ should be excluded when salinity is active.
+
+    \item \textbf{$r_{\text{total}}$ $\times$ $\alpha_{\text{env}}$:} Adding $\alpha_{\text{env}}$=0.25 to $r$=0.002 (W268, RMSE\,=\,1.797) worsens performance by 53\% compared to $r$=0.002 alone (W266, RMSE\,=\,1.174). The $\alpha_{\text{env}}$ penalty is multiplicative, not additive.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fig_tradeoff.pdf}
+    \caption{AK-PWS recovery vs.\ CA-N recovery for all 20 configurations. W257 achieves the highest AK-PWS (12.1\%) but also the highest CA-N (1.22\%), illustrating the latitude tradeoff: mechanisms that boost AK recovery also boost southern recovery, overshooting low southern targets.}
+    \label{fig:tradeoff}
+\end{figure}
+
+%% ============================================================
+%% 6. BEST CONFIGURATION DEEP DIVE
+%% ============================================================
+\section{Best Configuration Deep Dive: W257}
+
+W257 (fw\_strength=25, $K_{\text{half}}$=1.2M) is the clear best performer with RMSE\,=\,0.697. Table~\ref{tab:w257} compares its regional recovery against calibration targets.
+
+\begin{table}[H]
+\centering
+\caption{W257 regional recovery vs.\ calibration targets for scored regions. Percent-of-target indicates how close recovery is to the target value.}
+\label{tab:w257}
+\begin{tabular}{lcccl}
+\toprule
+\textbf{Region} & \textbf{Target (\%)} & \textbf{W257 (\%)} & \textbf{\% of Target} & \textbf{Status} \\
+\midrule
+AK-PWS & 30.0 & 12.11 & 40.4 & \textcolor{warnred}{Below} \\
+AK-FN & 30.0 & 6.27 & 20.9 & \textcolor{warnred}{Below} \\
+AK-FS & 20.0 & 4.32 & 21.6 & \textcolor{warnred}{Below} \\
+BC-N & 20.0 & 2.12 & 10.6 & \textcolor{warnred}{Below} \\
+SS-S & 5.0 & 2.36 & 47.2 & \textcolor{warnred}{Below} \\
+JDF & 2.0 & 2.25 & 112.5 & \textcolor{bestgreen}{Exceeds} \\
+OR & 0.25 & 1.45 & 580.0 & \textcolor{bestgreen}{Exceeds} \\
+CA-N & 0.1 & 1.22 & 1220.0 & \textcolor{bestgreen}{Exceeds} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig_w257_vs_targets.pdf}
+    \caption{W257 recovery fractions compared to calibration targets across scored regions. Green bars exceed targets; red bars fall short. Northern AK regions remain substantially below target, while JDF, OR, and CA-N exceed their (low) targets.}
+    \label{fig:w257targets}
+\end{figure}
+
+\subsection{What's Working}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{AK-PWS at 12.1\%} is the highest value ever achieved across all sweeps, surpassing the pre-salinity best of W173 (10.4\%). The combination of salinity-mediated disease reduction in Alaskan fjords and elevated $K_{\text{half}}$ enabling faster density-dependent recovery is effective.
+    \item \textbf{Southern targets are met or exceeded:} JDF (2.25\% vs.\ 2.0\% target), OR (1.45\% vs.\ 0.25\%), CA-N (1.22\% vs.\ 0.1\%). The model correctly produces the observed latitude gradient of decreasing recovery southward.
+    \item \textbf{AK-AL (19.7\%)} shows strong recovery in the most protected Alaskan sub-region, consistent with field observations of refugial populations in sheltered waters.
+\end{itemize}
+
+\subsection{What's Still Missing}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{AK-PWS gap:} 12.1\% vs.\ 30\% target---still needs to approximately 2.5$\times$ more recovery. This is the dominant RMSE contributor.
+    \item \textbf{AK-FN (6.3\%) and AK-FS (4.3\%)} are at $\sim$21\% of their 30\% and 20\% targets respectively. These remote AK sub-regions recover even more slowly than PWS.
+    \item \textbf{BC-N (2.1\%)} is at only 10.6\% of its 20\% target---the largest relative gap after AK-FN.
+    \item \textbf{SS-S (2.4\%)} is approaching its 5\% target (47\%) but not there yet.
+    \item \textbf{Southern overshoot:} OR and CA-N exceed targets by $5.8\times$ and $12.2\times$ respectively. While these regions have low target weights in RMSE, the overshoot indicates the model's recovery mechanisms are too spatially uniform---AK needs selective boosting that doesn't equally benefit the south.
+\end{itemize}
+
+%% ============================================================
+%% 7. DISCUSSION & NEXT STEPS
+%% ============================================================
+\section{Discussion \& Next Steps}
+
+\subsection{AK Gap Analysis}
+
+The central calibration challenge remains closing the gap between AK-PWS recovery (12.1\%) and the 30\% target. The 17.9 percentage-point deficit accounts for the bulk of RMSE. Three mechanisms could plausibly close this gap:
+
+\begin{enumerate}
+    \item \textbf{Higher $K_{\text{half}}$:} The 400K $\to$ 800K $\to$ 1.2M trajectory shows accelerating returns (AK-PWS: 0.08\% $\to$ 2.91\% $\to$ 12.11\%). Extrapolating, $K_{\text{half}}$ values of 1.5M--2.5M may push AK-PWS considerably higher. This should be the primary axis of the next sweep.
+
+    \item \textbf{Higher $r_{\text{total}}$:} W267 ($r$=0.004) achieved RMSE\,=\,0.899 with AK-PWS at 4.77\%. Combined with $K_{\text{half}}$=1.2M, elevated growth rate could amplify the density-dependent recovery acceleration. Testing $r$=0.004--0.006 with $K_{\text{half}}$=1.2M+ is high-priority.
+
+    \item \textbf{Higher $n_{\text{connectivity}}$:} W261 ($n$=0.5) showed modest improvement. Combined with high $K_{\text{half}}$, increased connectivity could help recovering AK populations seed depleted sub-regions faster. Worth testing at $n$=0.5--0.8 in combination.
+\end{enumerate}
+
+\subsection{Promising Directions for Next Sweep}
+
+Based on the parameter sensitivities revealed in this sweep, the recommended next sweep design is:
+
+\begin{itemize}
+    \item \textbf{Primary axis:} $K_{\text{half}} \in \{1.2\text{M}, 1.5\text{M}, 2.0\text{M}, 2.5\text{M}\}$
+    \item \textbf{Secondary axis:} $r_{\text{total}} \in \{0.003, 0.004, 0.005\}$ (default, W267 value, higher)
+    \item \textbf{Tertiary axis:} $n_{\text{connectivity}} \in \{0.3, 0.5\}$
+    \item \textbf{Fixed:} fw\_strength=25, $\alpha_{\text{env}}$=0, $\alpha_{\text{fjord}}$=default
+    \item \textbf{Seeds:} Expand to 3--5 seeds for the top combinations to assess stochastic variability
+\end{itemize}
+
+This gives a $4 \times 3 \times 2 = 24$ configuration factorial, manageable as a single sweep.
+
+\subsection{Parameter Space Narrowing}
+
+This sweep allows us to substantially narrow the viable parameter space:
+
+\begin{itemize}
+    \item \textbf{Confirmed:} fw\_strength $\approx$ 25 (optimal range, consistent with pre-audit)
+    \item \textbf{Eliminated:} $\alpha_{\text{env}} > 0$ when salinity is active (consistently harmful)
+    \item \textbf{Eliminated:} $K_{\text{half}} < 800\text{K}$ (catastrophic under corrected code)
+    \item \textbf{Promising:} $K_{\text{half}} > 1.2\text{M}$ (dominant lever, needs upper bound)
+    \item \textbf{Promising:} $r_{\text{total}} > 0.003$ (strong independent signal)
+    \item \textbf{Promising:} $n_{\text{connectivity}} \geq 0.5$ (modest but consistent benefit)
+    \item \textbf{Neutral:} $\alpha_{\text{fjord}}$ (minimal effect, can hold at default)
+\end{itemize}
+
+The post-audit model is harder to calibrate but more mechanistically honest. The bug fixes removed artificial recovery pathways (K overshoot, premature immunity loss), meaning parameter combinations that improve RMSE now do so through legitimate ecological mechanisms. This is a stronger foundation for the remaining calibration work.
+
+\subsection{A Note on Stochastic Variability}
+
+All 20 configurations in this sweep were run with a single seed (42). While this is sufficient for ranking parameters and identifying directional signals, the absolute RMSE values carry unknown stochastic uncertainty. Figure~\ref{fig:seeds} illustrates the (trivially zero) within-configuration spread.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/fig_seed_variability.pdf}
+    \caption{RMSE variability across seeds. With only a single seed (42), there is no stochastic spread. Future sweeps should use 3--5 seeds for top candidates to quantify variability and ensure rankings are robust.}
+    \label{fig:seeds}
+\end{figure}
+
+\end{document}

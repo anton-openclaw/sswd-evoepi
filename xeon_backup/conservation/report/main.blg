@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plainnat.bst
+Database file #1: references.bib
+Warning--empty journal in franklin1980evolutionary
+Warning--can't use both volume and number fields in woolliams2015genetic
+Warning--empty publisher in woolliams2015genetic
+You've used 21 entries,
+            2773 wiz_defined-function locations,
+            728 strings with 8122 characters,
+and the built_in function-call counts, 8892 in all, are:
+= -- 815
+> -- 415
+< -- 19
++ -- 144
+- -- 123
+* -- 669
+:= -- 1369
+add.period$ -- 66
+call.type$ -- 21
+change.case$ -- 100
+chr.to.int$ -- 21
+cite$ -- 45
+duplicate$ -- 426
+empty$ -- 789
+format.name$ -- 161
+if$ -- 1863
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 23
+newline$ -- 116
+num.names$ -- 84
+pop$ -- 192
+preamble$ -- 1
+purify$ -- 80
+quote$ -- 0
+skip$ -- 321
+stack$ -- 0
+substring$ -- 403
+swap$ -- 31
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 216
+warning$ -- 3
+while$ -- 91
+width$ -- 0
+write$ -- 281
+(There were 3 warnings)

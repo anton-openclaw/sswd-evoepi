@@ -1,0 +1,53 @@
+\section{Disease Progression Rates}
+
+Sea star wasting disease follows a sequential disease cascade S$\to$E$\to$I$_1$$\to$I$_2$$\to$D, where pathogen establishment (E) leads to early symptoms (I$_1$), severe wasting (I$_2$), and ultimately death (D). Three rate parameters control the temporal dynamics of this progression, representing the mechanistic speed at which \textit{Vibrio pectenicida} infection advances through each stage.
+
+\subsection{mu\_EI1\_ref ($\mu_{EI_1}$)}
+
+\paragraph{First Principles} The E$\to$I$_1$ progression rate represents the inverse of the mean incubation period—the time from pathogen exposure to first visible symptoms. Mechanistically, this captures the speed of \textit{V. pectenicida} establishment in host tissues and initial damage leading to clinical signs. Physical constraints require $\mu_{EI_1} > 0$, with extremely high values ($>2.0$ d$^{-1}$) eliminating the incubation period entirely and extremely low values ($<0.05$ d$^{-1}$) allowing potential immune clearance. The disease cascade structure requires this rate to be sufficient for epidemic establishment but not so rapid as to make the exposed compartment negligible.
+
+\paragraph{Literature Evidence} Temperature sensitivity of SSWD progression is well-established: Bates et al. (2009) demonstrated that a 4°C temperature increase was sufficient to induce SSWD-like symptoms within 96 hours, indicating rapid progression at elevated temperatures. Clinical observations from marine laboratory outbreaks describe symptom development ``over the course of a week'' for diseased individuals. McCracken et al. (2025) provided mechanistic support by showing immune system activation and tissue homeostasis disruption precede visible wasting symptoms, consistent with an incubation period during which pathogen establishment occurs before clinical manifestation.
+
+\paragraph{Recommendation}
+\begin{itemize}
+  \item \textbf{Recommended value}: 0.57 d$^{-1}$ (approximately 1.8 days mean incubation period)
+  \item \textbf{SA range}: 0.20--1.00 d$^{-1}$ (1--5 days mean incubation period)
+  \item \textbf{Confidence}: MEDIUM
+  \item \textbf{Key sources}: Bates et al. (2009), McCracken et al. (2025), marine laboratory observations
+\end{itemize}
+
+\subsection{mu\_I1I2\_ref ($\mu_{I_1I_2}$)}
+
+\paragraph{First Principles} The I$_1$$\to$I$_2$ progression rate governs the transition from early symptomatic disease to severe wasting. This represents the speed of \textit{V. pectenicida} proliferation and aerolysin-like toxin-mediated tissue damage escalation. The parameter must be positive, with very rapid values ($>1.0$ d$^{-1}$) inconsistent with observed clinical courses that show distinct early and late phases, and very slow values ($<0.1$ d$^{-1}$) inconsistent with SSWD's acute character. The disease cascade requires this transition to be faster than recovery to maintain the epidemic nature of outbreaks.
+
+\paragraph{Literature Evidence} Temperature dependence of disease progression is demonstrated by Kohl et al. (2016), who showed that cooler temperatures (9.0°C vs 12.1°C) slow disease progression but do not prevent mortality. Clinical descriptions document progression through distinct stages: lethargy $\to$ lesion formation $\to$ tissue breakdown $\to$ arm autotomy, consistent with a multi-stage process. Zhong et al. (2025) identified aerolysin-like toxin genes in \textit{V. pectenicida} strain FHCF-3, providing a mechanistic basis for progressive tissue damage during disease escalation.
+
+\paragraph{Recommendation}
+\begin{itemize}
+  \item \textbf{Recommended value}: 0.40 d$^{-1}$ (approximately 2.5 days mean duration of I$_1$ stage)
+  \item \textbf{SA range}: 0.15--0.80 d$^{-1}$ (1.25--6.7 days mean I$_1$ duration)
+  \item \textbf{Confidence}: LOW
+  \item \textbf{Key sources}: Kohl et al. (2016), Zhong et al. (2025), clinical progression descriptions
+\end{itemize}
+
+\subsection{mu\_I2D\_ref ($\mu_{I_2D}$)}
+
+\paragraph{First Principles} The I$_2$$\to$D progression rate determines the speed of terminal organ failure and death from severe SSWD. This parameter must be positive, with very high values ($>0.5$ d$^{-1}$) making the I$_2$ stage extremely brief and very low values ($<0.05$ d$^{-1}$) inconsistent with SSWD's documented lethality. Based on general infectious disease patterns, the terminal phase typically spans 2--20 days. The rate must be high enough to generate significant mortality while allowing sufficient time for pathogen shedding from the I$_2$ compartment.
+
+\paragraph{Literature Evidence} The high lethality of SSWD is unambiguous: Kohl et al. (2016) observed 100\% mortality in both temperature treatments (9.0°C and 12.1°C), confirming that SSWD is highly lethal regardless of temperature regime. Clinical descriptions indicate rapid deterioration once severe wasting begins, characterized by ``death and rapid disintegration.'' Population-level evidence from Harvell et al. (2019) documented $>90\%$ population crashes during the 2013--2014 continental outbreak, indicating extremely high case fatality rates. Recovery from severe SSWD is rarely documented in the literature, supporting the model assumption of irreversible I$_2$$\to$D transition.
+
+\paragraph{Recommendation}
+\begin{itemize}
+  \item \textbf{Recommended value}: 0.173 d$^{-1}$ (approximately 5.8 days mean survival in I$_2$ stage)
+  \item \textbf{SA range}: 0.08--0.35 d$^{-1}$ (2.9--12.5 days mean I$_2$ survival)
+  \item \textbf{Confidence}: MEDIUM
+  \item \textbf{Key sources}: Kohl et al. (2016), Harvell et al. (2019), clinical observations
+\end{itemize}
+
+\subsection{Parameter Interactions and Model Implications}
+
+The three progression rates collectively determine the shape of the disease time course. Rapid early rates combined with slower terminal rates produce long infectious periods characteristic of chronic diseases, while uniformly fast rates generate acute die-offs with brief infectious periods. The current parameter values yield a total disease duration of approximately 1.8 + 2.5 + 5.8 = 10.1 days from exposure to death, consistent with field observations of SSWD progressing over ``days to weeks.''
+
+All three parameters exhibit Arrhenius temperature dependence in the model, scaled by the function \texttt{arrhenius(rate\_ref, Ea, T\_celsius)}. This temperature sensitivity is empirically supported by multiple studies (Bates et al. 2009, Kohl et al. 2016) and mechanistically justified by the temperature-sensitive nature of \textit{Vibrio} species growth and toxin production.
+
+The greatest uncertainty lies in distinguishing I$_1$ from I$_2$ stages in clinical observations, making $\mu_{I_1I_2}$ the least constrained parameter. Future controlled infection experiments using \textit{V. pectenicida} strain FHCF-3 with time-series sampling would substantially improve parameter estimates and validate the modeled disease cascade structure.

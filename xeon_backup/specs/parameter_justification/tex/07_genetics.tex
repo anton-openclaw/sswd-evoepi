@@ -1,0 +1,105 @@
+\section{Genetic Architecture}
+
+Eight genetics parameters control the three-trait genetic architecture (resistance, tolerance, recovery) and its initialization. The 51-locus model is based on Schiebelhut et al. (2018) genome-wide association study identifying loci under selection in SSWD-surviving \textit{Pisaster ochraceus} populations. However, the partition into resistance/tolerance/recovery traits and their initial values are modeling decisions requiring careful justification.
+
+\subsection{n\_resistance}
+
+\paragraph{Range:} 5--30 loci (discrete: [5, 10, 17, 25, 30]), constrained with n\_tolerance + n\_recovery = 51
+
+\paragraph{First Principles} Resistance loci encode immune exclusion mechanisms: pathogen recognition receptors, barrier defenses, antimicrobial peptides. If SSWD resistance primarily involves blocking infection at the surface/coelom interface, resistance should claim the majority of the 51 loci. However, if resistance, tolerance, and recovery represent equally important but distinct immune strategies, a more even partition is justified.
+
+\paragraph{Literature Evidence} Burton et al. (2022) analyzed 72,000 SNPs between healthy and wasting \textit{P. ochraceus} individuals, finding ``little evidence for genetic variation associated with susceptibility'' at the individual level---no major-effect loci. Pespeni \& Lloyd (2023) found no genetic variants (98,145 SNPs) associated with final health status in \textit{P. ochraceus}. Resistance appears mediated by \textbf{physiological state} (active immune + collagen gene expression) rather than genetic variants. Schiebelhut et al. (2018) identified rapid genetic change in post-outbreak populations at the population level (temporal comparison), not individual level (spatial comparison).
+
+These findings support \textbf{polygenic architecture with small individual effects} rather than major resistance genes. The partition among traits becomes a modeling choice constrained by biological plausibility.
+
+\paragraph{Recommendation} \textbf{n\_resistance = 5--30} with default 17. Range reflects uncertainty about the relative importance of immune exclusion vs. damage limitation/recovery. Conservative range acknowledging that resistance may not dominate numerically even if epidemiologically critical (each prevented infection eliminates downstream transmission).
+
+\subsection{n\_tolerance}
+
+\paragraph{Range:} 5--30 loci (discrete: [5, 10, 17, 25, 30]), constrained with n\_resistance + n\_recovery = 51
+
+\paragraph{First Principles} Tolerance loci mediate damage limitation during infection: tissue repair pathways, anti-inflammatory regulation, metabolic compensation, cellular stress responses. Tolerance doesn't prevent infection or clear pathogens---it extends survival time during disease, providing more opportunities for recovery or reducing case fatality rate.
+
+\paragraph{Literature Evidence} Pespeni \& Lloyd (2023) showed asymptomatic \textit{P. ochraceus} had upregulated \textbf{collagen biosynthesis and extracellular matrix genes}---classic tolerance mechanisms maintaining tissue integrity despite pathogen presence. Ruiz-Ramos et al. (2020) identified innate immunity and \textbf{chemical defense genes} with expression differences across tissues in the first \textit{P. ochraceus} genome. Some likely encode tolerance mechanisms. R\aa berg et al. (2009, 2014) provided theoretical framework distinguishing resistance (reduce pathogen load) vs. tolerance (reduce harm per pathogen unit). Tolerance evolves when resistance is costly or ineffective.
+
+\paragraph{Recommendation} \textbf{n\_tolerance = 5--30} with default 17. Range reflects uncertainty about tolerance's genetic complexity. Tolerance may involve fewer loci than resistance if it relies on constitutively expressed maintenance genes, or more loci if it requires coordinate regulation of multiple stress response pathways.
+
+\subsection{target\_mean\_r}
+
+\paragraph{Range:} 0.05--0.30 (mean population resistance at t=0)
+
+\paragraph{First Principles} Before SSWD emergence, \textit{P. helianthoides} populations experienced no selection pressure for disease-specific resistance. Initial resistance reflects: (1) standing genetic variation from genetic drift, (2) pleiotropic effects of genes under selection for other traits, (3) general pathogen resistance with partial cross-reactivity to \textit{V. pectenicida}.
+
+The value must be \textbf{low enough} to permit the observed $\sim$99\% population crash, but \textbf{high enough} to provide standing variation for evolutionary rescue.
+
+\paragraph{Literature Evidence} \textit{P. helianthoides} populations crashed by 95--99\% across their range (Harvell et al. 2019), indicating very low pre-outbreak resistance. De Lorgeril et al. (2022) found baseline Vibrio resistance varied widely in naive Pacific oyster populations (h² = 0.11--0.54), suggesting substantial standing variation even without prior pathogen exposure. When novel pathogens emerge, marine populations typically show low initial resistance but significant genetic variance (Dove et al. 2015). Oyster populations respond to pathogen selection within 2--4 generations. Schiebelhut et al. (2018) post-outbreak allele frequency shifts were detectable but modest, consistent with selection on standing variation rather than de novo mutations.
+
+\paragraph{Recommendation} \textbf{target\_mean\_r = 0.05--0.30}. Lower bound (0.05) reflects minimal cross-reactive resistance in naive populations. Upper bound (0.30) acknowledges possible pleiotropic resistance from general immune function. Values $>0.30$ would predict insufficient population crash severity.
+
+\subsection{target\_mean\_t}
+
+\paragraph{Range:} 0.02--0.30 (mean population tolerance at t=0)
+
+\paragraph{First Principles} Tolerance mechanisms (tissue repair, stress responses) are likely \textbf{constitutively expressed} for general homeostasis and non-pathogen stressors (temperature, hypoxia, physical damage). Unlike pathogen-specific resistance, baseline tolerance should be higher due to pleiotropic selection for general stress resistance. However, specialized SSWD tolerance may be rare if it requires specific adaptations to \textit{V. pectenicida}-induced tissue damage.
+
+\paragraph{Literature Evidence} Pespeni \& Lloyd (2023) showed even asymptomatic \textit{P. ochraceus} had \textbf{active immune responses}, suggesting tolerance mechanisms are part of normal immune surveillance rather than specialized pathogen responses. Echinoderms maintain extensive tissue repair capabilities for routine regeneration (arm regrowth, spine replacement). These pathways likely provide baseline tolerance to pathogen-induced tissue damage. Khatkar et al. (2024) found heritabilities of 0.09--0.41 for disease resistance/tolerance traits in marine species, with significant standing variation in naive populations.
+
+\paragraph{Recommendation} \textbf{target\_mean\_t = 0.02--0.30}. Lower bound reflects minimal specialized SSWD tolerance. Upper bound acknowledges substantial pleiotropic tolerance from general stress response systems. Default 0.10 intermediate value balances these factors.
+
+\subsection{target\_mean\_c}
+
+\paragraph{Range:} 0.02--0.25 (mean population recovery ability at t=0)
+
+\paragraph{First Principles} Recovery requires active pathogen clearance: phagocytosis, antimicrobial effector production, immune memory formation. Unlike tolerance, recovery is an \textbf{active immune response} that should be minimal in naive populations with no prior \textit{V. pectenicida} exposure. Standing variation likely reflects general immune effector capacity with some cross-reactivity to \textit{V. pectenicida}.
+
+\paragraph{Literature Evidence} Recovery from SSWD appears rare in wild populations (Montecino-Latorre et al. 2016), consistent with low baseline recovery ability. Recovery rates are typically $<5$\% in controlled infection experiments (unpublished FHL data), suggesting very limited initial recovery capacity. Echinoderms possess sophisticated innate immune systems (Buckley \& Rast 2012) but lack adaptive immunity. Recovery likely depends on innate effector mechanisms with limited pathogen-specific adaptation. De Lorgeril et al. (2022) found measurable heritability for Vibrio resistance in oysters, but clearance rates were initially low before selective breeding.
+
+\paragraph{Recommendation} \textbf{target\_mean\_c = 0.02--0.25}. Lower bound reflects minimal \textit{V. pectenicida}-specific clearance in naive populations. Upper bound acknowledges cross-reactive innate immunity. Range narrower than resistance/tolerance because recovery is most pathogen-specific.
+
+\subsection{tau\_max}
+
+\paragraph{Range:} 0.3--0.95 (maximum tolerance mortality reduction factor)
+
+\paragraph{First Principles} At maximum tolerance ($t_i = 1.0$), mortality rate becomes $\mu_{I_2D} \times (1 - \tau_{\text{max}})$. This represents the \textbf{physiological limit} of damage limitation---even perfect tolerance cannot eliminate all pathogen-induced mortality.
+
+The parameter must be: (1) high enough for tolerance to meaningfully extend survival, (2) low enough to prevent effectively immortal $I_2$ individuals, (3) biologically realistic for tissue repair vs. pathogen damage rates.
+
+\paragraph{Literature Evidence} Pespeni \& Lloyd (2023) showed asymptomatic \textit{P. ochraceus} maintained tissue integrity through \textbf{active collagen biosynthesis} during pathogen exposure. However, even asymptomatic individuals showed some immune activation, indicating ongoing damage/repair cycling. \textit{V. pectenicida} produces tissue-degrading enzymes and toxins (Hewson et al. 2024). Even optimal host tolerance cannot completely neutralize these pathogen factors. R\aa berg et al. (2009) note that perfect tolerance (zero disease-induced mortality) is biologically unrealistic---pathogens impose some irreducible metabolic cost. Our model uses timer-scaling where highly tolerant individuals get $\sim$6.7$\times$ longer $I_2$ periods (at $\tau_{\text{max}} = 0.85$), providing substantial survival advantage while maintaining biological realism.
+
+\paragraph{Recommendation} \textbf{tau\_max = 0.3--0.95}. Lower bound ensures meaningful tolerance effects. Upper bound prevents effectively immortal $I_2$ individuals. Values $>0.95$ would create epidemiologically problematic ``superspreaders'' with indefinite $I_2$ duration.
+
+\subsection{q\_init\_beta\_a}
+
+\paragraph{Range:} 1.0--5.0 (Beta distribution shape parameter $\alpha$ for per-locus allele frequencies)
+
+\paragraph{First Principles} Per-locus allele frequencies follow Beta($a$,$b$) distribution. The shape parameter $\alpha$ controls the lower tail: higher $\alpha$ reduces the frequency of loci with very low resistance allele frequencies. Combined with $\beta$, this determines the \textbf{shape of genetic variance} available for selection. At population initialization, allele frequencies should reflect neutral drift and weak pleiotropic selection, not strong pathogen-specific selection.
+
+\paragraph{Literature Evidence} Kimura (1964) neutral model predicts Beta-like allele frequency distributions from drift-selection balance in large populations. Lotterhos \& Whitlock (2015) found that polygenic traits in marine species typically show \textbf{high variance in allelic effect sizes}---some loci contribute disproportionately to trait variation. Schiebelhut et al. (2018) showed pre-outbreak \textit{P. ochraceus} populations had allelic variation at loci that later showed selection signatures, consistent with standing variation from neutral processes. Initial allele frequency distributions in oyster disease-resistance breeding programs typically show high variance, with most loci having intermediate frequencies (Dove et al. 2015).
+
+\paragraph{Recommendation} \textbf{q\_init\_beta\_a = 1.0--5.0}. Lower bound ($\alpha=1$) gives uniform allele frequency distribution. Upper bound ($\alpha=5$) creates more loci with moderate frequencies, reducing the tail of very rare alleles. Range reflects uncertainty about the strength of pre-outbreak selection shaping allele frequency distributions.
+
+\subsection{q\_init\_beta\_b}
+
+\paragraph{Range:} 3.0--15.0 (Beta distribution shape parameter $\beta$ for per-locus allele frequencies)
+
+\paragraph{First Principles} The $\beta$ parameter controls the upper tail of the allele frequency distribution. Higher $\beta$ reduces the frequency of loci with high resistance-allele frequencies, ensuring that most loci start with low frequencies. This is critical for generating the observed $\sim$99\% population crash. The ratio $\alpha/\beta$ determines the mean allele frequency; $\beta \gg \alpha$ ensures low mean frequencies consistent with naive populations.
+
+\paragraph{Literature Evidence} \textit{P. helianthoides} populations crashed by 95--99\%, requiring very low initial resistance-allele frequencies at most loci. However, post-outbreak recovery and observed evolutionary responses (Schiebelhut 2018) require sufficient genetic variance. Zero-variance populations cannot evolve. For target population mean $r = 0.15$ with substantial variance, typical parameterizations use $\beta = 3$--$4 \times \alpha$, giving right-skewed distributions with long upper tails. Per-locus frequencies are scaled to achieve target trait means, so the absolute Beta parameters matter less than their ratio and the resulting variance structure.
+
+\paragraph{Recommendation} \textbf{q\_init\_beta\_b = 3.0--15.0}. Lower bound maintains sufficient upper-tail variance. Upper bound creates strongly right-skewed distributions where most loci have very low resistance-allele frequencies. Range reflects uncertainty about the appropriate balance between crash severity and evolutionary potential.
+
+\subsection{Synthesis}
+
+The genetic architecture parameters embody a \textbf{polygenic, small-effect model} strongly supported by three independent lines of evidence:
+
+\begin{enumerate}
+\item \textbf{Negative evidence}: Burton et al. (2022) and Pespeni \& Lloyd (2023) found no major-effect loci for SSWD resistance in comprehensive genetic screens.
+
+\item \textbf{Mechanistic evidence}: Pespeni \& Lloyd (2023) showed that resistance involves \textbf{physiological state changes} (active immune gene expression) rather than genetic variants, consistent with polygenic regulation of immune system activity.
+
+\item \textbf{Evolutionary evidence}: Schiebelhut et al. (2018) detected selection signatures at the population level despite null results for individual-level associations, indicating many small effects rather than few large effects.
+\end{enumerate}
+
+The three-trait partition (resistance/tolerance/recovery) reflects distinct immune strategies with \textbf{different epidemiological consequences}: resistance reduces transmission, tolerance creates silent spreaders, recovery removes infected hosts from the pathogen pool. This creates complex evolutionary dynamics where the optimal strategy depends on epidemic context.
+
+Initialization parameters balance two constraints: values must be \textbf{low enough} to generate observed population crashes but \textbf{high enough} to provide standing variation for evolutionary rescue. Aquaculture data (heritabilities of 0.09--0.54 for disease resistance) provides quantitative guidance for realistic parameter ranges.

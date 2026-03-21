@@ -1,0 +1,135 @@
+\section{Pathogen Shedding \& Dose-Response}
+
+This section justifies the parameterization of five critical pathogen shedding and dose-response parameters in the SSWD-EvoEpi model: exposure rate ($a_{\text{exposure}}$), half-infective dose ($K_{\text{half}}$), and three shedding rates ($\sigma_{1,\text{eff}}$, $\sigma_{2,\text{eff}}$, $\sigma_D$).
+
+The model implements force of infection as Michaelis-Menten kinetics:
+\begin{equation}
+\lambda_i = a \times \frac{P}{K_{\text{half}} + P} \times (1 - r_{\text{eff}}) \times S_{\text{sal}} \times f_{\text{size}}(L_i)
+\end{equation}
+where $P$ is local pathogen concentration from shedding by infected individuals.
+
+\subsection{$a_{\text{exposure}}$ — Exposure Rate}
+
+\paragraph{First Principles}
+The exposure rate represents the maximum daily infection probability when pathogen concentration is saturating ($P \gg K_{\text{half}}$). Physically, it is the fraction of susceptible individuals encountering infectious doses daily. Must be $\leq 1.0$ (probability constraint).
+
+For benthic organisms in shared water column, daily encounters depend on water circulation patterns, pathogen persistence in seawater, and host behavior (feeding, movement).
+
+\paragraph{Literature Evidence}
+Lafferty (2017) established that marine disease transmission differs from terrestrial systems due to waterborne pathogen stages and 3D habitat allowing long-distance pathogen dispersal. Filter-feeding organisms like sea stars continuously sample the water column.
+
+The SIRP model framework (Gim\'{e}nez-Romero et al. 2021) shows that for sessile marine organisms, waterborne transmission reduces to SIR dynamics with $R_0 = \beta_{\text{eff}} \times \sigma \times S_0 / (\gamma \times \mu_P)$, where $\beta_{\text{eff}}$ incorporates encounter probability proportional to exposure rate.
+
+Temperature dependence is critical: Lupo et al. (2020) demonstrated that Vibrio transmission in oysters shows $R_0 > 1$ at high temperatures and $R_0 < 1$ at low temperatures, suggesting exposure rates should increase with temperature.
+
+\paragraph{Recommendation}
+\begin{itemize}
+\item \textbf{Range: 0.30--1.50 d$^{-1}$} appears reasonable
+\item Lower bound (0.3): conservative encounter rate in oligotrophic waters
+\item Current value (0.75): moderate daily exposure probability
+\item Upper bound (1.5): allows supersaturating effects or behavioral aggregation
+\item \textbf{Evidence strength: MODERATE} — theoretical justification good, empirical data limited
+\end{itemize}
+
+\subsection{$K_{\text{half}}$ — Half-Infective Dose}
+
+\paragraph{First Principles}
+$K_{\text{half}}$ is the pathogen concentration where infection probability reaches half-maximum. This is \textbf{not} the minimum infective dose—it is the ``bendpoint'' of the dose-response curve. Higher $K_{\text{half}}$ means organisms are harder to infect.
+
+Units: bacteria/mL, representing environmental pathogen burden required for 50\% maximal infection probability.
+
+\paragraph{Literature Evidence}
+Typical marine Vibrio concentrations range 10$^2$--10$^6$ CFU/mL depending on conditions, with pathogenic strains often at lower concentrations than total Vibrio community. Coastal waters during blooms can reach 10$^5$--10$^6$ CFU/mL.
+
+Related marine pathogen studies show: Vibrio alginolyticus protective immunity in oysters at 5$\times$10$^4$--5$\times$10$^5$ CFU/mL; V. parahaemolyticus shellfish inoculation studies use 6--7 log CFU/mL (10$^6$--10$^7$).
+
+For SSWD specifically: Vibrio pectenicida confirmed as causative agent (Aquino et al. 2025), encoding aerolysin-like toxins—potent membrane-disrupting proteins (Zhong et al. 2025). Toxin potency suggests relatively low cell concentrations may be effective.
+
+\paragraph{Recommendation}
+\begin{itemize}
+\item \textbf{Range: 20,000--200,000 bact/mL (2$\times$10$^4$--2$\times$10$^5$ CFU/mL)} is reasonable
+\item Consistent with marine Vibrio pathogenesis literature
+\item Lower than total environmental Vibrio (distinguishes pathogenic strain)
+\item Current value (87,000 bact/mL) falls in mid-range
+\item \textbf{Evidence strength: MODERATE} — marine Vibrio data available, SSWD-specific data limited
+\end{itemize}
+
+\subsection{$\sigma_{1,\text{eff}}$ — $I_1$ Shedding Rate}
+
+\paragraph{First Principles}
+$\sigma_{1,\text{eff}}$ represents pathogen shedding from early-stage infected individuals ($I_1$: infected but asymptomatic). These individuals have established infections but minimal tissue damage, may shed pathogen at low-moderate rates via normal excretory processes, and represent ``cryptic'' shedders—infectious before symptoms appear.
+
+Units: bacteria/mL/day/host (field-effective concentration increase per infected host).
+
+\paragraph{Literature Evidence}
+SSWD disease progression studies show microbiome dysbiosis precedes visible symptoms (McCracken et al. 2023, 2025), with copiotrophic bacteria surging before lesion appearance, suggesting pathogen multiplication during asymptomatic phase.
+
+The SIRP model shows shedding rate ($\sigma$) is critical for $R_0$ (Gim\'{e}nez-Romero et al. 2021). Early infection stages typically shed at lower rates than symptomatic stages. The ratio $\sigma_2/\sigma_1$ is more important than absolute values since both interact with $K_{\text{half}}$.
+
+Vibrio spp. replicate rapidly in favorable conditions (temperature, nutrients), with possible extracellular multiplication in boundary layer (Aquino et al. 2021).
+
+\paragraph{Recommendation}
+\begin{itemize}
+\item \textbf{Range: 1.0--25.0} appears reasonable
+\item Lower than $\sigma_{2,\text{eff}}$ (asymptomatic $<$ symptomatic shedding)
+\item Current value (5.0): moderate early-stage shedding
+\item Upper bound allows rapid pathogen multiplication in warm conditions
+\item \textbf{Evidence strength: WEAK-MODERATE} — indirect evidence from disease progression studies
+\end{itemize}
+
+\subsection{$\sigma_{2,\text{eff}}$ — $I_2$ Shedding Rate}
+
+\paragraph{First Principles}
+$\sigma_{2,\text{eff}}$ represents pathogen shedding from late-stage infected individuals ($I_2$: symptomatic with visible lesions). These individuals have extensive tissue damage and lesions, compromised integument allowing pathogen release, and likely the highest shedding rate in disease progression.
+
+Expected relationship: $\sigma_2 \gg \sigma_1$ due to tissue disruption.
+
+\paragraph{Literature Evidence}
+SSWD pathology studies show visible lesions are sites of extensive tissue breakdown (Work et al. 2021). Aerolysin-like toxins create pore formation and membrane disruption (Zhong et al. 2025), with open lesions providing direct pathogen-environment interface.
+
+V. pectenicida produces highly cytolytic aerolysin-like toxins. Tissue destruction creates favorable environment for pathogen multiplication, with extracellular toxins facilitating continued bacterial growth in lesions.
+
+\paragraph{Recommendation}
+\begin{itemize}
+\item \textbf{Range: 10.0--250.0} is justified
+\item Current value (50.0): 10$\times$ higher than $\sigma_{1,\text{eff}}$
+\item Range allows 2.5--250$\times$ amplification over early infection
+\item Upper bound reflects severe tissue damage in moribund individuals
+\item \textbf{Evidence strength: MODERATE} — pathology studies support high shedding from lesions
+\end{itemize}
+
+\subsection{$\sigma_D$ — Saprophytic Burst from Dead}
+
+\paragraph{First Principles}
+$\sigma_D$ represents pathogen release from freshly dead carcasses. Post-mortem processes include loss of immune system control allowing unrestricted pathogen growth, tissue autolysis creating nutrient-rich environment, and decomposition releasing accumulated pathogen load.
+
+Model assumes shedding duration of $\sim$3 days (CARCASS\_SHED\_DAYS).
+
+\paragraph{Literature Evidence}
+Carcasses create localized nutrient patches in marine systems with bacterial blooms common around decomposing organic matter. Cold water slows decomposition (relevant for sea star habitats).
+
+SSWD observations show mass mortality events create extensive carcass fields, with decomposing sea stars attracting scavenging organisms, suggesting significant biochemical impact on local environment.
+
+Theoretical expectation: $\sigma_D$ could exceed $\sigma_2$ due to lack of immune control, but shorter duration (3 days) vs. chronic $I_2$ shedding. Net contribution depends on mortality rate and carcass persistence.
+
+\paragraph{Recommendation}
+\begin{itemize}
+\item \textbf{Range: 3.0--75.0} seems reasonable
+\item Lower bound: modest saprophytic multiplication  
+\item Current value (15.0): 3$\times$ higher than $\sigma_{1,\text{eff}}$ but lower than $\sigma_{2,\text{eff}}$
+\item Upper bound: substantial post-mortem pathogen bloom
+\item \textbf{Evidence strength: WEAK} — based primarily on general decomposition ecology
+\end{itemize}
+
+\subsection{Synthesis and Interactions}
+
+The shedding parameters interact through the basic reproductive number:
+\begin{equation}
+R_0 \approx \frac{a_{\text{exposure}} \times S_0 \times \text{susceptibility}}{K_{\text{half}} \times \text{removal\_rate}} \times \text{shedding\_integral}
+\end{equation}
+
+Key insights: ratios matter more than absolute values ($\sigma_2/\sigma_1$ and $\sigma_D/\sigma_1$ determine relative importance of disease stages); $K_{\text{half}}$ provides scaling (all shedding rates normalized by $K_{\text{half}}$ in $R_0$ calculation); temperature dependence via Arrhenius scaling applied to all sigma values ($E_a = 5000$ K).
+
+Parameter interdependencies include: $a_{\text{exposure}} \leftrightarrow K_{\text{half}}$ (lower $K_{\text{half}}$ requires lower $a_{\text{exposure}}$ to maintain same $R_0$); sigma ratios ($\sigma_2/\sigma_1 \approx 10$ reflects pathology progression; $\sigma_D/\sigma_1 \approx 3$ reflects post-mortem effects); all scale with temperature via Arrhenius relationship.
+
+Critical missing data include quantitative V. pectenicida shedding rates from infected sea stars, dose-response curves for V. pectenicida in Pycnopodia, environmental persistence of V. pectenicida in seawater, and pathogen concentrations in natural SSWD outbreaks. Experimental priorities are controlled infection experiments measuring pathogen shedding over disease progression, environmental sampling during SSWD outbreaks, laboratory dose-response studies, and temperature-dependent pathogen survival and multiplication rates.

@@ -1,0 +1,2924 @@
+"""Coupled disease ↔ population ↔ genetics simulation.
+
+Single-node simulation (Phases 5+7) and multi-node spatial simulation
+(Phase 9):
+  - Daily loop: environment update → disease step → pathogen dispersal
+  - Annual loop: natural mortality → growth → stage transitions →
+                 reproduction → larval dispersal → recruitment
+  - Disease kills individuals (sets alive=False), reducing population
+  - Reduced population → reduced reproduction → Allee effects
+  - Post-epidemic recovery dynamics
+  - Genetics ↔ Disease coupling:
+      r_i feeds into force of infection λ_i (higher r_i → lower infection prob)
+      Disease kills low-r_i individuals → survivors enriched for resistance alleles
+      Post-epidemic reproduction passes resistance alleles to offspring via SRS
+      Allele frequencies tracked pre/post-epidemic for calibration
+  - Spatial coupling (Phase 9):
+      Daily: pathogen exchange between nodes via D matrix
+      Annual: larvae dispersed between nodes via C matrix
+
+References:
+  - integration-architecture-spec.md §2.1 (master loop pseudocode)
+  - spatial-connectivity-spec.md §8 (node-level simulation loop)
+  - population-dynamics-spec.md §2 (lifecycle)
+  - disease-module-spec.md (SEIPD+R)
+  - genetics-evolution-spec.md §6 (selection mechanisms), §9 (calibration)
+  - CODE_ERRATA CE-1: no cost of resistance
+  - CODE_ERRATA CE-4: corrected Beverton-Holt formula
+  - CODE_ERRATA CE-5: demographic Allee for high-fecundity species
+
+Build target: Phase 5 (single-node) + Phase 7 (genetics) + Phase 9 (spatial).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+
+from sswd_evoepi.config import (
+    DiseaseSection,
+    PopulationSection,
+    ReleaseEvent,
+    SimulationConfig,
+    SpawningSection,
+    default_config,
+)
+from sswd_evoepi.disease import (
+    NodeDiseaseState,
+    adapt_community_virulence,
+    adapt_pathogen_thermal,
+    daily_disease_update,
+    environmental_vibrio,
+    vibrio_decay_rate,
+    arrhenius,
+)
+from sswd_evoepi.genetics import (
+    compute_allele_frequencies,
+    compute_additive_variance,
+    compute_genetic_diagnostics,
+    generate_release_genotypes,
+    genotypes_from_trait_targets,
+    initialize_trait_effect_sizes,
+    update_all_trait_scores,
+    update_resistance_scores,
+    RESISTANCE_SLICE,
+    TOLERANCE_SLICE,
+    RECOVERY_SLICE,
+)
+from sswd_evoepi.reproduction import (
+    beverton_holt_recruitment,
+    fecundity,
+    fertilization_success,
+    get_spawning_day,
+    is_spawning_season,
+    larval_survival,
+    mendelian_inherit_batch,
+    pelagic_larval_duration,
+    settle_recruits,
+    settlement_cue_modifier,
+    srs_reproductive_lottery,
+    _compute_resistance,
+)
+from sswd_evoepi.perf import PerfMonitor
+from sswd_evoepi.salinity import compute_salinity_array
+from sswd_evoepi.spawning import (
+    spawning_step,
+    reset_spawning_season,
+    in_spawning_season,
+)
+from sswd_evoepi.types import (
+    AGENT_DTYPE,
+    LarvalCohort,
+    N_LOCI,
+    N_RECOVERY_DEFAULT,
+    N_RESISTANCE_DEFAULT,
+    N_TOLERANCE_DEFAULT,
+    STAGE_SIZE_THRESHOLDS,
+    DiseaseState,
+    Origin,
+    Stage,
+    allocate_agents,
+    allocate_genotypes,
+    trait_slices,
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONSTANTS
+# ═══════════════════════════════════════════════════════════════════════
+
+DAYS_PER_YEAR = 365
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# EFFECT SIZES (deterministic from seed)
+# ═══════════════════════════════════════════════════════════════════════
+
+def make_effect_sizes(seed: int = 12345, n_loci: int = N_RESISTANCE_DEFAULT, total_weight: float = 1.0) -> np.ndarray:
+    """Create canonical effect-size vector (exponential, normalized).
+
+    Sorted descending so first loci have largest effects.
+    Total weight sums to total_weight (default 1.0).
+
+    CE-3: Exponential distribution per Lotterhos & Whitlock 2016.
+    """
+    rng = np.random.default_rng(seed)
+    raw = rng.exponential(1.0, size=n_loci)
+    normalized = raw / raw.sum() * total_weight
+    normalized.sort()
+    return normalized[::-1].copy()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# VON BERTALANFFY GROWTH
+# ═══════════════════════════════════════════════════════════════════════
+
+def von_bertalanffy(age: float, L_inf: float = 1000.0,
+                    k: float = 0.08, t0: float = -0.5) -> float:
+    """Expected diameter (mm) from age (years)."""
+    return L_inf * (1.0 - np.exp(-k * (age - t0)))
+
+
+def grow_individual(current_size: float, L_inf: float = 1000.0,
+                    k: float = 0.08, dt_years: float = 1.0,
+                    rng: Optional[np.random.Generator] = None) -> float:
+    """Advance size by dt_years using VB differential form with noise.
+
+    dL/dt = k × (L_inf − L)
+    Individual variation: multiplicative log-normal noise (CV ≈ 0.15).
+    """
+    expected = k * (L_inf - current_size) * dt_years
+    if expected <= 0:
+        return current_size
+    if rng is not None:
+        noise = np.exp(rng.normal(0.0, 0.15))
+        expected *= noise
+    return max(current_size, current_size + expected)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# STAGE TRANSITIONS
+# ═══════════════════════════════════════════════════════════════════════
+
+def assign_stage(size_mm: float, current_stage: int) -> int:
+    """Assign life stage based on size thresholds. One-directional only."""
+    if current_stage == Stage.EGG_LARVA:
+        return Stage.EGG_LARVA  # handled externally
+    if size_mm >= 400.0:
+        return Stage.ADULT
+    if size_mm >= 150.0:
+        return max(current_stage, Stage.SUBADULT)
+    if size_mm >= 10.0:
+        return max(current_stage, Stage.JUVENILE)
+    return max(current_stage, Stage.SETTLER)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# NATURAL MORTALITY
+# ═══════════════════════════════════════════════════════════════════════
+
+def natural_mortality_prob(stage: int, age: float,
+                           annual_survival: np.ndarray = None,
+                           senescence_age: float = 50.0,
+                           senescence_mortality: float = 0.10) -> float:
+    """Annual probability of natural death for one individual."""
+    if annual_survival is None:
+        from sswd_evoepi.config import PopulationSection
+        annual_survival = np.array(PopulationSection().annual_survival, dtype=np.float64)
+    base_mort = 1.0 - annual_survival[stage]
+    if age > senescence_age:
+        extra = senescence_mortality * (age - senescence_age) / 20.0
+        return min(1.0, base_mort + extra)
+    return base_mort
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# POPULATION INITIALIZATION
+# ═══════════════════════════════════════════════════════════════════════
+
+def _make_per_locus_q(
+    n_loci: int,
+    effect_sizes: np.ndarray,
+    target_mean: float,
+    mode: str,
+    rng: np.random.Generator,
+    beta_a: float = 2.0,
+    beta_b: float = 8.0,
+    **kwargs,
+) -> np.ndarray:
+    """Compute per-locus allele frequencies for a trait block.
+
+    Args:
+        n_loci: Number of loci for this trait.
+        effect_sizes: Effect size vector.
+        target_mean: Target population-mean trait score.
+        mode: "uniform" or "beta".
+        rng: Random generator.
+        beta_a, beta_b: Beta distribution shape parameters.
+        **kwargs: Absorbs legacy arguments (q_ef1a, w_od, n_additive, etc.).
+
+    Returns:
+        (n_loci,) float64 per-locus allele frequencies.
+    """
+    if mode == "beta":
+        raw_q = rng.beta(beta_a, beta_b, size=n_loci)
+        current = np.dot(effect_sizes, raw_q)
+        if current > 0:
+            scale = target_mean / current
+            q_vals = np.clip(raw_q * scale, 0.001, 0.999)
+        else:
+            q_vals = np.full(n_loci, 0.01)
+    else:
+        q_uniform = target_mean / effect_sizes.sum() if effect_sizes.sum() > 0 else 0.01
+        q_uniform = np.clip(q_uniform, 0.001, 0.999)
+        q_vals = np.full(n_loci, q_uniform)
+
+    return q_vals
+
+
+def initialize_population(
+    n_individuals: int,
+    max_agents: int,
+    habitat_area: float,
+    effect_sizes: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    q_init: float = 0.05,
+    genetics_cfg: Optional['GeneticsSection'] = None,
+    effects_t: Optional[np.ndarray] = None,
+    effects_c: Optional[np.ndarray] = None,
+    **kwargs,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Initialize a population at demographic equilibrium.
+
+    Creates individuals with age/size drawn from an approximate
+    stable age distribution, random genotypes with given allele
+    frequencies, and computed resistance/tolerance/recovery scores.
+
+    Three-trait initialization: if ``genetics_cfg`` and all three
+    effect arrays are provided, uses ``initialize_genotypes_three_trait``
+    to set up all 51 loci with per-trait target means. Otherwise
+    falls back to resistance-only initialization.
+
+    Args:
+        n_individuals: Target number of live individuals.
+        max_agents: Array capacity (must be >= n_individuals).
+        habitat_area: Habitat area (m²) for spatial placement.
+        effect_sizes: Resistance effect sizes.
+        pop_cfg: Population configuration.
+        rng: Random generator.
+        q_init: Initial resistant allele frequency (legacy fallback).
+        genetics_cfg: GeneticsSection with initialization config.
+        effects_t: Tolerance effect sizes (optional).
+        effects_c: Recovery effect sizes (optional).
+        **kwargs: Absorbs legacy arguments (q_ef1a, w_od, etc.).
+
+    Returns:
+        (agents, genotypes) tuple.
+    """
+    from sswd_evoepi.genetics import initialize_genotypes_three_trait
+
+    agents = allocate_agents(max_agents)
+    genotypes = allocate_genotypes(max_agents)
+
+    n_res = len(effect_sizes)
+
+    hab_side = np.sqrt(max(habitat_area, 1.0))
+
+    # --- Vectorized demographic initialization ---
+    u_ages = rng.random(n_individuals)
+    ages = np.empty(n_individuals)
+    ages[u_ages < 0.05] = rng.uniform(0.0, 1.0, size=(u_ages < 0.05).sum())
+    mask_juv = (u_ages >= 0.05) & (u_ages < 0.20)
+    ages[mask_juv] = rng.uniform(1.0, 3.0, size=mask_juv.sum())
+    mask_sub = (u_ages >= 0.20) & (u_ages < 0.35)
+    ages[mask_sub] = rng.uniform(3.0, 7.0, size=mask_sub.sum())
+    mask_adult = u_ages >= 0.35
+    ages[mask_adult] = rng.uniform(7.0, 30.0, size=mask_adult.sum())
+
+    sizes = von_bertalanffy(ages, pop_cfg.L_inf, pop_cfg.k_growth,
+                            pop_cfg.t0_growth)
+    sizes *= rng.lognormal(0.0, 0.10, size=n_individuals)
+    sizes = np.maximum(sizes, 0.5)
+
+    stages = np.full(n_individuals, Stage.ADULT, dtype=np.int8)
+    for stage, threshold_size in sorted(
+        STAGE_SIZE_THRESHOLDS.items(), key=lambda x: -x[1]
+    ):
+        stages[sizes < threshold_size] = stage
+
+    # Genotype initialization: three-trait if all effect arrays provided
+    if genetics_cfg is not None and effects_t is not None and effects_c is not None:
+        # Full three-trait initialization
+        init_geno = initialize_genotypes_three_trait(
+            n_agents=n_individuals,
+            effects_r=effect_sizes,
+            effects_t=effects_t,
+            effects_c=effects_c,
+            rng=rng,
+            target_mean_r=genetics_cfg.target_mean_r,
+            target_mean_t=genetics_cfg.target_mean_t,
+            target_mean_c=genetics_cfg.target_mean_c,
+            beta_a=genetics_cfg.q_init_beta_a,
+            beta_b=genetics_cfg.q_init_beta_b,
+            n_resistance=genetics_cfg.n_resistance,
+            n_tolerance=genetics_cfg.n_tolerance,
+            n_recovery=genetics_cfg.n_recovery,
+        )
+        genotypes[:n_individuals] = init_geno
+    else:
+        # Legacy: resistance-only initialization
+        if genetics_cfg is not None:
+            q_per_locus = _make_per_locus_q(
+                n_loci=n_res,
+                effect_sizes=effect_sizes,
+                target_mean=genetics_cfg.target_mean_r,
+                mode=genetics_cfg.q_init_mode,
+                rng=rng,
+                beta_a=genetics_cfg.q_init_beta_a,
+                beta_b=genetics_cfg.q_init_beta_b,
+            )
+        else:
+            q_per_locus = np.full(n_res, q_init)
+
+        for l_idx in range(n_res):
+            genotypes[:n_individuals, l_idx, 0] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+            genotypes[:n_individuals, l_idx, 1] = (rng.random(n_individuals) < q_per_locus[l_idx]).astype(np.int8)
+
+    # Fill agent fields
+    sl = slice(0, n_individuals)
+    agents['alive'][sl] = True
+    agents['x'][sl] = rng.uniform(0, hab_side, size=n_individuals)
+    agents['y'][sl] = rng.uniform(0, hab_side, size=n_individuals)
+    agents['heading'][sl] = rng.uniform(0, 2 * np.pi, size=n_individuals)
+    agents['speed'][sl] = 0.1
+    agents['size'][sl] = sizes
+    agents['age'][sl] = ages
+    agents['stage'][sl] = stages
+    agents['sex'][sl] = rng.integers(0, 2, size=n_individuals)
+    agents['disease_state'][sl] = DiseaseState.S
+    agents['disease_timer'][sl] = 0
+    agents['node_id'][sl] = 0
+    agents['origin'][sl] = 0  # WILD
+    agents['settlement_day'][sl] = 0
+
+    # Compute trait scores for initial population
+    if effects_t is not None and effects_c is not None:
+        # Full three-trait score computation
+        res_s, tol_s, rec_s = trait_slices(
+            genetics_cfg.n_resistance if genetics_cfg else N_RESISTANCE_DEFAULT,
+            genetics_cfg.n_tolerance if genetics_cfg else N_TOLERANCE_DEFAULT,
+            genetics_cfg.n_recovery if genetics_cfg else N_RECOVERY_DEFAULT,
+        )
+        update_all_trait_scores(
+            agents, genotypes, effect_sizes, effects_t, effects_c,
+            res_slice=res_s, tol_slice=tol_s, rec_slice=rec_s,
+        )
+    else:
+        # Resistance-only (legacy)
+        for i in range(n_individuals):
+            agents[i]['resistance'] = _compute_resistance(
+                genotypes[i], effect_sizes
+            )
+
+    return agents, genotypes
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# ANNUAL DEMOGRAPHIC UPDATE
+# ═══════════════════════════════════════════════════════════════════════
+
+def annual_natural_mortality(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+) -> Tuple[int, int]:
+    """Apply annual natural mortality to all alive individuals.
+
+    Returns (n_killed, n_senescence) — total natural deaths and
+    the subset that died from senescence (age > senescence_age).
+    """
+    alive_mask = agents['alive'].astype(bool)
+    alive_idx = np.where(alive_mask)[0]
+    n_killed = 0
+    n_senescence = 0
+
+    annual_surv = np.array(pop_cfg.annual_survival, dtype=np.float64)
+
+    for idx in alive_idx:
+        stage = int(agents['stage'][idx])
+        age = float(agents['age'][idx])
+        p_death = natural_mortality_prob(
+            stage, age, annual_surv,
+            pop_cfg.senescence_age, pop_cfg.senescence_mortality,
+        )
+        if rng.random() < p_death:
+            agents['alive'][idx] = False
+            # Distinguish senescence from stage-specific natural mortality
+            if age > pop_cfg.senescence_age:
+                agents['cause_of_death'][idx] = 3  # DeathCause.SENESCENCE
+                n_senescence += 1
+            else:
+                agents['cause_of_death'][idx] = 2  # DeathCause.NATURAL
+            n_killed += 1
+
+    return n_killed, n_senescence
+
+
+def annual_growth_and_aging(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+) -> None:
+    """Advance age by 1 year, grow via VB, update stages."""
+    alive_mask = agents['alive'].astype(bool)
+    alive_idx = np.where(alive_mask)[0]
+
+    for idx in alive_idx:
+        agents['age'][idx] += 1.0
+        new_size = grow_individual(
+            float(agents['size'][idx]),
+            pop_cfg.L_inf,
+            pop_cfg.k_growth,
+            dt_years=1.0,
+            rng=rng,
+        )
+        agents['size'][idx] = new_size
+        agents['stage'][idx] = assign_stage(
+            new_size, int(agents['stage'][idx])
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTINUOUS (DAILY) DEMOGRAPHIC FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════
+# These replace the annual lump-sum mortality/growth in the simulation
+# loop. The old annual_* functions above are retained for backward
+# compatibility and testing.
+#
+# Reference: specs/continuous-mortality-spec.md
+
+_INV_365 = 1.0 / 365.0  # pre-computed for daily timestep
+
+
+def daily_natural_mortality(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    alive_idx: np.ndarray = None,
+) -> Tuple[int, int]:
+    """Apply daily natural mortality to all alive individuals (vectorized).
+
+    Converts annual stage-specific survival rates to daily death
+    probabilities via ``p_death_daily = 1 - S_annual^(1/365)``.
+    Senescence overlay for agents older than ``senescence_age``.
+
+    Args:
+        agents: Structured agent array (modified in place).
+        pop_cfg: Population configuration with annual_survival,
+            senescence_age, senescence_mortality.
+        rng: NumPy random generator.
+        alive_idx: Pre-computed alive indices (optional; computed if None).
+
+    Returns:
+        (n_killed, n_senescence) — total natural deaths this day and
+        the subset that died from senescence.
+    """
+    alive = alive_idx if alive_idx is not None else np.where(agents['alive'])[0]
+    if len(alive) == 0:
+        return 0, 0
+
+    stages = agents['stage'][alive]
+    ages = agents['age'][alive]
+
+    # Vectorized annual survival lookup by stage
+    annual_surv = np.array(pop_cfg.annual_survival, dtype=np.float64)
+    s_clipped = np.clip(stages, 0, len(annual_surv) - 1)
+    base_annual_mort = 1.0 - annual_surv[s_clipped]
+
+    # Senescence overlay: extra mortality for age > senescence_age
+    total_annual_mort = base_annual_mort.copy()
+    senes_mask = ages > pop_cfg.senescence_age
+    if np.any(senes_mask):
+        extra = (pop_cfg.senescence_mortality
+                 * (ages[senes_mask] - pop_cfg.senescence_age) / 20.0)
+        total_annual_mort[senes_mask] = np.minimum(
+            1.0, base_annual_mort[senes_mask] + extra
+        )
+
+    # Convert annual mortality → daily mortality
+    daily_mort = 1.0 - (1.0 - total_annual_mort) ** _INV_365
+
+    # Single vectorized random draw
+    rolls = rng.random(len(alive))
+    dies = rolls < daily_mort
+
+    # Apply deaths
+    dead_idx = alive[dies]
+    agents['alive'][dead_idx] = False
+
+    # Stamp cause of death: SENESCENCE (3) or NATURAL (2)
+    dead_ages = agents['age'][dead_idx]
+    senes_dead = dead_ages > pop_cfg.senescence_age
+    # Use field[slot] = value pattern (CE-critical for structured arrays)
+    agents['cause_of_death'][dead_idx[senes_dead]] = 3   # SENESCENCE
+    agents['cause_of_death'][dead_idx[~senes_dead]] = 2  # NATURAL
+
+    n_killed = int(np.sum(dies))
+    n_senescence = int(np.sum(senes_dead))
+    return n_killed, n_senescence
+
+
+def daily_growth_and_aging(
+    agents: np.ndarray,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    alive_idx: np.ndarray = None,
+) -> None:
+    """Advance age by 1/365 year, grow via VB, update stages (vectorized).
+
+    Von Bertalanffy differential form with dt=1/365:
+        ``new_size = L_inf - (L_inf - old_size) * exp(-k * 1/365)``
+
+    Growth noise: multiplicative log-normal with daily-scaled sigma
+    (σ_daily = 2.0 / √365 ≈ 0.105 mm).
+
+    Stage transitions checked via size thresholds (one-directional).
+    Size is clamped to never decrease (no shrinking).
+
+    Args:
+        agents: Structured agent array (modified in place).
+        pop_cfg: Population configuration with L_inf, k_growth.
+        rng: NumPy random generator.
+        alive_idx: Pre-computed alive indices (optional; computed if None).
+    """
+    alive = alive_idx if alive_idx is not None else np.where(agents['alive'])[0]
+    if len(alive) == 0:
+        return
+
+    n = len(alive)
+
+    # Daily aging
+    agents['age'][alive] += _INV_365
+
+    # VB growth with dt = 1/365
+    old_size = agents['size'][alive].astype(np.float64)
+    L_inf = pop_cfg.L_inf
+    k = pop_cfg.k_growth
+    decay = np.exp(-k * _INV_365)  # scalar, same for all
+    deterministic = L_inf - (L_inf - old_size) * decay
+
+    # Growth noise: multiplicative log-normal, σ_step = 0.15/√365 ≈ 0.00785
+    # so that 365 daily steps compound to σ_annual ≈ 0.15 (matching annual path)
+    sigma_per_step = 0.15 / np.sqrt(365.0)
+    noise = np.exp(rng.normal(0.0, sigma_per_step, size=n))
+    # Apply noise to the increment only (not to existing size)
+    increment = (deterministic - old_size) * noise
+    new_size = old_size + np.maximum(increment, 0.0)
+
+    # Clamp: no shrinking
+    new_size = np.maximum(new_size, old_size)
+    agents['size'][alive] = new_size
+
+    # Vectorized stage assignment (one-directional only)
+    # Thresholds: SETTLER (<10) → JUVENILE (<150) → SUBADULT (<400) → ADULT
+    current_stage = agents['stage'][alive].copy()
+
+    # Only promote, never demote (use np.maximum against current stage)
+    # EGG_LARVA (0) handled externally — skip those
+    not_egg = current_stage != Stage.EGG_LARVA
+
+    new_stage = current_stage.copy()
+    # Start from smallest → largest threshold
+    new_stage[not_egg & (new_size >= 10.0)] = np.maximum(
+        new_stage[not_egg & (new_size >= 10.0)], Stage.JUVENILE
+    )
+    new_stage[not_egg & (new_size >= 150.0)] = np.maximum(
+        new_stage[not_egg & (new_size >= 150.0)], Stage.SUBADULT
+    )
+    new_stage[not_egg & (new_size >= 400.0)] = Stage.ADULT
+
+    agents['stage'][alive] = new_stage
+
+
+def annual_reproduction(
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    effect_sizes: np.ndarray,
+    habitat_area: float,
+    sst: float,
+    carrying_capacity: int,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    sim_day: int = 0,
+) -> dict:
+    """Full annual reproduction: spawning → fertilization → SRS → settlement.
+
+    Returns diagnostics dict.
+    """
+    alive = agents['alive']
+    stage = agents['stage']
+    sex = agents['sex']
+    disease = agents['disease_state']
+
+    # Spawning requires: alive, ADULT, healthy (S only — R→S means
+    # recovered agents are already S; R check kept for snapshot compat)
+    can_spawn = alive & (stage == Stage.ADULT) & (
+        (disease == DiseaseState.S) | (disease == DiseaseState.R)
+    )
+    female_mask = can_spawn & (sex == 0)
+    male_mask = can_spawn & (sex == 1)
+
+    females = np.where(female_mask)[0]
+    males = np.where(male_mask)[0]
+
+    diag = {
+        'n_spawning_females': len(females),
+        'n_spawning_males': len(males),
+        'fertilization_success': 0.0,
+        'n_competent': 0,
+        'n_recruits': 0,
+    }
+
+    if len(females) == 0 or len(males) == 0:
+        return diag
+
+    # Fertilization (Allee effect)
+    n_adults = len(females) + len(males)
+    male_density = len(males) / habitat_area if habitat_area > 0 else 0.0
+    fert = fertilization_success(male_density, pop_cfg.gamma_fert)
+    diag['fertilization_success'] = fert
+
+    if fert < 1e-10:
+        return diag
+
+    # Total eggs
+    sizes = agents['size'][females].astype(np.float64)
+    eggs = np.where(
+        sizes >= pop_cfg.L_min_repro,
+        pop_cfg.F0 * (sizes / pop_cfg.L_ref) ** pop_cfg.fecundity_exp,
+        0.0,
+    ).sum()
+
+    n_zygotes = int(eggs * fert)
+    if n_zygotes <= 0:
+        return diag
+
+    # Pelagic larval phase
+    pld = pelagic_larval_duration(sst)
+    surv = larval_survival(pld)
+    n_competent = max(1, int(n_zygotes * surv))
+    diag['n_competent'] = n_competent
+
+    # Settlement cue
+    n_adults_present = n_adults
+    cue_mod = settlement_cue_modifier(n_adults_present)
+    effective_settlers = max(0, int(n_competent * cue_mod))
+
+    # Beverton-Holt density-dependent recruitment with TRUE settler count
+    # (no artificial cap — BH itself provides density regulation)
+    current_alive = int(np.sum(agents['alive']))
+    n_recruits = beverton_holt_recruitment(
+        effective_settlers, carrying_capacity, pop_cfg.settler_survival,
+    )
+    # Cap by available slots (dead agent array entries)
+    available_slots = max(0, carrying_capacity - current_alive)
+    n_recruits = min(n_recruits, available_slots, effective_settlers)
+
+    if n_recruits <= 0:
+        return diag
+
+    # SRS lottery — only create genotypes for actual recruits
+    offspring_geno, parent_pairs = srs_reproductive_lottery(
+        females=females,
+        males=males,
+        agents=agents,
+        genotypes=genotypes,
+        n_offspring_target=n_recruits,
+        alpha_srs=pop_cfg.alpha_srs,
+        F0=pop_cfg.F0,
+        L_ref=pop_cfg.L_ref,
+        fecundity_exp=pop_cfg.fecundity_exp,
+        L_min_repro=pop_cfg.L_min_repro,
+        rng=rng,
+    )
+
+    if len(offspring_geno) == 0:
+        return diag
+
+    settler_geno = offspring_geno
+    n_recruits = len(settler_geno)
+
+    # Find dead/empty slots
+    dead_slots = np.where(~agents['alive'])[0]
+    n_slots = min(n_recruits, len(dead_slots))
+
+    hab_side = np.sqrt(max(habitat_area, 1.0))
+
+    for j in range(n_slots):
+        slot = dead_slots[j]
+        agents[slot]['alive'] = True
+        agents[slot]['x'] = rng.uniform(0, hab_side)
+        agents[slot]['y'] = rng.uniform(0, hab_side)
+        agents[slot]['heading'] = rng.uniform(0, 2 * np.pi)
+        agents[slot]['speed'] = 0.1
+        agents[slot]['size'] = 0.5  # mm at settlement
+        agents[slot]['age'] = 0.0
+        agents[slot]['stage'] = Stage.SETTLER
+        agents[slot]['sex'] = rng.integers(0, 2)
+        agents[slot]['disease_state'] = DiseaseState.S
+        agents[slot]['disease_timer'] = 0
+        agents[slot]['node_id'] = 0
+        agents[slot]['origin'] = 0
+        agents[slot]['release_cohort'] = 0
+        agents[slot]['cause_of_death'] = 0  # DeathCause.ALIVE
+        agents[slot]['settlement_day'] = sim_day  # Phase 11: juvenile immunity
+
+        genotypes[slot] = settler_geno[j]
+        agents[slot]['resistance'] = _compute_resistance(
+            settler_geno[j], effect_sizes
+        )
+
+    diag['n_recruits'] = n_slots
+    return diag
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# CONTINUOUS SETTLEMENT (daily cohort settlement)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _cohort_settlement_day(c: LarvalCohort) -> int:
+    """Key function for sorted insertion by settlement day."""
+    return c.spawn_day + int(c.pld_days)
+
+
+def _add_cohort(pending: Dict[int, List[LarvalCohort]], cohort: LarvalCohort) -> None:
+    """Add cohort to dict-of-lists keyed by settlement day.  O(1) amortized."""
+    key = _cohort_settlement_day(cohort)
+    bucket = pending.get(key)
+    if bucket is None:
+        pending[key] = [cohort]
+    else:
+        bucket.append(cohort)
+
+
+def _pop_ready_cohorts(
+    pending: Dict[int, List[LarvalCohort]], sim_day: int
+) -> List[LarvalCohort]:
+    """Pop all cohorts with settlement_day <= sim_day.
+
+    O(k) where k = number of ready settlement days (typically 0-3).
+    """
+    if not pending:
+        return []
+    ready: List[LarvalCohort] = []
+    days_to_pop = [d for d in pending if d <= sim_day]
+    for d in days_to_pop:
+        ready.extend(pending.pop(d))
+    return ready
+
+
+
+def settle_daily_cohorts(
+    cohorts: List[LarvalCohort],
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    carrying_capacity: int,
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    effect_sizes: np.ndarray = None,
+    node_id: int = 0,
+    habitat_area: float = 1e6,
+    sim_day: int = 0,
+    effects_t: np.ndarray = None,
+    effects_c: np.ndarray = None,
+    res_slice: slice = None,
+    tol_slice: slice = None,
+    rec_slice: slice = None,
+    pre_filtered: bool = False,
+) -> int:
+    """Settle competent larval cohorts into the population.
+
+    Called daily in the simulation loop for cohorts whose PLD has elapsed.
+    Applies settlement cue modifier (adult biofilm Allee effect) and
+    Beverton-Holt density-dependent recruitment, then places surviving
+    recruits into available agent slots.
+
+    Args:
+        cohorts: List of LarvalCohort objects ready to settle (PLD elapsed).
+            Must have genotypes set (not None).
+        agents: Agent structured array (modified in place).
+        genotypes: Genotype array (modified in place).
+        carrying_capacity: K for this node.
+        pop_cfg: Population dynamics configuration (for settler_survival).
+        rng: Random number generator.
+        effect_sizes: Resistance effect sizes.
+            If None, uses ``make_effect_sizes()`` default.
+        node_id: Node index for placed agents.
+        habitat_area: Habitat area in m² (for spatial placement of settlers).
+        sim_day: Current simulation day (stamped as settlement_day for
+            juvenile immunity tracking).
+        pre_filtered: If True, cohorts already have BH recruitment and settlement 
+            cue filtering applied (new multi-node spawning flow). If False, apply 
+            filtering within this function (single-node simulation, legacy callers).
+
+    Returns:
+        Total number of recruits successfully settled across all cohorts.
+    """
+    if not cohorts:
+        return 0
+
+    if effect_sizes is None:
+        effect_sizes = make_effect_sizes()
+
+    total_settled = 0
+
+    for cohort in cohorts:
+        if cohort.n_competent <= 0:
+            continue
+
+        current_alive = int(np.sum(agents['alive']))
+        available_slots = max(0, carrying_capacity - current_alive)
+        if available_slots == 0:
+            break
+
+        if pre_filtered:
+            # Cohorts from new multi-node spawning flow already have exact genotypes needed
+            n_recruits = min(cohort.n_competent, available_slots)
+            settler_geno = cohort.genotypes
+        else:
+            # Original flow: apply settlement cue modifier and Beverton-Holt
+            # (single-node simulation, tests, or legacy callers)
+            
+            # Count adults for settlement cue modifier (Allee effect)
+            n_adults = int(np.sum(
+                agents['alive'] & (agents['stage'] == Stage.ADULT)
+            ))
+            cue_mod = settlement_cue_modifier(n_adults)
+            effective_settlers = max(0, int(cohort.n_competent * cue_mod))
+
+            if effective_settlers <= 0:
+                continue
+
+            # Beverton-Holt density-dependent recruitment
+            n_recruits = beverton_holt_recruitment(
+                effective_settlers, carrying_capacity, pop_cfg.settler_survival,
+            )
+            n_recruits = min(n_recruits, available_slots)
+
+            if n_recruits <= 0:
+                continue
+
+            # Select which settlers survive (random subsample if needed)
+            if n_recruits < cohort.n_competent:
+                keep_idx = rng.choice(cohort.n_competent, size=n_recruits, replace=False)
+                settler_geno = cohort.genotypes[keep_idx]
+            else:
+                settler_geno = cohort.genotypes[:n_recruits]
+
+        # Find dead/empty slots in agent array
+        dead_slots = np.where(~agents['alive'])[0]
+        n_slots = min(n_recruits, len(dead_slots))
+        if n_slots <= 0:
+            continue
+
+        hab_side = np.sqrt(max(habitat_area, 1.0))
+        slots = dead_slots[:n_slots]
+
+        # Batch field assignments (vectorized — same pattern as settle_recruits)
+        agents['alive'][slots] = True
+        agents['x'][slots] = rng.uniform(0, hab_side, n_slots)
+        agents['y'][slots] = rng.uniform(0, hab_side, n_slots)
+        agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n_slots)
+        agents['speed'][slots] = 0.1
+        agents['size'][slots] = 0.5  # mm at settlement
+        agents['age'][slots] = 0.0
+        agents['stage'][slots] = Stage.SETTLER
+        agents['sex'][slots] = rng.integers(0, 2, n_slots)
+        agents['disease_state'][slots] = DiseaseState.S
+        agents['disease_timer'][slots] = 0
+        agents['node_id'][slots] = node_id
+        agents['origin'][slots] = 0  # WILD
+        agents['release_cohort'][slots] = 0
+        agents['cause_of_death'][slots] = 0  # DeathCause.ALIVE
+        agents['settlement_day'][slots] = sim_day  # Phase 11: juvenile immunity
+
+        # Batch genotype assignment
+        genotypes[slots] = settler_geno[:n_slots]
+
+        # Batch trait score computation for settlers
+        n_res = len(effect_sizes)
+        allele_means_r = (
+            settler_geno[:n_slots, :n_res, :].sum(axis=2).astype(np.float64) * 0.5
+        )
+        agents['resistance'][slots] = (allele_means_r @ effect_sizes).astype(np.float32)
+
+        # Tolerance and recovery if effect arrays provided
+        if effects_t is not None and tol_slice is not None:
+            allele_means_t = (
+                settler_geno[:n_slots, tol_slice, :].sum(axis=2).astype(np.float64) * 0.5
+            )
+            agents['tolerance'][slots] = (allele_means_t @ effects_t).astype(np.float32)
+        if effects_c is not None and rec_slice is not None:
+            allele_means_c = (
+                settler_geno[:n_slots, rec_slice, :].sum(axis=2).astype(np.float64) * 0.5
+            )
+            agents['recovery_ability'][slots] = (allele_means_c @ effects_c).astype(np.float32)
+
+        total_settled += n_slots
+
+    return total_settled
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# RELEASE MECHANISM — Captive-bred reintroduction
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _grow_agent_arrays(
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    additional: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Grow agent and genotype arrays by additional slots.
+
+    Creates new arrays with increased capacity and copies existing data.
+    New slots are zeroed (alive=False, all fields default).
+
+    Args:
+        agents: Current agent structured array.
+        genotypes: Current genotype array (max_n, N_LOCI, 2).
+        additional: Number of new slots to add.
+
+    Returns:
+        (new_agents, new_genotypes) with increased capacity.
+    """
+    old_n = len(agents)
+    new_n = old_n + additional
+    new_agents = allocate_agents(new_n)
+    new_agents[:old_n] = agents
+    new_genotypes = allocate_genotypes(new_n)
+    new_genotypes[:old_n] = genotypes
+    return new_agents, new_genotypes
+
+
+def process_release_event(
+    event: ReleaseEvent,
+    event_index: int,
+    agents: np.ndarray,
+    genotypes: np.ndarray,
+    effect_sizes: np.ndarray,
+    effects_t: np.ndarray,
+    effects_c: np.ndarray,
+    res_slice: slice,
+    tol_slice: slice,
+    rec_slice: slice,
+    gen_cfg: 'GeneticsSection',
+    pop_cfg: PopulationSection,
+    rng: np.random.Generator,
+    habitat_area: float,
+    sim_day: int,
+) -> Tuple[np.ndarray, np.ndarray, Dict]:
+    """Process a single release event, injecting individuals into the population.
+
+    Handles genotype generation (three modes), slot allocation (with array
+    growth if needed), agent field initialization, trait score computation,
+    and release logging.
+
+    Released individuals enter as SUSCEPTIBLE and participate in ALL model
+    processes from their release day onward: disease transmission, mortality,
+    growth, reproduction, dispersal.
+
+    Args:
+        event: ReleaseEvent configuration.
+        event_index: 1-indexed release event number (for release_cohort field).
+        agents: Agent array (may be replaced if growth needed).
+        genotypes: Genotype array (may be replaced if growth needed).
+        effect_sizes: Resistance effect sizes.
+        effects_t: Tolerance effect sizes.
+        effects_c: Recovery effect sizes.
+        res_slice, tol_slice, rec_slice: Trait locus slices.
+        gen_cfg: Genetics configuration section.
+        pop_cfg: Population configuration section.
+        rng: Random generator.
+        habitat_area: Habitat area (m²) for spatial placement.
+        sim_day: Current simulation day.
+
+    Returns:
+        (agents, genotypes, log_entry) — possibly new arrays if grown.
+    """
+    n = event.n_individuals
+
+    # 1. Generate genotypes based on genetics_mode
+    if event.genetics_mode == 'genotypes':
+        if event.genotypes is None or len(event.genotypes) < n:
+            raise ValueError(
+                f"Release event {event_index}: genotypes array must have "
+                f">= {n} rows, got {len(event.genotypes) if event.genotypes is not None else 0}"
+            )
+        release_geno = event.genotypes[:n].copy()
+    elif event.genetics_mode == 'allele_freqs':
+        if event.allele_freqs is None:
+            raise ValueError(
+                f"Release event {event_index}: allele_freqs required"
+            )
+        release_geno = generate_release_genotypes(n, event.allele_freqs, rng)
+    elif event.genetics_mode == 'trait_targets':
+        targets = event.trait_targets or {
+            'resistance': gen_cfg.target_mean_r,
+            'tolerance': gen_cfg.target_mean_t,
+            'recovery': gen_cfg.target_mean_c,
+        }
+        release_geno = genotypes_from_trait_targets(
+            n, targets, effect_sizes, effects_t, effects_c, rng,
+            n_resistance=gen_cfg.n_resistance,
+            n_tolerance=gen_cfg.n_tolerance,
+            n_recovery=gen_cfg.n_recovery,
+            beta_a=gen_cfg.q_init_beta_a,
+            beta_b=gen_cfg.q_init_beta_b,
+        )
+    else:
+        raise ValueError(f"Unknown genetics_mode: {event.genetics_mode}")
+
+    # 2. Find slots — prefer dead slots, grow arrays if needed
+    dead_slots = np.where(~agents['alive'])[0]
+    if len(dead_slots) >= n:
+        slots = dead_slots[:n]
+    else:
+        needed = n - len(dead_slots)
+        growth = max(needed, int(len(agents) * 0.25))  # grow by at least 25%
+        agents, genotypes = _grow_agent_arrays(agents, genotypes, growth)
+        dead_slots = np.where(~agents['alive'])[0]
+        slots = dead_slots[:n]
+
+    # 3. Set agent fields (vectorized)
+    hab_side = np.sqrt(max(habitat_area, 1.0))
+
+    # Ages: uniform in age_range (convert from days to years)
+    min_age_days, max_age_days = event.age_range
+    ages_days = rng.integers(min_age_days, max_age_days + 1, size=n)
+    ages_years = ages_days.astype(np.float32) / 365.0
+
+    # Sizes from VB growth curve at these ages
+    sizes = pop_cfg.L_inf * (
+        1.0 - np.exp(-pop_cfg.k_growth * (ages_years - pop_cfg.t0_growth))
+    )
+    sizes = np.maximum(sizes, 0.5).astype(np.float32)
+
+    # Stages from sizes (one-directional thresholds)
+    stages = np.full(n, Stage.ADULT, dtype=np.int8)
+    stages[sizes < 400.0] = Stage.SUBADULT
+    stages[sizes < 150.0] = Stage.JUVENILE
+    stages[sizes < 10.0] = Stage.SETTLER
+
+    # Vectorized field assignment
+    agents['alive'][slots] = True
+    agents['x'][slots] = rng.uniform(0, hab_side, n).astype(np.float32)
+    agents['y'][slots] = rng.uniform(0, hab_side, n).astype(np.float32)
+    agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n).astype(np.float32)
+    agents['speed'][slots] = 0.1
+    agents['size'][slots] = sizes
+    agents['age'][slots] = ages_years
+    agents['stage'][slots] = stages
+    agents['sex'][slots] = rng.integers(0, 2, n).astype(np.int8)
+    agents['disease_state'][slots] = DiseaseState.S
+    agents['disease_timer'][slots] = 0
+    agents['node_id'][slots] = event.node_id
+    agents['settlement_day'][slots] = sim_day
+    agents['cause_of_death'][slots] = 0  # ALIVE
+    agents['pathogen_virulence'][slots] = 0.0
+
+    # Spawning fields reset
+    agents['spawning_ready'][slots] = 0
+    agents['has_spawned'][slots] = 0
+    agents['spawn_refractory'][slots] = 0
+    agents['spawn_gravity_timer'][slots] = 0
+    agents['immunosuppression_timer'][slots] = 0
+    agents['last_spawn_day'][slots] = 0
+
+    # Origin tracking
+    if event.mark_released:
+        agents['origin'][slots] = Origin.CAPTIVE_BRED
+    else:
+        agents['origin'][slots] = Origin.WILD
+    agents['release_cohort'][slots] = event_index
+
+    # 4. Assign genotypes
+    genotypes[slots] = release_geno[:n]
+
+    # 5. Compute trait scores (vectorized)
+    allele_means_r = (
+        release_geno[:n, res_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['resistance'][slots] = (allele_means_r @ effect_sizes).astype(np.float32)
+
+    allele_means_t = (
+        release_geno[:n, tol_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['tolerance'][slots] = (allele_means_t @ effects_t).astype(np.float32)
+
+    allele_means_c = (
+        release_geno[:n, rec_slice, :].sum(axis=2).astype(np.float64) * 0.5
+    )
+    agents['recovery_ability'][slots] = (allele_means_c @ effects_c).astype(np.float32)
+
+    # 6. Log entry
+    log_entry = {
+        'event_index': event_index,
+        'time_step': sim_day,
+        'node_id': event.node_id,
+        'n_released': n,
+        'mean_resistance': float(np.mean(agents['resistance'][slots])),
+        'mean_tolerance': float(np.mean(agents['tolerance'][slots])),
+        'mean_recovery': float(np.mean(agents['recovery_ability'][slots])),
+        'genetics_mode': event.genetics_mode,
+    }
+
+    return agents, genotypes, log_entry
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# COUPLED SIMULATION RESULT
+# ═══════════════════════════════════════════════════════════════════════
+
+@dataclass
+class CoupledSimResult:
+    """Results from a coupled disease + population + genetics simulation."""
+    n_years: int = 0
+    # Annual timeseries (length = n_years)
+    yearly_pop: Optional[np.ndarray] = None
+    yearly_adults: Optional[np.ndarray] = None
+    yearly_recruits: Optional[np.ndarray] = None
+    yearly_natural_deaths: Optional[np.ndarray] = None
+    yearly_disease_deaths: Optional[np.ndarray] = None
+    yearly_mean_resistance: Optional[np.ndarray] = None
+    yearly_mean_tolerance: Optional[np.ndarray] = None
+    yearly_mean_recovery: Optional[np.ndarray] = None
+    yearly_fert_success: Optional[np.ndarray] = None
+
+    # Genetics tracking (Phase 7)
+    yearly_allele_freq_top3: Optional[np.ndarray] = None   # (n_years, 3)
+    yearly_va: Optional[np.ndarray] = None                  # (n_years,) additive variance
+    yearly_va_tolerance: Optional[np.ndarray] = None        # (n_years,)
+    yearly_va_recovery: Optional[np.ndarray] = None         # (n_years,)
+    pre_epidemic_allele_freq: Optional[np.ndarray] = None   # (N_LOCI,) snapshot
+    post_epidemic_allele_freq: Optional[np.ndarray] = None  # (N_LOCI,) snapshot
+
+    # Daily timeseries (length = n_years * 365)
+    daily_pop: Optional[np.ndarray] = None
+    daily_infected: Optional[np.ndarray] = None
+    daily_vibrio: Optional[np.ndarray] = None
+
+    # Death accounting by cause (annual timeseries)
+    yearly_senescence_deaths: Optional[np.ndarray] = None
+
+    # Spawning event tracking (daily)
+    daily_spawning_counts: Optional[np.ndarray] = None  # (total_days,) spawners per day
+
+    # Pathogen evolution (annual timeseries)
+    yearly_mean_virulence: Optional[np.ndarray] = None          # (n_years,)
+    yearly_virulence_new_infections: Optional[np.ndarray] = None  # (n_years,)
+    yearly_virulence_of_deaths: Optional[np.ndarray] = None     # (n_years,)
+
+    # Release tracking
+    release_log: Optional[List[Dict]] = None
+    total_released: int = 0
+    released_surviving: int = 0
+    yearly_released_alive: Optional[np.ndarray] = None
+
+    # Summary
+    initial_pop: int = 0
+    final_pop: int = 0
+    min_pop: int = 0
+    min_pop_year: int = 0
+    total_disease_deaths: int = 0
+    total_natural_deaths: int = 0
+    total_senescence_deaths: int = 0
+    peak_mortality_fraction: float = 0.0
+    recovered: bool = False
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# COUPLED SINGLE-NODE SIMULATION
+# ═══════════════════════════════════════════════════════════════════════
+
+def run_coupled_simulation(
+    n_individuals: int = 500,
+    carrying_capacity: int = 500,
+    habitat_area: float = 10000.0,
+    T_celsius: float = 15.0,
+    salinity: float = 30.0,
+    phi_k: float = 0.02,
+    n_years: int = 10,
+    disease_year: int = 3,
+    initial_infected: int = 5,
+    seed: int = 42,
+    record_daily: bool = False,
+    config: Optional[SimulationConfig] = None,
+    sst_by_day: Optional[np.ndarray] = None,
+    perf: Optional['PerfMonitor'] = None,
+) -> CoupledSimResult:
+    """Run a coupled disease ↔ population simulation on a single node.
+
+    The simulation runs for n_years:
+      - Years 0 to disease_year-1: disease-free spinup (reach equilibrium)
+      - Year disease_year: pathogen introduced (initial infections seeded)
+      - Remaining years: epidemic + recovery
+
+    Daily loop (365 days/year):
+      1. Update SST (constant or from sst_by_day)
+      2. Disease step: Vibrio dynamics, transmission, progression
+      3. Track daily metrics
+
+    Annual step (end of each year):
+      1. Natural mortality (stage-specific, senescence)
+      2. Growth & aging (VB, stage transitions)
+      3. Reproduction (spawning, fertilization, SRS, settlement)
+      4. Disease year: seed initial infections
+      5. Record annual metrics
+
+    Args:
+        n_individuals: Starting population size.
+        carrying_capacity: K for the node.
+        habitat_area: Habitat area (m²).
+        T_celsius: Constant SST (°C), unless sst_by_day provided.
+        salinity: Constant salinity (psu).
+        phi_k: Flushing rate (d⁻¹).
+        n_years: Total years to simulate.
+        disease_year: Year to introduce disease (0-indexed).
+        initial_infected: Number of initially infected individuals.
+        seed: RNG seed.
+        record_daily: If True, record daily pop/infected/vibrio.
+        config: Optional SimulationConfig; uses default if None.
+        sst_by_day: Optional SST array (n_years*365,) for variable temperature.
+
+    Returns:
+        CoupledSimResult with annual and optionally daily timeseries.
+    """
+    if config is None:
+        config = default_config()
+    if perf is None:
+        perf = PerfMonitor(enabled=False)
+    perf.start()
+
+    pop_cfg = config.population
+    dis_cfg = config.disease
+    pe_cfg = (config.pathogen_evolution
+              if hasattr(config, 'pathogen_evolution')
+              and (config.pathogen_evolution.enabled
+                   or dis_cfg.virulence_evolution)
+              else None)
+
+    rng = np.random.default_rng(seed)
+
+    # Initialize effect sizes for all three traits
+    gen_cfg = config.genetics
+    effect_sizes = make_effect_sizes(gen_cfg.effect_size_seed, n_loci=gen_cfg.n_resistance)
+    effects_t = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 1),
+        gen_cfg.n_tolerance, total_weight=1.0,
+    )
+    effects_c = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 2),
+        gen_cfg.n_recovery, total_weight=1.0,
+    )
+    res_slice, tol_slice, rec_slice = trait_slices(
+        gen_cfg.n_resistance, gen_cfg.n_tolerance, gen_cfg.n_recovery,
+    )
+
+    # Allocate arrays — extra capacity for population fluctuation + releases
+    total_release_n = sum(re.n_individuals for re in config.release_events)
+    max_agents = max(int(carrying_capacity * 2.5), n_individuals * 3) + total_release_n
+    agents, genotypes = initialize_population(
+        n_individuals=n_individuals,
+        max_agents=max_agents,
+        habitat_area=habitat_area,
+        effect_sizes=effect_sizes,
+        pop_cfg=pop_cfg,
+        rng=rng,
+        q_init=0.05,
+        genetics_cfg=gen_cfg,
+        effects_t=effects_t,
+        effects_c=effects_c,
+    )
+
+    # Disease state
+    node_disease = NodeDiseaseState(node_id=0)
+
+    # Vibrio: steady-state background if ubiquitous
+    if dis_cfg.scenario == "ubiquitous":
+        env = environmental_vibrio(T_celsius, salinity, dis_cfg)
+        xi = vibrio_decay_rate(T_celsius)
+        node_disease.vibrio_concentration = env / (xi + phi_k) if (xi + phi_k) > 0 else 0.0
+    else:
+        node_disease.vibrio_concentration = 0.0
+
+    # Track whether disease is active
+    disease_active = False
+    cumulative_disease_deaths = 0
+
+    # ── Spawning system variables ────────────────────────────────────
+    spawning_enabled = config.spawning is not None
+    accumulated_cohorts = []  # List of LarvalCohort objects collected during season
+    previous_in_season = False  # Track season transitions
+    spawning_diagnostics = {
+        'n_spawning_events': 0,
+        'n_cohorts': 0,
+        'total_larvae': 0,
+    }
+
+    # ── Release mechanism ────────────────────────────────────────────
+    release_schedule = {}
+    for _ri, _re in enumerate(config.release_events):
+        release_schedule.setdefault(_re.time_step, []).append((_ri + 1, _re))
+    release_log = []
+
+    # ── Allocate result arrays ────────────────────────────────────────
+    total_days = n_years * DAYS_PER_YEAR
+
+    # Spawning event tracking (daily)
+    daily_spawning_counts = np.zeros(total_days, dtype=np.int32)
+
+    yearly_pop = np.zeros(n_years, dtype=np.int32)
+    yearly_adults = np.zeros(n_years, dtype=np.int32)
+    yearly_recruits = np.zeros(n_years, dtype=np.int32)
+    yearly_natural_deaths = np.zeros(n_years, dtype=np.int32)
+    yearly_disease_deaths = np.zeros(n_years, dtype=np.int32)
+    yearly_senescence_deaths = np.zeros(n_years, dtype=np.int32)
+    yearly_mean_resistance = np.zeros(n_years, dtype=np.float64)
+    yearly_mean_tolerance = np.zeros(n_years, dtype=np.float64)
+    yearly_mean_recovery = np.zeros(n_years, dtype=np.float64)
+    yearly_fert_success = np.zeros(n_years, dtype=np.float64)
+
+    # Genetics tracking (Phase 7)
+    yearly_allele_freq_top3 = np.zeros((n_years, 3), dtype=np.float64)
+    yearly_va = np.zeros(n_years, dtype=np.float64)
+    yearly_va_tolerance = np.zeros(n_years, dtype=np.float64)
+    yearly_va_recovery = np.zeros(n_years, dtype=np.float64)
+    yearly_released_alive = np.zeros(n_years, dtype=np.int32)
+    pre_epidemic_allele_freq = None
+    post_epidemic_allele_freq = None
+    epidemic_started_year = None  # track when epidemic begins for snapshot timing
+
+    # Pathogen evolution virulence tracking
+    if pe_cfg is not None:
+        yearly_mean_v = np.zeros(n_years, dtype=np.float64)
+        yearly_v_new_inf = np.zeros(n_years, dtype=np.float64)
+        yearly_v_deaths = np.zeros(n_years, dtype=np.float64)
+        year_new_inf_v_accum = []   # list of v values for new infections this year
+        year_death_v_accum = []     # list of v values for disease deaths this year
+    else:
+        yearly_mean_v = None
+        yearly_v_new_inf = None
+        yearly_v_deaths = None
+
+    if record_daily:
+        daily_pop = np.zeros(total_days, dtype=np.int32)
+        daily_infected = np.zeros(total_days, dtype=np.int32)
+        daily_vibrio = np.zeros(total_days, dtype=np.float64)
+    else:
+        daily_pop = daily_infected = daily_vibrio = None
+
+    initial_pop = int(np.sum(agents['alive']))
+    min_pop = initial_pop
+    min_pop_year = 0
+    peak_mort_frac = 0.0
+
+    # ── Daily demographic accumulators (continuous mortality) ────────
+    daily_nat_deaths_accum = 0
+    daily_senes_deaths_accum = 0
+
+    # ── Main simulation loop ─────────────────────────────────────────
+    for year in range(n_years):
+        year_disease_deaths_before = cumulative_disease_deaths
+        yearly_recruits_accum = 0  # Daily settlement accumulator for this year
+
+        # ── Disease end (counterfactual) ─────────────────────────────
+        if (dis_cfg.disease_end_year is not None
+                and year == dis_cfg.disease_end_year
+                and disease_active):
+            disease_active = False
+            vibrio = 0.0
+            node_disease.vibrio_concentration = 0.0
+            node_disease.P_env_pool = 0.0
+            # Cure all infected/exposed
+            alive = agents['alive']
+            ds = agents['disease_state']
+            sick = alive & (
+                (ds == DiseaseState.E) |
+                (ds == DiseaseState.I1) |
+                (ds == DiseaseState.I2)
+            )
+            agents['disease_state'][sick] = DiseaseState.S
+            agents['disease_timer'][sick] = 0.0
+
+        # Reset daily demographic accumulators for this year
+        daily_nat_deaths_accum = 0
+        daily_senes_deaths_accum = 0
+
+        # ── PHASE A: DAILY DISEASE LOOP (365 days) ───────────────────
+        for day in range(DAYS_PER_YEAR):
+            sim_day = year * DAYS_PER_YEAR + day
+            global_day = sim_day
+
+            # ── Release events scheduled for today ────────────────
+            if sim_day in release_schedule:
+                for _cohort_idx, _event in release_schedule[sim_day]:
+                    agents, genotypes, _rlog = process_release_event(
+                        event=_event,
+                        event_index=_cohort_idx,
+                        agents=agents,
+                        genotypes=genotypes,
+                        effect_sizes=effect_sizes,
+                        effects_t=effects_t,
+                        effects_c=effects_c,
+                        res_slice=res_slice,
+                        tol_slice=tol_slice,
+                        rec_slice=rec_slice,
+                        gen_cfg=gen_cfg,
+                        pop_cfg=pop_cfg,
+                        rng=rng,
+                        habitat_area=habitat_area,
+                        sim_day=sim_day,
+                    )
+                    release_log.append(_rlog)
+
+            # Get today's temperature
+            if sst_by_day is not None and sim_day < len(sst_by_day):
+                today_T = float(sst_by_day[sim_day])
+            else:
+                today_T = T_celsius
+
+            # Disease step (only when active)
+            if disease_active:
+                with perf.track("disease"):
+                    deaths_before = node_disease.cumulative_deaths
+                    node_disease = daily_disease_update(
+                        agents=agents,
+                        node_state=node_disease,
+                        T_celsius=today_T,
+                        salinity=salinity,
+                        phi_k=phi_k,
+                        dispersal_input=0.0,
+                        day=global_day,
+                        cfg=dis_cfg,
+                        rng=rng,
+                        pe_cfg=pe_cfg,
+                        tau_max=gen_cfg.tau_max,
+                    )
+                    new_deaths = node_disease.cumulative_deaths - deaths_before
+                    cumulative_disease_deaths += new_deaths
+
+            # ── Daily settlement (continuous — settle cohorts that reached PLD) ─
+            if spawning_enabled and accumulated_cohorts:
+                ready = [c for c in accumulated_cohorts
+                         if (sim_day - c.spawn_day) >= c.pld_days]
+                accumulated_cohorts = [c for c in accumulated_cohorts
+                                       if (sim_day - c.spawn_day) < c.pld_days]
+                if ready:
+                    with perf.track("settlement"):
+                        n_settled = settle_daily_cohorts(
+                            ready, agents, genotypes, carrying_capacity,
+                            pop_cfg, rng, effect_sizes,
+                            habitat_area=habitat_area,
+                            sim_day=sim_day,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
+                        )
+                        yearly_recruits_accum += n_settled
+
+            # ── Spawning step (if enabled) ────────────────────────────
+            if spawning_enabled:
+                day_of_year = (day + 1)  # Convert 0-based to 1-based day of year
+                currently_in_season = in_spawning_season(day_of_year, 
+                    config.spawning.season_start_doy, 
+                    config.spawning.season_end_doy)
+                
+                # Reset spawning season when transitioning out of season
+                if previous_in_season and not currently_in_season:
+                    reset_spawning_season(agents)
+                
+                # Daily spawning step during season
+                if currently_in_season:
+                    with perf.track("spawning"):
+                        cohorts_today = spawning_step(
+                            agents=agents,
+                            genotypes=genotypes,
+                            day_of_year=day_of_year,
+                            node_latitude=48.0,  # Default latitude for single-node
+                            spawning_config=config.spawning,
+                            disease_config=config.disease,
+                            rng=rng,
+                            current_sim_day=sim_day,
+                            current_sst=today_T,
+                        )
+                    if cohorts_today:
+                        accumulated_cohorts.extend(cohorts_today)
+                        spawning_diagnostics['n_spawning_events'] += len(cohorts_today)
+                        spawning_diagnostics['n_cohorts'] += len(cohorts_today)
+                        spawning_diagnostics['total_larvae'] += sum(c.n_competent for c in cohorts_today)
+                    
+                    # Count spawners today: agents whose last_spawn_day == today's DOY
+                    alive_spawned = (
+                        agents['alive'] &
+                        (agents['last_spawn_day'] == day_of_year)
+                    )
+                    daily_spawning_counts[sim_day] = int(np.sum(alive_spawned))
+                
+                # Tick down immunosuppression timers
+                with perf.track("immunosuppression_tick"):
+                    immuno_mask = agents['immunosuppression_timer'] > 0
+                    agents['immunosuppression_timer'][immuno_mask] -= 1
+                
+                previous_in_season = currently_in_season
+
+            # Daily demographics (continuous mortality + growth)
+            # Compute alive_idx once, share across both calls
+            _alive_idx_demo = np.where(agents['alive'])[0]
+            with perf.track('daily_mortality'):
+                n_mort, n_senes = daily_natural_mortality(agents, pop_cfg, rng, alive_idx=_alive_idx_demo)
+                daily_nat_deaths_accum += n_mort
+                daily_senes_deaths_accum += n_senes
+
+            with perf.track('daily_growth'):
+                if n_mort > 0:
+                    _alive_idx_demo = np.where(agents['alive'])[0]
+                daily_growth_and_aging(agents, pop_cfg, rng, alive_idx=_alive_idx_demo)
+
+            # Daily recording
+            if record_daily:
+                alive_mask = agents['alive'].astype(bool)
+                ds = agents['disease_state']
+                daily_pop[sim_day] = int(np.sum(alive_mask))
+                daily_infected[sim_day] = int(np.sum(
+                    alive_mask & ((ds == DiseaseState.I1) | (ds == DiseaseState.I2))
+                ))
+                daily_vibrio[sim_day] = node_disease.vibrio_concentration
+
+        # ── PHASE B: ANNUAL DEMOGRAPHIC UPDATE ───────────────────────
+
+        # B1. Natural mortality now runs daily (Phase A) — just record accumulators
+        n_nat_dead = daily_nat_deaths_accum
+        n_senes_dead = daily_senes_deaths_accum
+        # B2. Growth now runs daily (Phase A)
+
+        # B3. Record pre-reproduction population
+        alive_mask = agents['alive'].astype(bool)
+        pop_now = int(np.sum(alive_mask))
+
+        # B4. Reproduction
+        if spawning_enabled:
+            # Continuous settlement already happened daily in Phase A.
+            # Settle any remaining cohorts that matured on the last day.
+            if accumulated_cohorts:
+                end_of_year_ready = [c for c in accumulated_cohorts
+                                     if ((year + 1) * DAYS_PER_YEAR - c.spawn_day) >= c.pld_days]
+                accumulated_cohorts = [c for c in accumulated_cohorts
+                                       if ((year + 1) * DAYS_PER_YEAR - c.spawn_day) < c.pld_days]
+                if end_of_year_ready:
+                    end_of_year_sim_day = (year + 1) * DAYS_PER_YEAR - 1
+                    n_eoy = settle_daily_cohorts(
+                        end_of_year_ready, agents, genotypes,
+                        carrying_capacity, pop_cfg, rng, effect_sizes,
+                        habitat_area=habitat_area,
+                        sim_day=end_of_year_sim_day,
+                        effects_t=effects_t,
+                        effects_c=effects_c,
+                        res_slice=res_slice,
+                        tol_slice=tol_slice,
+                        rec_slice=rec_slice,
+                    )
+                    yearly_recruits_accum += n_eoy
+
+            total_competent_larvae = spawning_diagnostics['total_larvae']
+            repro_diag = {
+                'n_spawning_females': spawning_diagnostics['n_spawning_events'],
+                'n_spawning_males': spawning_diagnostics['n_spawning_events'],
+                'fertilization_success': 1.0 if total_competent_larvae > 0 else 0.0,
+                'n_competent': total_competent_larvae,
+                'n_recruits': yearly_recruits_accum,
+            }
+
+            # Reset diagnostics for next year (keep pending cohorts across years)
+            spawning_diagnostics = {'n_spawning_events': 0, 'n_cohorts': 0, 'total_larvae': 0}
+
+        elif pop_now > 0:
+            # Fall back to annual reproduction (backward compatibility)
+            with perf.track("recruitment"):
+                repro_diag = annual_reproduction(
+                    agents=agents,
+                    genotypes=genotypes,
+                    effect_sizes=effect_sizes,
+                    habitat_area=habitat_area,
+                    sst=T_celsius,
+                    carrying_capacity=carrying_capacity,
+                    pop_cfg=pop_cfg,
+                    rng=rng,
+                    sim_day=(year + 1) * DAYS_PER_YEAR - 1,
+                )
+        else:
+            repro_diag = {
+                'n_spawning_females': 0,
+                'n_spawning_males': 0,
+                'fertilization_success': 0.0,
+                'n_competent': 0,
+                'n_recruits': 0,
+            }
+
+        # B5. Seed disease at disease_year
+        if year == disease_year and not disease_active:
+            # ── Pre-epidemic allele frequency snapshot (Phase 7) ──────
+            alive_mask_pre = agents['alive'].astype(bool)
+            if int(np.sum(alive_mask_pre)) > 0:
+                pre_epidemic_allele_freq = compute_allele_frequencies(
+                    genotypes, alive_mask_pre
+                )
+
+            disease_active = True
+            epidemic_started_year = year
+            alive_idx = np.where(agents['alive'])[0]
+            n_to_infect = min(initial_infected, len(alive_idx))
+            if n_to_infect > 0:
+                infect_idx = rng.choice(alive_idx, size=n_to_infect,
+                                        replace=False)
+                mu_EI1 = arrhenius(dis_cfg.mu_EI1_ref, dis_cfg.Ea_EI1,
+                                   T_celsius)
+                from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
+                for idx in infect_idx:
+                    agents['disease_state'][idx] = DiseaseState.E
+                    agents['disease_timer'][idx] = sample_stage_duration(
+                        mu_EI1, K_SHAPE_E, rng
+                    )
+                    if pe_cfg is not None:
+                        agents['pathogen_virulence'][idx] = pe_cfg.v_init
+
+        # ── Post-epidemic allele frequency snapshot (Phase 7) ────────
+        # Take snapshot 2 years after epidemic start (when initial wave is over)
+        if (epidemic_started_year is not None
+                and year == epidemic_started_year + 2
+                and post_epidemic_allele_freq is None):
+            alive_mask_post = agents['alive'].astype(bool)
+            if int(np.sum(alive_mask_post)) > 1:
+                post_epidemic_allele_freq = compute_allele_frequencies(
+                    genotypes, alive_mask_post
+                )
+
+        # ── Record annual metrics ────────────────────────────────────
+        alive_mask = agents['alive'].astype(bool)
+        pop_after = int(np.sum(alive_mask))
+        adult_mask = alive_mask & (agents['stage'] == Stage.ADULT)
+        n_adults = int(np.sum(adult_mask))
+
+        yearly_pop[year] = pop_after
+        yearly_adults[year] = n_adults
+        yearly_recruits[year] = repro_diag.get('n_recruits', 0)
+        yearly_natural_deaths[year] = n_nat_dead
+        yearly_senescence_deaths[year] = n_senes_dead
+        yearly_disease_deaths[year] = (
+            cumulative_disease_deaths - year_disease_deaths_before
+        )
+        yearly_fert_success[year] = repro_diag.get('fertilization_success', 0.0)
+
+        # Mean trait scores of living individuals
+        if pop_after > 0:
+            yearly_mean_resistance[year] = float(
+                np.mean(agents['resistance'][alive_mask])
+            )
+            yearly_mean_tolerance[year] = float(
+                np.mean(agents['tolerance'][alive_mask])
+            )
+            yearly_mean_recovery[year] = float(
+                np.mean(agents['recovery_ability'][alive_mask])
+            )
+        else:
+            yearly_mean_resistance[year] = 0.0
+            yearly_mean_tolerance[year] = 0.0
+            yearly_mean_recovery[year] = 0.0
+
+        # ── Pathogen evolution virulence tracking ─────────────────────
+        if pe_cfg is not None:
+            # Time-weighted mean virulence across all infected agent-days
+            if node_disease.virulence_count_daily > 0:
+                yearly_mean_v[year] = (
+                    node_disease.virulence_sum_daily
+                    / node_disease.virulence_count_daily
+                )
+
+            # Mean virulence of new infections this year (from accumulator)
+            if node_disease.virulence_count_new_infections > 0:
+                yearly_v_new_inf[year] = (
+                    node_disease.virulence_sum_new_infections
+                    / node_disease.virulence_count_new_infections
+                )
+
+            # Mean virulence of disease deaths this year (from accumulator)
+            if node_disease.virulence_count_deaths > 0:
+                yearly_v_deaths[year] = (
+                    node_disease.virulence_sum_deaths
+                    / node_disease.virulence_count_deaths
+                )
+
+            # Reset accumulators for next year
+            node_disease.virulence_sum_new_infections = 0.0
+            node_disease.virulence_count_new_infections = 0
+            node_disease.virulence_sum_deaths = 0.0
+            node_disease.virulence_count_deaths = 0
+            node_disease.virulence_sum_daily = 0.0
+            node_disease.virulence_count_daily = 0
+
+        # ── Genetics tracking (Phase 7) ──────────────────────────────
+        if pop_after > 0:
+            allele_freq = compute_allele_frequencies(genotypes, alive_mask)
+            yearly_allele_freq_top3[year] = allele_freq[:3]
+            yearly_va[year] = compute_additive_variance(
+                allele_freq, effect_sizes, res_slice
+            )
+            yearly_va_tolerance[year] = compute_additive_variance(
+                allele_freq, effects_t, tol_slice
+            )
+            yearly_va_recovery[year] = compute_additive_variance(
+                allele_freq, effects_c, rec_slice
+            )
+
+        # Track released alive
+        if config.release_events:
+            yearly_released_alive[year] = int(np.sum(
+                agents['alive'] & (agents['release_cohort'] > 0)
+            ))
+
+        # Track minimum population
+        if pop_after < min_pop:
+            min_pop = pop_after
+            min_pop_year = year
+
+        # Peak disease mortality fraction (this year)
+        year_dd = yearly_disease_deaths[year]
+        year_start_pop = yearly_pop[year - 1] if year > 0 else initial_pop
+        if year_start_pop > 0:
+            mort_frac = year_dd / year_start_pop
+            peak_mort_frac = max(peak_mort_frac, mort_frac)
+
+    # ── Compile result ────────────────────────────────────────────────
+    final_pop = int(np.sum(agents['alive']))
+    recovered = final_pop > n_individuals * 0.5
+
+    perf.stop()
+
+    result = CoupledSimResult(
+        n_years=n_years,
+        yearly_pop=yearly_pop,
+        yearly_adults=yearly_adults,
+        yearly_recruits=yearly_recruits,
+        yearly_natural_deaths=yearly_natural_deaths,
+        yearly_disease_deaths=yearly_disease_deaths,
+        yearly_senescence_deaths=yearly_senescence_deaths,
+        yearly_mean_resistance=yearly_mean_resistance,
+        yearly_mean_tolerance=yearly_mean_tolerance,
+        yearly_mean_recovery=yearly_mean_recovery,
+        yearly_fert_success=yearly_fert_success,
+        # Genetics (Phase 7)
+        yearly_allele_freq_top3=yearly_allele_freq_top3,
+        yearly_va=yearly_va,
+        yearly_va_tolerance=yearly_va_tolerance,
+        yearly_va_recovery=yearly_va_recovery,
+        pre_epidemic_allele_freq=pre_epidemic_allele_freq,
+        post_epidemic_allele_freq=post_epidemic_allele_freq,
+        # Pathogen evolution
+        yearly_mean_virulence=yearly_mean_v,
+        yearly_virulence_new_infections=yearly_v_new_inf,
+        yearly_virulence_of_deaths=yearly_v_deaths,
+        # Daily
+        daily_pop=daily_pop,
+        daily_infected=daily_infected,
+        daily_vibrio=daily_vibrio,
+        # Spawning event tracking
+        daily_spawning_counts=daily_spawning_counts,
+        # Summary
+        initial_pop=initial_pop,
+        final_pop=final_pop,
+        min_pop=min_pop,
+        min_pop_year=min_pop_year,
+        total_disease_deaths=cumulative_disease_deaths,
+        total_natural_deaths=int(np.sum(yearly_natural_deaths)),
+        total_senescence_deaths=int(np.sum(yearly_senescence_deaths)),
+        peak_mortality_fraction=peak_mort_frac,
+        recovered=recovered,
+        # Release tracking
+        release_log=release_log if release_log else None,
+        total_released=sum(r['n_released'] for r in release_log) if release_log else 0,
+        released_surviving=int(np.sum(
+            agents['alive'] & (agents['release_cohort'] > 0)
+        )) if release_log else 0,
+        yearly_released_alive=yearly_released_alive if config.release_events else None,
+    )
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPATIAL MULTI-NODE SIMULATION (Phase 9)
+# ═══════════════════════════════════════════════════════════════════════
+
+@dataclass
+class SpatialSimResult:
+    """Results from a multi-node spatial simulation."""
+    n_years: int = 0
+    n_nodes: int = 0
+    node_names: Optional[List[str]] = None
+    node_K: Optional[np.ndarray] = None
+    snapshot_recorder: Optional[object] = None  # SnapshotRecorder if enabled
+    # Per-node, per-year: shape (n_nodes, n_years)
+    yearly_pop: Optional[np.ndarray] = None
+    yearly_adults: Optional[np.ndarray] = None
+    yearly_recruits: Optional[np.ndarray] = None
+    yearly_natural_deaths: Optional[np.ndarray] = None
+    yearly_disease_deaths: Optional[np.ndarray] = None
+    yearly_recoveries: Optional[np.ndarray] = None
+    yearly_senescence_deaths: Optional[np.ndarray] = None
+    yearly_mean_resistance: Optional[np.ndarray] = None
+    yearly_mean_tolerance: Optional[np.ndarray] = None
+    yearly_mean_recovery: Optional[np.ndarray] = None
+    yearly_vibrio_max: Optional[np.ndarray] = None
+    # Per-node genetics: shape (n_nodes, n_years)
+    yearly_va: Optional[np.ndarray] = None
+    yearly_va_tolerance: Optional[np.ndarray] = None
+    yearly_va_recovery: Optional[np.ndarray] = None
+    yearly_allele_freq_top3: Optional[np.ndarray] = None  # (n_nodes, n_years, 3)
+    yearly_ne_ratio: Optional[np.ndarray] = None  # TODO: allocated but never populated (always zeros); remove once viz code is updated
+    # Pre/post-epidemic snapshots per node: shape (n_nodes, N_LOCI)
+    pre_epidemic_allele_freq: Optional[np.ndarray] = None
+    post_epidemic_allele_freq: Optional[np.ndarray] = None
+    # Per-year totals
+    yearly_total_pop: Optional[np.ndarray] = None
+    yearly_total_larvae_dispersed: Optional[np.ndarray] = None
+    # Peak disease prevalence per node (fraction infected at peak)
+    peak_disease_prevalence: Optional[np.ndarray] = None
+
+    # Wavefront tracking
+    disease_arrival_day: Optional[np.ndarray] = None   # (n_nodes,) sim day when disease reached each node
+
+    # Pathogen thermal adaptation
+    T_vbnc_local: Optional[np.ndarray] = None  # Final per-node T_vbnc
+    yearly_T_vbnc: Optional[list] = None        # List of np.ndarray (N,) per year
+
+    # Pathogen community virulence
+    v_local: Optional[np.ndarray] = None        # Final per-node community virulence
+    yearly_v_local: Optional[list] = None        # List of np.ndarray (N,) per year
+
+    # Pathogen evolution per-node virulence tracking: (n_nodes, n_years)
+    yearly_mean_virulence: Optional[np.ndarray] = None
+    # Spawning event tracking (daily, per-node)
+    daily_spawning_counts: Optional[np.ndarray] = None  # (n_nodes, total_days)
+    # Release tracking
+    release_log: Optional[List[Dict]] = None
+    total_released: int = 0
+    released_surviving: int = 0
+    yearly_released_alive: Optional[np.ndarray] = None  # (n_nodes, n_years)
+
+    # Summary
+    initial_total_pop: int = 0
+    final_total_pop: int = 0
+    disease_year: Optional[int] = None
+    seed: int = 0
+
+
+def _inherit_pathogen_traits(target_idx, node_disease_states, disease_reached,
+                              D_T_sparse, P, cfg):
+    """Inherit weighted-average T_vbnc AND v_local from reached source nodes.
+
+    At wavefront activation, the new node's pathogen inherits the thermal
+    adaptation state and community virulence of contributing source nodes,
+    weighted by their dispersal contribution (D weight × vibrio concentration).
+    """
+    weighted_T = 0.0
+    weighted_V = 0.0
+    total_weight = 0.0
+
+    # D_T_sparse is D^T in CSR.  Row target_idx of D^T = column target_idx
+    # of D = dispersal weights FROM all sources TO target.
+    row_start = D_T_sparse.indptr[target_idx]
+    row_end = D_T_sparse.indptr[target_idx + 1]
+    source_indices = D_T_sparse.indices[row_start:row_end]
+    dispersal_weights = D_T_sparse.data[row_start:row_end]
+
+    for k in range(len(source_indices)):
+        src = int(source_indices[k])
+        if disease_reached[src]:
+            w = float(dispersal_weights[k]) * P[src]
+            weighted_T += w * node_disease_states[src].T_vbnc_local
+            weighted_V += w * node_disease_states[src].v_local
+            total_weight += w
+
+    if total_weight > 0:
+        node_disease_states[target_idx].T_vbnc_local = weighted_T / total_weight
+        node_disease_states[target_idx].v_local = weighted_V / total_weight
+    # else: keep defaults
+
+
+def run_spatial_simulation(
+    network: 'MetapopulationNetwork',
+    n_years: int = 10,
+    disease_year: int = 3,
+    initial_infected_per_node: int = 5,
+    seed: int = 42,
+    config: Optional[SimulationConfig] = None,
+    progress_callback=None,
+    snapshot_recorder=None,
+    monthly_recorder=None,
+) -> SpatialSimResult:
+    """Run multi-node spatial simulation with full genetics tracking.
+
+    Each node runs independently within a daily timestep. At the end
+    of each daily step, pathogen is exchanged between nodes via the D
+    matrix. At the end of each annual step, larvae are dispersed via
+    the C matrix.
+
+    Full integration (Phase 10):
+      - 5 nodes, each with: population + disease + genetics + environmental forcing
+      - Daily: update_environment → disease_step → pathogen_dispersal
+      - Annual: natural_mortality → growth_aging → reproduction_with_srs →
+                larval_dispersal → genetics_recording
+      - Genetics tracking: allele frequencies, EF1A, V_A, Ne/N per node per year
+      - Pre/post-epidemic allele frequency snapshots
+
+    Args:
+        network: MetapopulationNetwork (from spatial.build_network).
+        n_years: Number of years to simulate.
+        disease_year: Year to introduce disease (default 3; None = no disease).
+        initial_infected_per_node: Infections per node at disease_year.
+        seed: RNG seed.
+        config: SimulationConfig; uses default if None.
+        progress_callback: Optional callable(year, n_years) for progress.
+
+    Returns:
+        SpatialSimResult with per-node annual timeseries + genetics.
+    """
+    from sswd_evoepi.spatial import (
+        SpatialNode,
+        MetapopulationNetwork,
+        distribute_larvae,
+        distribute_larvae_counts,
+        pathogen_dispersal_step,
+    )
+    from sswd_evoepi.environment import (
+        sst_with_trend, seasonal_flushing, generate_satellite_sst_series,
+        generate_yearly_sst_series,
+    )
+    from sswd_evoepi.movement import daily_movement, InfectedDensityGrid
+
+    if config is None:
+        config = default_config()
+
+    pop_cfg = config.population
+    dis_cfg = config.disease
+    pe_cfg = (config.pathogen_evolution
+              if hasattr(config, 'pathogen_evolution')
+              and (config.pathogen_evolution.enabled
+                   or dis_cfg.virulence_evolution)
+              else None)
+    mov_cfg = config.movement
+    mov_enabled = mov_cfg.enabled
+    spatial_tx = mov_enabled and mov_cfg.spatial_transmission
+
+    rng = np.random.default_rng(seed)
+    N = network.n_nodes
+
+    # ── Initialize populations at each node ──────────────────────────
+    gen_cfg = config.genetics
+    effect_sizes = make_effect_sizes(gen_cfg.effect_size_seed, n_loci=gen_cfg.n_resistance)
+    effects_t = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 1),
+        gen_cfg.n_tolerance, total_weight=1.0,
+    )
+    effects_c = initialize_trait_effect_sizes(
+        np.random.default_rng(gen_cfg.effect_size_seed + 2),
+        gen_cfg.n_recovery, total_weight=1.0,
+    )
+    res_slice, tol_slice, rec_slice = trait_slices(
+        gen_cfg.n_resistance, gen_cfg.n_tolerance, gen_cfg.n_recovery,
+    )
+
+    for node in network.nodes:
+        nd = node.definition
+        K = nd.carrying_capacity
+        node_release_n = sum(
+            re.n_individuals for re in config.release_events
+            if re.node_id == nd.node_id
+        )
+        max_agents = max(int(K * 2.5), K + 500) + node_release_n
+        agents, geno = initialize_population(
+            n_individuals=K,
+            max_agents=max_agents,
+            habitat_area=nd.habitat_area,
+            effect_sizes=effect_sizes,
+            pop_cfg=pop_cfg,
+            rng=rng,
+            q_init=0.05,
+            genetics_cfg=gen_cfg,
+            effects_t=effects_t,
+            effects_c=effects_c,
+        )
+        # Stamp node_id on all agents
+        agents['node_id'][:K] = nd.node_id
+        node.agents = agents
+        node.genotypes = geno
+
+        # Init vibrio from environmental background
+        if dis_cfg.scenario == "ubiquitous":
+            # When wavefront enabled, no initial steady-state vibrio anywhere
+            # (no reservoir before pathogen arrives)
+            if not (hasattr(dis_cfg, 'wavefront_enabled') and dis_cfg.wavefront_enabled):
+                env = environmental_vibrio(nd.mean_sst, nd.salinity, dis_cfg)
+                xi = vibrio_decay_rate(nd.mean_sst)
+                phi = nd.flushing_rate
+                node.vibrio_concentration = (
+                    env / (xi + phi) if (xi + phi) > 0 else 0.0
+                )
+            else:
+                node.vibrio_concentration = 0.0
+        else:
+            node.vibrio_concentration = 0.0
+
+    # ── Allocate result arrays ───────────────────────────────────────
+    yearly_pop = np.zeros((N, n_years), dtype=np.int32)
+    yearly_adults = np.zeros((N, n_years), dtype=np.int32)
+    yearly_recruits = np.zeros((N, n_years), dtype=np.int32)
+    yearly_nat_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_dis_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_recoveries = np.zeros((N, n_years), dtype=np.int32)
+    yearly_senes_deaths = np.zeros((N, n_years), dtype=np.int32)
+    yearly_mean_r = np.zeros((N, n_years), dtype=np.float64)
+    yearly_mean_t = np.zeros((N, n_years), dtype=np.float64)
+    yearly_mean_c = np.zeros((N, n_years), dtype=np.float64)
+    yearly_vibrio_max = np.zeros((N, n_years), dtype=np.float64)
+    yearly_total_pop = np.zeros(n_years, dtype=np.int32)
+    yearly_total_larvae = np.zeros(n_years, dtype=np.int32)
+
+    # Genetics tracking per node per year
+    yearly_va = np.zeros((N, n_years), dtype=np.float64)
+    yearly_va_t = np.zeros((N, n_years), dtype=np.float64)
+    yearly_va_c = np.zeros((N, n_years), dtype=np.float64)
+    yearly_allele_freq_top3 = np.zeros((N, n_years, 3), dtype=np.float64)
+    yearly_ne_ratio = np.zeros((N, n_years), dtype=np.float64)  # TODO: never populated; remove once viz code is updated
+
+    # Pre/post-epidemic allele frequency snapshots (n_nodes, N_LOCI)
+    from sswd_evoepi.types import N_LOCI as _N_LOCI
+    pre_epidemic_af = np.zeros((N, _N_LOCI), dtype=np.float64)
+    post_epidemic_af = np.zeros((N, _N_LOCI), dtype=np.float64)
+    pre_snapshot_taken = False
+    post_snapshot_taken = False
+    epidemic_started_year = None
+
+    # Peak disease prevalence tracker per node
+    peak_disease_prev = np.zeros(N, dtype=np.float64)
+
+    # Pathogen evolution per-node virulence tracking
+    if pe_cfg is not None:
+        yearly_mean_v_spatial = np.zeros((N, n_years), dtype=np.float64)
+    else:
+        yearly_mean_v_spatial = None
+
+    initial_total = network.total_population()
+    node_names = [n.definition.name for n in network.nodes]
+    node_K = np.array([n.definition.carrying_capacity for n in network.nodes])
+
+    # Per-node disease tracking
+    node_disease_states = []
+    disease_active_flags = [False] * N
+    # Wavefront tracking (per-node disease arrival)
+    wavefront = dis_cfg.wavefront_enabled
+    disease_reached = [True] * N  # default: all reached (backward compat)
+    disease_arrival_day_arr = np.full(N, -1, dtype=np.int32)
+    if wavefront:
+        disease_reached = [False] * N  # nothing reached yet
+    cumulative_dose = np.zeros(N, dtype=np.float64)  # cumulative dispersal tracker (wavefront)
+    cumulative_dis_deaths = [0] * N
+    cumulative_recoveries = [0] * N
+
+    for i in range(N):
+        node_disease_states.append(NodeDiseaseState(node_id=i))
+        node_disease_states[i].vibrio_concentration = (
+            network.nodes[i].vibrio_concentration
+        )
+
+    # Initialize pathogen thermal adaptation per-node thresholds
+    _yearly_T_vbnc_list = None
+    _yearly_v_local_list = None
+    if hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation:
+        for nds in node_disease_states:
+            nds.T_vbnc_local = dis_cfg.T_vbnc_initial
+            nds.v_local = 0.5  # default community virulence
+        _yearly_T_vbnc_list = []
+        _yearly_v_local_list = []
+
+    # ── Spatial transmission grids (one per node) ────────────────────
+    density_grids = [None] * N
+    if spatial_tx:
+        for i, node in enumerate(network.nodes):
+            hab_side = np.sqrt(max(node.definition.habitat_area, 1.0))
+            density_grids[i] = InfectedDensityGrid(
+                habitat_side=hab_side,
+                cell_size=mov_cfg.cell_size,
+            )
+
+    # ── Spawning event tracking (daily, per-node) ─────────────────
+    total_sim_days = n_years * DAYS_PER_YEAR
+    daily_spawning_counts_spatial = np.zeros((N, total_sim_days), dtype=np.int32)
+
+    # ── Continuous settlement: per-node pending cohort dicts ────────
+    # Each node accumulates LarvalCohort objects from daily spawning.
+    # Dispersed cohorts land in pending_cohorts[dest] and settle daily
+    # when PLD elapses.
+    #
+    # Dict[settlement_day, List[LarvalCohort]] — O(1) insert, O(k) pop.
+    pending_cohorts: List[Dict[int, List[LarvalCohort]]] = [{} for _ in range(N)]
+    spawning_enabled = config.spawning is not None
+
+    # Per-node spawning season tracking
+    previous_in_season = [False] * N
+    yearly_recruits_accum = [0] * N  # track daily settlement per node per year
+    total_larvae_year = 0  # track total larvae produced per year (for diagnostics)
+
+    # ── Release mechanism ─────────────────────────────────────────────
+    release_schedule_spatial = {}
+    for _ri, _re in enumerate(config.release_events):
+        release_schedule_spatial.setdefault(_re.time_step, []).append((_ri + 1, _re))
+    release_log = []
+    yearly_released_alive_spatial = np.zeros((N, n_years), dtype=np.int32)
+
+    # ── Per-node daily mortality accumulators ────────────────────────
+    node_daily_nat_deaths = np.zeros(N, dtype=np.int32)
+    node_daily_senes_deaths = np.zeros(N, dtype=np.int32)
+
+    # ── Pre-generate SST timeseries if configured (satellite or monthly) ──
+    use_precomputed_sst = config.simulation.sst_source in ('satellite', 'monthly')
+    satellite_sst_by_node: List[Optional[np.ndarray]] = [None] * N
+    if use_precomputed_sst:
+        for i, node in enumerate(network.nodes):
+            nd = node.definition
+            if config.simulation.sst_source == 'monthly':
+                satellite_sst_by_node[i] = generate_yearly_sst_series(
+                    node_name=nd.name,
+                    start_year=config.simulation.sst_start_year,
+                    n_years=n_years,
+                    data_dir=config.simulation.sst_data_dir,
+                    climatology_dir=config.simulation.sst_data_dir,
+                    trend_per_year=nd.sst_trend,
+                    reference_year=2015,
+                    scenario=config.simulation.sst_scenario,
+                    projection_dir=config.simulation.sst_projection_dir,
+                    obs_end_year=config.simulation.sst_obs_end_year,
+                )
+            else:
+                satellite_sst_by_node[i] = generate_satellite_sst_series(
+                    n_years=n_years,
+                    start_year=2000,  # matches start_year below
+                    node_name=nd.name,
+                    trend_per_year=nd.sst_trend,
+                    reference_year=2015,
+                    data_dir=config.simulation.sst_data_dir,
+                )
+
+    # ── Pre-compute sparse D^T for efficient pathogen dispersal ─────
+    # The D matrix is typically ~97% sparse (max_range=50km); using
+    # scipy sparse for the daily D.T @ P step avoids dense matmul.
+    try:
+        from scipy.sparse import csr_matrix as _csr_matrix
+        _D_T_sparse = _csr_matrix(network.D.T)
+        _use_sparse_D = True
+    except ImportError:
+        _D_T_sparse = None
+        _use_sparse_D = False
+
+    # Build separate long-range D matrix for wavefront dose accumulation
+    _D_wf_T_sparse = None
+    if wavefront and dis_cfg.wavefront_D_P > 0:
+        from sswd_evoepi.spatial import construct_pathogen_dispersal
+        _wf_D_P = dis_cfg.wavefront_D_P
+        _wf_max_range = dis_cfg.wavefront_D_P_max_range if dis_cfg.wavefront_D_P_max_range > 0 else 3.5 * _wf_D_P
+        _D_wf = construct_pathogen_dispersal(
+            [n.definition for n in network.nodes],
+            network.distances,
+            D_P=_wf_D_P,
+            f_out=0.2,  # same as standard
+            max_range=_wf_max_range,
+        )
+        try:
+            _D_wf_T_sparse = _csr_matrix(_D_wf.T)
+        except Exception:
+            _D_wf_T_sparse = None
+
+    # ── Pre-compute flushing rates per node per day-of-year ──────────
+    # seasonal_flushing() uses cos(); pre-computing avoids N×365 calls/yr.
+    _flushing_precomputed = np.zeros((N, DAYS_PER_YEAR), dtype=np.float64)
+    for _fi, _fnode in enumerate(network.nodes):
+        _fnd = _fnode.definition
+        for _fd in range(DAYS_PER_YEAR):
+            _fm = min(_fd // 30, 11)
+            _flushing_precomputed[_fi, _fd] = seasonal_flushing(
+                _fnd.flushing_rate, _fm, _fnd.is_fjord,
+            )
+
+    # ── Pre-compute seasonal salinity per node per day-of-year ───────
+    _salinity_precomputed = compute_salinity_array(
+        [n.definition for n in network.nodes],
+        dis_cfg.fw_strength,
+        fw_depth_exp=dis_cfg.fw_depth_exp,
+        fw_lat_min=dis_cfg.fw_lat_min,
+        fw_lat_max=dis_cfg.fw_lat_max,
+    )
+
+    # ── Main simulation loop ─────────────────────────────────────────
+    start_year = 2000  # reference year for SST
+
+    for year in range(n_years):
+        cal_year = start_year + year
+        year_dd_before = list(cumulative_dis_deaths)
+        year_rec_before = list(cumulative_recoveries)
+
+        # ── Disease end (counterfactual) ─────────────────────────────
+        # If disease_end_year is set and we've reached it, remove all
+        # pathogen and deactivate disease at every node. Existing infected
+        # individuals are cured (moved to S). This tests whether ongoing
+        # disease pressure is what suppresses populations.
+        if (dis_cfg.disease_end_year is not None
+                and year == dis_cfg.disease_end_year
+                and any(disease_active_flags)):
+            for i, node in enumerate(network.nodes):
+                disease_active_flags[i] = False
+                # Zero out all pathogen
+                node_disease_states[i].vibrio_concentration = 0.0
+                node_disease_states[i].P_env_pool = 0.0
+                node.vibrio_concentration = 0.0
+                # Cure all infected/exposed individuals
+                alive = node.agents['alive']
+                ds = node.agents['disease_state']
+                sick = alive & (
+                    (ds == DiseaseState.E) |
+                    (ds == DiseaseState.I1) |
+                    (ds == DiseaseState.I2)
+                )
+                node.agents['disease_state'][sick] = DiseaseState.S
+                node.agents['disease_timer'][sick] = 0.0
+            if progress_callback and hasattr(progress_callback, 'log'):
+                progress_callback.log(f"Year {year}: disease_end_year reached — all pathogen removed")
+            else:
+                print(f"  Year {year}: disease_end_year reached — all pathogen removed, {sum(1 for f in disease_active_flags if not f)} nodes cleared")
+
+        # Reset per-year accumulators
+        yearly_recruits_accum = [0] * N
+        total_larvae_year = 0
+        node_daily_nat_deaths[:] = 0
+        node_daily_senes_deaths[:] = 0
+
+        # Track max vibrio per node this year
+        max_vibrio_year = np.zeros(N, dtype=np.float64)
+
+        # ── DAILY LOOP (365 days) ────────────────────────────────────
+        for day in range(DAYS_PER_YEAR):
+            month = min(day // 30, 11)
+
+            # 1. Update environment at each node
+            sim_day = year * DAYS_PER_YEAR + day
+            for i, node in enumerate(network.nodes):
+                nd = node.definition
+                if use_precomputed_sst and satellite_sst_by_node[i] is not None:
+                    node.current_sst = float(satellite_sst_by_node[i][sim_day])
+                else:
+                    node.current_sst = sst_with_trend(
+                        day, cal_year, nd.mean_sst, nd.sst_amplitude,
+                        nd.sst_trend, reference_year=start_year,
+                    )
+                node.current_flushing = _flushing_precomputed[i, day]
+                node.current_salinity = float(_salinity_precomputed[i, day])
+
+            # 1b. Release events scheduled for today
+            if sim_day in release_schedule_spatial:
+                for _cohort_idx, _event in release_schedule_spatial[sim_day]:
+                    if 0 <= _event.node_id < N:
+                        _node = network.nodes[_event.node_id]
+                        _nd = _node.definition
+                        _node.agents, _node.genotypes, _rlog = process_release_event(
+                            event=_event,
+                            event_index=_cohort_idx,
+                            agents=_node.agents,
+                            genotypes=_node.genotypes,
+                            effect_sizes=effect_sizes,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
+                            gen_cfg=gen_cfg,
+                            pop_cfg=pop_cfg,
+                            rng=rng,
+                            habitat_area=_nd.habitat_area,
+                            sim_day=sim_day,
+                        )
+                        release_log.append(_rlog)
+
+            # 2a. Movement (CRW sub-steps within the day)
+            if mov_enabled:
+                for i, node in enumerate(network.nodes):
+                    hab_side = np.sqrt(max(node.definition.habitat_area, 1.0))
+                    daily_movement(
+                        agents=node.agents,
+                        habitat_side=hab_side,
+                        sigma_turn=mov_cfg.sigma_turn,
+                        base_speed=mov_cfg.base_speed,
+                        substeps=mov_cfg.substeps_per_day,
+                        rng=rng,
+                        speed_sigma=mov_cfg.speed_sigma,
+                    )
+
+            # 2b. Build spatial transmission grids (if enabled)
+            if spatial_tx:
+                for i, node in enumerate(network.nodes):
+                    if density_grids[i] is not None:
+                        density_grids[i].build(
+                            node.agents,
+                            diffusion_passes=mov_cfg.diffusion_passes,
+                        )
+
+            # 3. Per-node disease step (if disease is active at that node)
+            _pathogen_adapt = hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation
+            for i, node in enumerate(network.nodes):
+                if not disease_active_flags[i]:
+                    continue
+                _T_vbnc_local_i = node_disease_states[i].T_vbnc_local if _pathogen_adapt else None
+                deaths_before = node_disease_states[i].cumulative_deaths
+                node_disease_states[i] = daily_disease_update(
+                    agents=node.agents,
+                    node_state=node_disease_states[i],
+                    T_celsius=node.current_sst,
+                    salinity=node.current_salinity,
+                    phi_k=node.current_flushing,
+                    dispersal_input=0.0,  # handled below
+                    day=year * DAYS_PER_YEAR + day,
+                    cfg=dis_cfg,
+                    rng=rng,
+                    infected_density_grid=(
+                        density_grids[i] if spatial_tx else None
+                    ),
+                    pe_cfg=pe_cfg,
+                    disease_reached=disease_reached[i],
+                    T_vbnc_local=_T_vbnc_local_i,
+                    tau_max=gen_cfg.tau_max,
+                )
+                new_deaths = (
+                    node_disease_states[i].cumulative_deaths - deaths_before
+                )
+                cumulative_dis_deaths[i] += new_deaths
+                cumulative_recoveries[i] = (
+                    node_disease_states[i].cumulative_recoveries
+                )
+
+                # Pathogen thermal adaptation: update per-node T_vbnc
+                if _pathogen_adapt:
+                    adapt_pathogen_thermal(
+                        node_disease_states[i],
+                        node.current_sst,
+                        node_disease_states[i].P_env_pool,
+                        dis_cfg,
+                    )
+
+                # Community virulence evolution: drift v_local toward optimum
+                if dis_cfg.virulence_evolution:
+                    _n_alive_node = int(np.sum(node.agents['alive']))
+                    adapt_community_virulence(
+                        node_disease_states[i],
+                        T_celsius=node.current_sst,
+                        n_hosts=_n_alive_node,
+                        K=node.definition.carrying_capacity,
+                        cfg=dis_cfg,
+                    )
+
+            # 3. Pathogen dispersal between nodes (D matrix)
+            P = np.array([
+                node_disease_states[i].vibrio_concentration
+                for i in range(N)
+            ])
+            if _use_sparse_D:
+                dispersal_in = _D_T_sparse @ P
+            else:
+                dispersal_in = pathogen_dispersal_step(P, network.D)
+
+            # Dispersal trait mixing: incoming bacteria shift community traits
+            if _pathogen_adapt and _use_sparse_D:
+                T_vec = np.array([node_disease_states[i].T_vbnc_local for i in range(N)])
+                V_vec = np.array([node_disease_states[i].v_local for i in range(N)])
+
+                # P is the vibrio concentration BEFORE dispersal was added
+                PT_vec = P * T_vec   # concentration-weighted T_vbnc
+                PV_vec = P * V_vec   # concentration-weighted virulence
+
+                incoming_PT = _D_T_sparse @ PT_vec
+                incoming_PV = _D_T_sparse @ PV_vec
+
+                total = P + dispersal_in  # P_before + incoming
+                for i in range(N):
+                    if disease_reached[i] and total[i] > 0:
+                        node_disease_states[i].T_vbnc_local = (P[i] * T_vec[i] + incoming_PT[i]) / total[i]
+                        node_disease_states[i].v_local = (P[i] * V_vec[i] + incoming_PV[i]) / total[i]
+
+            for i in range(N):
+                node_disease_states[i].vibrio_concentration += dispersal_in[i]
+                network.nodes[i].vibrio_concentration = (
+                    node_disease_states[i].vibrio_concentration
+                )
+
+            # Compute wavefront long-range dispersal for dose accumulation
+            if wavefront and _D_wf_T_sparse is not None:
+                wf_dispersal_in = _D_wf_T_sparse @ P
+            else:
+                wf_dispersal_in = None
+
+            # Wavefront activation: check unreached nodes for pathogen arrival
+            if wavefront:
+                sim_day_wf = year * DAYS_PER_YEAR + day
+                use_cumulative = dis_cfg.cumulative_dose_threshold > 0
+                for i in range(N):
+                    if not disease_reached[i]:
+                        if use_cumulative:
+                            # Accumulate dispersal input
+                            dose_input = wf_dispersal_in[i] if wf_dispersal_in is not None else dispersal_in[i]
+                            cumulative_dose[i] += dose_input
+                            # Optional decay
+                            if dis_cfg.dose_decay_rate > 0:
+                                cumulative_dose[i] *= (1.0 - dis_cfg.dose_decay_rate)
+                            # Check cumulative threshold
+                            if cumulative_dose[i] > dis_cfg.cumulative_dose_threshold:
+                                disease_reached[i] = True
+                                disease_arrival_day_arr[i] = sim_day_wf
+                                node_disease_states[i].disease_reached = True
+                                node_disease_states[i].disease_arrival_day = sim_day_wf
+                                # Inherit pathogen traits from source nodes
+                                if dis_cfg.pathogen_adaptation:
+                                    _D_inh = _D_wf_T_sparse if _D_wf_T_sparse is not None else _D_T_sparse
+                                    if _D_inh is not None:
+                                        _inherit_pathogen_traits(i, node_disease_states, disease_reached,
+                                                                  _D_inh, P, dis_cfg)
+                        else:
+                            # Legacy instantaneous check
+                            if node_disease_states[i].vibrio_concentration > dis_cfg.activation_threshold:
+                                disease_reached[i] = True
+                                disease_arrival_day_arr[i] = sim_day_wf
+                                node_disease_states[i].disease_reached = True
+                                node_disease_states[i].disease_arrival_day = sim_day_wf
+                                # Inherit pathogen traits from source nodes
+                                if dis_cfg.pathogen_adaptation:
+                                    _D_inh = _D_wf_T_sparse if _D_wf_T_sparse is not None else _D_T_sparse
+                                    if _D_inh is not None:
+                                        _inherit_pathogen_traits(i, node_disease_states, disease_reached,
+                                                                  _D_inh, P, dis_cfg)
+
+            # 4. Continuous settlement: settle cohorts whose PLD has elapsed
+            #    Cohorts arrive with pre-computed genotypes from spawning time.
+            #    Just place them into available slots.
+            sim_day = year * DAYS_PER_YEAR + day
+            if spawning_enabled:
+                for i, node in enumerate(network.nodes):
+                    if not pending_cohorts[i]:
+                        continue
+                    ready = _pop_ready_cohorts(pending_cohorts[i], sim_day)
+                    if not ready:
+                        continue
+                    nd = node.definition
+                    # Settle cohorts that are ready (genotypes already set & BH-filtered from spawning)
+                    if ready:
+                        n_settled = settle_daily_cohorts(
+                            ready, node.agents,
+                            node.genotypes,
+                            nd.carrying_capacity, pop_cfg, rng,
+                            effect_sizes, node_id=nd.node_id,
+                            habitat_area=nd.habitat_area,
+                            sim_day=sim_day,
+                            effects_t=effects_t,
+                            effects_c=effects_c,
+                            res_slice=res_slice,
+                            tol_slice=tol_slice,
+                            rec_slice=rec_slice,
+                            pre_filtered=True,
+                        )
+                        yearly_recruits_accum[i] += n_settled
+
+            # 5. Daily spawning step (if enabled)
+            if spawning_enabled:
+                day_of_year = (day + 1)  # Convert 0-based to 1-based
+
+                # --- Phase 1: spawning for all nodes, collect sources ---
+                day_spawning_sources = []
+                day_spawning_counts = []
+                day_spawning_rep = {}  # source_id -> representative cohort
+
+                for i, node in enumerate(network.nodes):
+                    nd = node.definition
+                    currently_in_season = in_spawning_season(
+                        day_of_year,
+                        config.spawning.season_start_doy,
+                        config.spawning.season_end_doy,
+                    )
+                    # Reset spawning season when transitioning out
+                    if previous_in_season[i] and not currently_in_season:
+                        reset_spawning_season(node.agents)
+                    # Daily spawning during season
+                    if currently_in_season:
+                        cohorts_today = spawning_step(
+                            agents=node.agents,
+                            genotypes=node.genotypes,
+                            day_of_year=day_of_year,
+                            node_latitude=nd.lat,
+                            spawning_config=config.spawning,
+                            disease_config=config.disease,
+                            rng=rng,
+                            current_sim_day=sim_day,
+                            current_sst=node.current_sst,
+                            compute_genotypes=False,
+                        )
+                        if cohorts_today:
+                            total_competent = sum(
+                                c.n_competent for c in cohorts_today
+                            )
+                            total_larvae_year += total_competent
+                            if total_competent > 0:
+                                day_spawning_sources.append(i)
+                                day_spawning_counts.append(total_competent)
+                                day_spawning_rep[i] = cohorts_today[0]
+                        # Count spawners today at this node
+                        alive_spawned = (
+                            node.agents['alive'] &
+                            (node.agents['last_spawn_day'] == day_of_year)
+                        )
+                        daily_spawning_counts_spatial[i, sim_day] = int(np.sum(alive_spawned))
+                    # Tick down immunosuppression timers
+                    immuno_mask = node.agents['immunosuppression_timer'] > 0
+                    node.agents['immunosuppression_timer'][immuno_mask] -= 1
+                    previous_in_season[i] = currently_in_season
+
+                # --- Phase 2: ONE batched dispersal call for all sources ---
+                if day_spawning_sources:
+                    dest_map = distribute_larvae_counts(
+                        day_spawning_sources, day_spawning_counts,
+                        network.C, rng,
+                    )
+                    
+                    # --- Phase 3: Compute BH + genotype exact recruits needed ---
+                    # Cache source breeding adults for SRS calls (multiple destinations per source)
+                    _src_cache: Dict[int, Optional[tuple]] = {}
+
+                    def _get_source_info(src_id: int):
+                        """Return (females, males, agents, genotypes) or None."""
+                        cached = _src_cache.get(src_id)
+                        if cached is not None:
+                            return cached if cached is not False else None
+                        src_node = network.nodes[src_id]
+                        src_agents = src_node.agents
+                        src_alive = src_agents['alive'].astype(bool)
+                        src_adult = src_agents['stage'] == Stage.ADULT
+                        src_healthy = (
+                            (src_agents['disease_state'] == DiseaseState.S)
+                            | (src_agents['disease_state'] == DiseaseState.R)
+                        )
+                        src_can_spawn = src_alive & src_adult & src_healthy
+                        src_females = np.where(
+                            src_can_spawn & (src_agents['sex'] == 0)
+                        )[0]
+                        src_males = np.where(
+                            src_can_spawn & (src_agents['sex'] == 1)
+                        )[0]
+                        if len(src_females) == 0 or len(src_males) == 0:
+                            _src_cache[src_id] = False  # sentinel: no breeders
+                            return None
+                        info = (src_females, src_males, src_agents, src_node.genotypes)
+                        _src_cache[src_id] = info
+                        return info
+
+                    for dest_id, arrivals in dest_map.items():
+                        dest_node = network.nodes[dest_id]
+                        dest_nd = dest_node.definition
+                        
+                        # Pre-compute destination population stats
+                        current_alive = int(np.sum(dest_node.agents['alive']))
+                        available_slots = max(0, dest_nd.carrying_capacity - current_alive)
+                        if available_slots == 0:
+                            continue  # No room for any recruits at this destination
+                            
+                        n_adults = int(np.sum(
+                            dest_node.agents['alive'] & (dest_node.agents['stage'] == Stage.ADULT)
+                        ))
+                        cue_mod = settlement_cue_modifier(n_adults)
+                        
+                        total_slots_used = 0
+                        for n_arriving, src_id in arrivals:
+                            if n_arriving <= 0 or total_slots_used >= available_slots:
+                                continue
+                                
+                            rep = day_spawning_rep[src_id]
+                            
+                            # Apply settlement cue modifier + Beverton-Holt at spawning time
+                            # (using current destination population, not settlement-time population)
+                            effective_settlers = max(0, int(n_arriving * cue_mod))
+                            if effective_settlers <= 0:
+                                continue
+                                
+                            n_recruits = beverton_holt_recruitment(
+                                effective_settlers, dest_nd.carrying_capacity, pop_cfg.settler_survival
+                            )
+                            n_recruits = min(n_recruits, available_slots - total_slots_used)
+                            
+                            if n_recruits <= 0:
+                                continue
+                                
+                            # Generate genotypes for exactly n_recruits via SRS from source adults
+                            src_info = _get_source_info(src_id)
+                            if src_info is None:
+                                continue
+                            src_females, src_males, src_agents, src_geno = src_info
+                            offspring_geno, parent_pairs = srs_reproductive_lottery(
+                                src_females, src_males,
+                                src_agents, src_geno,
+                                n_offspring_target=n_recruits,
+                                alpha_srs=pop_cfg.alpha_srs,
+                                rng=rng,
+                            )
+                            
+                            if len(offspring_geno) > 0:
+                                # Create cohort with exact genotypes needed
+                                dest_cohort = LarvalCohort(
+                                    source_node=src_id,
+                                    n_competent=len(offspring_geno),
+                                    genotypes=offspring_geno,
+                                    parent_pairs=parent_pairs,
+                                    pld_days=rep.pld_days,
+                                    spawn_day=rep.spawn_day,
+                                    sst_at_spawn=rep.sst_at_spawn,
+                                )
+                                _add_cohort(
+                                    pending_cohorts[dest_id],
+                                    dest_cohort,
+                                )
+                                total_slots_used += len(offspring_geno)
+
+            # 6. Daily demographics (continuous mortality + growth)
+            #    Compute alive_idx ONCE per node, share across both calls
+            for i, node in enumerate(network.nodes):
+                nd = node.agents
+                _alive_idx = np.where(nd['alive'])[0]
+                n_mort, n_senes = daily_natural_mortality(nd, pop_cfg, rng, alive_idx=_alive_idx)
+                node_daily_nat_deaths[i] += n_mort
+                node_daily_senes_deaths[i] += n_senes
+                # Recompute alive_idx after mortality (some agents may have died)
+                if n_mort > 0:
+                    _alive_idx = np.where(nd['alive'])[0]
+                daily_growth_and_aging(nd, pop_cfg, rng, alive_idx=_alive_idx)
+
+            # Optional individual-level snapshot recording
+            if snapshot_recorder is not None:
+                snapshot_recorder.capture_all_nodes(
+                    sim_day, year, network.nodes
+                )
+
+            # Lightweight monthly aggregate recording (wavefront viz)
+            if monthly_recorder is not None:
+                monthly_recorder.capture(sim_day, network.nodes)
+
+            # Track max vibrio and disease prevalence
+            for i in range(N):
+                v = node_disease_states[i].vibrio_concentration
+                if v > max_vibrio_year[i]:
+                    max_vibrio_year[i] = v
+                # Track peak disease prevalence
+                if disease_active_flags[i]:
+                    node = network.nodes[i]
+                    alive_m = node.agents['alive'].astype(bool)
+                    n_alive = int(np.sum(alive_m))
+                    if n_alive > 0:
+                        ds = node.agents['disease_state']
+                        n_inf = int(np.sum(
+                            alive_m & (
+                                (ds == DiseaseState.E) |
+                                (ds == DiseaseState.I1) |
+                                (ds == DiseaseState.I2)
+                            )
+                        ))
+                        prev = n_inf / n_alive
+                        if prev > peak_disease_prev[i]:
+                            peak_disease_prev[i] = prev
+
+        # ── ANNUAL DEMOGRAPHIC STEP ──────────────────────────────────
+
+        # 1. Natural mortality + growth now handled daily (Phase A above)
+        node_nat_deaths = node_daily_nat_deaths.copy()
+        node_senes_deaths = node_daily_senes_deaths.copy()
+
+        # 2. Larval dispersal — now handled daily (C-matrix dispersal at
+        #    production time, BH + SRS at settlement time). The annual
+        #    accumulation step is no longer needed.
+        #    total_larvae_year was accumulated during daily spawning.
+        total_larvae = total_larvae_year
+
+        # 5. Pre-epidemic allele frequency snapshot
+        if (disease_year is not None and year == disease_year
+                and not pre_snapshot_taken):
+            for i, node in enumerate(network.nodes):
+                alive_mask = node.agents['alive'].astype(bool)
+                if int(np.sum(alive_mask)) > 0:
+                    pre_epidemic_af[i] = compute_allele_frequencies(
+                        node.genotypes, alive_mask
+                    )
+            pre_snapshot_taken = True
+
+        # 6. Seed disease if it's the epidemic year
+        if disease_year is not None and year == disease_year:
+            epidemic_started_year = year
+            from sswd_evoepi.disease import sample_stage_duration, K_SHAPE_E
+
+            # Determine which nodes get initial seeding
+            if wavefront and dis_cfg.disease_origin_nodes is not None:
+                origin_set = set(dis_cfg.disease_origin_nodes)
+            else:
+                origin_set = None  # None means ALL nodes (default behavior)
+
+            for i, node in enumerate(network.nodes):
+                disease_active_flags[i] = True  # ALL nodes run disease step
+
+                # Only seed infections at origin nodes (or all if no wavefront)
+                if origin_set is not None and i not in origin_set:
+                    # Non-origin node: activate disease step but mark unreached
+                    # disease_reached[i] stays False (set during init)
+                    continue
+
+                # Origin node (or all nodes in non-wavefront mode): seed infections
+                if wavefront:
+                    disease_reached[i] = True
+                    disease_arrival_day_arr[i] = year * 365
+
+                # Seed environmental Vibrio at origin nodes (fast onset)
+                if dis_cfg.seed_vibrio is not None:
+                    node_disease_states[i].vibrio_concentration = dis_cfg.seed_vibrio
+                    if dis_cfg.P_env_dynamic:
+                        node_disease_states[i].P_env_pool = dis_cfg.seed_vibrio
+
+                alive_idx = np.where(node.agents['alive'])[0]
+                n_to_infect = min(initial_infected_per_node, len(alive_idx))
+                if n_to_infect > 0:
+                    infect_idx = rng.choice(alive_idx, size=n_to_infect,
+                                            replace=False)
+                    mu_EI1 = arrhenius(dis_cfg.mu_EI1_ref, dis_cfg.Ea_EI1,
+                                       node.current_sst)
+                    for idx in infect_idx:
+                        node.agents['disease_state'][idx] = DiseaseState.E
+                        node.agents['disease_timer'][idx] = (
+                            sample_stage_duration(mu_EI1, K_SHAPE_E, rng)
+                        )
+                        if pe_cfg is not None:
+                            node.agents['pathogen_virulence'][idx] = pe_cfg.v_init
+
+        # 7. Post-epidemic allele frequency snapshot (2 years after)
+        if (epidemic_started_year is not None
+                and year == epidemic_started_year + 2
+                and not post_snapshot_taken):
+            for i, node in enumerate(network.nodes):
+                alive_mask = node.agents['alive'].astype(bool)
+                if int(np.sum(alive_mask)) > 1:
+                    post_epidemic_af[i] = compute_allele_frequencies(
+                        node.genotypes, alive_mask
+                    )
+            post_snapshot_taken = True
+
+        # ── Record annual metrics ────────────────────────────────────
+        for i, node in enumerate(network.nodes):
+            alive_mask = node.agents['alive'].astype(bool)
+            pop_now = int(np.sum(alive_mask))
+            adult_mask = alive_mask & (node.agents['stage'] == Stage.ADULT)
+            yearly_pop[i, year] = pop_now
+            yearly_adults[i, year] = int(np.sum(adult_mask))
+            yearly_recruits[i, year] = yearly_recruits_accum[i]
+            yearly_nat_deaths[i, year] = node_nat_deaths[i]
+            yearly_senes_deaths[i, year] = node_senes_deaths[i]
+            yearly_dis_deaths[i, year] = (
+                cumulative_dis_deaths[i] - year_dd_before[i]
+            )
+            yearly_recoveries[i, year] = (
+                cumulative_recoveries[i] - year_rec_before[i]
+            )
+            yearly_vibrio_max[i, year] = max_vibrio_year[i]
+            if pop_now > 0:
+                yearly_mean_r[i, year] = float(
+                    np.mean(node.agents['resistance'][alive_mask])
+                )
+                yearly_mean_t[i, year] = float(
+                    np.mean(node.agents['tolerance'][alive_mask])
+                )
+                yearly_mean_c[i, year] = float(
+                    np.mean(node.agents['recovery_ability'][alive_mask])
+                )
+                # Genetics tracking
+                af = compute_allele_frequencies(node.genotypes, alive_mask)
+                yearly_allele_freq_top3[i, year] = af[:3]
+                yearly_va[i, year] = compute_additive_variance(af, effect_sizes, res_slice)
+                yearly_va_t[i, year] = compute_additive_variance(af, effects_t, tol_slice)
+                yearly_va_c[i, year] = compute_additive_variance(af, effects_c, rec_slice)
+
+            # Per-node virulence tracking (time-weighted daily mean)
+            if pe_cfg is not None:
+                nds = node_disease_states[i]
+                if nds.virulence_count_daily > 0:
+                    yearly_mean_v_spatial[i, year] = (
+                        nds.virulence_sum_daily / nds.virulence_count_daily
+                    )
+                # Reset accumulators for next year
+                nds.virulence_sum_new_infections = 0.0
+                nds.virulence_count_new_infections = 0
+                nds.virulence_sum_deaths = 0.0
+                nds.virulence_count_deaths = 0
+                nds.virulence_sum_daily = 0.0
+                nds.virulence_count_daily = 0
+
+        # Track released alive per node
+        if config.release_events:
+            for i, node in enumerate(network.nodes):
+                yearly_released_alive_spatial[i, year] = int(np.sum(
+                    node.agents['alive'] & (node.agents['release_cohort'] > 0)
+                ))
+
+        yearly_total_pop[year] = int(yearly_pop[:, year].sum())
+        yearly_total_larvae[year] = total_larvae if total_larvae > 0 else 0
+
+        # Record yearly T_vbnc snapshot (pathogen thermal adaptation)
+        if _yearly_T_vbnc_list is not None:
+            _yearly_T_vbnc_list.append(
+                np.array([nds.T_vbnc_local for nds in node_disease_states])
+            )
+        if _yearly_v_local_list is not None:
+            _yearly_v_local_list.append(
+                np.array([nds.v_local for nds in node_disease_states])
+            )
+
+        if progress_callback is not None:
+            _stop = progress_callback(year, n_years)
+            if _stop:
+                break  # early stop — return partial result
+
+    # ── Store final T_vbnc_local and v_local if pathogen thermal adaptation enabled ──
+    _final_T_vbnc_local = None
+    _final_v_local = None
+    if hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation:
+        _final_T_vbnc_local = np.array([nds.T_vbnc_local for nds in node_disease_states])
+        _final_v_local = np.array([nds.v_local for nds in node_disease_states])
+
+    # ── Compile result ────────────────────────────────────────────────
+    return SpatialSimResult(
+        n_years=n_years,
+        n_nodes=N,
+        node_names=node_names,
+        node_K=node_K,
+        yearly_pop=yearly_pop,
+        yearly_adults=yearly_adults,
+        yearly_recruits=yearly_recruits,
+        yearly_natural_deaths=yearly_nat_deaths,
+        yearly_disease_deaths=yearly_dis_deaths,
+        yearly_recoveries=yearly_recoveries,
+        yearly_senescence_deaths=yearly_senes_deaths,
+        yearly_mean_resistance=yearly_mean_r,
+        yearly_mean_tolerance=yearly_mean_t,
+        yearly_mean_recovery=yearly_mean_c,
+        yearly_vibrio_max=yearly_vibrio_max,
+        yearly_va=yearly_va,
+        yearly_va_tolerance=yearly_va_t,
+        yearly_va_recovery=yearly_va_c,
+        yearly_allele_freq_top3=yearly_allele_freq_top3,
+        yearly_ne_ratio=yearly_ne_ratio,
+        pre_epidemic_allele_freq=pre_epidemic_af if pre_snapshot_taken else None,
+        post_epidemic_allele_freq=post_epidemic_af if post_snapshot_taken else None,
+        yearly_total_pop=yearly_total_pop,
+        yearly_total_larvae_dispersed=yearly_total_larvae,
+        peak_disease_prevalence=peak_disease_prev,
+        yearly_mean_virulence=yearly_mean_v_spatial,
+        daily_spawning_counts=daily_spawning_counts_spatial,
+        initial_total_pop=initial_total,
+        final_total_pop=int(yearly_total_pop[-1]),
+        disease_year=disease_year,
+        seed=seed,
+        snapshot_recorder=snapshot_recorder,
+        # Release tracking
+        release_log=release_log if release_log else None,
+        total_released=sum(r['n_released'] for r in release_log) if release_log else 0,
+        released_surviving=sum(
+            int(np.sum(node.agents['alive'] & (node.agents['release_cohort'] > 0)))
+            for node in network.nodes
+        ) if release_log else 0,
+        yearly_released_alive=(
+            yearly_released_alive_spatial if config.release_events else None
+        ),
+        disease_arrival_day=disease_arrival_day_arr if wavefront else None,
+        T_vbnc_local=_final_T_vbnc_local,
+        yearly_T_vbnc=_yearly_T_vbnc_list,
+        v_local=_final_v_local,
+        yearly_v_local=_yearly_v_local_list,
+    )

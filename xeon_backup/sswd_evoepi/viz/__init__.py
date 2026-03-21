@@ -1,0 +1,171 @@
+"""SSWD-EvoEpi visualization library.
+
+Modules:
+  - style: Dark theme colours and helpers
+  - population: Population dynamics & demographics (10 plots)
+  - disease: Disease & epidemiology (12 plots)
+  - genetics: Host genetics & evolution (12 plots)
+  - coevolution: Pathogen co-evolution & arms race (8 plots)
+  - spatial: Spatial metapopulation & geography (8 plots)
+  - dashboards: Dashboards & composite views (10 plots)
+  - settlement: Continuous settlement & spawning event tracking (9 plots)
+  - spawning_viz: Spawning dynamics deep visualization + animated GIFs (5 plots + 4 GIFs)
+  - salinity: Salinity & freshwater influence (14 plots)
+"""
+
+from sswd_evoepi.viz.style import (  # noqa: F401
+    ACCENT_COLORS,
+    DARK_BG,
+    DARK_PANEL,
+    DEATH_COLORS,
+    GRID_COLOR,
+    LIGHT_BG,
+    LIGHT_GRID,
+    LIGHT_PANEL,
+    LIGHT_SPINE,
+    LIGHT_TEXT,
+    NODE_COLORS,
+    STAGE_COLORS,
+    TEXT_COLOR,
+    apply_dark_theme,
+    apply_light_theme,
+    dark_figure,
+    pub_figure,
+    save_figure,
+    themed_figure,
+)
+
+from sswd_evoepi.viz.population import (  # noqa: F401
+    plot_population_trajectory,
+    plot_stage_composition,
+    plot_cause_of_death_breakdown,
+    plot_age_size_pyramid,
+    plot_population_heatmap,
+    plot_recruitment_timeseries,
+    plot_survival_curves,
+    plot_sex_ratio_over_time,
+    plot_density_dependence,
+    plot_node_comparison_bars,
+)
+
+from sswd_evoepi.viz.disease import (  # noqa: F401
+    COMPARTMENT_COLORS,
+    plot_epidemic_curve,
+    plot_vibrio_concentration,
+    plot_force_of_infection_distribution,
+    plot_R0_over_time,
+    plot_disease_mortality_by_node,
+    plot_epidemic_wave_timing,
+    plot_compartment_flow_sankey,
+    plot_shedding_timeseries,
+    plot_disease_state_heatmap,
+    plot_immunosuppression_overlap,
+    plot_recovery_vs_resistance,
+    plot_cfr_over_time,
+)
+
+from sswd_evoepi.viz.genetics import (  # noqa: F401
+    RESISTANCE_LOW,
+    RESISTANCE_MID,
+    RESISTANCE_HIGH,
+    plot_resistance_trajectory,
+    plot_resistance_distribution,
+    plot_allele_frequency_spaghetti,
+    plot_additive_variance_over_time,
+    plot_ef1a_dynamics,
+    plot_selection_differential,
+    plot_heritability_over_time,
+    plot_genotype_phenotype_map,
+    plot_locus_effect_size_distribution,
+    plot_resistance_by_node_violin,
+    plot_genetic_drift_null,
+    plot_beta_init_visualization,
+)
+
+from sswd_evoepi.viz.coevolution import (  # noqa: F401
+    VIRULENCE_LOW,
+    VIRULENCE_HIGH,
+    plot_virulence_trajectory,
+    plot_coevolution_phase_portrait,
+    plot_virulence_distribution_over_time,
+    plot_tradeoff_curve,
+    plot_R0_by_virulence,
+    plot_virulence_vs_host_density,
+    plot_strain_competition,
+    plot_coevolution_multi_seed,
+)
+
+from sswd_evoepi.viz.spatial import (  # noqa: F401
+    plot_network_map,
+    plot_connectivity_heatmap,
+    plot_north_south_gradient,
+    plot_fjord_vs_open,
+    plot_metapopulation_timeseries,
+    plot_larval_flow_diagram,
+    plot_spatial_epidemic_timeline,
+    plot_node_fate_matrix,
+)
+
+from sswd_evoepi.viz.dashboards import (  # noqa: F401
+    SA_CATEGORY_COLORS,
+    plot_simulation_dashboard,
+    plot_spatial_dashboard,
+    plot_scenario_comparison,
+    plot_sensitivity_tornado,
+    plot_sensitivity_heatmap,
+    plot_parameter_interaction_web,
+    plot_evolutionary_rescue_assessment,
+    plot_conservation_scenario_matrix,
+    plot_model_validation_panel,
+    plot_parameter_space_exploration,
+)
+
+from sswd_evoepi.viz.settlement import (  # noqa: F401
+    plot_settlement_timing_heatmap,
+    plot_settlement_spread,
+    plot_pld_temperature_curve,
+    plot_daily_recruitment,
+    plot_before_after_epidemic,
+    plot_spawning_intensity,
+    plot_spawning_heatmap,
+    plot_spawning_density_dependence,
+    plot_spawning_cascade,
+)
+
+from sswd_evoepi.viz.spawning_viz import (  # noqa: F401
+    DailySnapshot,
+    run_simulation_with_snapshots,
+    classify_agents,
+    plot_spawning_event_profile,
+    plot_spawning_participation,
+    plot_readiness_cascade,
+    plot_spawning_vs_density,
+    plot_spawning_before_after,
+    create_spawning_animation,
+    create_comparison_animation,
+)
+
+from sswd_evoepi.viz.salinity import (  # noqa: F401
+    FRESH_WATER,
+    SALT_WATER,
+    SUPPRESSION,
+    REGION_COLORS,
+    REGION_BOUNDS,
+    plot_salinity_heatmap,
+    plot_depression_heatmap,
+    plot_suppression_map,
+    plot_regional_salinity_profiles,
+    plot_latitude_asymmetry,
+    plot_fw_strength_sensitivity,
+    plot_depth_exp_comparison,
+    plot_sal_mod_transfer,
+    plot_mechanism_components,
+    plot_dfo_validation,
+    plot_regional_suppression_bars,
+    plot_fjord_depth_by_region,
+    plot_suppression_monthly_panels,
+    plot_suppression_vs_recovery,
+    plot_suppression_regional_zoom,
+    plot_salinity_regional_profiles,
+    plot_depression_regional_scatter,
+)

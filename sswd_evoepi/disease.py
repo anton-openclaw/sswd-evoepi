@@ -803,6 +803,7 @@ def daily_disease_update(
     disease_reached: bool = True,
     T_vbnc_local: float = None,
     tau_max: float = 0.85,
+    sentinel_shedding_fraction: float = 0.0,
 ) -> NodeDiseaseState:
     """One daily timestep of disease dynamics at a single Tier 1 node.
 
@@ -855,6 +856,30 @@ def daily_disease_update(
         n_I2 = 0
     n_D_fresh = node_state.carcass_tracker.n_fresh
 
+    # Sentinel shedding adjustment: sentinels shed at reduced rate.
+    # Split infected into normal + sentinel, apply fraction to sentinel count.
+    _has_sentinel_field = 'is_sentinel' in agents.dtype.names
+    _sentinel_frac = sentinel_shedding_fraction
+    if _has_sentinel_field and _sentinel_frac > 0.0 and _sentinel_frac < 1.0:
+        _is_sent = agents['is_sentinel'].astype(bool)
+        _alive_sent = alive_mask & _is_sent
+        _alive_sent_ds = ds[_alive_sent]
+        if len(_alive_sent_ds) > 0:
+            _sent_counts = np.bincount(_alive_sent_ds, minlength=6)
+            n_I1_sentinel = int(_sent_counts[DiseaseState.I1])
+            n_I2_sentinel = int(_sent_counts[DiseaseState.I2])
+        else:
+            n_I1_sentinel = 0
+            n_I2_sentinel = 0
+        # Effective shedding counts: normal + fraction * sentinel
+        n_I1_normal = n_I1 - n_I1_sentinel
+        n_I2_normal = n_I2 - n_I2_sentinel
+        n_I1_eff = n_I1_normal + _sentinel_frac * n_I1_sentinel
+        n_I2_eff = n_I2_normal + _sentinel_frac * n_I2_sentinel
+    else:
+        n_I1_eff = n_I1
+        n_I2_eff = n_I2
+
     # Per-individual strain-weighted shedding when pathogen evolution active
     pe_active = pe_cfg is not None and pe_cfg.enabled
     override_shed = None
@@ -893,8 +918,9 @@ def daily_disease_update(
         override_shed = shed_I1 + shed_I2 + shed_D
     elif _v_evo:
         # Community virulence: scale node-level shedding rates
-        shed_I1 = shedding_rate_I1(T_celsius, cfg) * v_mult_shed_early * n_I1
-        shed_I2 = shedding_rate_I2(T_celsius, cfg) * v_mult_shed * n_I2
+        # Use effective counts (sentinels shed at reduced rate)
+        shed_I1 = shedding_rate_I1(T_celsius, cfg) * v_mult_shed_early * n_I1_eff
+        shed_I2 = shedding_rate_I2(T_celsius, cfg) * v_mult_shed * n_I2_eff
         shed_D = cfg.sigma_D * n_D_fresh
         override_shed = shed_I1 + shed_I2 + shed_D
 
@@ -910,8 +936,9 @@ def daily_disease_update(
         else:
             # Force an explicit shedding value so update_vibrio_concentration
             # uses the scaled amount instead of raw counts.
-            override_shed = _ds * (shedding_rate_I1(T_celsius, cfg) * n_I1
-                                   + shedding_rate_I2(T_celsius, cfg) * n_I2
+            # Use effective counts (sentinels shed at reduced rate)
+            override_shed = _ds * (shedding_rate_I1(T_celsius, cfg) * n_I1_eff
+                                   + shedding_rate_I2(T_celsius, cfg) * n_I2_eff
                                    + cfg.sigma_D * n_D_fresh)
 
     # Dynamic P_env pool update (host-amplified environmental reservoir)
@@ -919,8 +946,9 @@ def daily_disease_update(
         if override_shed is not None:
             total_shedding = override_shed
         else:
-            total_shedding = (shedding_rate_I1(T_celsius, cfg) * n_I1
-                              + shedding_rate_I2(T_celsius, cfg) * n_I2
+            # Use effective counts (sentinels shed at reduced rate)
+            total_shedding = (shedding_rate_I1(T_celsius, cfg) * n_I1_eff
+                              + shedding_rate_I2(T_celsius, cfg) * n_I2_eff
                               + cfg.sigma_D * n_D_fresh)
         pool_input = cfg.alpha_env * total_shedding
         # Temperature-dependent δ_env: cold water → VBNC Vibrio can't replicate
@@ -934,9 +962,11 @@ def daily_disease_update(
         pool_decay = delta_local * node_state.P_env_pool
         node_state.P_env_pool = max(0.0, node_state.P_env_pool + pool_input - pool_decay)
 
+    # Pass effective counts (sentinel-adjusted) for shedding computation
+    # when no override_shedding is set (default path with no pe/v_evo/density_scale)
     P_k = update_vibrio_concentration(
         node_state.vibrio_concentration,
-        n_I1, n_I2, n_D_fresh,
+        n_I1_eff, n_I2_eff, n_D_fresh,
         T_celsius, salinity, phi_k, dispersal_input,
         cfg,
         override_shedding=override_shed,
@@ -1124,14 +1154,35 @@ def daily_disease_update(
         i2d_mask = exp_states == DiseaseState.I2
         i2d_idx = exp_idx[i2d_mask]
         if len(i2d_idx) > 0:
-            if pe_active:
-                v_deaths = agents['pathogen_virulence'][i2d_idx]
-                node_state.virulence_sum_deaths += float(np.sum(v_deaths))
-                node_state.virulence_count_deaths += len(i2d_idx)
-            ds[i2d_idx] = DiseaseState.D
-            agents['alive'][i2d_idx] = False
-            agents['cause_of_death'][i2d_idx] = 1  # DeathCause.DISEASE
-            new_deaths += len(i2d_idx)
+            # Sentinels are immortal — they stay in I2 indefinitely
+            if _has_sentinel_field:
+                _i2d_sentinel = agents['is_sentinel'][i2d_idx].astype(bool)
+                # Re-sample I2 timer for sentinels (they restart the countdown)
+                _sent_i2d = i2d_idx[_i2d_sentinel]
+                if len(_sent_i2d) > 0:
+                    if pe_active:
+                        v_arr = agents['pathogen_virulence'][_sent_i2d]
+                        _sent_rates = mu_I2D_strain(v_arr, T_celsius, cfg, pe_cfg)
+                    else:
+                        _sent_rates = np.full(len(_sent_i2d), mu_I2D * v_mult_kill)
+                    t_arr = agents['tolerance'][_sent_i2d].astype(np.float64)
+                    _eff_rates = _sent_rates * (1.0 - t_arr * tau_max)
+                    _eff_rates = np.maximum(_eff_rates, _sent_rates * 0.05)
+                    dt_rem[_sent_i2d] = batch_sample_stage_duration(
+                        _eff_rates, K_SHAPE_I2, rng,
+                    )
+                # Only non-sentinels die
+                i2d_idx = i2d_idx[~_i2d_sentinel]
+
+            if len(i2d_idx) > 0:
+                if pe_active:
+                    v_deaths = agents['pathogen_virulence'][i2d_idx]
+                    node_state.virulence_sum_deaths += float(np.sum(v_deaths))
+                    node_state.virulence_count_deaths += len(i2d_idx)
+                ds[i2d_idx] = DiseaseState.D
+                agents['alive'][i2d_idx] = False
+                agents['cause_of_death'][i2d_idx] = 1  # DeathCause.DISEASE
+                new_deaths += len(i2d_idx)
 
         # ═══ NOT-EXPIRED TIMERS: recovery checks ════════════════════
 

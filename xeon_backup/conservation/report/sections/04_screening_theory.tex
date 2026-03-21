@@ -1,0 +1,138 @@
+\section{Screening Theory: Finding Good Founders}
+\label{sec:screening}
+
+\subsection{The basic screening problem}
+
+Let $F(\tau)$ be the trait CDF in the wild population. To find at least one individual with $\tau \geq \tau^*$ from $n$ independent samples:
+
+\begin{equation}
+    \Prob(\text{at least one} \geq \tau^*) = 
+    1 - [F(\tau^*)]^n = 1 - (1 - p)^n
+    \label{eq:screening_basic}
+\end{equation}
+where $p = 1 - F(\tau^*) = \Prob(\tau \geq \tau^*)$ is the 
+exceedance probability.
+
+\begin{definition}[Required sample size]
+For confidence level $\gamma$ (e.g., 0.95):
+\begin{equation}
+    n(\gamma, p) = \left\lceil 
+    \frac{\ln(1 - \gamma)}{\ln(1 - p)} 
+    \right\rceil
+    \label{eq:required_n}
+\end{equation}
+\end{definition}
+
+For small $p$, this simplifies to $n \approx -\ln(1-\gamma) / p$. 
+At 95\% confidence: $n \approx 3/p$. At 50\% confidence: 
+$n \approx 0.7/p$.
+
+\subsection{Trait distribution from allele frequencies}
+
+The exceedance probability $p$ requires the trait distribution. With $\tau = \sum_\ell \alpha_\ell x_\ell$ where $x_\ell \sim (1/2) \text{Binomial}(2, q_\ell)$, the exact distribution is a convolution of scaled binomials — tractable numerically but unwieldy analytically.
+
+\begin{proposition}[Normal approximation]
+By the Lyapunov CLT, for sufficiently many loci with no single 
+dominant effect:
+\begin{equation}
+    \tau \overset{d}{\approx} \mathcal{N}(\mu_\tau, \sigma_\tau^2)
+    \label{eq:normal_approx}
+\end{equation}
+where:
+\begin{align}
+    \mu_\tau &= \sum_\ell \alpha_\ell q_\ell 
+    \label{eq:trait_mean} \\
+    \sigma_\tau^2 &= \sum_\ell \frac{\alpha_\ell^2}{2} 
+    q_\ell (1 - q_\ell)
+    \label{eq:trait_var}
+\end{align}
+The factor of $1/2$ in the variance arises because $x_\ell = 
+(a_1 + a_2)/2$ with $\Var[a] = q(1-q)$.
+\end{proposition}
+
+\begin{remark}
+The normal approximation underestimates tail probabilities due to right-skewness, making screening predictions conservative. For quantitative planning, use the exact (simulated) distribution.
+\end{remark}
+
+\subsection{Expected best individual from a sample}
+
+The expected maximum from a sample of $n$:
+\begin{equation}
+    \E[\tau_{(n)}] = \int_{-\infty}^{\infty} 
+    \tau \cdot n \cdot f(\tau) \cdot [F(\tau)]^{n-1} \, d\tau
+    \label{eq:expected_max}
+\end{equation}
+Under normality \citep{david2003order}:
+\begin{equation}
+    \E[\tau_{(n)}] \approx \mu_\tau + \sigma_\tau 
+    \cdot \left(\Phi^{-1}\!\left(\frac{n}{n+1}\right)\right)
+    \label{eq:expected_max_normal}
+\end{equation}
+which grows as $\sigma_\tau \sqrt{2 \ln n}$ — the mathematical basis for \textbf{diminishing returns} of screening.
+
+\subsection{Multi-site screening}
+
+With site-specific distributions $F_k(\tau)$, the optimal screening allocation across $K$ sites with budget $N = \sum_k n_k$ maximizes:
+\begin{equation}
+    \E\left[\max_{k} \tau_{(n_k)}^{(k)}\right]
+    \label{eq:multisite_max}
+\end{equation}
+Sites with higher mean resistance yield better individuals per sample; sites with higher variance have heavier tails; very small populations may not justify sampling. The calibrated model provides the site-specific distributions needed for optimal allocation.
+
+\subsection{Screening for complementarity}
+\label{subsec:screening_complementarity}
+
+For breeding, we need a \emph{set of founders} with complementary genotypes — protective alleles at different loci.
+
+\begin{definition}[Locus union]
+For individuals $i$ and $j$, the \textbf{locus union} is the 
+number of resistance loci at which at least one parent carries 
+at least one protective allele:
+\begin{equation}
+    U(i, j) = \sum_{\ell=1}^{n_R} 
+    \mathbf{1}\!\left[(a_{i,\ell,1} + a_{i,\ell,2}) > 0 
+    \;\lor\; (a_{j,\ell,1} + a_{j,\ell,2}) > 0\right]
+    \label{eq:locus_union}
+\end{equation}
+Maximum value: $n_R$ (every locus covered).
+\end{definition}
+
+\begin{definition}[Complementarity score]
+\begin{equation}
+    C(i, j) = U(i, j) - O(i, j)
+    \label{eq:complementarity}
+\end{equation}
+where $O(i,j)$ is the overlap. High $C$ means parents cover different loci, so offspring can achieve higher resistance than either parent.
+\end{definition}
+
+\begin{proposition}[Expected union of two random individuals]
+If locus $\ell$ has protective allele frequency $q_\ell$, the 
+probability that at least one of two random individuals carries 
+$\geq 1$ protective allele at this locus is:
+\begin{equation}
+    \Prob(\text{locus } \ell \text{ covered}) = 
+    1 - (1 - q_\ell)^4
+    \label{eq:locus_coverage_prob}
+\end{equation}
+(since each individual has 2 independent allele draws, so 4 total).
+The expected union is:
+\begin{equation}
+    \E[U] = \sum_{\ell=1}^{n_R} 
+    \left[1 - (1 - q_\ell)^4\right]
+    \label{eq:expected_union}
+\end{equation}
+\end{proposition}
+
+\subsection{Screening cost model}
+\label{subsec:screening_cost}
+
+A simple cost model:
+\begin{equation}
+    C_{\text{total}} = c_{\text{collect}} \cdot n + 
+    c_{\text{assay}} \cdot n + 
+    c_{\text{hold}} \cdot n_{\text{keep}} \cdot T_{\text{hold}}
+    \label{eq:screening_cost}
+\end{equation}
+where $n$ is total screened, $n_{\text{keep}}$ retained, and $T_{\text{hold}}$ is holding duration. Cost parameters must be supplied by conservation practitioners.
+
+\input{sections/04b_binary_phenotyping}

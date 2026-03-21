@@ -490,6 +490,14 @@ def daily_natural_mortality(
     if len(alive) == 0:
         return 0, 0
 
+    # Sentinels are immortal — exclude from natural mortality
+    _has_sentinel = 'is_sentinel' in agents.dtype.names
+    if _has_sentinel:
+        _non_sentinel = ~agents['is_sentinel'][alive].astype(bool)
+        alive = alive[_non_sentinel]
+        if len(alive) == 0:
+            return 0, 0
+
     stages = agents['stage'][alive]
     ages = agents['age'][alive]
 
@@ -558,6 +566,14 @@ def daily_growth_and_aging(
     if len(alive) == 0:
         return
 
+    # Sentinels don't grow or age — exclude them
+    _has_sentinel = 'is_sentinel' in agents.dtype.names
+    if _has_sentinel:
+        _non_sentinel = ~agents['is_sentinel'][alive].astype(bool)
+        alive = alive[_non_sentinel]
+        if len(alive) == 0:
+            return
+
     n = len(alive)
 
     # Daily aging
@@ -625,9 +641,12 @@ def annual_reproduction(
 
     # Spawning requires: alive, ADULT, healthy (S only — R→S means
     # recovered agents are already S; R check kept for snapshot compat)
+    # Sentinels excluded from all reproduction
     can_spawn = alive & (stage == Stage.ADULT) & (
         (disease == DiseaseState.S) | (disease == DiseaseState.R)
     )
+    if 'is_sentinel' in agents.dtype.names:
+        can_spawn = can_spawn & ~agents['is_sentinel'].astype(bool)
     female_mask = can_spawn & (sex == 0)
     male_mask = can_spawn & (sex == 1)
 
@@ -1456,6 +1475,10 @@ def run_coupled_simulation(
             if disease_active:
                 with perf.track("disease"):
                     deaths_before = node_disease.cumulative_deaths
+                    _sentinel_shed_frac = (
+                        config.sentinel.shedding_fraction
+                        if config.sentinel.enabled else 0.0
+                    )
                     node_disease = daily_disease_update(
                         agents=agents,
                         node_state=node_disease,
@@ -1468,6 +1491,7 @@ def run_coupled_simulation(
                         rng=rng,
                         pe_cfg=pe_cfg,
                         tau_max=gen_cfg.tau_max,
+                        sentinel_shedding_fraction=_sentinel_shed_frac,
                     )
                     new_deaths = node_disease.cumulative_deaths - deaths_before
                     cumulative_disease_deaths += new_deaths
@@ -1920,6 +1944,70 @@ def _inherit_pathogen_traits(target_idx, node_disease_states, disease_reached,
     # else: keep defaults
 
 
+def initialize_sentinels(
+    node: 'SpatialNode',
+    n_sentinels: int,
+    rng: np.random.Generator,
+) -> None:
+    """Add sentinel agents to a node's population.
+
+    Sentinels are immortal, non-reproducing agents representing non-Pyc species
+    that carry SSWD. They start susceptible and get infected through normal FOI.
+
+    This function grows the agent arrays if needed to accommodate sentinels
+    without reducing Pyc capacity.
+
+    Args:
+        node: SpatialNode with agents and genotypes arrays.
+        n_sentinels: Number of sentinel agents to add.
+        rng: Random generator.
+    """
+    if n_sentinels <= 0:
+        return
+
+    agents = node.agents
+    genotypes = node.genotypes
+    nd = node.definition
+
+    # Find available (dead) slots
+    dead_slots = np.where(~agents['alive'])[0]
+
+    if len(dead_slots) < n_sentinels:
+        # Grow arrays to accommodate sentinels without reducing Pyc capacity
+        needed = n_sentinels - len(dead_slots)
+        agents, genotypes = _grow_agent_arrays(agents, genotypes, needed)
+        node.agents = agents
+        node.genotypes = genotypes
+        dead_slots = np.where(~agents['alive'])[0]
+
+    slots = dead_slots[:n_sentinels]
+    hab_side = np.sqrt(max(nd.habitat_area, 1.0))
+
+    # Set sentinel agent fields
+    agents['alive'][slots] = True
+    agents['is_sentinel'][slots] = 1
+    agents['x'][slots] = rng.uniform(0, hab_side, n_sentinels).astype(np.float32)
+    agents['y'][slots] = rng.uniform(0, hab_side, n_sentinels).astype(np.float32)
+    agents['heading'][slots] = rng.uniform(0, 2 * np.pi, n_sentinels).astype(np.float32)
+    agents['speed'][slots] = 0.1
+    agents['size'][slots] = 300.0  # arbitrary size (mm)
+    agents['age'][slots] = 10.0    # 10 years old (arbitrary)
+    agents['stage'][slots] = Stage.ADULT
+    agents['sex'][slots] = 0       # arbitrary
+    agents['disease_state'][slots] = DiseaseState.S  # start susceptible
+    agents['disease_timer'][slots] = 0
+    agents['node_id'][slots] = nd.node_id
+    agents['origin'][slots] = 0
+    agents['release_cohort'][slots] = 0
+    agents['cause_of_death'][slots] = 0
+    agents['settlement_day'][slots] = 0
+    # Genetics = 0 (sentinels have no meaningful Pyc genetics)
+    agents['resistance'][slots] = 0.0
+    agents['tolerance'][slots] = 0.0
+    agents['recovery_ability'][slots] = 0.0
+    # genotypes already zeroed from allocation
+
+
 def run_spatial_simulation(
     network: 'MetapopulationNetwork',
     n_years: int = 10,
@@ -1930,6 +2018,7 @@ def run_spatial_simulation(
     progress_callback=None,
     snapshot_recorder=None,
     monthly_recorder=None,
+    sentinel_node_ids: Optional[List[int]] = None,
 ) -> SpatialSimResult:
     """Run multi-node spatial simulation with full genetics tracking.
 
@@ -2044,6 +2133,20 @@ def run_spatial_simulation(
         else:
             node.vibrio_concentration = 0.0
 
+    # ── Initialize sentinel agents (if enabled) ─────────────────────
+    if config.sentinel.enabled:
+        _sent_cfg = config.sentinel
+        _sent_eligible = set()
+        if sentinel_node_ids is not None:
+            _sent_eligible = set(sentinel_node_ids)
+        else:
+            # Default: all nodes (caller should pre-filter)
+            _sent_eligible = set(range(N))
+
+        for i, node in enumerate(network.nodes):
+            if i in _sent_eligible:
+                initialize_sentinels(node, _sent_cfg.n_per_site, rng)
+
     # ── Allocate result arrays ───────────────────────────────────────
     yearly_pop = np.zeros((N, n_years), dtype=np.int32)
     yearly_adults = np.zeros((N, n_years), dtype=np.int32)
@@ -2083,7 +2186,15 @@ def run_spatial_simulation(
     else:
         yearly_mean_v_spatial = None
 
-    initial_total = network.total_population()
+    # Count initial Pyc population (exclude sentinels)
+    _init_total = 0
+    for _node in network.nodes:
+        _a = _node.agents
+        _alive = _a['alive'].astype(bool)
+        if 'is_sentinel' in _a.dtype.names:
+            _alive = _alive & ~_a['is_sentinel'].astype(bool)
+        _init_total += int(np.sum(_alive))
+    initial_total = _init_total
     node_names = [n.definition.name for n in network.nodes]
     node_K = np.array([n.definition.carrying_capacity for n in network.nodes])
 
@@ -2347,6 +2458,10 @@ def run_spatial_simulation(
 
             # 3. Per-node disease step (if disease is active at that node)
             _pathogen_adapt = hasattr(dis_cfg, 'pathogen_adaptation') and dis_cfg.pathogen_adaptation
+            _sentinel_shed_frac_spatial = (
+                config.sentinel.shedding_fraction
+                if config.sentinel.enabled else 0.0
+            )
             for i, node in enumerate(network.nodes):
                 if not disease_active_flags[i]:
                     continue
@@ -2369,6 +2484,7 @@ def run_spatial_simulation(
                     disease_reached=disease_reached[i],
                     T_vbnc_local=_T_vbnc_local_i,
                     tau_max=gen_cfg.tau_max,
+                    sentinel_shedding_fraction=_sentinel_shed_frac_spatial,
                 )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
@@ -2585,6 +2701,9 @@ def run_spatial_simulation(
                             | (src_agents['disease_state'] == DiseaseState.R)
                         )
                         src_can_spawn = src_alive & src_adult & src_healthy
+                        # Sentinels excluded from reproduction
+                        if 'is_sentinel' in src_agents.dtype.names:
+                            src_can_spawn = src_can_spawn & ~src_agents['is_sentinel'].astype(bool)
                         src_females = np.where(
                             src_can_spawn & (src_agents['sex'] == 0)
                         )[0]
@@ -2727,6 +2846,9 @@ def run_spatial_simulation(
                 and not pre_snapshot_taken):
             for i, node in enumerate(network.nodes):
                 alive_mask = node.agents['alive'].astype(bool)
+                # Exclude sentinels from genetics snapshots
+                if 'is_sentinel' in node.agents.dtype.names:
+                    alive_mask = alive_mask & ~node.agents['is_sentinel'].astype(bool)
                 if int(np.sum(alive_mask)) > 0:
                     pre_epidemic_af[i] = compute_allele_frequencies(
                         node.genotypes, alive_mask
@@ -2785,6 +2907,9 @@ def run_spatial_simulation(
                 and not post_snapshot_taken):
             for i, node in enumerate(network.nodes):
                 alive_mask = node.agents['alive'].astype(bool)
+                # Exclude sentinels from genetics snapshots
+                if 'is_sentinel' in node.agents.dtype.names:
+                    alive_mask = alive_mask & ~node.agents['is_sentinel'].astype(bool)
                 if int(np.sum(alive_mask)) > 1:
                     post_epidemic_af[i] = compute_allele_frequencies(
                         node.genotypes, alive_mask
@@ -2794,8 +2919,12 @@ def run_spatial_simulation(
         # ── Record annual metrics ────────────────────────────────────
         for i, node in enumerate(network.nodes):
             alive_mask = node.agents['alive'].astype(bool)
-            pop_now = int(np.sum(alive_mask))
-            adult_mask = alive_mask & (node.agents['stage'] == Stage.ADULT)
+            # Exclude sentinels from population counts (recovery metrics)
+            _pyc_mask = alive_mask
+            if 'is_sentinel' in node.agents.dtype.names:
+                _pyc_mask = alive_mask & ~node.agents['is_sentinel'].astype(bool)
+            pop_now = int(np.sum(_pyc_mask))
+            adult_mask = _pyc_mask & (node.agents['stage'] == Stage.ADULT)
             yearly_pop[i, year] = pop_now
             yearly_adults[i, year] = int(np.sum(adult_mask))
             yearly_recruits[i, year] = yearly_recruits_accum[i]
@@ -2810,16 +2939,16 @@ def run_spatial_simulation(
             yearly_vibrio_max[i, year] = max_vibrio_year[i]
             if pop_now > 0:
                 yearly_mean_r[i, year] = float(
-                    np.mean(node.agents['resistance'][alive_mask])
+                    np.mean(node.agents['resistance'][_pyc_mask])
                 )
                 yearly_mean_t[i, year] = float(
-                    np.mean(node.agents['tolerance'][alive_mask])
+                    np.mean(node.agents['tolerance'][_pyc_mask])
                 )
                 yearly_mean_c[i, year] = float(
-                    np.mean(node.agents['recovery_ability'][alive_mask])
+                    np.mean(node.agents['recovery_ability'][_pyc_mask])
                 )
-                # Genetics tracking
-                af = compute_allele_frequencies(node.genotypes, alive_mask)
+                # Genetics tracking (Pyc only — sentinels have zeroed genetics)
+                af = compute_allele_frequencies(node.genotypes, _pyc_mask)
                 yearly_allele_freq_top3[i, year] = af[:3]
                 yearly_va[i, year] = compute_additive_variance(af, effect_sizes, res_slice)
                 yearly_va_t[i, year] = compute_additive_variance(af, effects_t, tol_slice)

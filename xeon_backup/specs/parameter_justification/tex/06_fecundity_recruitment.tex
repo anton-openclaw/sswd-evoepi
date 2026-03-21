@@ -1,0 +1,64 @@
+\section{Fecundity \& Recruitment}
+
+This section reviews the literature basis for three critical parameters governing reproductive output and recruitment success in \textit{Pycnopodia helianthoides}: reference fecundity (F0), fertilization kinetics (gamma\_fert), and settler survival (settler\_survival). These parameters collectively determine population reproductive potential and are essential for understanding recovery dynamics following SSWD-driven population crashes.
+
+\subsection{F0: Reference Fecundity}
+
+\textbf{Parameter range:} $1 \times 10^6$ to $1 \times 10^8$ eggs/female \\
+\textbf{Default value:} $1 \times 10^7$ eggs/female \\
+\textbf{Confidence level:} $\star\emptyset\emptyset$ (Low)
+
+\paragraph{First Principles}
+Large broadcast spawners produce millions of eggs to compensate for extremely high larval mortality rates. The absolute number of eggs is less important than the multiplicative product F0 $\times$ fertilization\_success $\times$ larval\_survival $\times$ settler\_survival, which spans approximately eight orders of magnitude. F0 establishes the reproductive ceiling, but population bottlenecks typically occur during fertilization (due to Allee effects) or post-settlement survival phases. For \textit{P. helianthoides}, as the world's largest sea star species (reaching up to 650 mm arm radius), we expect high fecundity consistent with other large echinoderms and scaled to body size.
+
+\paragraph{Literature Evidence}
+No published fecundity estimates exist specifically for \textit{P. helianthoides}. Hodin et al. (2021) successfully achieved captive spawning in their life-cycle culturing program but did not quantify egg production numbers. Recent breeding successes at California Academy of Sciences and Birch Aquarium (2024) produced fertile embryos but egg counts were not reported in available summaries.
+
+Comparative evidence from other echinoderms provides context: crown-of-thorns starfish (\textit{Acanthaster planci}) produces over 100 million oocytes per reproductive season \cite{caballes2017}, while general reviews indicate sea star females accumulate ``millions of eggs and oocytes'' as broadcast spawners \cite{pmc3983664}. The Denver Zoo estimates ``over two million eggs per spawn'' for typical sea stars \cite{denverzoo2024}. Given that \textit{Pycnopodia} is 5--10 times larger than typical sea stars, proportionally higher fecundity is expected.
+
+\paragraph{Recommendation}
+F0 = $1 \times 10^7$ eggs/female with range $1 \times 10^6$--$1 \times 10^8$ is supported by: (1) comparative data from large echinoderms spanning 1--100 million eggs, (2) body size scaling from smaller sea stars, (3) \textit{Pycnopodia}'s status as the largest sea star species, and (4) log-uniform sampling across two orders of magnitude to capture parametric uncertainty. Direct measurement of \textit{P. helianthoides} fecundity from ongoing captive breeding programs represents a critical data gap for model calibration.
+
+\subsection{gamma\_fert: Fertilization Kinetics Parameter}
+
+\textbf{Parameter range:} 1.0 to 10.0 \\
+\textbf{Default value:} 4.5 \\
+\textbf{Confidence level:} $\star\emptyset\emptyset$ (Low)
+
+\paragraph{First Principles}
+The gamma\_fert parameter models Allee effects in fertilization success of broadcast spawners. At low population densities, sperm and egg gametes cannot locate each other effectively in the open ocean environment, causing fertilization rates to decline non-linearly with density. Higher gamma\_fert values create steeper density thresholds for reproductive failure; lower values produce more gradual fertility declines. This mechanism is particularly critical for SSWD-impacted \textit{Pycnopodia} populations: if local density drops below the fertilization threshold, reproductive failure can accelerate population extinction even in the absence of ongoing disease pressure.
+
+\paragraph{Literature Evidence}
+Lundquist \& Botsford (2004) developed the foundational theoretical framework for Allee effects in broadcast spawners, demonstrating that fertilization efficiency declines non-linearly with decreasing density, causing reproduction to decline more rapidly than predicted by density alone. This framework is essential for understanding recovery thresholds in depleted populations. Gascoigne \& Lipcius (2004) provide a comprehensive review identifying fertilization-based Allee effects as particularly strong in broadcast spawners, with marine systems being especially susceptible due to gamete dilution in open water environments.
+
+The NOAA ESA Status Review explicitly identifies Allee effects as a key concern for \textit{Pycnopodia} population recovery, noting that sunflower sea stars are broadcast spawners requiring ``close proximity to mates for successful fertilization.'' However, no species-specific fertilization kinetics data exist for \textit{P. helianthoides}. Recent modeling by Arroyo-Esquivel et al. (2025) addresses \textit{Pycnopodia} reintroduction scenarios with population dynamics but does not explicitly parameterize fertilization Allee effects.
+
+\paragraph{Recommendation}
+gamma\_fert = 4.5 with range 1.0--10.0 represents moderate Allee effect strength, justified by: (1) theoretical expectations for large broadcast spawning species, (2) an intermediate value allowing exploration of weak (gamma = 1--3) to strong (gamma = 7--10) Allee effect scenarios, and (3) absence of empirical constraints specific to \textit{Pycnopodia}. Experimental determination of fertilization success versus density relationships for \textit{P. helianthoides} under controlled conditions represents a critical research priority.
+
+\subsection{settler\_survival: Beverton-Holt Settler Survival}
+
+\textbf{Parameter range:} 0.005 to 0.10 \\
+\textbf{Default value:} 0.03 \\
+\textbf{Confidence level:} $\star\emptyset\emptyset$ (Low)
+
+\paragraph{First Principles}
+The settler\_survival parameter (s0) in the Beverton-Holt recruitment function directly scales realized recruitment via R = s0 $\times$ L/(1 + s0 $\times$ L/R\_max). This represents the single most important recruitment parameter as it absorbs all larval mortality processes not explicitly modeled: predation, starvation, failed settlement, and early post-settlement mortality. Empirically, less than 0.01\% of marine invertebrate larvae typically survive to successful settlement. For \textit{Pycnopodia}, this parameter must be constrained such that pre-SSWD populations maintained carrying capacity equilibrium, requiring recruitment to exactly balance natural adult mortality rates.
+
+\paragraph{Literature Evidence}
+Echinoderm larvae face extensive mortality sources during their planktonic phase. Doll et al. (2022) note that echinoderms with planktotrophic larvae have ``potentially much higher reproductive capacity,'' but realization depends on extensive biotic constraints (predation, starvation) and abiotic factors (dispersal to unfavorable habitats). Brittle star larvae exemplify this pattern, spending ``several weeks in the plankton before settling as juveniles'' with high vulnerability throughout this extended period.
+
+Morris sensitivity analysis of our model ranked settler\_survival as the 6th most important parameter, using \textit{Pisaster} as a proxy species with estimated settlement success below 3\%. This aligns with general marine invertebrate patterns where 99.99\% larval mortality (0.01\% survival to settlement) is typical across taxa.
+
+The equilibrium population dynamics constraint provides additional bounds: pre-SSWD \textit{Pycnopodia} populations were stable at carrying capacity, requiring fecundity $\times$ fertilization $\times$ larval survival $\times$ settler survival to equal adult mortality replacement. With F0 $\sim 10^7$ and adult mortality $\sim$10\% annually, s0 must be very small (0.001--0.1 range) to maintain demographic balance.
+
+\paragraph{Recommendation}
+settler\_survival = 0.03 with range 0.005--0.10 is justified by: (1) comparative evidence from \textit{Pisaster} and other echinoderms showing settlement success below 3\%, (2) general marine invertebrate larval survival patterns (0.01--0.1\%), (3) population dynamics constraints requiring equilibrium replacement rates, and (4) high model importance confirmed by Morris sensitivity analysis. Direct measurement of \textit{P. helianthoides} larval development duration, competency periods, and settlement success rates from captive breeding programs represents a critical empirical gap.
+
+\subsection{Parameter Interactions and Calibration Strategy}
+
+These three parameters interact multiplicatively to determine overall recruitment success: Recruitment = F0 $\times$ f(density, gamma\_fert) $\times$ settler\_survival $\times$ environmental\_factors, where f(density, gamma\_fert) represents fertilization success declining with Allee effects.
+
+The critical parameter products include: (1) F0 $\times$ settler\_survival $\approx 10^7 \times 0.03 = 3 \times 10^5$ potential recruits per female, (2) actual recruitment after fertilization and density effects representing much less than 1\% of F0, and (3) population replacement requiring this product to balance adult mortality ($\sim$10\% annually).
+
+Rather than independent parameter fitting, these should be calibrated as a coupled system against: pre-SSWD equilibrium populations (stable carrying capacity), Hodin et al. (2021) captive breeding success rates when quantified, and reintroduction density thresholds from ongoing field trials. Integration with population genetics frameworks accounting for sweepstakes reproductive success \cite{hedgecock1994} will be essential for comprehensive model validation.

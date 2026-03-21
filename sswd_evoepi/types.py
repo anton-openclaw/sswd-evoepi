@@ -178,6 +178,7 @@ AGENT_DTYPE = np.dtype([
                                       #         1+=release event number)
     ('cause_of_death', np.int8),      #  1 B — DeathCause enum (0=alive, 1=disease,
                                       #         2=natural, 3=senescence)
+    ('is_sentinel', np.int8),         #  1 B — 1 = sentinel (non-Pyc species), 0 = normal Pyc
     ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S)
     ('settlement_day', np.int32),     #  4 B — absolute sim day when settled/initialized
                                       #         0 for initial pop (always susceptible)

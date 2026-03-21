@@ -1,0 +1,34 @@
+\section{Spawning Induction}
+
+\subsection{induction\_female\_to\_male ($\kappa_{fm} = 0.80$)}
+
+\paragraph{First Principles}
+Female-to-male spawning induction should be the strongest induction signal for several physical and evolutionary reasons. First, gamete investment asymmetry creates differential costs: females produce large, energy-rich eggs while males produce billions of small, cheap sperm. The evolutionary cost of mistimed spawning is much higher for females. Second, large eggs release concentrated chemical cues during spawning, including species-specific peptides and lipoproteins that persist in the water column. Third, sperm density declines rapidly with distance (dilution $\sim r^3$), creating an urgent window where nearby males must respond quickly or fertilization opportunity is lost.
+
+\paragraph{Literature Evidence}
+Crown-of-thorns starfish (\textit{Acanthaster planci}) studies show that ``males are more sensitive to spawning cues tested and most likely spawn prior to females'' \cite{uthicke2017}, but when females spawn first, they trigger intense male responses. ``Biological cues (pheromones) from released sperm act as spawning 'synchronizers' by triggering a hormonal cascade resulting in gamete shedding by conspecifics.'' Sea cucumber (\textit{Holothuria arguinensis}) experiments demonstrate that male spawning water induces spawning in both sexes, but the reciprocal effect of female spawning on males may be stronger \cite{paulino2018}. General echinoderm observations confirm that ``grouped animals, irrespective of sex ratio, are riper than solitary individuals,'' suggesting bidirectional chemical facilitation.
+
+\paragraph{Recommendation}
+$\kappa_{fm} = 0.80$ (high induction strength) is justified by strong evolutionary pressure for males to respond to rare female spawning events, the chemical signal strength from large egg release, and consistency with observed sex-asymmetric responses in related asteroids. The value reflects that some males may not be physiologically ready despite chemical cues.
+
+\subsection{induction\_male\_to\_female ($\kappa_{mf} = 0.60$)}
+
+\paragraph{First Principles}
+Male-to-female spawning induction should be moderately strong but lower than the reverse due to risk-reward asymmetry. Females have more to lose from mistimed spawning (expensive eggs vs. cheap sperm) and should be more selective. Male spawning releases billions of sperm that dilute rapidly, potentially creating weaker chemical signals per unit volume than concentrated egg-release chemicals. However, a male spawning nearby signals both sperm availability and favorable environmental conditions, making it a moderately reliable cue.
+
+\paragraph{Literature Evidence}
+Crown-of-thorns starfish studies show that ``presence of sperm in the water column induced males and females to spawn,'' but males were consistently more responsive to all spawning cues tested \cite{uthicke2017}. Females showed more selective responses requiring stronger or more specific cues. Sea cucumber research confirms that ``male spawning water induces spawning in males and females,'' with the same male-derived chemical cues affecting both sexes but potentially at different thresholds \cite{paulino2018}. Broadcast spawning theory indicates that fertilization-based Allee effects create selective pressure for females to respond to nearby male spawning, but not indiscriminately \cite{gascoigne2004}.
+
+\paragraph{Recommendation}
+$\kappa_{mf} = 0.60$ (moderate induction strength) reflects the evolutionary advantage of responding to nearby sperm availability while accounting for higher female spawning costs. This falls within the range used in model configurations (0.30-0.60) and captures uncertainty in species-specific response strength.
+
+\subsection{readiness\_induction\_prob (0.50)}
+
+\paragraph{First Principles}
+Readiness induction represents social facilitation of gonadal maturation - proximity to reproductive activity accelerates reproductive development. Being near spawning conspecifics provides reliable information that environmental conditions favor reproduction. Chemical cues from spawning may directly stimulate gonadotropin release, accelerating final gamete maturation. Unlike immediate spawning induction (200m radius), readiness induction operates over larger distances (300m) as chemical cues for maturation may persist longer and travel farther.
+
+\paragraph{Literature Evidence}
+Echinoderm reproductive studies document widespread ``synchronized spawning behavior'' controlled by both environmental and biotic cues \cite{mercier2009}. Sea cucumber aggregation research shows that ``aggregative behaviours facilitate gametogenesis and spawning through inter-individual chemical exchange,'' and ``grouped animals, irrespective of sex ratio, are riper than solitary individuals'' \cite{paulino2018}. This suggests proximity to reproductive individuals accelerates ripening, not just spawning synchrony. Crown-of-thorns research discusses how ``environmental cues act as spawning 'inducers' by causing release of hormones (gonad stimulating substance),'' and similar hormonal cascades could be triggered by chemical cues from nearby reproductive individuals \cite{uthicke2017}.
+
+\paragraph{Recommendation}
+The probability of 0.50 reflects moderate likelihood that chemical exposure accelerates maturation, acknowledging that not all individuals respond (some may be too immature or already mature). This operates over longer distances and time scales than immediate spawning induction, representing a conservative estimate given limited direct evidence for this mechanism in asteroids.

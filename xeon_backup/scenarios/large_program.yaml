@@ -1,0 +1,121 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario: Large-scale breeding program with multi-site releases
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 200 individuals released at 3 sites over 5 years. Genetics reflect
+# an 8-generation selective breeding program targeting high disease
+# resistance. This is the "aspirational" scenario — what's possible
+# with a well-funded, multi-year breeding and release program?
+#
+# Release sites chosen for geographic spread:
+#   - SJI (Salish Sea, mid-range, near captive facilities)
+#   - Sitka (northern refugium, cold water, lower disease pressure)
+#   - Monterey (southern range, near functional extinction)
+
+name: "Large-scale breeding program"
+description: >
+  200 captive-bred individuals at 3 sites (SJI, Sitka, Monterey) over
+  5 annual releases starting year 12. High-resistance genetics from an
+  8-generation selective breeding program. Tests whether large-scale
+  reintroduction with bred-for-resistance animals can establish viable
+  populations across the species' range.
+
+base_config:
+  n_years: 30               # Longer horizon to see population recovery
+  start_year: 2013
+  disease_year: 0
+  sst_source: satellite
+  calibrated_params: null    # TODO: fill after ABC-SMC calibration
+
+releases:
+  # ── Year 12 (2025): First release at SJI ──────────────────────────
+  - time_step: 4380          # Start of year 12
+    node: SJI
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.85  # 8-gen breeding: high resistance alleles
+      tolerance_freq: 0.10   # Wild-type
+      recovery_freq: 0.02    # Wild-type
+    age_range: [365, 1095]   # 1-3 year olds (mixed age structure)
+
+  # ── Year 13 (2026): Release at Sitka ───────────────────────────────
+  - time_step: 4745
+    node: Sitka
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.90  # Continued selection improvement
+      tolerance_freq: 0.10
+      recovery_freq: 0.02
+    age_range: [365, 1095]
+
+  # ── Year 14 (2027): Release at Monterey ────────────────────────────
+  - time_step: 5110
+    node: Monterey
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.90
+      tolerance_freq: 0.12   # Slight tolerance improvement from multi-trait selection
+      recovery_freq: 0.03
+    age_range: [365, 1095]
+
+  # ── Year 15 (2028): Second round at SJI + Sitka ───────────────────
+  - time_step: 5475
+    node: SJI
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.92
+      tolerance_freq: 0.12
+      recovery_freq: 0.03
+    age_range: [365, 1095]
+
+  - time_step: 5475
+    node: Sitka
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.92
+      tolerance_freq: 0.12
+      recovery_freq: 0.03
+    age_range: [365, 1095]
+
+  # ── Year 16 (2029): Final round at all 3 sites ────────────────────
+  - time_step: 5840
+    node: SJI
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.95
+      tolerance_freq: 0.15
+      recovery_freq: 0.04
+    age_range: [365, 1095]
+
+  - time_step: 5840
+    node: Sitka
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.95
+      tolerance_freq: 0.15
+      recovery_freq: 0.04
+    age_range: [365, 1095]
+
+  - time_step: 5840
+    node: Monterey
+    n_individuals: 200
+    genetics:
+      mode: allele_freqs
+      resistance_freq: 0.95
+      tolerance_freq: 0.15
+      recovery_freq: 0.04
+    age_range: [365, 1095]
+
+output:
+  dir: results/release_scenarios/large_program/
+  track_released: true
+  save_genotypes: true       # Endpoint genotypes for introgression analysis
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1024]

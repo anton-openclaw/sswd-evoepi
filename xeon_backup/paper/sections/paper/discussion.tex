@@ -1,0 +1,311 @@
+% ══════════════════════════════════════════════════════════════════════
+% DISCUSSION — Publication Version
+% Derived from work report discussion.tex; condensed and restructured
+% for journal submission.
+% ══════════════════════════════════════════════════════════════════════
+
+The central prediction of \modelname{} is stark: \textit{Pycnopodia
+helianthoides} populations crash by $>$99\% under every model
+configuration examined, regardless of population scale, SST forcing
+scheme, or spatial network topology. This result is not an artifact of
+parameter tuning---the four-round sensitivity analysis demonstrates
+that catastrophic decline is a robust emergent property of the
+coupled eco-evolutionary system. Here we interpret this finding in the
+context of echinoderm immunology, evolutionary rescue theory, and
+conservation planning for captive-bred reintroduction.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Key findings}
+\label{sec:disc_findings}
+
+Three results merit particular emphasis.
+
+First, the reinfection correction (R$\to$S) transforms the model's
+evolutionary predictions. Under the (incorrect) assumption of
+permanent post-recovery immunity, recovery ($c_i$) was the
+fastest-evolving trait at every node, with Monterey showing
+$\Delta c_i = +0.154$ over 20 years. Under the biologically correct
+R$\to$S formulation---where recovered individuals return to the
+susceptible pool---recovery evolution effectively ceases
+($\overline{\Delta c_i} \approx +0.002$, indistinguishable from drift)
+and selection shifts decisively to resistance. At Sitka,
+$\Delta r_i$ increases 5.5-fold ($+0.011 \to +0.060$) when
+reinfection is permitted. The mechanism is intuitive: when clearing an
+infection confers no lasting protection, avoiding infection entirely
+becomes the only viable adaptive pathway. This finding aligns with
+echinoderm immunology---lacking adaptive immune systems,
+echinoderms have no mechanism for immunological memory
+\citep{Mydlarz2006,Smith2010}---and calls into question any marine
+invertebrate disease model that assumes permanent acquired immunity.
+
+Second, the base recovery rate ($\rho_{\mathrm{rec}}$) dominates
+the sensitivity analysis across all four rounds, all 23 output
+metrics, and all spatial configurations. Its mean normalized
+$\mu^*$ of 0.889 exceeds the second-ranked parameter
+($k_{\mathrm{growth}}$, 0.633) by 41\%. Yet this parameter has zero
+empirical basis: whether \pyc{} can clear \textit{Vibrio pectenicida}
+infections at all remains unknown. The SA thus identifies the single
+highest-priority empirical question for constraining model
+predictions: controlled challenge-recovery experiments in captive
+\pyc{} \citep{Prentice2025}.
+
+Third, larger populations fare no better than small ones.
+Scaling carrying capacity 20-fold ($K = 5{,}000 \to 100{,}000$)
+increases the metapopulation crash from 98.5\% to 98.9\%, because
+deterministic epidemic dynamics dominate at large $N$, suppressing
+the demographic stochasticity that occasionally permits small
+populations to escape through random fluctuations. Stochastic
+rescue does not scale---a finding with direct implications for
+reintroduction programs that might assume larger release cohorts
+will improve outcomes through demographic mass alone.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{The R$\to$S paradigm shift}
+\label{sec:disc_rs}
+
+The assumption of permanent post-recovery immunity is ubiquitous in
+epidemiological models of marine wildlife disease
+\citep{Aalto2020,Gimenez-Romero2021}, yet it is biologically
+unjustified for echinoderms. Asteroids rely exclusively on innate
+immune defenses---coelomocyte-mediated phagocytosis, complement-like
+lectins, and antimicrobial peptides \citep{Smith2010}---which lack
+the clonal expansion and memory cell formation that underpin acquired
+immunity in vertebrates. The assumption of permanent immunity was
+expedient in earlier SIR-type models where individual genetic
+identity is not tracked, but in an individual-based framework where
+genotype-dependent resistance, tolerance, and recovery are
+explicitly modeled, the immunological assumption becomes a first-order
+determinant of evolutionary dynamics.
+
+The R$\to$S correction has consequences beyond trait evolution.
+Final population size drops by 67\% (365 $\to$ 122 survivors),
+two of five nodes reach local extinction (vs.\ zero under permanent
+immunity), and fewer total recoveries occur (276 vs.\ 365)---not
+because recovery is rarer per infection, but because faster
+population collapse leaves fewer individuals to recover. The
+epidemic is more severe precisely because each recovered individual
+re-enters the susceptible pool rather than being removed from the
+transmission chain.
+
+This result has broader implications for marine invertebrate disease
+modeling. Sea urchin mass mortality events
+\citep{Hewson2023,Clouse2022}, coral tissue loss disease
+\citep{Meiling2021}, and abalone withering syndrome
+\citep{Friedman2000} all involve taxa that lack adaptive immunity.
+Models of these systems should explicitly address whether permanent
+immunity is a defensible assumption, or whether R$\to$S dynamics
+fundamentally alter predictions---as they do here.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Comparison with other eco-evolutionary disease models}
+\label{sec:disc_comparison}
+
+The closest methodological precedent for \modelname{} is the
+eco-evolutionary IBM developed by \citet{clement2024coevolution} for
+coevolution between Tasmanian devils (\textit{Sarcophilus harrisii})
+and devil facial tumour disease (DFTD). Both models track individual
+diploid genotypes, couple epidemiological dynamics with quantitative
+genetic evolution, and ask whether evolutionary rescue can avert host
+extinction following a novel disease introduction. However, the
+systems diverge in three ways that produce fundamentally different
+predictions.
+
+\paragraph{Reproductive biology.}
+Devils are iteroparous mammals with small litters and high maternal
+investment. \pyc{} is a broadcast spawner producing $\sim$$10^7$
+eggs per female, subject to sweepstakes reproductive success (SRS)
+with $N_e/N \sim 10^{-3}$ \citep{Hedgecock2011}. SRS amplifies
+genetic drift at the population level while creating the potential
+for rapid frequency shifts at individual loci under strong selection
+\citep{Eldon2024}---a reproductive mode absent from the Clement
+et al.\ framework. This produces a paradox: the mechanism that
+enables occasional rapid adaptation also reduces the efficacy of
+selection relative to drift across most of the genome.
+
+\paragraph{Pathogen transmission.}
+DFTD is a transmissible cancer requiring direct physical contact.
+\vpshort{} transmits environmentally through waterborne bacteria and
+is maintained by a multi-species reservoir ($P_{\mathrm{env}}$) that
+decouples pathogen persistence from \pyc{} population size. This
+decoupling weakens the virulence--transmission tradeoff that enables
+coevolutionary stabilization in the DFTD system: in our model, the
+environmental reservoir sustains infection pressure even as host
+populations collapse, preventing the pathogen attenuation that
+\citet{clement2024coevolution} found critical for devil persistence.
+
+\paragraph{Evolutionary rescue prospects.}
+Clement et al.\ found a high probability of devil persistence over
+50 generations ($\sim$150 years), driven by rapid host--pathogen
+coevolution. Our model predicts no recovery to $>$5\% of carrying
+capacity within 20 years ($\sim$4 \pyc{} generations) at any scale.
+This contrast reflects the mismatch between \pyc{}'s long generation
+time ($\sim$5 years vs.\ $\sim$3 years for devils), the extreme
+$N_e/N$ depression under SRS, and the environmental pathogen
+reservoir that maintains infection pressure independently of host
+genetic composition.
+
+Other marine disease models have addressed components of the SSWD
+system in isolation: \citet{Aalto2020} modeled ocean-scale
+epidemiological dynamics without genetics, \citet{Gimenez-Romero2021}
+developed SIRP compartmental models for \textit{Pinna nobilis}
+without spatial structure, and \citet{Arroyo-Esquivel2025} modeled
+reintroduction epidemiology without evolution. \modelname{} integrates
+these dimensions---individual-based genetics, spatially explicit
+metapopulation dynamics, and coupled eco-evolutionary feedback---within
+a single framework, enabling the emergent interactions among these
+processes to be studied jointly rather than in isolation.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Conservation implications for reintroduction}
+\label{sec:disc_conservation}
+
+The model's central finding---that natural selection on polygenic
+resistance cannot drive population recovery on conservation-relevant
+timescales---has a direct practical implication: waiting for natural
+evolution is not a viable recovery strategy. Active intervention
+through captive breeding and managed release is essential. The AZA
+SAFE program's captive population of $>$2{,}500 juveniles and
+130+ reproductive adults \citep{AZA2024}, combined with the
+progressive outplanting trials from 2023 caged experiments through
+the 2024 uncaged release \citep{kuow2024seastar} to the December
+2025 California outplanting \citep{ssl2025outplanting}, provides
+the demographic foundation for such intervention.
+
+The R$\to$S finding reframes the optimal breeding strategy. Under
+permanent immunity, selecting for high recovery ($c_i$) was rational:
+recovered individuals survived to reproduce. Under reinfection,
+resistance ($r_i$) becomes the dominant adaptive response. Captive
+breeding programs should prioritize individuals that resist infection
+entirely, identifiable through challenge experiments and, as the
+\pyc{} reference genome becomes annotated
+\citep{Schiebelhut2024genome}, genome-wide association with
+resistance loci. A combined strategy---selecting for high resistance
+with moderate recovery as a secondary trait---may be optimal.
+
+The sensitivity analysis provides further guidance. The identification
+of recovery rate, growth rate, settler survival, and environmental
+pathogen pressure as the top-ranked parameters suggests that
+reintroduction success depends on the intersection of host biology
+and site-level disease environment. Release site selection should
+consider local pathogen pressure (proxied by $P_{\mathrm{env}}$),
+temperature regime (which modulates disease progression rates),
+connectivity to neighboring populations (for demographic rescue via
+larval exchange), and seasonal timing relative to spawning windows
+(when immunosuppression may elevate susceptibility).
+
+A comprehensive conservation scenario module---simulating specific
+release strategies with optimized timing, location, genetic
+composition, and cohort size---is a natural extension of this work
+and is under active development. The validation results presented
+here establish the baseline against which intervention scenarios
+will be evaluated: any strategy that cannot improve upon the $>$99\%
+crash trajectory is insufficient.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Limitations}
+\label{sec:disc_limitations}
+
+We identify five principal limitations.
+
+\paragraph{1.\ Single-pathogen model.}
+\modelname{} attributes SSWD to \vpshort{}, consistent with Koch's
+postulates confirmation \citep{Prentice2025}. However,
+\citet{Hewson2025autecology} found that \vpshort{} was not detectable
+in non-\pyc{} asteroid species, complicating the assumption of a
+generalized multi-species reservoir. The etiology of SSWD may involve
+microbiome dysbiosis, secondary opportunistic infections, or
+multi-pathogen interactions not captured by a single-agent model.
+
+\paragraph{2.\ Environmental pathogen reservoir is unconstrained.}
+$P_{\mathrm{env,max}}$ ranks 4th in global sensitivity
+($\mu^*_{\mathrm{norm}} = 0.598$, $\sigma/\mu^* = 1.92$) yet has
+no empirical calibration target. This parameter absorbs the
+complexity of multi-species pathogen maintenance, sediment reservoirs,
+and environmental Vibrio dynamics into a single scalar. Field
+measurements of waterborne \vpshort{} concentrations in \pyc{}
+habitat are needed to constrain it.
+
+\paragraph{3.\ Universal nonlinearity.}
+All 47 parameters exhibit $\sigma/\mu^* > 1.0$ in the Morris
+screening, indicating that every parameter's effect depends on the
+values of every other parameter. While this is a realistic property
+of complex biological systems \citep{Saltelli2008}, it means the
+model cannot be calibrated by tuning parameters individually. Joint
+estimation via ABC-SMC is computationally expensive and requires
+well-defined calibration targets, several of which are currently
+lacking.
+
+\paragraph{4.\ Recovery rate has zero empirical basis.}
+Whether \pyc{} can clear \vpshort{} infections at all is unknown.
+The base recovery rate $\rho_{\mathrm{rec}}$ is the single most
+influential parameter in the model, yet its value is entirely
+assumed. Challenge-recovery experiments in captive animals
+\citep{Prentice2025} could resolve this critical gap.
+
+\paragraph{5.\ Spatial resolution.}
+Validation runs use 5--11 nodes, well below the 150+ nodes needed
+to represent the full NE Pacific range at ecologically meaningful
+resolution. The dramatic rank gains of spatial parameters between
+R3 (3 nodes) and R4 (11 nodes)---notably $n_{\mathrm{resistance}}$
+rising from \#19 to \#5---suggest that further spatial refinement
+may reveal additional emergent dynamics not captured at the current
+resolution.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Future directions}
+\label{sec:disc_future}
+
+\paragraph{ABC-SMC calibration.}
+The immediate priority is formal calibration via approximate Bayesian
+computation with sequential Monte Carlo sampling. Summary statistics
+will include range-wide population decline ($>$90\% within 2 years;
+\citealp{Gravem2021}), latitudinal mortality gradient
+\citep{Hamilton2021}, fjord protection effects \citep{Gehman2025},
+allele frequency shifts at outlier loci \citep{Schiebelhut2018}, and
+disease progression timelines \citep{Prentice2025}. The R4 sensitivity
+analysis provides a natural parameter prioritization: the top 10--15
+parameters can be calibrated jointly while fixing the remainder at
+default values.
+
+\paragraph{Conservation scenario evaluation.}
+A conservation module will simulate captive-bred release strategies
+parameterized from AZA SAFE protocols \citep{AZA2024}, including
+release timing and location, cohort genetic composition, assisted
+gene flow via cryopreserved gametes \citep{Hagedorn2021}, and
+minimum viable release sizes informed by the Allee effect dynamics
+identified in this study. Empirical validation targets from the 2024
+and 2025 outplanting trials will constrain post-release survival
+predictions.
+
+\paragraph{Climate change projections.}
+Warming sea surface temperatures will alter disease dynamics through
+the temperature-dependent transition rates calibrated to
+\citet{Prentice2025}. Projecting model behavior under RCP scenarios
+will reveal whether warming accelerates population collapse (through
+faster disease progression) or modulates it (through altered
+seasonality and spatial redistribution of thermal refugia).
+
+\paragraph{Genomic integration.}
+The \pyc{} reference genome \citep{Schiebelhut2024genome} enables
+GWAS to identify loci associated with resistance, tolerance, and
+recovery, providing direct calibration targets for the genetic
+architecture parameters. Comparing predicted allele frequency shifts
+at the 51 outlier loci identified by \citet{Schiebelhut2018} with
+temporal genomic samples from wild populations would provide a
+powerful independent validation of the model's evolutionary
+predictions.
+
+\paragraph{Multi-species extension.}
+Explicitly modeling \vpshort{} dynamics in other asteroid species
+would replace the $P_{\mathrm{env}}$ abstraction with mechanistic
+cross-species transmission. While architecturally straightforward
+(shared pathogen pool with species-specific susceptibility and
+shedding), this extension requires demographic and disease parameters
+for multiple species that are currently unavailable, and constitutes
+a multi-year research program in its own right.

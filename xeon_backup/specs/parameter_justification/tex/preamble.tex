@@ -1,0 +1,62 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+% Confidence colors
+\newcommand{\confhigh}{\textcolor{green!60!black}{\textbf{HIGH}}}
+\newcommand{\confmed}{\textcolor{orange!80!black}{\textbf{MEDIUM}}}
+\newcommand{\conflow}{\textcolor{red!70!black}{\textbf{LOW}}}
+
+\title{SSWD-EvoEpi Parameter Justification Report\\
+\large Literature Review \& First-Principles Analysis for 47 Model Parameters}
+\author{Anton (AI Research Assistant) \& Willem Weertman\\
+University of Washington, Department of Psychology\\
+Friday Harbor Laboratories}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report documents the empirical basis and theoretical justification for all 47 parameters
+in the SSWD-EvoEpi coupled eco-evolutionary epidemiological agent-based model for
+\textit{Pycnopodia helianthoides} and sea star wasting disease (SSWD). For each parameter,
+we present a first-principles analysis of mechanistic constraints, a literature review drawing
+on 103 papers in our local library, recommended values, sensitivity analysis ranges, and
+honest confidence assessments. Parameters are organized into 11 thematic groups spanning
+disease dynamics, population ecology, genetics, spawning biology, larval dispersal, and
+pathogen evolution.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section*{Model Background}
+\addcontentsline{toc}{section}{Model Background}
+
+SSWD-EvoEpi is an individual-based, spatially explicit model coupling epidemiological dynamics with eco-evolutionary genetics for the sunflower sea star \textit{Pycnopodia helianthoides}. The model was built to explore whether captive-bred reintroduction can restore wild populations following the catastrophic die-offs caused by sea star wasting disease (SSWD), now attributed to the marine bacterium \textit{Vibrio pectenicida} \citep{prentice2025}.
+
+\paragraph{Disease.} Individuals progress through an S$\to$E$\to$I\textsubscript{1}$\to$I\textsubscript{2}$\to$D pathway. Exposure is dose-dependent, driven by contact with infected conspecifics and a background environmental pathogen pool ($P_\text{env}$) that abstracts multi-species community maintenance. Infection probability is modulated by an individual's genetic resistance trait. Stage durations are drawn from Gamma distributions parameterized against the laboratory challenge timelines of \citet{prentice2025}. Because echinoderms lack adaptive immunity, recovered individuals return to the susceptible pool (S$\to$E$\to\cdots\to$R$\to$S).
+
+\paragraph{Genetics.} Each individual carries a diploid genome of 51 biallelic loci (after \citealt{schiebelhut2018collapse}), partitioned into three functional groups of 17 loci each:
+\begin{itemize}[nosep]
+  \item \textbf{Resistance ($r_i$)} --- immune exclusion; reduces per-exposure infection probability.
+  \item \textbf{Tolerance ($t_i$)} --- damage limitation; extends I\textsubscript{2} survival time via timer-scaling ($\tau_\text{max}=0.85$), giving more recovery opportunities.
+  \item \textbf{Recovery ($c_i$)} --- pathogen clearance; daily recovery probability $p_\text{rec} = \rho_\text{rec} \times c_i$.
+\end{itemize}
+Traits are inherited with free recombination across loci, and mutation introduces low-frequency novel alleles each generation.
+
+\paragraph{Population ecology.} Nodes represent discrete habitat patches connected by a stepping-stone larval dispersal kernel. Within each node, density-dependent logistic growth governs recruitment. Adults grow continuously, and fecundity scales with body size. Sea surface temperature (SST) drives seasonal spawning phenology and modulates disease transmission; SST values are drawn from NOAA OISST v2.1 satellite climatologies for each node.
+
+\paragraph{Scope of this report.} The 47 parameters reviewed here span all model subsystems. For each, we present (1) a first-principles analysis of hard bounds and mechanistic constraints, (2) evidence from our 103-paper local literature library and targeted web searches, (3) a recommended default value and sensitivity analysis range, and (4) an honest confidence assessment (\confhigh, \confmed, or \conflow). The goal is to ground every parameter as rigorously as the available data allow, and to be transparent about where empirical support is thin.
+
+\newpage
+

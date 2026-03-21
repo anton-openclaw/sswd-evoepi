@@ -1,0 +1,44 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% Custom colors
+\definecolor{noteblue}{RGB}{33, 150, 243}
+\definecolor{warnred}{RGB}{211, 47, 47}
+
+% Theorem environments
+\newtheorem{definition}{Definition}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{remark}{Remark}[section]
+
+% Custom commands
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\note}[1]{\textcolor{noteblue}{\textbf{Note:} #1}}
+\newcommand{\todo}[1]{\textcolor{warnred}{\textbf{TODO:} #1}}
+\newcommand{\pyc}{\textit{Pycnopodia helianthoides}}
+
+\title{Conservation Genetics Module for \pyc{}:\\
+First-Principles Framework for Breeding Program Design}
+\author{Anton (AI Research Assistant) \& Willem Weertman\\
+\small University of Washington, Department of Psychology\\
+\small Friday Harbor Laboratories}
+\date{February 2026 — Working Document}

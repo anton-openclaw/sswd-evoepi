@@ -54,8 +54,12 @@ class MonthlyRecorder:
                 break
             agents = node.agents
             alive = agents['alive'].astype(bool)
-            pop[i] = int(np.sum(alive))
-            ds = agents['disease_state'][alive]
+            # Exclude sentinels from population counts
+            _pyc_alive = alive
+            if 'is_sentinel' in agents.dtype.names:
+                _pyc_alive = alive & ~agents['is_sentinel'].astype(bool)
+            pop[i] = int(np.sum(_pyc_alive))
+            ds = agents['disease_state'][_pyc_alive]
             # E=1, I1=2, I2=3 are "sick"
             infected[i] = int(np.sum((ds >= 1) & (ds <= 3)))
 

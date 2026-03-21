@@ -1,0 +1,100 @@
+2bca1d8 W309-W320: gradient-breaking sweep (δ_env(T) + P_env-gated recovery)
+16075bc feat: temperature-dependent δ_env + P_env-gated recovery (gradient-breaking)
+8f8b0e4 feat: phi_open/phi_fjord configurable, raise initial recovery c̄ to 0.05
+7e63380 Add mechanistic report + viz toolkit figure generators
+b2a8ddf W289-W308: unified sweep from three councils (no delta_env)
+859f504 rename rmse_log → rmsle in format_results and viz/calibration
+9d8b4a4 rename rmse_log → rmsle (Root Mean Squared Log Error)
+b74f885 CDT timing analysis: 25-month delay caused by missing seed_vibrio, not CDT
+836b48a Add seed_vibrio: seed environmental Vibrio at origin nodes at disease onset
+f47a66a Lower AK-PWS and AK-FN recovery targets from 30% to 20%
+fab3ae8 Add standardized calibration report template (32 figures, 35+ pages)
+bc98a71 Add W249-W268 clean sweep configs and launcher
+6ecf06e Centralize targets in 13 legacy report scripts
+2a4515c Cutover to consolidated results/metrics modules
+c4ad972 Refactor format_results, viz/calibration, calibration_runner to use consolidated results/metrics modules
+8abeb7c Add results.py + metrics.py: consolidated loading and scoring API
+b39373b Fix remaining test failures from audit fixes
+185cb4e Fix ghost cascade induction across years
+4a9146d Fix immunosuppression double-decrement during spawning season
+8d3051a Fix all tests for W201 calibrated defaults
+b2d5e75 Update config defaults to W201 calibrated baseline
+621857e Parameterize glacial melt latitude bounds (fw_lat_min/fw_lat_max)
+d641129 feat: two-layer salinity model — WOA23 baseline + fjord depression
+56aefc3 feat(viz): add coastline rendering to salinity maps
+25b96dc style: switch entire viz library to light/publication theme by default
+b827775 feat: light/pub theme + 3 regional zoom plots in salinity viz
+4e89d42 feat: salinity viz module — 14 plot functions for freshwater influence analysis
+e50b5dd test: add 32 salinity tests (unit, integration, quantitative validation)
+a2f8d97 feat: add fw_depth_exp parameter (exponent on fjord_depth_norm)
+c01b395 feat: seasonal salinity model (fw_strength parameter, fjord_depth_norm predictor)
+af13dfb Viz toolkit cleanup: remove dead code, rename for clarity
+fbcca49 Add viz/calibration.py — reusable calibration report figures
+4615eb9 Update AK calibration targets: 50% → 30% for AK-PWS and AK-FN
+ef80181 MODEL: Single survival parameter — fix s₀=1.0, calibrate r_total
+e97e7eb OPTIMIZE: Genotype at spawning time with BH pre-filtering
+daa165a Perf: cache source breeding info in settlement loop (~40x fewer numpy ops)
+e762bda Perf: replace O(n) list.insert cohort storage with O(1) dict-of-lists
+574e302 Optimize daily larval dispersal: sparse C + batched multinomial
+46642b5 Add W169-W184 recalibration sweep configs: s0, alpha_self, n_conn, alpha_env
+bdb05ae Fix critical larval dispersal bug: route daily spawning through C matrix + add BH density-dependence
+3312682 Fix recruitment pulse framing (model prediction not empirical), remove duplicate network map, restyle disease snapshots, all-region resistance/diversity figs, calibration data provenance
+6228402 Clarify calibration data provenance: published surveys vs expert inference
+cacef0a Figs 4,5: all 18 regions; Fig 22: regenerated from F01 data; fix div-by-zero warning
+813c46a Fix region prefix bug: JDF/OR/BJ were missing from all regional figures
+1376570 Fix LaTeX figure placement errors, compile report v2
+ae16494 Report v2: inline figures, time-averaged recovery, virulence caveat
+bbf2310 Report v2: Oregon endpoint bias correction, F03 virulence caveat, partial figure inline placement
+8d2ff22 Add oasis site dynamics section (sec4b): 51pp, 17 figs
+ee1825b Report v1.1: numerical audit corrections applied
+c981599 Publishable report v1: 45pp, 13 figs, 7 sections, audited
+46275e1 Continuous alpha_self from enclosedness: larval retention in enclosed waterways
+dcdca02 Update spawning timing: peak DOY 50 (Feb 19) at ref lat 48.5°N
+0bd6538 Fix spawning timing: peak_doy 105→50 (Feb 19), latitudinal gradient 3d/°N
+2d3a2ec Fix config loading: handle both flat and nested config formats
+61b3d24 Add n_connectivity nonlinearity exponent for enclosedness→φ mapping
+7a089b5 Add comprehensive enclosedness v2 report with fjord depth metric
+0c05aa7 Add fjord depth metric to enclosedness computation
+bb90d99 Add enclosedness-derived per-site flushing rates + W125-W134 configs
+ad54f19 Add enclosedness computation and report generation scripts
+3b45068 W115-W124 configs: T_vbnc_min=9-10°C sweep (literature-constrained)
+adbf511 param: raise T_vbnc_min from 6°C to 9°C based on literature review
+54f984f review: Vibrio thermal adaptation limits — literature constrains T_vbnc_min to 8-10°C
+e0677d9 W105-W114 configs: virulence evolution + s0 sweep
+140340f feat: add per-site community virulence evolution (Chunk 3)
+c12f2c5 feat: dispersal-weighted mixing of pathogen community traits (T_vbnc, v_local)
+2cf2d7d spec: multi-trait pathogen community evolution (virulence + temp + infectivity)
+3762289 feat: pool-driven pathogen thermal adaptation (Chunk 1)
+7fab042 spec: pathogen community-level thermal adaptation redesign
+e82ff3a chore: add W95-W104 configs + launcher (pathogen thermal adaptation sweep)
+da7ed48 feat: pathogen thermal adaptation chunks 2+3 (wavefront inheritance + yearly recording)
+223fde9 feat: pathogen thermal adaptation chunk 1 (config + state + core adaptation)
+71ff266 spec: pathogen thermal adaptation (per-node evolving T_vbnc)
+6a67c43 chore: add W85-W94 configs + launcher (floor × alpha_env sweep at K½=800K)
+8372f40 fix: remove --sst-start-year from launcher (not a valid arg)
+cfd1dd0 chore: add W75-W84 launcher script
+cc3110f chore: add W75-W84 calibration configs (K_half/P_env_max sweep to lift recovery)
+da13db8 feat: add lognormal K variability per node (K_cv parameter)
+a87b1cc fix: remove unrecognized args from launcher
+34001d8 chore: add W65-W74 launcher script
+a62762c chore: add W65-W74 calibration configs (dynamic P_env exploration)
+6eed622 feat: dynamic P_env with host-amplification feedback and community floor
+92513a5 fix: remove double BH from settle_daily_cohorts, update tests (896 nodes, vibrio threshold)
+89e53a0 chore: add W61-W64 calibration configs
+cd87332 feat: add wavefront long-range dispersal kernel (config + D matrix construction)
+5bef166 chore: W53-W60 configs (faster wavefront: lower CDT, dose decay, higher D_P)
+6726261 chore: W45-W52 configs (P_env_max, k_vbnc, K_half sweep to fix southern overshoot)
+92190d9 fix: use node K instead of missing config.population.carrying_capacity
+a1b58b0 fix: W41-W44 configs use dotted keys for calibration_runner
+6391465 chore: W41-W44 calibration configs (cumulative dose threshold sweep)
+853344f feat: cumulative dose wavefront activation for sustained pathogen exposure
+69d92a0 Prefer MP4 (ffmpeg) over GIF, clean up frames after compile
+61cfd51 Add monthly wavefront visualization: recorder + renderer
+c57ae54 W29-W40 calibration configs: act_thresh×K_half×T_vbnc, D_P_max=500km
+d7903ab Fix W17-W28 configs to use runner dotted-key format
+2d31954 Wavefront calibration R2 report (W05-W16) + W17-W28 configs
+0e31f7e Remove dead test_parallel.py — parallel_workers never implemented
+c6aacd6 Lower settler survival (s0) from 0.03 to 0.001
+292b2c0 Fix dispersal pipeline: distribute counts, create genotypes at settlement
+91b941c Fix local reproduction pipeline: BH first, then genotypes
+a2c157d Add W05-W16 calibration configs

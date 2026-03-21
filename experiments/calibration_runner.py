@@ -507,6 +507,31 @@ class EarlyStopChecker:
         return None  # continue simulation
 
 
+def get_sentinel_eligible_nodes(sites: List[dict], site_filter: str = 'rocky',
+                                 custom_node_ids: List[int] = None) -> List[int]:
+    """Return list of node IDs eligible for sentinel agents.
+
+    Args:
+        sites: List of site dicts with 'habitat' field.
+        site_filter: 'rocky' (rock/kelp/reef), 'all', or 'custom'.
+        custom_node_ids: Node IDs when site_filter='custom'.
+
+    Returns:
+        List of node indices eligible for sentinels.
+    """
+    if site_filter == 'all':
+        return list(range(len(sites)))
+    elif site_filter == 'custom':
+        return list(custom_node_ids or [])
+    else:  # 'rocky' (default)
+        eligible = []
+        for i, site in enumerate(sites):
+            habitat = site.get('habitat', '').lower()
+            if any(x in habitat for x in ['rock', 'kelp', 'reef']):
+                eligible.append(i)
+        return eligible
+
+
 def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
                disease_year: int = 3, n_years: int = 14,
                round_id: str = "XX", output_dir: Optional[Path] = None) -> dict:
@@ -527,6 +552,15 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         sst_start_year=getattr(config, '_sst_start_year', 2012),
     )
 
+    # Compute sentinel eligible nodes if enabled
+    _sentinel_node_ids = None
+    if config.sentinel.enabled:
+        _sentinel_node_ids = get_sentinel_eligible_nodes(
+            sites,
+            config.sentinel.site_filter,
+            config.sentinel.custom_node_ids,
+        )
+
     t0 = time.time()
     result = run_spatial_simulation(
         network=network,
@@ -536,6 +570,7 @@ def run_single(config: SimulationConfig, sites: List[dict], network, seed: int,
         config=config,
         progress_callback=checker,
         monthly_recorder=monthly_rec,
+        sentinel_node_ids=_sentinel_node_ids,
     )
     elapsed = time.time() - t0
 
@@ -703,6 +738,9 @@ def main():
         param_overrides = config_data['param_overrides']
     else:
         param_overrides = config_data
+
+    # Extract sentinel config if present
+    sentinel_config = config_data.get('sentinel', None)
     
     # Extract K_cv from CLI or param_overrides
     K_cv = args.K_cv
@@ -756,6 +794,14 @@ def main():
     config.simulation.sst_data_dir = str(PROJECT_ROOT / 'data' / 'sst' / 'site_sst')
     config.simulation.sst_start_year = 2012  # align SST with simulation calendar
     apply_param_overrides(config, param_overrides)
+
+    # Apply sentinel config if present
+    if sentinel_config and isinstance(sentinel_config, dict):
+        from sswd_evoepi.config import SentinelSection
+        config.sentinel = SentinelSection(**{
+            k: v for k, v in sentinel_config.items()
+            if k in {'enabled', 'n_per_site', 'shedding_fraction', 'site_filter', 'custom_node_ids'}
+        })
 
     # Density-invariant K scaling: set disease shedding scale factor
     config.disease.density_scale = density_scale

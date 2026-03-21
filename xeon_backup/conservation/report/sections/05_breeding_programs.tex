@@ -1,0 +1,156 @@
+\section{Breeding Program Design}
+\label{sec:breeding}
+
+\subsection{Fitness weights for multi-trait selection}
+
+The probability of surviving a single exposure event:
+\begin{equation}
+    w(r, t, c) = \underbrace{r}_{\text{avoid infection}} + 
+    \underbrace{(1 - r)}_{\text{get infected}} \cdot 
+    \underbrace{s(t, c)}_{\text{survive infection}}
+    \label{eq:fitness_function}
+\end{equation}
+where $s(t, c)$ is the probability of recovering given infection:
+\begin{equation}
+    s(t, c) = p_{\text{rec,I}_1}(c) + 
+    [1 - p_{\text{rec,I}_1}(c)] \cdot 
+    p_{\text{rec,I}_2}(t, c)
+    \label{eq:survival_given_infection}
+\end{equation}
+
+with I$_2$ recovery probability:
+\begin{equation}
+    p_{\text{rec,I}_2}(t, c) = 
+    1 - (1 - \rho_{\text{rec}} \cdot c)^{D_{I_2}(t)}
+    \label{eq:p_rec_i2}
+\end{equation}
+and mean I$_2$ duration:
+\begin{equation}
+    D_{I_2}(t) = \frac{1}{\mu_{I_2D} \cdot 
+    \max(1 - t \cdot \tau_{\max}, \; 0.05)}
+    \label{eq:i2_duration}
+\end{equation}
+
+\subsubsection{Marginal fitness effects}
+
+Partial derivatives:
+\begin{align}
+    \frac{\partial w}{\partial r} &= 1 - s(t, c) 
+    \label{eq:dw_dr} \\
+    \frac{\partial w}{\partial t} &= (1 - r) \cdot 
+    \frac{\partial s}{\partial t} 
+    \label{eq:dw_dt} \\
+    \frac{\partial w}{\partial c} &= (1 - r) \cdot 
+    \frac{\partial s}{\partial c}
+    \label{eq:dw_dc}
+\end{align}
+
+At population-mean values ($r = 0.15$, $t = 0.10$, $c = 0.02$, $s \approx 0.002$):
+\begin{align}
+    \frac{\partial w}{\partial r} &\approx 0.998 \\
+    \frac{\partial w}{\partial t} &\approx 0.85 \cdot 
+    (1 - 0.15) \cdot 0.001 \approx 0.001 \\
+    \frac{\partial w}{\partial c} &\approx (1 - 0.15) \cdot 
+    0.05 \cdot 1.9 \approx 0.08
+\end{align}
+
+\begin{remark}
+Resistance is \textbf{$\sim$1000$\times$} more important than tolerance and \textbf{$\sim$12$\times$} more important than recovery at population means. This ordering persists across biologically plausible ranges. At high resistance ($r = 0.5$), tolerance and recovery gain marginal importance as infection events become rarer.
+\end{remark}
+
+\subsection{Crossing strategies}
+
+\subsubsection{Strategy 1: Random mating}
+
+Parents paired uniformly at random. Expected offspring mean:
+\begin{equation}
+    \E[\tau_{\text{offspring}}] = \bar{\tau}_{\text{parents}}
+    \label{eq:random_mating_mean}
+\end{equation}
+(midparent value under additivity). Offspring variance:
+\begin{equation}
+    V_{\text{offspring}} = \frac{1}{2} V_{\text{within-parents}} + 
+    V_{\text{segregation}}
+    \label{eq:offspring_variance}
+\end{equation}
+where segregation variance is:
+\begin{equation}
+    V_{\text{seg}} = \sum_{\ell} \frac{\alpha_\ell^2}{16} 
+    \cdot h_\ell^{(p_1)} \cdot h_\ell^{(p_2)}
+    \label{eq:segregation_var}
+\end{equation}
+with $h_\ell^{(p)} = \mathbf{1}[\text{parent } p \text{ heterozygous at } \ell]$. The $\alpha_\ell^2/16$ factor: substitution effect $\alpha_\ell/2$, segregation contributes $(\alpha_\ell/2)^2 \times 1/4$ per heterozygous locus (confirmed in \Cref{sec:validation}).
+
+\subsubsection{Strategy 2: Assortative mating}
+
+Rank parents by $r$, pair 1st with 2nd, etc. Maximizes offspring mean resistance but \emph{not} the maximum — parents homozygous-derived at the same loci produce identical offspring at those loci.
+
+\subsubsection{Strategy 3: Complementary mating}
+\label{subsec:complementary}
+
+Pair parents covering different loci. Expected offspring resistance:
+\begin{equation}
+    \E[r_{\text{offspring}}(i,j)] = \sum_{\ell} \alpha_\ell 
+    \cdot \bar{q}_\ell^{(i,j)}
+    \label{eq:complementary_expected}
+\end{equation}
+where $\bar{q}_\ell^{(i,j)}$ is the expected frequency of the 
+protective allele in offspring from parents $i$ and $j$ at 
+locus $\ell$:
+\begin{equation}
+    \bar{q}_\ell^{(i,j)} = \frac{1}{2}\left(
+    \frac{a_{i,\ell,1} + a_{i,\ell,2}}{2} + 
+    \frac{a_{j,\ell,1} + a_{j,\ell,2}}{2}\right)
+    = \frac{g_{i,\ell} + g_{j,\ell}}{4}
+    \label{eq:offspring_freq}
+\end{equation}
+where $g_{i,\ell} = a_{i,\ell,1} + a_{i,\ell,2} \in \{0, 1, 2\}$ 
+is the count of protective alleles.
+
+Key insight: if parents carry $g = 2$ at \emph{different} loci $\ell$ and $\ell'$, offspring inherit $\alpha_\ell/2 + \alpha_{\ell'}/2$ — more than either parent's single-locus contribution.
+
+\begin{proposition}[Complementary $>$ assortative for max offspring]
+Under additive genetics with multiple loci, complementary mating produces higher maximum offspring trait values than assortative mating by combining alleles from different loci rather than duplicating the same ones.
+\end{proposition}
+
+\subsubsection{Strategy 4: Optimal contribution selection}
+
+Balances gain and diversity \citep{meuwissen1997maximizing, woolliams2015genetic}:
+\begin{equation}
+    \text{max}_{\mathbf{c}} \; \mathbf{c}^T \boldsymbol{\tau}
+    \quad \text{subject to} \quad 
+    \mathbf{c}^T \mathbf{A} \mathbf{c} \leq 
+    \frac{1}{2N_e^*}
+    \label{eq:ocs}
+\end{equation}
+where $\mathbf{c}$ is parental contributions, $\boldsymbol{\tau}$ the trait vector, $\mathbf{A}$ the additive relationship matrix (computable from genotypes: $A_{ij} = (2/L) \sum_\ell \sum_k a_{i,\ell,k} a_{j,\ell,k}$), and $N_e^*$ the target effective size constraining $\Delta F \leq 1/(2N_e^*)$.
+
+\subsection{Expected generations to resistance targets}
+
+Generations to reach target $\tau^*$:
+\begin{equation}
+    G(\tau^*) = \min\left\{g : \bar{\tau}_0 + 
+    \sum_{k=0}^{g-1} R_k \geq \tau^*\right\}
+    \label{eq:gens_to_target}
+\end{equation}
+computed iteratively since $R_g$ depends on $V_A^{(g)}$.
+
+\subsection{Family structure and within-family selection}
+\label{subsec:family_selection}
+
+High fecundity enables \textbf{within-family selection}: from cross $i \times j$, select the best offspring. Within-family variance is the segregation variance (\Cref{eq:segregation_var}), maximized when parents are heterozygous at many loci.
+
+\begin{proposition}[Within-family gain]
+The expected best-of-$m$ offspring from a cross has resistance:
+\begin{equation}
+    \E[r_{(m)}^{(i \times j)}] = 
+    \E[r_{\text{offspring}}^{(i \times j)}] + 
+    \sigma_{\text{seg}}^{(i \times j)} \cdot 
+    \E[Z_{(m)}]
+    \label{eq:within_family_best}
+\end{equation}
+where $\E[Z_{(m)}]$ is the expected maximum of $m$ standard 
+normal draws, approximately $\sqrt{2 \ln m}$ for large $m$.
+\end{proposition}
+
+With $m = 100$: $\E[Z_{(100)}] \approx 2.51$; with $m = 1000$: $\E[Z_{(1000)}] \approx 3.09$. This leverages fecundity for extra gain without reducing family count (and thus without increasing inbreeding).

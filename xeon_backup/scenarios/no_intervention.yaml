@@ -1,0 +1,32 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario: No intervention baseline
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Natural dynamics with no captive-bred releases. Used as the
+# counterfactual for all reintroduction scenario comparisons.
+#
+# Expected outcome: ~99% population crash with slow stochastic recovery
+# driven entirely by natural selection on standing genetic variation.
+
+name: "No intervention baseline"
+description: >
+  Baseline run with no reintroduction. Simulates SSWD outbreak onset in
+  2013 and tracks natural population dynamics for 20 years. All recovery
+  must come from in-situ evolution of resistance, tolerance, and recovery
+  traits in the remaining wild population.
+
+base_config:
+  n_years: 20
+  start_year: 2013
+  disease_year: 0          # Disease present from year 0
+  sst_source: satellite
+  calibrated_params: null   # TODO: fill after ABC-SMC calibration
+
+releases: []               # No releases — this is the baseline
+
+output:
+  dir: results/release_scenarios/no_intervention/
+  track_released: false
+  save_genotypes: true
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1024]

@@ -1,0 +1,138 @@
+\section{Quantitative Genetics of Selection Response}
+\label{sec:quant_gen}
+
+\subsection{The breeder's equation}
+
+The breeder's equation \citep{lush1937animal, falconer1996introduction}:
+\begin{equation}
+    R = h^2 \cdot S
+    \label{eq:breeders}
+\end{equation}
+where $R = \bar{\tau}_{t+1} - \bar{\tau}_t$ is the selection response, $h^2 = V_A / V_P$ is narrow-sense heritability, and $S = \bar{\tau}_{\text{selected}} - \bar{\tau}_t$ is the selection differential.
+
+\subsection{Heritability in our model}
+
+In our model, traits are purely genetically determined:
+\begin{equation}
+    V_P = V_A + \underbrace{V_D}_{= 0} + \underbrace{V_E}_{= 0} = V_A
+    \label{eq:heritability_model}
+\end{equation}
+so $h^2 = 1.0$ exactly.
+
+\begin{remark}
+In real \pyc{}, $h^2 < 1$ due to environmental variance ($V_E > 0$). For \emph{relative} comparisons between strategies, $h^2 = 1$ simplifies without affecting rankings. For absolute generation counts, apply a correction factor $h^2_{\text{real}}$.
+\end{remark}
+
+\subsection{Selection differential from truncation selection}
+
+Under truncation selection retaining the top fraction $p$:
+\begin{equation}
+    S = i \cdot \sigma_P
+    \label{eq:selection_differential}
+\end{equation}
+where the selection intensity $i = \phi(z_p)/p$ with $z_p = \Phi^{-1}(1 - p)$:
+\begin{equation}
+    i = \frac{\phi(z_p)}{1 - \Phi(z_p)} = \frac{\phi(z_p)}{p}
+    \label{eq:selection_intensity}
+\end{equation}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+Fraction selected ($p$) & Selection intensity ($i$) & Practical meaning \\
+\midrule
+0.50 & 0.80 & Keep top half \\
+0.20 & 1.40 & Keep top fifth \\
+0.10 & 1.76 & Keep top tenth \\
+0.05 & 2.06 & Intensive selection \\
+0.01 & 2.67 & Extreme selection \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Predicted gain per generation}
+
+With $h^2 = 1$: $R = i \cdot \sigma_A = i \cdot \sqrt{V_A}$, where for resistance ($n_R = 17$ loci):
+\begin{equation}
+    R = i \cdot \sigma_A = i \cdot \sqrt{V_A}
+    \label{eq:gain_per_gen}
+\end{equation}
+\begin{equation}
+    \sigma_A = \sqrt{\sum_{\ell=1}^{17} \frac{\alpha_\ell^2}{2}\, 
+    q_\ell (1 - q_\ell)}
+    \label{eq:sigma_a_resistance}
+\end{equation}
+
+\begin{remark}[Scaling factor]
+The factor $\alpha_\ell^2 / 2$ (not $2\alpha_\ell^2$) arises because traits use mean-of-alleles encoding: $\tau = \sum_\ell \alpha_\ell (a_1 + a_2)/2$, so the substitution effect is $\alpha_\ell/2$. Then $V_A = 2 \sum (\alpha_\ell/2)^2 q(1-q) = \sum \alpha_\ell^2 q(1-q) / 2$ (confirmed by simulation, \Cref{sec:validation}). Note that $V_A$ decreases across generations as selection drives $q \to 1$, yielding diminishing returns.
+\end{remark}
+
+\subsection{Multi-generation prediction}
+
+Per-locus allele frequency change under truncation selection \citep{barton2000multilocus}:
+\begin{equation}
+    q_\ell^{(g+1)} = q_\ell^{(g)} + \Delta q_\ell^{(g)}
+    \label{eq:allele_freq_update}
+\end{equation}
+\begin{equation}
+    \Delta q_\ell \approx i \cdot 
+    \frac{(\alpha_\ell / 2) \cdot q_\ell(1-q_\ell)}{\sigma_P}
+    \label{eq:delta_q}
+\end{equation}
+Consistency check: $\Delta\E[\tau] = \sum_\ell \alpha_\ell \Delta q_\ell = (i/\sigma_P) \sum (\alpha_\ell^2/2)\,q(1-q) = i \cdot \sigma_P = R$, recovering the breeder's equation. This system of coupled difference equations is iterated forward numerically.
+
+\begin{definition}[Fixation]
+Locus $\ell$ is \textbf{fixed} for the protective allele when 
+$q_\ell = 1$ (all individuals homozygous derived). The trait 
+reaches its maximum when all loci are fixed.
+\end{definition}
+
+\begin{proposition}[Time to fixation scales with initial frequency]
+\label{prop:fixation_time}
+Loci with initially high $q_\ell$ fix first. Loci with very low 
+$q_\ell$ and small $\alpha_\ell$ take the longest — they contribute 
+little to the trait and experience weak selection. The ``last loci'' 
+to fix determine the total generations needed to reach $\tau \approx 1$.
+\end{proposition}
+
+\subsection{The selection--variance trade-off}
+\label{subsec:sel_var_tradeoff}
+
+Intensive selection (small $p$) reduces effective population size:
+\begin{equation}
+    N_e \approx \frac{4 N_{\text{selected}} \cdot N_{\text{total}}}
+    {N_{\text{selected}} + N_{\text{total}}}
+    \label{eq:ne_selection}
+\end{equation}
+For $N_{\text{selected}} \ll N_{\text{total}}$: $N_e \approx 4 N_{\text{selected}}$. Small $N_e$ accelerates drift, inbreeding ($\Delta F = 1/(2N_e)$), and loss of rare alleles. This creates the fundamental breeding tension: \textbf{stronger selection gives faster gain but erodes diversity needed for long-term adaptation} (\Cref{sec:inbreeding}).
+
+\subsection{Response in non-normal distributions}
+
+Our trait distributions are right-skewed (Beta-distributed allele frequencies, many loci with low $q$). For non-normal distributions, the selection differential must be computed directly from the full trait distribution:
+\begin{equation}
+    S = \E[\tau_i \mid \tau_i \geq \tau^*] - \E[\tau_i]
+    \label{eq:s_nonnormal}
+\end{equation}
+
+\subsection{Multi-trait selection}
+\label{subsec:multi_trait}
+
+For multi-trait selection, the Smith--Hazel index \citep{smith1936discriminant, hazel1943genetic}:
+\begin{equation}
+    I_i = \mathbf{b}^T \boldsymbol{\tau}_i, \qquad
+    \mathbf{b} = \mathbf{G}^{-1} \mathbf{w}
+    \label{eq:selection_index}
+\end{equation}
+where $\mathbf{G}$ is the genetic variance--covariance matrix and $\mathbf{w}$ the fitness weights. Since traits are independent (\Cref{prop:independence}), $\mathbf{G}$ is diagonal:
+\begin{equation}
+    \mathbf{G} = \text{diag}\!\left(V_A^{(r)}, \; V_A^{(t)}, \; V_A^{(c)}\right)
+    \label{eq:g_matrix}
+\end{equation}
+and the index simplifies to:
+\begin{equation}
+    I_i = \frac{w_r}{V_A^{(r)}} r_i + 
+    \frac{w_t}{V_A^{(t)}} t_i + 
+    \frac{w_c}{V_A^{(c)}} c_i
+    \label{eq:index_simplified}
+\end{equation}
+Appropriate fitness weights are derived in \Cref{sec:breeding}.

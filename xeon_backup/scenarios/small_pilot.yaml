@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Scenario: Small pilot release (mirrors FHL 2024)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 20 captive-bred juveniles released at San Juan Islands in year 11
+# (~July 2024, matching the real Friday Harbor Laboratories pilot).
+# Genetics reflect first-generation captive breeding: moderate
+# resistance increase, wild-type tolerance and recovery.
+#
+# This is the "reality check" scenario — does the model's prediction
+# match what we'd expect from a small pilot release?
+
+name: "FHL 2024 pilot release"
+description: >
+  20 captive-bred juveniles at SJI, July 2024. First-generation captive
+  breeding with moderate resistance selection. Mirrors the real FHL 2024
+  pilot release of 47/48 surviving juveniles.
+
+base_config:
+  n_years: 20
+  start_year: 2013
+  disease_year: 0
+  sst_source: satellite
+  calibrated_params: null   # TODO: fill after ABC-SMC calibration
+
+releases:
+  - time_step: 4015         # ~day 4015 = year 11, ~July 2024
+    node: SJI               # San Juan Islands (node_id resolved by name)
+    n_individuals: 20
+    genetics:
+      mode: trait_targets
+      resistance: 0.25      # Moderate selection (1 gen captive breeding)
+      tolerance: 0.10       # Wild-type
+      recovery: 0.02        # Wild-type
+    age_range: [365, 730]   # 1-2 year old juveniles
+
+output:
+  dir: results/release_scenarios/small_pilot/
+  track_released: true
+  save_genotypes: true
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1024]

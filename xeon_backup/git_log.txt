@@ -1,0 +1,50 @@
+2bca1d8 W309-W320: gradient-breaking sweep (δ_env(T) + P_env-gated recovery)
+16075bc feat: temperature-dependent δ_env + P_env-gated recovery (gradient-breaking)
+8f8b0e4 feat: phi_open/phi_fjord configurable, raise initial recovery c̄ to 0.05
+7e63380 Add mechanistic report + viz toolkit figure generators
+b2a8ddf W289-W308: unified sweep from three councils (no delta_env)
+859f504 rename rmse_log → rmsle in format_results and viz/calibration
+9d8b4a4 rename rmse_log → rmsle (Root Mean Squared Log Error)
+b74f885 CDT timing analysis: 25-month delay caused by missing seed_vibrio, not CDT
+836b48a Add seed_vibrio: seed environmental Vibrio at origin nodes at disease onset
+f47a66a Lower AK-PWS and AK-FN recovery targets from 30% to 20%
+fab3ae8 Add standardized calibration report template (32 figures, 35+ pages)
+bc98a71 Add W249-W268 clean sweep configs and launcher
+6ecf06e Centralize targets in 13 legacy report scripts
+2a4515c Cutover to consolidated results/metrics modules
+c4ad972 Refactor format_results, viz/calibration, calibration_runner to use consolidated results/metrics modules
+8abeb7c Add results.py + metrics.py: consolidated loading and scoring API
+b39373b Fix remaining test failures from audit fixes
+185cb4e Fix ghost cascade induction across years
+4a9146d Fix immunosuppression double-decrement during spawning season
+8d3051a Fix all tests for W201 calibrated defaults
+b2d5e75 Update config defaults to W201 calibrated baseline
+621857e Parameterize glacial melt latitude bounds (fw_lat_min/fw_lat_max)
+d641129 feat: two-layer salinity model — WOA23 baseline + fjord depression
+56aefc3 feat(viz): add coastline rendering to salinity maps
+25b96dc style: switch entire viz library to light/publication theme by default
+b827775 feat: light/pub theme + 3 regional zoom plots in salinity viz
+4e89d42 feat: salinity viz module — 14 plot functions for freshwater influence analysis
+e50b5dd test: add 32 salinity tests (unit, integration, quantitative validation)
+a2f8d97 feat: add fw_depth_exp parameter (exponent on fjord_depth_norm)
+c01b395 feat: seasonal salinity model (fw_strength parameter, fjord_depth_norm predictor)
+af13dfb Viz toolkit cleanup: remove dead code, rename for clarity
+fbcca49 Add viz/calibration.py — reusable calibration report figures
+4615eb9 Update AK calibration targets: 50% → 30% for AK-PWS and AK-FN
+ef80181 MODEL: Single survival parameter — fix s₀=1.0, calibrate r_total
+e97e7eb OPTIMIZE: Genotype at spawning time with BH pre-filtering
+daa165a Perf: cache source breeding info in settlement loop (~40x fewer numpy ops)
+e762bda Perf: replace O(n) list.insert cohort storage with O(1) dict-of-lists
+574e302 Optimize daily larval dispersal: sparse C + batched multinomial
+46642b5 Add W169-W184 recalibration sweep configs: s0, alpha_self, n_conn, alpha_env
+bdb05ae Fix critical larval dispersal bug: route daily spawning through C matrix + add BH density-dependence
+3312682 Fix recruitment pulse framing (model prediction not empirical), remove duplicate network map, restyle disease snapshots, all-region resistance/diversity figs, calibration data provenance
+6228402 Clarify calibration data provenance: published surveys vs expert inference
+cacef0a Figs 4,5: all 18 regions; Fig 22: regenerated from F01 data; fix div-by-zero warning
+813c46a Fix region prefix bug: JDF/OR/BJ were missing from all regional figures
+1376570 Fix LaTeX figure placement errors, compile report v2
+ae16494 Report v2: inline figures, time-averaged recovery, virulence caveat
+bbf2310 Report v2: Oregon endpoint bias correction, F03 virulence caveat, partial figure inline placement
+8d2ff22 Add oasis site dynamics section (sec4b): 51pp, 17 figs
+ee1825b Report v1.1: numerical audit corrections applied
+c981599 Publishable report v1: 45pp, 13 figs, 7 sections, audited

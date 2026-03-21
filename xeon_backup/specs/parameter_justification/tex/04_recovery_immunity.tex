@@ -1,0 +1,51 @@
+\section{Recovery \& Immunity}
+
+This section justifies 4 parameters governing recovery from SSWD and immunological responses: recovery rate scaling, post-spawning immunosuppression effects, and juvenile susceptibility patterns.
+
+\subsection{Recovery Rate Scaling (\texttt{rho\_rec})}
+
+\paragraph{First Principles}
+Recovery from SSWD requires clearing \emph{Vibrio pectenicida} through innate immune mechanisms. Echinoderms lack adaptive immunity, relying on complement system, coelomocytes, antimicrobial peptides, and tissue integrity maintenance. Recovery probability equals \texttt{rho\_rec} $\times c_i$ (recovery trait). At population mean $c_i = 0.02$ and \texttt{rho\_rec} = 0.05, daily recovery probability is 0.1\%, yielding $\approx$1.4\% cumulative recovery over 14 days. This low rate must match observed >99\% field mortality.
+
+\paragraph{Literature Evidence}
+Echinoderms possess massively expanded immune gene families: 253 TLR genes, >200 NOD-like receptors, 1,095 SRCR domains \cite{hibino-2006,buckley-2012}. These provide abundant genetic variation for polygenic resistance architecture. Pespeni \& Lloyd (2023) showed asymptomatic \emph{Pisaster ochraceus} maintain active immune gene expression—complement system, pathogen recognition, and collagen genes upregulated relative to wasting individuals. McCracken et al. (2025) documented immune activation in exposed but asymptomatic \emph{Pycnopodia helianthoides} before visible symptoms. Recovery requires energetic investment, not passive resistance. Field studies document >99\% mortality once symptoms appear, with no documented lesion regression. Pespeni \& Lloyd (2023) found no strong single-locus genetic associations (98,145 SNPs), consistent with polygenic architecture.
+
+\paragraph{Recommendation}
+Retain \texttt{rho\_rec} = 0.05 as reasonable estimate producing recovery rates consistent with field mortality. High sensitivity analysis priority—strongly affects population crash severity.
+
+\subsection{Post-Spawning Immunosuppression Factor (\texttt{susceptibility\_multiplier})}
+
+\paragraph{First Principles}
+Broadcast spawning creates energetic trade-offs between reproduction and immune function. Females release up to $10^7$ eggs, requiring massive energy mobilization. Classical life-history theory predicts immunosuppression during reproduction due to energy limitation, physiological stress, hormonal changes, and tissue remodeling. Multiplier of 2.0 halves effective resistance during immunosuppression period.
+
+\paragraph{Literature Evidence}
+Pespeni \& Lloyd (2023) and McCracken et al. (2025) demonstrate active immune resistance requires energetic investment—creates potential spawning trade-offs. Asteroids show massive reproductive investment with gonadal indices reaching 15-25\% body mass. Reproductive immunosuppression is well-documented across taxa, particularly in broadcast spawners. Many SSWD outbreaks coincide with spawning seasons, potentially creating population-level vulnerability windows. However, no direct studies measure immune function changes during asteroid spawning.
+
+\paragraph{Recommendation}
+Retain \texttt{susceptibility\_multiplier} = 2.0 as biologically plausible magnitude consistent with reproductive immunosuppression in other taxa. Links reproductive and disease modules mechanistically. Medium research priority—fills important gap but effect size uncertain.
+
+\subsection{Immunosuppression Duration (\texttt{immunosuppression\_duration})}
+
+\paragraph{First Principles}
+Post-spawning immunosuppression duration should track physiological recovery: gonad regression/regeneration, energy replenishment, metabolic normalization, cellular repair. Sea urchin gonad regeneration requires 4-8 weeks; asteroids likely similar given comparable reproductive biology. 28 days represents moderate duration—sufficient vulnerability window without excessive spawning costs.
+
+\paragraph{Literature Evidence}
+Gonad regeneration timescales in sea urchins suggest weeks-to-months recovery. Menge et al. (2016) documented Oregon SSWD peak (June-August) following spring spawning, consistent with several-week vulnerability window. Post-spawning tissue regression and oxidative stress clearance require extended recovery periods. No direct measurements of immune function recovery timescales in asteroids.
+
+\paragraph{Recommendation}
+Retain \texttt{immunosuppression\_duration} = 28 days as reasonable estimate consistent with gonad regeneration timescales. Allows testing spawning-disease timing hypotheses. Low-medium research priority—duration less critical than effect magnitude.
+
+\subsection{Minimum Susceptible Age (\texttt{min\_susceptible\_age\_days})}
+
+\paragraph{First Principles}
+Juvenile immunity could arise through size-dependent pathogen exposure, developmental immune maturation, or pathophysiological constraints requiring minimum body size. Counter-arguments include potentially weaker immunity in small individuals (fewer coelomocytes) and higher surface-area-to-volume ratios increasing pathogen entry. No evidence for maternal immunity in echinoderms.
+
+\paragraph{Literature Evidence}
+2025 Monterey Bay outplanting: 47/48 captive-bred juvenile \emph{Pycnopodia helianthoides} survived 4 weeks during active adult SSWD period. Critical evidence for either juvenile resistance, low pathogen pressure, or statistical luck. Ruiz-Ramos et al. (2020) showed size classes have different gene expression profiles during SSWD. Historical accounts suggest adult-biased mortality, though systematic juvenile surveys are rare. No studies document immune system maturation in post-settlement asteroids.
+
+\paragraph{Recommendation}
+Retain \texttt{min\_susceptible\_age\_days} = 0 (immediate susceptibility) as conservative default. 2025 outplanting provides suggestive but not conclusive evidence—could reflect low pathogen pressure rather than developmental immunity. Conservative assumption avoids overstating juvenile protection. High research priority—outplanting results critical for testing juvenile immunity hypothesis.
+
+\subsection{Research Priorities \& Calibration Strategy}
+
+High priority gaps: (1) \texttt{rho\_rec} calibration against Prentice 2025 disease progression data via ABC-SMC; (2) juvenile susceptibility validation using 2025 outplanting outcomes. Medium priority: spawning immunosuppression magnitude through outbreak timing correlations. Model should consider spawning immunity parameters as coupled (magnitude $\times$ duration) for parameter reduction. Key validation opportunities from ongoing conservation efforts provide unprecedented empirical constraints on juvenile immunity assumptions.

@@ -131,6 +131,7 @@ class TestAgentDtype:
             'spawning_ready', 'has_spawned', 'spawn_refractory',  # Spawning
             'spawn_gravity_timer', 'immunosuppression_timer', 'last_spawn_day',
             'node_id', 'alive', 'origin', 'release_cohort', 'cause_of_death',  # Administrative
+            'is_sentinel',  # Sentinel (non-Pyc species)
             'pathogen_virulence',  # Pathogen evolution
             'settlement_day',  # Juvenile immunity
         ]

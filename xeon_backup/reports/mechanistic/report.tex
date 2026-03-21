@@ -1,0 +1,754 @@
+\documentclass[11pt,letterpaper]{article}
+
+% ── Packages ──
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+% ── Page style ──
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SSWD-EvoEpi Mechanistic Description}
+\fancyhead[R]{\small Weertman \& Kalytiaa}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Graphics path ──
+\graphicspath{{figures/}}
+
+% ── Title formatting ──
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+
+% ── Hyperref setup ──
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black
+}
+
+% ── Custom commands ──
+\newcommand{\figh}[3]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#2\textwidth]{#1}
+    \caption{#3}
+    \label{fig:#1}
+  \end{figure}
+}
+
+\begin{document}
+
+% ── Title page ──
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\Huge\bfseries The SSWD-EvoEpi Model\par}
+\vspace{0.5cm}
+{\Large A Mechanistic Description of a Coupled\\Eco-Evolutionary Epidemiological Simulation\\for Sea Star Wasting Disease\par}
+\vspace{2cm}
+{\large\textbf{Willem Weertman}\par}
+{\normalsize Department of Psychology \& Friday Harbor Laboratories\\
+University of Washington\\
+\texttt{weertman@uw.edu}\par}
+\vspace{1.5cm}
+{\normalsize Prepared for:\par}
+\vspace{0.3cm}
+{\large\textbf{Augie Kalytiaa}\par}
+{\normalsize Oregon State University\par}
+\vspace{2cm}
+{\normalsize March 2026\par}
+\vspace{\fill}
+{\small\textit{This document describes the mechanistic structure of the SSWD-EvoEpi simulation model.\\It is not a results paper---it is a technical reference for understanding how the model works.}\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Sea Star Wasting Disease (SSWD) emerged as one of the most devastating marine wildlife epidemics in recorded history. Beginning in June 2013 at the Channel Islands off Southern California, the disease spread both northward and southward along the entire Pacific coast of North America, from Baja California to the Gulf of Alaska, ultimately causing mass mortality events in over 20 species of asteroid echinoderms. The most severely affected species, \textit{Pycnopodia helianthoides} (the sunflower sea star), experienced population declines exceeding 90\% across much of its range and was subsequently listed under the Endangered Species Act.
+
+The etiology of SSWD has been the subject of intense investigation. Recent work by Prentice et al.\ (2025) has provided strong evidence implicating \textit{Vibrio pectenicida} (and potentially a consortium of related \textit{Vibrio} species) as the causative agent. This pathogen is an environmental bacterium whose dynamics are intimately coupled to seawater temperature and salinity---a characteristic that makes SSWD epidemiology fundamentally different from classical host-to-host transmission models.
+
+The SSWD-EvoEpi model was developed to understand the coupled dynamics of disease spread, host population ecology, and evolutionary adaptation across the full geographic range of \textit{P.\ helianthoides}. It is a spatially explicit, individual-trait-tracking, mechanistic simulation that operates on an 896-node metapopulation network spanning from Baja California ($\sim$28\textdegree N) to the western Gulf of Alaska ($\sim$62\textdegree N). The model couples three interacting systems:
+
+\begin{enumerate}[leftmargin=2cm]
+  \item \textbf{Disease dynamics:} An SEIPD+R compartmental model with environmentally mediated \textit{Vibrio} transmission, temperature-dependent transition rates (Arrhenius scaling), VBNC (viable but non-culturable) dormancy, and pathogen thermal adaptation.
+  \item \textbf{Population ecology:} An annual life cycle with von Bertalanffy growth, Beverton-Holt density-dependent recruitment, broadcast spawning Allee effects, larval dispersal via an overwater-distance connectivity matrix, and an extended spawning season with immunosuppression.
+  \item \textbf{Evolutionary genetics:} A three-trait polygenic architecture (Resistance, Tolerance, Recovery) based on 51 biallelic diploid loci informed by the \textit{Pycnopodia} GWAS of Schiebelhut et al., with Mendelian inheritance, fecundity-weighted parent selection, and selection driven by differential survival during epidemics.
+\end{enumerate}
+
+The model runs on a daily timestep for disease dynamics and an annual timestep for demographic processes, with forcing from satellite-derived sea surface temperature (OISST, 2002--2025) and CMIP6 climate projections (2026--2100). The spatial network incorporates overwater distance computation, enclosedness-based flushing rates, and a two-layer salinity model that captures glacial fjord freshwater depression.
+
+This document describes each of these components in mechanistic detail, using 36 figures to illustrate the model's structure and behavior. It is organized as follows: Section~\ref{sec:spatial} describes the spatial architecture; Section~\ref{sec:disease} details the disease dynamics; Section~\ref{sec:popgen} covers population ecology and genetics; Section~\ref{sec:integration} discusses model integration; and Appendix~\ref{sec:params} provides the parameter table.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Spatial Architecture}
+\label{sec:spatial}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The spatial backbone of the SSWD-EvoEpi model is an 896-node metapopulation network that represents the nearshore rocky reef and subtidal habitat of \textit{P.\ helianthoides} along the entire northeast Pacific coast. This section describes how the network was constructed, how distances and connectivity are computed, and how environmental forcing (temperature, salinity) is applied.
+
+% ── 2.1 The 896-node network ──
+\subsection{The 896-Node Metapopulation Network}
+\label{sec:network}
+
+The metapopulation network was derived from habitat suitability surveys and known occurrence records of \textit{P.\ helianthoides}. Each node represents a local population occupying a discrete habitat patch along the coastline. The 896 nodes are organized into 18 biogeographic regions spanning the full latitudinal range of the species (Figure~\ref{fig:fig_S01}).
+
+\figh{fig_S01}{0.95}{The 896-node metapopulation network spanning the Pacific coast of North America from Baja California ($\sim$28\textdegree N) to the western Gulf of Alaska ($\sim$62\textdegree N). Nodes are colored by biogeographic region (18 regions total). Inset panels show detail for (top) the SE Alaska fjord complex, (middle) the Puget Sound / Salish Sea region, and (bottom) the Channel Islands / Southern California Bight. Node density varies considerably, reflecting the complexity of coastal habitat---the SE Alaska archipelago and Puget Sound contain particularly dense node clusters.}
+
+The regional classification serves both as a bookkeeping device and as a meaningful ecological unit: regions share similar oceanographic conditions, and the regional aggregation is used for summarizing results and computing region-level statistics.
+
+% ── 2.2 Overwater distance ──
+\subsection{Overwater Distance Computation}
+\label{sec:overwater}
+
+A critical design choice in the model is the use of \emph{overwater} distances rather than simple great-circle (haversine) distances for all spatial calculations. In regions with complex coastal topology---fjords, islands, peninsulas---the actual marine travel distance between two points can be dramatically longer than the straight-line distance. This matters because both larval dispersal and pathogen transport occur through water, not through land.
+
+Figure~\ref{fig:fig_S12} illustrates this point. The overwater distance between a point on the outer Washington coast and a point in southern Puget Sound is 307~km, compared to a haversine distance of only 199~km (ratio 1.5$\times$), because the water route must go around the Olympic Peninsula. In the SE Alaska archipelago and British Columbia fjord systems, the inflation factor can reach 4$\times$.
+
+\figh{fig_S12}{0.95}{Overwater versus haversine distance. (A)~Log-log scatter of all pairwise overwater versus haversine distances, showing systematic inflation above the 1:1 line. (B)~Example: the Olympic Peninsula forces a 307~km overwater route between two points separated by only 199~km as-the-crow-flies. (C)~Spatial map of the mean distance inflation factor, showing that the most topologically complex coastlines (SE Alaska, BC fjords) produce inflation factors of 3--4$\times$.}
+
+The overwater distance matrix is precomputed using a rasterized land mask and a shortest-path algorithm (Dijkstra's algorithm on a grid graph where land cells are impassable). This matrix serves as the foundation for both the larval connectivity kernel and the pathogen dispersal kernel.
+
+% ── 2.3 Larval connectivity ──
+\subsection{Larval Connectivity Matrix}
+\label{sec:larval}
+
+Larval dispersal is modeled using an exponential distance kernel applied to the overwater distance matrix. The larval connectivity matrix $\mathbf{C}$ has entries:
+\begin{equation}
+  C_{ij} = \alpha_{\text{self}} \cdot \delta_{ij} + (1 - \alpha_{\text{self}}) \cdot \frac{\exp(-d_{ij}/D_L)}{\sum_k \exp(-d_{ik}/D_L)}
+  \label{eq:larval}
+\end{equation}
+where $d_{ij}$ is the overwater distance between nodes $i$ and $j$, $D_L = 400$~km is the larval dispersal scale, $\alpha_{\text{self}}$ is the self-recruitment fraction (which varies by enclosedness), and $\delta_{ij}$ is the Kronecker delta. The matrix is row-normalized so that each row sums to 1, representing the probability distribution of where settlers from node $i$ will recruit.
+
+\figh{fig_S03}{0.95}{Larval connectivity matrix $\mathbf{C}$. (A)~The full 896$\times$896 matrix (log-scale), showing strong diagonal dominance (local retention) with a characteristic bandwidth determined by $D_L = 400$~km. Northern nodes (Alaska) show higher overall connectivity due to the dense fjord network. (B)~Region-aggregated connectivity, revealing that self-recruitment dominates within each region, with moderate inter-regional exchange along the US West Coast but negligible long-distance transport between Alaska and California. (C)~Net larval export map: blue nodes (net exporters) concentrate in Alaska and BC, while orange/red nodes (net importers) dominate the US West Coast.}
+
+The $D_L = 400$~km scale was chosen to be consistent with estimated pelagic larval durations of 60--90 days for \textit{Pycnopodia} combined with mean nearshore current speeds. The self-recruitment term captures the tendency of larvae to settle near their natal site, which is especially important in enclosed embayments where hydrodynamic retention is high.
+
+% ── 2.4 Pathogen dispersal ──
+\subsection{Pathogen Dispersal Matrix}
+\label{sec:pathogen_dispersal}
+
+Pathogen dispersal operates on two spatial scales, reflecting distinct transport mechanisms:
+
+\begin{enumerate}
+  \item \textbf{Local exchange} ($D_P = 15$~km): Diffusive exchange of \textit{Vibrio}-laden water between neighboring nodes via tidal mixing and local currents.
+  \item \textbf{Wavefront spread} ($D_P^{\text{wave}} = 300$~km): Longer-range transport during active epidemic wavefront propagation, mediated by coastal currents and potentially by infected mobile hosts.
+\end{enumerate}
+
+\figh{fig_S11}{0.95}{Pathogen dispersal matrices. (A)~The local exchange matrix ($D_P = 15$~km) is extremely sparse, with connectivity confined to a narrow band along the diagonal---each node interacts with only $\sim$13 effective neighbors (median). (B)~The wavefront matrix ($D_P^{\text{wave}} = 300$~km) is dramatically denser, connecting each node to $\sim$442 effective neighbors. (C)~Histogram comparing the number of effective neighbors (weight $>0.01$) under each dispersal mode.}
+
+The local dispersal matrix governs day-to-day pathogen exchange between adjacent habitat patches---the slow, diffusive spread that maintains low-level pathogen connectivity along the coast. The wavefront matrix is activated only during active epidemic spread (Section~\ref{sec:wavefront}) and represents the rapid, long-range transport that characterized the 2013--2016 SSWD pandemic.
+
+% ── 2.5 Enclosedness and flushing ──
+\subsection{Enclosedness-Based Flushing}
+\label{sec:flushing}
+
+The flushing rate $\varphi$ at each node---the rate at which local water (and dissolved/suspended pathogens) is exchanged with the open ocean---is a critical parameter governing both pathogen persistence and larval retention. Rather than assigning flushing rates directly, the model derives them from a geometric enclosedness metric following the approach of Liu et al.\ (2019).
+
+\figh{fig_S05}{0.95}{Enclosedness pipeline. (A)~Raw geometric enclosedness computed from the coastal geometry (high values = enclosed embayments). (B)~Effective enclosedness after smoothing and adjustment. (C)~The nonlinear transfer function converting effective enclosedness to flushing rate: open coasts ($e_{\text{eff}} \approx 0$) flush at $\sim$0.8~d$^{-1}$, while highly enclosed fjords ($e_{\text{eff}} \approx 1$) flush at $<$0.05~d$^{-1}$. (D)~Resulting spatial pattern of flushing rates along the coast.}
+
+The transfer function (Figure~\ref{fig:fig_S05}C) is strongly nonlinear: flushing drops precipitously as enclosedness increases. This creates a dichotomy between open-coast sites (rapid flushing, $\varphi \approx 0.8$~d$^{-1}$) and enclosed fjord sites (slow flushing, $\varphi \approx 0.03$~d$^{-1}$).
+
+% ── 2.6 The fjord trade-off ──
+\subsection{The Fjord Paradox}
+\label{sec:fjord}
+
+The enclosedness-flushing relationship creates a fundamental ecological paradox that is central to the model's behavior: the same physical properties that make fjords excellent nursery habitat also make them ideal incubators for disease.
+
+\figh{fig_S06}{0.95}{The fjord paradox. (A)~Conceptual diagram: open coasts have low self-recruitment ($\alpha_{\text{self}} = 0.02$) but rapid flushing ($\varphi = 0.80$); fjords have high self-recruitment ($\alpha_{\text{self}} = 0.70$) but slow flushing ($\varphi = 0.03$). (B)~Scatter plot of self-recruitment versus pathogen retention time ($1/\varphi$), showing the strong positive correlation: fjord sites retain both larvae and pathogens. (C)~Epidemic outcome space: sites with long pathogen retention experience both higher peak prevalence and longer recovery times.}
+
+In fjords, slow flushing means that larvae released by local adults are retained and settle nearby (high self-recruitment), which sustains local populations even when regional connectivity is low. But the same slow flushing also retains pathogen particles shed by infected hosts, allowing environmental \textit{Vibrio} concentrations to build up over time. This trade-off is a key driver of the model's heterogeneous spatial dynamics.
+
+% ── 2.7 SST forcing ──
+\subsection{Sea Surface Temperature Forcing}
+\label{sec:sst}
+
+Temperature is the master variable in the SSWD-EvoEpi model. It drives \textit{Vibrio} growth and decay, VBNC resuscitation, Arrhenius scaling of disease transition rates, and pathogen thermal adaptation. The model uses two temperature forcing datasets:
+
+\begin{itemize}
+  \item \textbf{Historical (2002--2025):} NOAA Optimum Interpolation SST (OISST), a satellite-derived gridded product at 0.25\textdegree\ resolution, providing daily SST fields that capture both seasonal cycles and interannual variability (including the 2014--2016 marine heatwave).
+  \item \textbf{Projected (2026--2100):} CMIP6 multi-model ensemble SST projections, bias-corrected to the OISST baseline, allowing the model to explore disease dynamics under future warming scenarios.
+\end{itemize}
+
+\figh{fig_S07}{0.95}{SST forcing. (A)~Hovm\"oller diagram showing SST as a function of latitude and time (2002--2025). The strong latitudinal gradient ($\sim$18\textdegree C from Baja to Alaska) and seasonal oscillations are clearly visible, as is the 2014--2016 marine heatwave. (B)~Representative time series from three stations spanning the latitudinal range: Baja ($\sim$15--23\textdegree C), Central California ($\sim$10--16\textdegree C), and SE Alaska ($\sim$4--12\textdegree C). (C)~Map of mean annual SST across all 896 nodes.}
+
+Each node is assigned SST values by bilinear interpolation from the nearest grid cells. The $\sim$18\textdegree C latitudinal gradient in mean SST is the primary driver of geographic variation in disease dynamics: warm southern waters promote rapid \textit{Vibrio} growth and short disease progression times, while cold northern waters suppress pathogen activity but also slow host immune responses.
+
+% ── 2.8 Salinity model ──
+\subsection{Two-Layer Salinity Model}
+\label{sec:salinity}
+
+Salinity matters because \textit{Vibrio} species have a well-characterized salinity tolerance range. Below $\sim$10~psu, most marine \textit{Vibrio} cannot grow or become viable. The model implements a two-layer salinity architecture:
+
+\begin{enumerate}
+  \item \textbf{Layer 1 --- WOA23 baseline:} Monthly climatological surface salinity from the World Ocean Atlas 2023, providing the background marine salinity at each node ($\sim$30--35~psu along most of the coast).
+  \item \textbf{Layer 2 --- Freshwater depression:} A latitude- and enclosedness-dependent glacial/snowmelt pulse that depresses local salinity during summer months, computed as:
+  \begin{equation}
+    \Delta S = f_w \cdot e_{\text{eff}}^{\beta} \cdot m(t) \cdot g(\text{lat})
+  \end{equation}
+  where $f_w$ is the freshwater strength, $e_{\text{eff}}$ is effective enclosedness, $m(t)$ is the seasonal melt pulse (a $\cos^2$ function peaking around June~15), and $g(\text{lat})$ is a latitude factor that increases sharply north of 48\textdegree N.
+\end{enumerate}
+
+\figh{fig_S08}{0.95}{Two-layer salinity model. (A)~WOA23 mean surface salinity along the coast. (B1)~Latitude-dependent freshwater depression amplitude, increasing dramatically above 50\textdegree N. (B2)~Seasonal envelope of the melt pulse for different enclosedness values; more enclosed sites experience sharper, more concentrated freshening. (C)~Combined salinity maps for January, April, July, and October, showing the dramatic summer freshening in Alaskan and BC fjords (salinity dropping below 10~psu).}
+
+The combined salinity field $S_{\text{local}} = S_{\text{WOA}} - \Delta S$ varies from near-oceanic ($\sim$33~psu at open-coast California sites) to near-fresh ($<$10~psu in glacial fjords during summer). This has direct consequences for disease dynamics: the salinity modifier $S_{\text{sal}}$ (Section~\ref{sec:salinity_modifier}) suppresses \textit{Vibrio} viability in freshened fjords, creating natural disease refugia.
+
+% ── 2.9 Wavefront mechanism ──
+\subsection{Wavefront Disease Spread}
+\label{sec:wavefront}
+
+The 2013--2016 SSWD epidemic did not spread by simple diffusion. Observational data show a coherent wavefront that originated at the Channel Islands in June 2013 and propagated both northward and southward at a rate roughly consistent with coastal current transport. The model replicates this pattern using a cumulative degree-time (CDT) activation mechanism.
+
+\figh{fig_S04}{0.95}{Wavefront activation from the Channel Islands origin. Six panels show the progressive spread of the disease wavefront from June 2013 (seed event at the Channel Islands, marked with a yellow star) through February 2016. Nodes transition from gray (inactive) to colored (activated) as the CDT threshold is crossed. Color indicates activation time in months from January 2012. By early 2016, the wavefront has reached from Baja California to the Gulf of Alaska.}
+
+Each node accumulates CDT (cumulative degree-days above a threshold temperature) based on local SST. When a node's CDT crosses a critical threshold and the wavefront has reached neighboring nodes, the node is ``activated'' and begins experiencing epidemic-level pathogen pressure via the wavefront dispersal matrix (Section~\ref{sec:pathogen_dispersal}). The Channel Islands serve as the seed location, consistent with the earliest documented SSWD cases. This mechanism produces a realistic spatiotemporal pattern of epidemic arrival that matches the observed north-and-south progression of the 2013--2016 pandemic.
+
+% ── 2.10 Environmental Vibrio dynamics ──
+\subsection{Environmental Vibrio Dynamics}
+\label{sec:vibrio_env}
+
+The environmental concentration of \textit{Vibrio} at each node is a dynamic state variable that responds to temperature, host shedding, flushing, and spatial dispersal. Figure~\ref{fig:fig_S10} illustrates the growth-decay balance and the resulting dynamics in contrasting environments.
+
+\figh{fig_S10}{0.95}{Environmental Vibrio dynamics. (A)~Growth versus decay rates as a function of temperature. The Vibrio growth rate increases exponentially with temperature (Arrhenius), while the total decay rate combines natural die-off with flushing ($\varphi$). In fjords ($\varphi = 0.03$), growth exceeds decay above $\sim$5\textdegree C (pink ``Vibrio+ zone''); on open coasts ($\varphi = 0.80$), the high flushing rate suppresses net Vibrio accumulation at all but the warmest temperatures. (B)~Time series of environmental Vibrio proxy at a fjord versus open-coast site, showing more frequent and sustained spikes in the fjord. (C)~Process schematic: the environmental Vibrio pool $P_k$ is fed by host shedding and temperature-dependent growth, and depleted by flushing, natural decay, and dispersal to neighbors.}
+
+% ── 2.11 Overwater distance figure (S02 already referenced via S12) ──
+\subsection{Node Density and Regional Structure}
+\label{sec:node_density}
+
+The 896 nodes are not uniformly distributed---node density is highest in regions with complex coastline geometry (SE Alaska, Puget Sound) and lowest along relatively straight open-coast stretches. Figure~\ref{fig:fig_S02} shows the overwater distance distribution and the resulting network connectivity statistics.
+
+\figh{fig_S02}{0.95}{Overwater distance distribution. The figure shows the statistical properties of the pairwise overwater distance matrix across the 896-node network, including the distribution of nearest-neighbor distances and the relationship between geographic separation and network connectivity.}
+
+% ── S09 figure ──
+\figh{fig_S09}{0.95}{CMIP6 SST projections. Extension of the SST forcing into the future (2026--2100) using bias-corrected CMIP6 ensemble projections. The panels show projected warming trajectories for representative nodes across the latitudinal gradient, illustrating how differential warming rates may alter the geographic pattern of disease risk in coming decades.}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Disease Dynamics}
+\label{sec:disease}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The disease module is the heart of the SSWD-EvoEpi model. It implements an environmentally mediated compartmental epidemiological framework in which \textit{Vibrio} transmission occurs primarily through the water column rather than through direct host-to-host contact. This section describes each component in detail.
+
+% ── 3.1 Compartmental model ──
+\subsection{The SEIPD+R Compartmental Model}
+\label{sec:compartments}
+
+Each individual sea star at each node occupies one of five disease states, forming a compartmental model we call SEIPD+R (Figure~\ref{fig:fig_D01}):
+
+\begin{itemize}
+  \item \textbf{Susceptible (S):} Healthy, fully functional. Can feed, move, and spawn.
+  \item \textbf{Exposed (E):} Infected but not yet shedding pathogen. Normal behavior. Modeled as an Erlang-distributed waiting time with shape $k=3$.
+  \item \textbf{Pre-symptomatic ($\text{I}_1$):} Infected and shedding pathogen, but not yet showing gross clinical signs. Reduced speed (50\%) and feeding (50\%). Cannot spawn. Erlang $k=2$.
+  \item \textbf{Symptomatic ($\text{I}_2$):} Grossly symptomatic (lesions, arm loss, tissue necrosis). Nearly immobile (10\% speed), no feeding, no spawning. Erlang $k=2$.
+  \item \textbf{Dead (D):} The sea star has died. Dead individuals continue to shed pathogen ($\sigma_D$) for up to 3 days as the carcass decomposes.
+\end{itemize}
+
+Recovery is possible from the E, $\text{I}_1$, and $\text{I}_2$ compartments, governed by the individual's Recovery trait ($c_i$) and a base recovery rate $\rho_{\text{rec}}$.
+
+\figh{fig_D01}{0.95}{The SEIPD+R compartmental model. Flow diagram showing disease progression from Susceptible through Exposed, Pre-symptomatic ($\text{I}_1$), Symptomatic ($\text{I}_2$), to Dead. All transition rates are temperature-dependent (Arrhenius scaling). Green dashed arrows indicate recovery pathways from E, $\text{I}_1$, and $\text{I}_2$ states. Three host genetic traits modify different transitions: Resistance [R] modifies the force of infection (S$\to$E), Tolerance [T] extends $\text{I}_2$ survival time, and Recovery [C] governs daily clearance probability. The summary table shows state-dependent behavioral parameters (speed, feeding, spawning ability).}
+
+The use of Erlang-distributed (gamma with integer shape) stage durations is important: it produces more realistic dwell-time distributions than simple exponential waiting times. With $k=3$ sub-stages for the E compartment, for example, the time-to-transition has a coefficient of variation of $1/\sqrt{3} \approx 0.58$, producing a more peaked distribution than the memoryless exponential.
+
+At the reference temperature $T_{\text{ref}} = 20$\textdegree C, the mean stage durations are: E = 4.3 days ($\mu_{EI_1} = 0.233$~d$^{-1}$), $\text{I}_1$ = 2.3 days ($\mu_{I_1 I_2} = 0.434$~d$^{-1}$), and $\text{I}_2$ = 1.8 days ($\mu_{I_2 D} = 0.563$~d$^{-1}$), giving a total exposure-to-death time of $\sim$8.4 days at 20\textdegree C.
+
+% ── 3.2 Force of infection ──
+\subsection{Force of Infection}
+\label{sec:foi}
+
+The force of infection (FOI) $\lambda_i$ acting on individual $i$ is the product of four multiplicative components:
+
+\begin{equation}
+  \lambda_i = a \cdot \frac{P_k}{K_{\text{half}} + P_k} \cdot (1 - r_i) \cdot S_{\text{sal}} \cdot f_{\text{size}}(L_i)
+  \label{eq:foi}
+\end{equation}
+
+Figure~\ref{fig:fig_D02} decomposes these components:
+
+\figh{fig_D02}{0.95}{Force of infection decomposition. (A)~Dose-response: a Michaelis-Menten (saturating) function of environmental Vibrio concentration $P_k$, with half-saturation $K_{\text{half}} = 1.5 \times 10^6$~bact/mL. (B)~Resistance modifier: susceptibility $(1-r_i)$ is linear in the resistance trait, with the population distribution shown as a Beta(2,8) density. (C)~Salinity modifier $S_{\text{sal}}$: a quadratic ramp from 0 (below $s_{\text{min}} = 10$~psu, Vibrio unviable) to 1 (above $s_{\text{full}} = 28$~psu). (D)~Size-dependent susceptibility: flat at 1.0 for $L < 300$~mm, then increasing linearly at OR = 1.23 per 10~mm, reflecting the empirical observation that larger sea stars are more susceptible to SSWD.}
+
+\begin{itemize}
+  \item \textbf{Dose-response $P/(K_{\text{half}}+P)$:} The probability of acquiring infection saturates as environmental pathogen concentration increases. Below $\sim 10^4$~bact/mL, infection probability is negligible; above $\sim 10^7$~bact/mL, it saturates near 1.
+  \item \textbf{Resistance modifier $(1-r_i)$:} Each individual's genetically determined resistance score $r_i \in [0,1]$ directly reduces the effective FOI. An individual with $r_i = 0.25$ experiences only 75\% of the environmental pathogen force.
+  \item \textbf{Salinity modifier $S_{\text{sal}}$:} \textit{Vibrio} viability is zero below 10~psu and full above 28~psu, with a quadratic ramp between.
+  \item \textbf{Size modifier $f_{\text{size}}$:} Larger individuals ($L > 300$~mm) are more susceptible, consistent with empirical patterns of SSWD preferentially affecting larger sea stars.
+\end{itemize}
+
+% ── 3.3 Environmental Vibrio pool ──
+\subsection{Environmental Vibrio Pool Dynamics}
+\label{sec:vibrio_pool}
+
+The environmental \textit{Vibrio} concentration $P_k$ at node $k$ is a dynamic state variable governed by:
+
+\begin{equation}
+  \frac{dP_k}{dt} = \underbrace{\sigma_1 I_1 + \sigma_2 I_2 + \sigma_D D}_{\text{host shedding}} + \underbrace{P_{\text{env},k}}_{\text{environmental reservoir}} + \underbrace{\sum_j d_{jk} P_j}_{\text{dispersal}} - \underbrace{\xi(T) P_k}_{\text{decay}} - \underbrace{\varphi_k P_k}_{\text{flushing}}
+  \label{eq:vibrio}
+\end{equation}
+
+Figure~\ref{fig:fig_D03} illustrates this budget and the resulting dynamics at a single node.
+
+\figh{fig_D03}{0.95}{Environmental Vibrio dynamics at a single node. (A)~Budget schematic showing source terms (host shedding from $\text{I}_1$, $\text{I}_2$, and D compartments; environmental reservoir $P_{\text{env}}$; spatial dispersal) and sink terms (temperature-dependent decay $\xi(T)$; hydrological flushing $\varphi$). (B)~Simulated Vibrio concentration (purple, left axis) and infected count (red bars, right axis) over one year, showing correlated episodic spikes. (C)~Host-amplified environmental pool $P_{\text{env}}$ dynamics over one year, showing the seasonal buildup driven by temperature and host shedding feedback.}
+
+The host-amplification feedback is critical: infected hosts shed \textit{Vibrio} into the water, increasing $P_k$, which in turn increases the FOI on remaining susceptible hosts, leading to more infections and more shedding. This positive feedback loop is what makes SSWD epidemics explosive once the initial pathogen threshold is crossed.
+
+% ── 3.4 VBNC dormancy ──
+\subsection{VBNC Dormancy}
+\label{sec:vbnc}
+
+\textit{Vibrio} species, including \textit{V.\ pectenicida}, can enter a viable-but-non-culturable (VBNC) state under unfavorable conditions (low temperature, nutrient stress). In this state, the bacteria are metabolically dormant and do not cause disease, but they can resuscitate and become virulent when conditions improve.
+
+The model implements VBNC dynamics as a temperature-dependent sigmoid activation function:
+
+\begin{equation}
+  \text{VBNC}(T) = \frac{1}{1 + \exp\left(-k_{\text{vbnc}}(T - T_{\text{vbnc}})\right)}
+  \label{eq:vbnc}
+\end{equation}
+
+where $T_{\text{vbnc}}$ is the threshold temperature for resuscitation and $k_{\text{vbnc}}$ controls the steepness of the transition. Below $T_{\text{vbnc}}$, the pathogen is effectively dormant; above it, \textit{Vibrio} is fully active.
+
+\figh{fig_D04}{0.95}{VBNC dormancy. (A)~Sigmoid resuscitation curves for different values of $T_{\text{vbnc}}$ (9--12\textdegree C). Lower $T_{\text{vbnc}}$ means the pathogen ``wakes up'' at colder temperatures. Regional SST bands are overlaid: at Alaska winter temperatures ($\sim$3--6\textdegree C), activation is near zero; at Southern California summer temperatures ($\sim$17--20\textdegree C), activation is fully saturated. (B)~Thermal performance curve $g(T)$ with optimum at $T_{\text{opt}} = 20$\textdegree C and upper lethal limit at $T_{\text{max}} = 30$\textdegree C. (C)~Combined environmental Vibrio input: the product of VBNC activation $\times$ thermal performance $\times$ $P_{\text{env,max}}$, showing a bell-shaped input curve whose rising limb depends on $T_{\text{vbnc}}$.}
+
+Crucially, $T_{\text{vbnc}}$ is not a fixed parameter---it evolves over time as part of the pathogen thermal adaptation mechanism (Section~\ref{sec:thermal_adapt}).
+
+% ── 3.5 Arrhenius temperature scaling ──
+\subsection{Arrhenius Temperature Scaling}
+\label{sec:arrhenius}
+
+All disease transition rates in the SEIPD+R model are temperature-dependent, following Arrhenius kinetics:
+
+\begin{equation}
+  \mu(T) = \mu(T_{\text{ref}}) \cdot \exp\left[\frac{E_a}{R}\left(\frac{1}{T_{\text{ref}}} - \frac{1}{T}\right)\right]
+  \label{eq:arrhenius}
+\end{equation}
+
+where $E_a/R$ is the activation energy (in Kelvin) specific to each transition. Different processes have different temperature sensitivities:
+
+\begin{itemize}
+  \item E $\to$ $\text{I}_1$ incubation: $E_a/R = 4000$~K
+  \item $\text{I}_1 \to \text{I}_2$ progression: $E_a/R = 5000$~K
+  \item $\text{I}_2 \to$ D mortality: $E_a/R = 2000$~K
+  \item Shedding rate: $E_a/R = 5000$~K
+\end{itemize}
+
+\figh{fig_D05}{0.95}{Arrhenius temperature dependence. (A)~Normalized transition rates relative to $T_{\text{ref}} = 20$\textdegree C. The steepest temperature sensitivities are for $\text{I}_1 \to \text{I}_2$ progression and shedding ($E_a/R = 5000$~K); the shallowest is for $\text{I}_2 \to$ D mortality ($E_a/R = 2000$~K). (B)~Mean stage durations versus temperature: incubation (E) shortens from $\sim$9 days at 5\textdegree C to $\sim$3.5 days at 25\textdegree C. (C)~Total exposure-to-death duration: $\sim$17.5 days at 5\textdegree C versus $\sim$7--8 days at 25\textdegree C, with a reference value of 11.6 days at 13\textdegree C.}
+
+The differential temperature scaling creates an important asymmetry: at cold temperatures, the disease progresses slowly but the kill rate is disproportionately reduced (low $E_a/R = 2000$~K), giving hosts more time in the symptomatic phase and thus more opportunity to recover. At warm temperatures, all transitions speed up, but the progression to death accelerates most relative to recovery.
+
+% ── 3.6 Temperature-dependent Vibrio decay ──
+\subsection{Temperature-Dependent Vibrio Decay}
+\label{sec:vibrio_decay}
+
+The environmental decay rate of \textit{Vibrio} is itself temperature-dependent, creating an additional positive feedback with disease dynamics:
+
+\figh{fig_D06}{0.95}{Temperature-dependent Vibrio decay. (A)~Decay rate $\xi$ versus temperature: maximum at cold temperatures ($\xi(10\text{\textdegree C}) = 1.0$~d$^{-1}$) and reduced at warm temperatures ($\xi(20\text{\textdegree C}) = 0.33$~d$^{-1}$). (B)~The corresponding half-life: Vibrio persists $\sim$0.7 days in cold water but $\sim$2.1 days in warm water---a 3$\times$ difference. Regional summer SST bands are overlaid: Alaska (fast decay), PNW (intermediate), Southern California (slow decay, longest persistence).}
+
+This creates a double positive feedback: warm water both promotes \textit{Vibrio} growth (Arrhenius) \emph{and} slows its environmental decay, compounding the disease risk in warm southern waters.
+
+% ── 3.7 Pathogen thermal adaptation ──
+\subsection{Pathogen Thermal Adaptation}
+\label{sec:thermal_adapt}
+
+The VBNC threshold temperature $T_{\text{vbnc}}$ is not static---it evolves at each node according to the local thermal environment. When the pathogen persists through cold periods, selection favors variants that can resuscitate at lower temperatures. The model implements this as:
+
+\begin{equation}
+  \frac{dT_{\text{vbnc}}}{dt} = -\eta \cdot \left(T_{\text{vbnc}} - T_{\text{local}}\right) \cdot \mathbb{1}[T_{\text{local}} < T_{\text{vbnc}}]
+  \label{eq:adapt}
+\end{equation}
+
+where $\eta$ is the adaptation rate and the indicator function ensures that adaptation only occurs when local temperatures are below the current threshold (i.e., selective pressure only acts during cold stress). A floor value prevents $T_{\text{vbnc}}$ from dropping below a biophysical minimum.
+
+\figh{fig_D07}{0.95}{Pathogen thermal adaptation. The figure illustrates how the VBNC threshold temperature $T_{\text{vbnc}}$ evolves toward cold tolerance at different rates depending on the local thermal regime. Cold northern sites (Alaska) drive more rapid adaptation toward lower $T_{\text{vbnc}}$ values, while warm southern sites experience little selective pressure for cold tolerance. The floor parameter prevents unrealistic values.}
+
+This mechanism allows the pathogen to progressively colonize colder latitudes as its thermal niche expands---a key ingredient for modeling the long-term northward spread of SSWD.
+
+% ── 3.8 Community virulence evolution ──
+\subsection{Community Virulence Evolution}
+\label{sec:virulence}
+
+In addition to host genetic evolution, the model tracks the evolution of pathogen virulence at the community level. Following Anderson and May's classical virulence-transmission trade-off theory, the model assumes that virulence ($v$) and transmission (shedding rate) are positively correlated but subject to diminishing returns:
+
+\figh{fig_D08}{0.95}{Community virulence evolution. (A)~The optimal virulence surface as a function of temperature and host density ($N/K$). Higher temperatures and higher densities select for higher virulence. Contour lines show iso-virulence curves. (B)~The virulence-transmission trade-off: shedding ($\alpha = 1.5$), progression ($\alpha = 1.0$), and kill rate ($\alpha = 2.0$) scale as power functions of virulence with different exponents, creating the trade-off. (C)~Virulence trajectories for three representative environments: warm/dense (SoCal) maintains high virulence ($\sim$0.3), cool/moderate (PNW) settles at intermediate levels ($\sim$0.15), and cold/sparse (Alaska) drives virulence to very low values ($\sim$0.05). A population crash around years 1--3 is marked.}
+
+The key prediction is that virulence should evolve downward following a population crash (because transmission opportunities decrease at low host density), and that the equilibrium virulence should be higher in warm, dense populations than in cold, sparse ones.
+
+% ── 3.9 Salinity/freshwater suppression ──
+\subsection{Salinity-Based Vibrio Suppression}
+\label{sec:salinity_modifier}
+
+The salinity modifier $S_{\text{sal}}$ provides a direct environmental control on \textit{Vibrio} viability:
+
+\begin{equation}
+  S_{\text{sal}}(s) = \begin{cases}
+    0 & \text{if } s < s_{\text{min}} \\
+    \left(\dfrac{s - s_{\text{min}}}{s_{\text{full}} - s_{\text{min}}}\right)^2 & \text{if } s_{\text{min}} \leq s \leq s_{\text{full}} \\
+    1 & \text{if } s > s_{\text{full}}
+  \end{cases}
+  \label{eq:sal}
+\end{equation}
+
+with $s_{\text{min}} = 10$~psu and $s_{\text{full}} = 28$~psu.
+
+\figh{fig_D10}{0.95}{Freshwater refugia. (A)~The salinity modifier function: zero below 10~psu, quadratic ramp to 1.0 at 28~psu. (B)~Two-layer salinity model schematic: WOA23 baseline minus latitude/enclosedness-dependent freshwater depression, with melt pulse peaking around June 15. (C)~Seasonal salinity at three representative sites: Monterey (open coast, $\sim$33~psu year-round, $S_{\text{sal}} \approx 1$), Puget Sound (moderate, slight summer dip), and Howe Sound glacial fjord (dramatic summer crash to $\sim$10~psu, $S_{\text{sal}} < 0.5$). The fjord becomes a ``freshwater refugium'' where Vibrio is suppressed precisely when summer warmth would otherwise promote disease.}
+
+This mechanism creates seasonal disease refugia in glacial fjords: during summer, when warm temperatures would normally promote \textit{Vibrio} growth, the glacial meltwater pulse depresses salinity below the viability threshold, protecting local populations. This is a counterintuitive but important feature---the coldest, most remote fjords may be the safest places for \textit{Pycnopodia} during epidemic years, not because of temperature alone but because of salinity.
+
+% ── 3.10 R0 sensitivity ──
+\subsection{Basic Reproduction Number and Sensitivity}
+\label{sec:r0}
+
+The basic reproduction number $R_0$ integrates all disease parameters into a single threshold quantity. Figure~\ref{fig:fig_D11} presents a sensitivity analysis.
+
+\figh{fig_D11}{0.95}{$R_0$ sensitivity analysis. (A)~$R_0$ versus temperature for three flushing rates ($\varphi = 0.01, 0.02, 0.05$). $R_0$ increases with temperature but remains below the epidemic threshold ($R_0 = 1$) in the absence of the environmental reservoir and wavefront mechanism. (B)~$R_0$ versus host density at $T = 15$\textdegree C: weak dependence. (C)~Parameter space map showing the narrow ``epidemic window'' in the low-flushing, high-temperature corner. Epidemics require both warm temperatures and low flushing---conditions found primarily in enclosed warm-water embayments.}
+
+The $R_0$ analysis reveals that epidemics are not possible through simple host-to-host environmental transmission alone under most parameter combinations. The wavefront mechanism (Section~\ref{sec:wavefront}) and the host-amplification feedback are necessary to push the system above the epidemic threshold during the initial pandemic spread.
+
+% ── 3.11 Single-node epidemic ──
+\subsection{Single-Node Epidemic Demonstration}
+\label{sec:single_node}
+
+Figure~\ref{fig:fig_D09} demonstrates the integrated disease dynamics at a single node, showing how all the components described above combine to produce epidemic behavior.
+
+\figh{fig_D09}{0.95}{Single-node epidemic demonstration. The figure shows the time course of a simulated epidemic at a single node, including compartment trajectories (S, E, $\text{I}_1$, $\text{I}_2$, D), environmental Vibrio concentration, and the role of temperature forcing in modulating disease dynamics. The epidemic shows a characteristic rapid initial spread driven by host-amplification feedback, followed by decline as the susceptible pool is depleted.}
+
+% ── 3.12 Disease summary ──
+
+\figh{fig_D12}{0.95}{Disease dynamics summary. A comprehensive overview panel integrating the key disease mechanisms---compartmental flow, environmental Vibrio pool, temperature dependence, salinity modification, and spatial dispersal---into a single conceptual framework showing how they interact to produce the observed spatiotemporal pattern of SSWD epidemics across the 896-node network.}
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Population Ecology and Genetics}
+\label{sec:popgen}
+% ══════════════════════════════════════════════════════════════════════════════
+
+The ecological and genetic module governs population dynamics, reproduction, larval dispersal, recruitment, and the inheritance and selection of disease-response traits. It operates on an annual cycle that interleaves with the daily disease dynamics.
+
+% ── 4.1 Annual life cycle ──
+\subsection{Annual Life Cycle}
+\label{sec:lifecycle}
+
+The annual life cycle of \textit{Pycnopodia} in the model proceeds through a sequence of discrete stages (Figure~\ref{fig:fig_PG01}):
+
+\begin{enumerate}
+  \item \textbf{Natural mortality:} Background (non-disease) mortality applied by age/size class.
+  \item \textbf{Somatic growth:} Survivors grow according to the von Bertalanffy growth model.
+  \item \textbf{Stage transitions:} Individuals transition between juvenile ($<$100~mm), sub-adult (100--300~mm), and adult ($>$300~mm) classes based on size.
+  \item \textbf{Spawning:} Adults produce gametes over an extended season (November--July), with fecundity proportional to body size (allometric scaling).
+  \item \textbf{Fertilization:} Broadcast spawning fertilization success depends on local adult density (Allee effect).
+  \item \textbf{Larval dispersal:} Fertilized larvae are distributed among nodes according to the connectivity matrix $\mathbf{C}$.
+  \item \textbf{Settlement:} Competent larvae settle at destination nodes.
+  \item \textbf{Recruitment:} Settlers recruit into the juvenile class, subject to Beverton-Holt density dependence.
+\end{enumerate}
+
+\figh{fig_PG01}{0.95}{Annual life-cycle schematic for \textit{Pycnopodia helianthoides}. Blue boxes show population/growth processes (natural mortality, von Bertalanffy somatic growth, stage transitions). Yellow/orange boxes show reproductive and recruitment processes (spawning, fertilization with Allee effect, larval dispersal, Beverton-Holt settlement, recruitment). The radial plot shows the extended spawning season (November--July). Red annotation: spawning triggers a 28-day immunosuppression period with 2$\times$ disease susceptibility. Stage classes: juvenile ($<$100~mm), sub-adult (100--300~mm), adult ($>$300~mm).}
+
+The extended spawning season (November through July) with multiple cascading bouts is an important feature. Each spawning bout triggers a 28-day immunosuppression period during which the individual's disease susceptibility doubles. This creates a mechanistic link between reproductive effort and disease vulnerability---actively spawning adults are more likely to become infected, which has consequences for both population dynamics and selection.
+
+% ── 4.2 Beverton-Holt recruitment ──
+\subsection{Beverton-Holt Density-Dependent Recruitment}
+\label{sec:bh}
+
+Recruitment at each node follows the Beverton-Holt stock-recruitment relationship:
+
+\begin{equation}
+  R = \frac{S}{1 + S/K}
+  \label{eq:bh}
+\end{equation}
+
+where $S$ is the settler pool size and $K$ is the local carrying capacity. This implements pure compensatory density regulation with $s_0 = 1.0$ (at low settler density, every settler recruits).
+
+\figh{fig_PG02}{0.95}{Beverton-Holt density-dependent recruitment. (A)~The analytical Beverton-Holt curve: $R = S/(1+S/K)$ with $K = 5000$. The pink shaded region shows compensatory mortality---the gap between potential and realized recruitment that grows with settler density. The dashed diagonal is the replacement line ($R = S$). (B)~Realized recruitment from the W285 simulation: pre-epidemic populations (blue, year 1) cluster near carrying capacity with suppressed recruitment; post-crash populations (red, year 5) are at much lower densities.}
+
+The Beverton-Holt model was chosen over alternatives (e.g., Ricker) because it produces pure compensation without overcompensation---at high density, recruitment saturates but never declines. This is appropriate for \textit{Pycnopodia}, where there is no evidence of density-dependent recruitment failure at high abundances.
+
+% ── 4.3 Allee effects ──
+\subsection{Broadcast Spawning Allee Effects}
+\label{sec:allee}
+
+Broadcast spawning creates a strong Allee effect at low population density: when adults are sparse, sperm and eggs are diluted in the water column and fertilization success drops precipitously. The model implements this as:
+
+\begin{equation}
+  f(d) = \frac{d}{d + 1/\gamma}
+  \label{eq:allee}
+\end{equation}
+
+where $d = N/K$ is the local adult density relative to carrying capacity and $\gamma$ is a shape parameter ($1/\gamma = 0.22$).
+
+\figh{fig_PG03}{0.95}{Allee effect on broadcast spawning fertilization. (A)~Fertilization success $f(d)$ versus local density: near-zero at very low densities (Allee danger zone, red region), rising steeply through intermediate densities, and approaching 1.0 at high densities (near-complete fertilization). The characteristic density $1/\gamma = 0.22$ is marked. (B)~Combined Allee + Beverton-Holt effective recruitment: the Allee effect creates a ``demographic trap'' at low population sizes where the population cannot produce enough recruits to replace itself, potentially leading to local extinction.}
+
+The Allee effect creates a critical threshold: below a population size of $\sim$200--500 (depending on local $K$), recruitment failure becomes self-reinforcing and the population enters a ``demographic trap'' from which recovery is extremely difficult without immigration from neighboring nodes. This is a key mechanism for understanding why some populations of \textit{Pycnopodia} have failed to recover even years after the initial SSWD epidemic subsided.
+
+% ── 4.4 Spawning season ──
+\subsection{Extended Spawning Season and Immunosuppression}
+\label{sec:spawning}
+
+Unlike many marine invertebrates with a single brief spawning event, \textit{Pycnopodia} spawns over an extended season from November through July, with multiple cascading bouts. Each spawning bout triggers a 28-day period of immunosuppression during which the individual's effective resistance is halved (2$\times$ susceptibility increase).
+
+This creates a seasonal rhythm in disease vulnerability: populations are most susceptible during the spawning season, and the overlap between peak spawning activity and the spring warming period (when \textit{Vibrio} resuscitates from VBNC dormancy) creates a window of maximum disease risk.
+
+% ── 4.5 Genetic architecture ──
+\subsection{Three-Trait Genetic Architecture}
+\label{sec:genetics}
+
+The model tracks three disease-response traits, each encoded by 17 biallelic diploid loci (51 loci total, 102 alleles per individual), inspired by the GWAS results of Schiebelhut et al.:
+
+\figh{fig_PG04}{0.95}{Three-trait genetic architecture. Left: genotype diagrams showing the 17 diploid loci encoding each trait (Resistance, Tolerance, Recovery), with allele values 0 (white) or 1 (blue). Initial mean trait values: $\bar{r} = 0.15$, $\bar{t} = 0.10$, $\bar{c} = 0.02$. Trait scores are computed as the sum of allelic values divided by 34 (total alleles across 17 loci). Right: Selection gradient per unit trait change (log scale)---Resistance experiences $\sim$1000$\times$ stronger selection than Tolerance, with Recovery at $\sim$5$\times$.}
+
+Each trait score is the simple additive sum of allelic values normalized to $[0,1]$:
+\begin{equation}
+  r_i = \frac{1}{34} \sum_{l=1}^{17} a_l^{(R)}, \quad t_i = \frac{1}{34} \sum_{l=1}^{17} a_l^{(T)}, \quad c_i = \frac{1}{34} \sum_{l=1}^{17} a_l^{(C)}
+\end{equation}
+
+The three traits operate at different points in the disease pathway:
+
+\textbf{Resistance ($r_i$)} modifies the force of infection. An individual with $r_i = 0.25$ experiences only 75\% of the pathogen pressure ($1 - r_i = 0.75$). This is the most powerful trait because it prevents infection entirely---every unit increase in resistance diverts an individual away from the entire disease cascade.
+
+\textbf{Tolerance ($t_i$)} extends survival during the symptomatic $\text{I}_2$ stage. The $\text{I}_2$-to-death timer is scaled by $(1 + \tau_{\text{max}} \cdot t_i)$, where $\tau_{\text{max}} = 0.85$, giving a maximum $\sim$85\% extension of symptomatic survival time. This provides more time for recovery but does not prevent infection.
+
+\textbf{Recovery ($c_i$)} governs the daily probability of clearing infection:
+\begin{equation}
+  p_{\text{rec}} = \rho_{\text{rec}} \cdot c_i
+\end{equation}
+where $\rho_{\text{rec}} = 0.05$~d$^{-1}$ is the base recovery rate. Recovery can occur from the E, $\text{I}_1$, or $\text{I}_2$ states.
+
+% ── 4.6 Selection mechanism ──
+\subsection{Directional Selection on Resistance}
+\label{sec:selection}
+
+The selection mechanism is straightforward: disease kills preferentially. Individuals with low resistance are more likely to become infected and die, enriching the survivor pool for higher-resistance genotypes. When survivors reproduce, their offspring inherit the elevated resistance allele frequencies.
+
+\figh{fig_PG05}{0.95}{Directional selection on resistance. (A)~Per-region mean trait shifts over 12 years: Resistance (blue) shows substantial positive change ($\Delta \bar{r} \approx 0.013$--$0.047$) across all 18 regions, while Tolerance and Recovery remain near zero. (B)~Initial versus final mean trait values: Resistance points lie consistently above the neutral 1:1 line; Tolerance and Recovery fall on it. (C)~Distribution of trait changes across regions: all regions experienced positive resistance evolution, while Tolerance and Recovery show no response.}
+
+The selection gradient is dramatically asymmetric across traits (Figure~\ref{fig:fig_PG04}, right panel): resistance experiences $\sim$1000$\times$ stronger selection per unit trait change than tolerance. This is because resistance acts multiplicatively on the force of infection---it prevents the entire disease cascade---while tolerance only extends survival during one disease stage.
+
+% ── 4.7 Additive genetic variance ──
+\subsection{Additive Genetic Variance Dynamics}
+\label{sec:va}
+
+A key question in evolutionary rescue is whether genetic variance is maintained or eroded during intense selection. The model's polygenic architecture (17 loci per trait, each with small effect) ensures that selection does not produce selective sweeps---there are many possible allelic combinations that produce the same trait value.
+
+\figh{fig_PG06}{0.95}{Additive genetic variance dynamics under epidemic selection, shown for three latitudinal regions (Alaska/BC, WA/OR, CA/Baja). Resistance $V_A$ (blue) increases following epidemic onset (red dashed line), reflecting the conversion of standing genetic variation into directional trait change. Tolerance $V_A$ (orange) remains stable, and Recovery $V_A$ (green) stays low throughout. The maintenance of genetic variance during selection is a consequence of the polygenic architecture.}
+
+The increase in resistance $V_A$ following epidemic onset (Figure~\ref{fig:fig_PG06}) may seem counterintuitive---directional selection typically \emph{erodes} genetic variance. Here, the increase reflects the asymmetric nature of selection: disease removes individuals from the low-resistance tail of the distribution, exposing more variance in the surviving population. The polygenic architecture ensures that this variance is not rapidly fixed.
+
+% ── 4.8 How tolerance works ──
+\subsection{Tolerance: Extended Symptomatic Survival}
+\label{sec:tolerance}
+
+While resistance dominates the evolutionary response, tolerance provides a secondary defense mechanism. The tolerance trait $t_i$ extends the time an individual survives in the symptomatic $\text{I}_2$ stage:
+
+\begin{equation}
+  \tau_{\text{I}_2,i} = \tau_{\text{I}_2,\text{base}} \cdot (1 + \tau_{\text{max}} \cdot t_i)
+\end{equation}
+
+An individual with maximum tolerance ($t_i = 1.0$) survives $\sim$85\% longer in $\text{I}_2$ than one with zero tolerance. However, because this trait only acts \emph{after} infection has already progressed to the symptomatic stage, its fitness benefit is much smaller than that of resistance.
+
+% ── 4.9 Mendelian inheritance ──
+\subsection{Mendelian Inheritance and Parent Selection}
+\label{sec:inheritance}
+
+Reproduction follows standard Mendelian genetics. For each offspring, two parents are selected from the local adult population with probability proportional to their fecundity (which scales allometrically with body size, Figure~\ref{fig:fig_PG08}).
+
+\figh{fig_PG08}{0.95}{Allometric fecundity scaling. (A)~Fecundity versus body size: egg production scales as $F \propto L^{2.5}$, so a 950~mm individual produces $\sim$8.8 million eggs versus only 0.2 million for a 200~mm individual (inset: log-log plot confirming the 2.5 exponent). (B)~Size distribution shift: the pre-epidemic population (blue, year 1) has a broad size distribution extending to $\sim$1000~mm, while the post-epidemic population (red, year 5) is strongly skewed toward smaller individuals ($\sim$150--200~mm peak). This shift dramatically reduces total reproductive output because fecundity is size-dependent.}
+
+\figh{fig_PG11}{0.95}{Mendelian inheritance mechanics. (A)~Segregation at one locus: a diploid parent with alleles [1,0] produces a haploid gamete carrying either allele with probability 0.5. (B)~Fecundity-weighted parent selection: larger individuals (higher fecundity) are disproportionately more likely to be chosen as parents. An 800~mm individual (F = 5.7M eggs) has $\sim$30\% parent selection probability versus $\sim$1\% for a 200~mm individual (F = 0.2M). (C)~Example cross at 3 resistance loci, showing gamete sampling, fusion, and offspring trait score computation (sum of alleles / 34).}
+
+Each parent contributes one haploid gamete (one allele per locus, randomly chosen), and the two gametes combine to form the diploid offspring. The fecundity-weighted parent selection means that large, fecund individuals contribute disproportionately to the next generation. Because larger individuals are also more susceptible to disease (size modifier in the FOI), this creates a tension: the most fecund individuals are also the most likely to die during epidemics, which accelerates the loss of reproductive potential.
+
+% ── 4.10 Spawning season traits ──
+\subsection{Recovery: Daily Clearance Probability}
+\label{sec:recovery}
+
+The recovery trait provides a daily probability of clearing infection:
+\begin{equation}
+  p_{\text{rec},i} = \rho_{\text{rec}} \times c_i
+\end{equation}
+
+With $\rho_{\text{rec}} = 0.05$~d$^{-1}$ and a typical $c_i = 0.02$, the daily recovery probability is only $0.001$, making spontaneous clearance extremely rare. Even at the maximum genetic value ($c_i = 1.0$), the daily recovery probability is only 0.05---about a 5\% chance per day. This reflects the empirical reality that recovery from SSWD, while documented, is uncommon.
+
+\figh{fig_PG07}{0.95}{Spawning season and immunosuppression. The figure shows the extended spawning season (November--July) with multiple cascading bouts, the 28-day immunosuppression window triggered by each bout (during which susceptibility doubles), and how the overlap between spawning immunosuppression and spring Vibrio resuscitation creates a seasonal window of maximum disease risk.}
+
+% ── 4.11 Evolutionary trajectories ──
+\subsection{Evolutionary Trajectories}
+\label{sec:trajectories}
+
+Figure~\ref{fig:fig_PG09} shows the complete evolutionary trajectory of all three traits from a representative W285 simulation, alongside the population dynamics.
+
+\figh{fig_PG09}{0.95}{Evolutionary trajectories (W285 simulation). Upper panel: Mean trait values over 12 simulation years. Resistance (blue) increases sharply from 0.150 to 0.177 following epidemic onset ($\sim$year 2), with the fastest change occurring in years 2--4 (inset: rate of trait change peaks at $\sim$0.012/yr around year 3). Tolerance (orange, 0.100) and Recovery (green, 0.020) show no change. Lower panel: Coast-wide population crashes from $\sim$4.5 million to $<$0.5 million following the epidemic, with slow continued decline through year 12.}
+
+The evolutionary response is rapid but limited: resistance increases by about 18\% (from 0.150 to 0.177) over 12 years. This reflects the tension between strong selection and the polygenic architecture---many small-effect loci change frequency simultaneously, producing a steady but moderate response rather than a rapid sweep.
+
+% ── 4.12 Latitudinal trait variation ──
+\subsection{Latitudinal Variation in Trait Distributions}
+\label{sec:latitudinal}
+
+\figh{fig_PG10}{0.95}{Latitudinal variation in trait distributions (W285, year 0 gray vs.\ year 12 colored). Ridge plots showing population-level trait distributions for all 19 regions ordered south to north. Resistance (left, blue): relatively uniform across latitudes with a modest rightward shift by year 12. Tolerance (middle, orange): shows a latitudinal gradient---southern regions have broader, higher-value distributions. Recovery (right, green): uniformly low and tightly concentrated across all latitudes. The gradient in tolerance likely reflects differential selection pressures imposed by the latitudinal temperature gradient.}
+
+% ── 4.13 Fitness landscape ──
+\subsection{The Fitness Landscape: Why Resistance Dominates}
+\label{sec:fitness}
+
+Figure~\ref{fig:fig_PG12} presents the two-dimensional fitness landscape in resistance-tolerance space, explaining quantitatively why resistance dominates the evolutionary response.
+
+\figh{fig_PG12}{0.95}{Fitness landscape: resistance versus tolerance. Main panel: contour plot of relative fitness as a function of resistance and tolerance trait values. The fitness gradient is overwhelmingly steeper along the resistance axis. Red star: initial population mean ($\bar{r} = 0.15$, $\bar{t} = 0.10$); yellow star: evolved mean ($\bar{r} = 0.18$, $\bar{t} = 0.10$)---evolution moves exclusively along the resistance axis. Inset: cross-sections confirming a $\sim$1000$\times$ gradient difference between resistance (steep) and tolerance (nearly flat) at the population's position in trait space.}
+
+The $\sim$1000$\times$ difference in selection gradients explains the exclusive focus of evolution on resistance: at the population's current position in trait space, a unit increase in resistance produces roughly 1000 times more fitness benefit than a unit increase in tolerance. This is a geometric consequence of how the traits enter the disease model---resistance acts multiplicatively on the FOI, preventing the entire disease cascade, while tolerance only modifies the duration of one downstream stage.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Model Integration and Demonstration}
+\label{sec:integration}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Daily and Annual Loop Coupling}
+
+The SSWD-EvoEpi model operates on two nested timescales:
+
+\begin{itemize}
+  \item \textbf{Daily loop (disease dynamics):} Each day, for each node: (1)~update SST and salinity from forcing data; (2)~compute VBNC activation and environmental Vibrio growth/decay; (3)~compute the force of infection for each susceptible individual; (4)~advance compartmental transitions (S$\to$E$\to$I$_1$$\to$I$_2$$\to$D and recovery); (5)~update environmental Vibrio pool (shedding, flushing, dispersal); (6)~propagate wavefront if applicable.
+  
+  \item \textbf{Annual loop (population ecology):} At the end of each simulated year: (1)~apply natural mortality; (2)~grow survivors (von Bertalanffy); (3)~determine spawning (adults in spawning season); (4)~compute fertilization success (Allee effect); (5)~generate offspring with Mendelian inheritance from fecundity-weighted parents; (6)~disperse larvae via $\mathbf{C}$ matrix; (7)~apply Beverton-Holt density-dependent recruitment at each node.
+\end{itemize}
+
+The coupling between loops occurs at multiple points: disease mortality during the daily loop reduces the adult population available for spawning in the annual loop; spawning in the annual loop triggers immunosuppression that modifies daily disease susceptibility; and the offspring produced in the annual loop inherit trait values from parents whose survival was shaped by daily disease dynamics.
+
+\subsection{W285 Demonstration}
+
+The W285 parameter set represents a calibrated demonstration scenario. Key features visible in the figures include:
+
+\begin{itemize}
+  \item The wavefront originates at the Channel Islands in mid-2013 and spreads to cover the entire coast by early 2016 (Figure~\ref{fig:fig_S04}).
+  \item The coast-wide population crashes from $\sim$4.5 million to under 0.5 million within 2--3 years of epidemic onset (Figure~\ref{fig:fig_PG09}).
+  \item Resistance evolves rapidly in the first 2--4 years post-epidemic, with all regions showing positive trait change (Figure~\ref{fig:fig_PG05}).
+  \item The Allee effect creates demographic traps at severely depleted nodes, preventing recovery even after pathogen pressure subsides (Figure~\ref{fig:fig_PG03}).
+  \item Environmental \textit{Vibrio} dynamics differ dramatically between fjord and open-coast sites due to flushing rate differences (Figure~\ref{fig:fig_S10}).
+\end{itemize}
+
+\subsection{The Latitudinal Gradient Challenge}
+
+A central challenge for the model is reproducing the observed latitudinal gradient in SSWD severity. Southern populations (California, Oregon) experienced the most severe and rapid mortality, while northern populations (Alaska, BC) showed delayed and heterogeneous impacts. The model must reconcile several competing mechanisms along this gradient:
+
+\begin{itemize}
+  \item \textbf{Temperature:} Warmer southern waters accelerate disease (Arrhenius), promote \textit{Vibrio} growth, and slow environmental decay.
+  \item \textbf{Flushing:} The southern coast is generally more open (higher flushing), which should \emph{suppress} disease---but the temperature effect dominates.
+  \item \textbf{Salinity:} Northern fjords experience summer freshening that creates refugia---but these same fjords also retain pathogen when salinity is adequate.
+  \item \textbf{Pathogen adaptation:} $T_{\text{vbnc}}$ evolution allows the pathogen to progressively colonize colder waters.
+  \item \textbf{Virulence evolution:} Post-crash reduction in host density selects for lower virulence, especially in cold/sparse northern populations.
+\end{itemize}
+
+The interplay of these mechanisms produces emergent latitudinal patterns that no single factor can explain---which is precisely why a coupled mechanistic model is needed.
+
+
+% ══════════════════════════════════════════════════════════════════════════════
+\newpage
+\appendix
+\section{Parameter Table}
+\label{sec:params}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}p{1.8cm} >{\raggedright\arraybackslash}p{5.5cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Units} & \textbf{Source / Notes} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Units} & \textbf{Source / Notes} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\textit{continued on next page}} \\
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{4}{l}{\textbf{Spatial Architecture}} \\
+\midrule
+Number of nodes & 896 & --- & Habitat surveys \\
+Larval dispersal scale $D_L$ & 400 & km & Estimated from PLD \\
+Local pathogen dispersal $D_P$ & 15 & km & Tidal mixing scale \\
+Wavefront dispersal $D_P^{\text{wave}}$ & 300 & km & Coastal current transport \\
+Flushing rate $\varphi$ (open) & $\sim$0.80 & d$^{-1}$ & Liu 2019 enclosedness \\
+Flushing rate $\varphi$ (fjord) & $\sim$0.03 & d$^{-1}$ & Liu 2019 enclosedness \\
+\midrule
+\multicolumn{4}{l}{\textbf{Disease Dynamics}} \\
+\midrule
+Reference temperature $T_{\text{ref}}$ & 20 & \textdegree C & --- \\
+E$\to$I$_1$ rate $\mu_{EI_1}(T_{\text{ref}})$ & 0.233 & d$^{-1}$ & 4.3~d mean (Erlang $k$=3) \\
+I$_1$$\to$I$_2$ rate $\mu_{I_1 I_2}(T_{\text{ref}})$ & 0.434 & d$^{-1}$ & 2.3~d mean (Erlang $k$=2) \\
+I$_2$$\to$D rate $\mu_{I_2 D}(T_{\text{ref}})$ & 0.563 & d$^{-1}$ & 1.8~d mean (Erlang $k$=2) \\
+Base recovery rate $\rho_{\text{rec}}$ & 0.05 & d$^{-1}$ & Estimated \\
+Maximum contact rate $a$ & --- & d$^{-1}$ & Calibrated \\
+Half-saturation $K_{\text{half}}$ & $1.5 \times 10^6$ & bact/mL & Dose-response fit \\
+Salinity minimum $s_{\text{min}}$ & 10.0 & psu & Vibrio viability limit \\
+Salinity full $s_{\text{full}}$ & 28.0 & psu & Full viability threshold \\
+$E_a/R$ (E$\to$I$_1$) & 4000 & K & Arrhenius fit \\
+$E_a/R$ (I$_1$$\to$I$_2$) & 5000 & K & Arrhenius fit \\
+$E_a/R$ (I$_2$$\to$D) & 2000 & K & Arrhenius fit \\
+$E_a/R$ (shedding) & 5000 & K & Arrhenius fit \\
+VBNC threshold $T_{\text{vbnc}}$ (initial) & 9--12 & \textdegree C & Vibrio literature \\
+VBNC steepness $k_{\text{vbnc}}$ & --- & \textdegree C$^{-1}$ & Calibrated \\
+Thermal optimum $T_{\text{opt}}$ & 20.0 & \textdegree C & Vibrio growth data \\
+Upper lethal $T_{\text{max}}$ & 30.0 & \textdegree C & Vibrio growth data \\
+Decay rate $\xi(10\text{\textdegree C})$ & 1.0 & d$^{-1}$ & Environmental Vibrio studies \\
+Decay rate $\xi(20\text{\textdegree C})$ & 0.33 & d$^{-1}$ & Environmental Vibrio studies \\
+Dead shedding duration & $\leq$3 & days & Estimated \\
+\midrule
+\multicolumn{4}{l}{\textbf{Virulence Evolution}} \\
+\midrule
+Virulence anchor $v_{\text{anchor}}$ & 0.5 & --- & Anderson-May framework \\
+Shedding exponent $\alpha_{\text{shed}}$ & 1.5 & --- & Trade-off parameterization \\
+Progression exponent $\alpha_{\text{prog}}$ & 1.0 & --- & Trade-off parameterization \\
+Kill rate exponent $\alpha_{\text{kill}}$ & 2.0 & --- & Trade-off parameterization \\
+\midrule
+\multicolumn{4}{l}{\textbf{Population Ecology}} \\
+\midrule
+Carrying capacity $K$ & 5000 & indiv/node & Estimated \\
+BH settlement parameter $s_0$ & 1.0 & --- & Pure density regulation \\
+Allee parameter $1/\gamma$ & 0.22 & --- & Fertilization kinetics \\
+Spawning season & Nov--Jul & --- & Reproductive biology \\
+Immunosuppression duration & 28 & days & Estimated \\
+Immunosuppression multiplier & 2$\times$ & --- & Susceptibility increase \\
+Fecundity exponent & 2.5 & --- & Allometric scaling \\
+Size threshold (suscept.) & 300 & mm & Size-dependent SSWD \\
+Size OR per 10~mm & 1.23 & --- & Empirical observation \\
+\midrule
+\multicolumn{4}{l}{\textbf{Genetic Architecture}} \\
+\midrule
+Resistance loci & 17 & --- & Schiebelhut GWAS \\
+Tolerance loci & 17 & --- & Schiebelhut GWAS \\
+Recovery loci & 17 & --- & Schiebelhut GWAS \\
+Initial mean resistance $\bar{r}$ & 0.15 & --- & Calibrated \\
+Initial mean tolerance $\bar{t}$ & 0.10 & --- & Calibrated \\
+Initial mean recovery $\bar{c}$ & 0.02 & --- & Calibrated \\
+Tolerance timer scaling $\tau_{\text{max}}$ & 0.85 & --- & Max I$_2$ extension \\
+Selection gradient ratio (R:T) & $\sim$1000:1 & --- & Computed from fitness landscape \\
+\bottomrule
+\end{longtable}
+
+\vspace{1cm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.5cm}
+
+\noindent\textit{End of mechanistic description. For questions, contact Willem Weertman at \texttt{weertman@uw.edu}.}
+
+\end{document}

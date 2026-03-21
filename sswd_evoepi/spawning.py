@@ -175,10 +175,12 @@ def spawning_step(
     if not in_spawning_season(day_of_year, spawning_config.season_start_doy, spawning_config.season_end_doy):
         return cohorts
     
-    # Get alive adult mask
+    # Get alive adult mask (sentinels excluded — they don't reproduce)
     alive_mask = agents['alive']
     adult_mask = agents['stage'] == Stage.ADULT
     mature_mask = alive_mask & adult_mask
+    if 'is_sentinel' in agents.dtype.names:
+        mature_mask = mature_mask & ~agents['is_sentinel'].astype(bool)
     
     if not np.any(mature_mask):
         return cohorts

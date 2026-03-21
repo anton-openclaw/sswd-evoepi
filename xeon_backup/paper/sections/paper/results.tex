@@ -1,0 +1,434 @@
+% ══════════════════════════════════════════════════════════════════════
+% RESULTS
+% Fact-checked against:
+%   results/validation_rs_fix/comparison.md             (R→S validation)
+%   results/validation_100k/results.json                (K=100K run)
+%   results/sensitivity_r4/MORRIS_R4_ANALYSIS.md        (Morris R4)
+%   paper/sections/validation.tex                       (work report)
+%   paper/sections/sensitivity_analysis.tex             (work report SA)
+% ══════════════════════════════════════════════════════════════════════
+
+We present results from validation simulations at two population
+scales ($K = 5{,}000$ and $K = 100{,}000$ per node) under both
+permanent-immunity and biologically correct reinfection (R$\to$S)
+dynamics, followed by the four-round sensitivity analysis of all 47
+model parameters. Unless otherwise noted, all simulations use a
+5-node stepping-stone network (Sitka, Howe Sound, San Juan Islands,
+Newport, Monterey), a 20-year time horizon with disease introduction
+at year~3, and seed~42.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Baseline disease dynamics}
+\label{sec:res_baseline}
+
+Under the biologically correct R$\to$S formulation (recovered
+individuals return to the susceptible pool; Section~\ref{sec:defense_traits}),
+the model predicts catastrophic, unrecoverable population decline
+across all spatial configurations and population scales
+(Table~\ref{tab:res_baseline}).
+
+At $K = 5{,}000$ with sinusoidal SST forcing, the metapopulation
+crashes by 99.7\%, declining from 24{,}788 to 122 individuals over
+17 years of active disease. Two of five nodes---San Juan Islands and
+Monterey---reach complete local extinction (population = 0). The
+remaining nodes persist as tiny remnant populations: Sitka (36),
+Howe Sound (23), and Newport (63). Total disease-induced mortality
+amounts to 36{,}157 deaths, with only 276 recovery events across
+$\sim$36{,}000 infections (0.76\% recovery rate).
+
+\begin{table}[htbp]
+\centering
+\caption{Per-node outcomes under the R$\to$S reinfection model
+($K = 5{,}000$, sinusoidal SST, 20~years, seed~42). Crash
+percentages are relative to initial node populations.}
+\label{tab:res_baseline}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Node} & \textbf{$N_0$} & \textbf{$N_{20}$} &
+  \textbf{Crash (\%)} & \textbf{Deaths} & \textbf{Recoveries} &
+  \textbf{Rec.\ rate (\%)} \\
+\midrule
+Sitka       & 4{,}935 &  36 & 99.3 & --- & 44 & --- \\
+Howe Sound  & 4{,}937 &  23 & 99.5 & --- & 80 & --- \\
+SJI         & 4{,}918 &   0 & 100.0 & --- & 57 & --- \\
+Newport     & 4{,}998 &  63 & 99.9 & --- & 58 & --- \\
+Monterey    & 5{,}000 &   0 & 100.0 & --- & 37 & --- \\
+\midrule
+\textbf{Total} & \textbf{24{,}788} & \textbf{122} &
+  \textbf{99.7} & \textbf{36{,}157} & \textbf{276} & \textbf{0.76} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Replacing sinusoidal SST with satellite-derived climatology (NOAA
+OISST v2.1) produces qualitatively identical dynamics: 99.9\% overall
+crash, 146 final individuals, and 241 total recoveries (0.71\%
+recovery rate). The satellite forcing shifts which specific nodes
+persist---SJI retains 3 individuals under satellite SST but goes
+extinct under sinusoidal, while Newport goes extinct under satellite
+but retains 63 under sinusoidal---reflecting real coastal
+oceanographic heterogeneity in seasonal warming patterns.
+
+Disease progression timelines match the experimental data of
+\citet{Prentice2025}: the calibrated transition rates
+($\mu_{\mathrm{EI1,ref}} = 0.233$, $\mu_{\mathrm{I1I2,ref}} = 0.434$,
+$\mu_{\mathrm{I2D,ref}} = 0.563$ at $T_{\mathrm{ref}} = 20$\textdegree{}C)
+produce a mean total disease course of 11.6~days at 13\textdegree{}C,
+consistent with the experimental mean from controlled \textit{Vibrio
+pectenicida} challenge trials.
+
+The impact of reinfection dynamics is dramatic when compared to the
+(biologically incorrect) permanent-immunity baseline
+(Table~\ref{tab:res_rs_comparison}). Under permanent immunity, the
+same configuration produces a 98.5\% crash with 365 survivors and
+zero node extinctions. The R$\to$S correction worsens the final
+population by 67\% (365 $\to$ 122) and introduces two local
+extinctions. Fewer total disease deaths occur under R$\to$S (36{,}157
+vs.\ 41{,}968), but this reflects faster population collapse leaving
+fewer individuals to die, not reduced virulence.
+
+\begin{table}[htbp]
+\centering
+\caption{Impact of the R$\to$S reinfection correction on population
+outcomes ($K = 5{,}000$, sinusoidal SST).}
+\label{tab:res_rs_comparison}
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Metric} & \textbf{Perm.\ immunity} &
+  \textbf{R$\to$S} & $\boldsymbol{\Delta}$ \\
+\midrule
+Overall crash (\%)      & 98.5  & 99.7  & $+$1.2  \\
+Final population        & 365   & 122   & $-$67\% \\
+Node extinctions        & 0     & 2     & $+$2    \\
+Total recoveries        & 365   & 276   & $-$24\% \\
+Recovery rate (\%)      & 0.87  & 0.76  & $-$0.11~pp \\
+Total disease deaths    & 41{,}968 & 36{,}157 & $-$14\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% TODO: Generate publication-quality population trajectory figure
+% from results/validation_rs_fix/pop_trajectories_sinusoidal.png
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\textwidth]{figures/res_pop_trajectories.pdf}
+  \caption{Population trajectories under R$\to$S reinfection dynamics
+  ($K = 5{,}000$, sinusoidal SST). Disease introduction at year~3
+  triggers rapid collapse at all nodes. San Juan Islands and Monterey
+  reach local extinction; remaining nodes persist as remnant
+  populations of $<$65 individuals.}
+  \label{fig:res_pop_trajectories}
+\end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Sensitivity analysis}
+\label{sec:res_sensitivity}
+
+\subsubsection{Morris screening}
+
+The Round~4 Morris analysis (960 runs, 47 parameters, 23 output
+metrics, 11-node stepping-stone network) identifies the 10 most
+influential parameters by mean normalized $\mu^*$ across all metrics
+(Table~\ref{tab:res_morris_top10}; Fig.~\ref{fig:res_morris_top20}).
+These span four of six model modules, with disease parameters
+occupying four of the top-10 positions.
+
+\begin{table}[htbp]
+\centering
+\caption{Top 10 parameters from Round~4 Morris screening, ranked
+  by mean normalized $\mu^*$ across 23 metrics. The $\sigma/\mu^*$
+  ratio quantifies interaction strength ($>1$: interaction-dominated).}
+\label{tab:res_morris_top10}
+\small
+\begin{tabular}{rlllS[table-format=1.3]S[table-format=1.2]}
+\toprule
+\textbf{Rank} & \textbf{Parameter} & \textbf{Description} &
+  \textbf{Module} &
+  {$\overline{\mu^*_{\mathrm{norm}}}$} &
+  {$\sigma/\mu^*$} \\
+\midrule
+1  & $\rho_{\mathrm{rec}}$       & Base recovery rate        & Disease    & 0.889 & 1.46 \\
+2  & $k_{\mathrm{growth}}$       & Growth rate (von Bert.)   & Population & 0.633 & 1.63 \\
+3  & $K_{\mathrm{half}}$         & Half-infective dose       & Disease    & 0.622 & 1.84 \\
+4  & $P_{\mathrm{env,max}}$      & Env.\ reservoir max       & Disease    & 0.598 & 1.92 \\
+5  & $n_{\mathrm{resistance}}$   & No.\ resistance loci      & Genetics   & 0.525 & 1.78 \\
+6  & $s_0$                       & Settler survival          & Population & 0.509 & 1.42 \\
+7  & $\sigma_{2,\mathrm{eff}}$   & Late-stage shedding       & Disease    & 0.431 & 1.95 \\
+8  & $\mu_{\mathrm{I2D,ref}}$    & I$_2$$\to$Death rate      & Disease    & 0.419 & 1.98 \\
+9  & $\sigma_{\mathrm{spawn}}$   & Spawning peak width       & Spawning   & 0.392 & 2.03 \\
+10 & target\_mean\_c             & Initial mean recovery     & Genetics   & 0.385 & 2.08 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The base recovery rate $\rho_{\mathrm{rec}}$ dominates, with
+$\mu^*_{\mathrm{norm}} = 0.889$---41\% higher than the second-ranked
+parameter ($k_{\mathrm{growth}}$, 0.633). Notably, $\rho_{\mathrm{rec}}$
+also exhibits the lowest interaction ratio of any parameter
+($\sigma/\mu^* = 1.46$), indicating that its influence is relatively
+stable across parameter space. This reflects its direct mechanistic
+role: daily clearance probability $p_{\mathrm{rec}} = \rho_{\mathrm{rec}}
+\times c_i$ scales linearly with this rate regardless of context.
+
+The number of resistance loci ($n_{\mathrm{resistance}}$) underwent the
+largest rank gain of any parameter between analysis rounds, rising from
+\#19 in Round~3 to \#5 in Round~4 ($\Delta = +14$). This gain reflects
+the three-trait genetic architecture introduced in Round~4: partitioning
+51 loci into 17 per trait amplifies sensitivity to how loci are
+allocated among defense mechanisms.
+
+All 47 parameters exhibit $\sigma/\mu^* > 1.0$
+(Fig.~\ref{fig:res_morris_interaction}), indicating that every
+parameter's effect on every metric depends on the values of other
+parameters. The model is a deeply coupled, nonlinear system in which no
+parameter acts additively. Interaction ratios range from 1.42 ($s_0$)
+to 2.52 ($\sigma_{v,\mathrm{mut}}$, virulence mutation step size), with
+genetic and evolutionary parameters showing the most extreme nonlinearity.
+This universal interaction structure precludes parameter pruning: all 47
+must be retained in calibration, and joint estimation methods (e.g.,
+ABC-SMC) are required.
+
+% TODO: Generate publication figure from
+% results/sensitivity_r4/figures/morris_r4_top20.png
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\textwidth]{figures/res_morris_top20.pdf}
+  \caption{Top 20 parameters by mean normalized $\mu^*$ in Round~4
+  Morris screening (47 parameters, 23 metrics, 11-node network, 960
+  runs). Bars are color-coded by module.}
+  \label{fig:res_morris_top20}
+\end{figure}
+
+% TODO: Generate publication figure from
+% results/sensitivity_r4/figures/morris_r4_interaction.png
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\textwidth]{figures/res_morris_interaction.pdf}
+  \caption{Morris $\mu^*$ vs.\ $\sigma$ scatter for all 47 parameters.
+  The dashed line shows $\sigma = \mu^*$ (unit interaction ratio). All
+  parameters fall above this line, indicating universal nonlinearity
+  and interaction dominance throughout the model.}
+  \label{fig:res_morris_interaction}
+\end{figure}
+
+\subsubsection{Sobol variance decomposition}
+
+% TODO: Sobol R4 analysis is running (ETA ~Wed Feb 25, 2026).
+% Insert results here when complete. Expected content:
+% - First-order (S1) and total-order (ST) indices for top parameters
+% - S_T - S_1 gap analysis quantifying interaction strength
+% - Comparison with R1-R2 Sobol indices (23 params) to assess
+%   how three-trait architecture redistributes variance
+% - Key S2 (second-order) interaction pairs:
+%   rho_rec × target_mean_c, P_env_max × a_exposure,
+%   n_resistance × sigma_v_mut, k_growth × s_0
+% - Sobol bar chart figure
+
+The Round~4 Sobol analysis ($N = 512$, 25{,}088 model evaluations, 48
+parallel cores) is in progress at time of writing. Based on the Morris
+results, we anticipate that the gap $S_{T,i} - S_{1,i}$ will be
+substantial for all parameters, consistent with the universal
+$\sigma/\mu^* > 1.0$ interaction signal. The Sobol decomposition will
+enable direct quantification of pairwise interactions, particularly
+between $\rho_{\mathrm{rec}}$ and target\_mean\_c (the two parameters
+governing pathogen clearance), between $P_{\mathrm{env,max}}$ and
+$a_{\mathrm{exposure}}$ (dual infection pathways), and between
+$n_{\mathrm{resistance}}$ and $\sigma_{v,\mathrm{mut}}$ (host--pathogen
+coevolutionary dynamics).
+
+\subsubsection{Key sensitivity finding: recovery rate dominance}
+
+Across all four rounds of sensitivity analysis---spanning progressive
+increases in model complexity from 23 to 47 parameters, from single-trait
+to three-trait genetics, and from 3 to 11 spatial nodes---the base
+recovery rate $\rho_{\mathrm{rec}}$ consistently ranks as the most
+influential parameter. This parameter has zero direct empirical basis:
+whether \textit{Pycnopodia helianthoides} can clear \textit{Vibrio
+pectenicida} infections, and at what rate, remains unknown. Determining
+this rate is the single highest-priority empirical question for model
+calibration.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Evolutionary dynamics}
+\label{sec:res_evolution}
+
+The R$\to$S reinfection correction fundamentally alters the model's
+evolutionary predictions (Table~\ref{tab:res_trait_evolution};
+Fig.~\ref{fig:res_trait_shifts}).
+
+Under permanent immunity, recovery ($c_i$) was the fastest-evolving
+trait at every node. Monterey showed $\Delta c_i = +0.154$ over 20
+years, more than doubling the initial recovery trait score relative
+to the initialization mean ($\bar{c}_0 = 0.02$). The mechanism was
+straightforward: recovered individuals entered a permanently immune
+class, survived to reproduce, and passed high-$c$ alleles to
+offspring. Across all five nodes, the mean recovery shift
+($\overline{\Delta c_i} = +0.070$) exceeded resistance
+($\overline{\Delta r_i} = +0.015$) by 4.7$\times$.
+
+With R$\to$S, recovery trait evolution effectively ceases. The
+strongest surviving-node shift is $\Delta c_i = +0.030$ (Newport),
+a 5-fold reduction from the weakest baseline node. For nodes that
+persist, the mean recovery shift drops to $\overline{\Delta c_i}
+\approx +0.002$---statistically indistinguishable from drift. The
+mechanism is clear: recovered individuals immediately re-enter the
+susceptible pool and face reinfection, preventing the accumulation
+of high-$c$ alleles through differential survival.
+
+\begin{table}[htbp]
+\centering
+\caption{Trait evolution comparison: permanent immunity vs.\ R$\to$S
+($K = 5{,}000$, sinusoidal SST). $\Delta$ values are changes in
+mean trait scores relative to initialization ($\bar{r}_0 = 0.15$,
+$\bar{t}_0 = 0.10$, $\bar{c}_0 = 0.02$). Extinct nodes ($\dagger$)
+report trait values at extinction, dominated by drift.}
+\label{tab:res_trait_evolution}
+\small
+\begin{tabular}{lS[table-format=+1.3]S[table-format=+1.3]
+                 S[table-format=+1.3]S[table-format=+1.3]
+                 S[table-format=+1.3]S[table-format=+1.3]}
+\toprule
+& \multicolumn{2}{c}{\textbf{$\Delta r_i$ (resistance)}} &
+  \multicolumn{2}{c}{\textbf{$\Delta t_i$ (tolerance)}} &
+  \multicolumn{2}{c}{\textbf{$\Delta c_i$ (recovery)}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+\textbf{Node} & {Perm.} & {R$\to$S} & {Perm.} & {R$\to$S} &
+  {Perm.} & {R$\to$S} \\
+\midrule
+Sitka      & +0.011 & +0.060 & +0.005 & +0.016 & +0.029 & -0.008 \\
+Howe Sound & -0.002 & +0.034 & +0.044 & +0.079 & +0.041 & +0.005 \\
+SJI        & +0.012 & -0.150{$\dagger$} & -0.007 & -0.100{$\dagger$} & +0.072 & -0.020{$\dagger$} \\
+Newport    & +0.031 & -0.051 & +0.001 & -0.050 & +0.054 & +0.030 \\
+Monterey   & +0.025 & -0.149{$\dagger$} & +0.027 & -0.099{$\dagger$} & +0.154 & -0.021{$\dagger$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Selection shifts decisively from recovery to resistance under R$\to$S.
+At Sitka, the surviving node with the strongest signal, resistance
+evolves from $\Delta r_i = +0.011$ (permanent immunity) to $+0.060$
+(R$\to$S)---a 5.5-fold increase. Howe Sound shows a similar pattern:
+$\Delta r_i$ shifts from $-0.002$ to $+0.034$. When recovery does
+not confer lasting protection, avoiding infection entirely (resistance)
+becomes the primary viable adaptive pathway. Tolerance shows a modest
+increase at Howe Sound ($\Delta t_i = +0.079$ under R$\to$S vs.\
+$+0.044$ under permanent immunity) but remains secondary to resistance
+in surviving nodes.
+
+% TODO: Generate publication figure from
+% results/validation_rs_fix/trait_evolution_sinusoidal.png
+% or results/validation_rs_fix/trait_shifts_sinusoidal.png
+\begin{figure}[htbp]
+  \centering
+  % \includegraphics[width=\textwidth]{figures/res_trait_shifts.pdf}
+  \caption{Trait evolution under permanent immunity (left) vs.\
+  R$\to$S reinfection (right). Under permanent immunity, recovery
+  (blue) dominates at every node. Under R$\to$S, recovery stalls
+  and resistance (red) becomes the primary adaptive response in
+  surviving nodes. Extinct nodes (SJI, Monterey; marked~$\dagger$)
+  show drift artifacts.}
+  \label{fig:res_trait_shifts}
+\end{figure}
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Spatial dynamics}
+\label{sec:res_spatial}
+
+Per-node crash severity varies with latitude and oceanographic
+context. Under R$\to$S (sinusoidal SST), the two nodes that go
+extinct (SJI, 100\%; Monterey, 100\%) differ in their mechanisms:
+SJI occupies an intermediate-latitude position with moderate
+temperatures, while Monterey experiences the warmest SST, driving
+the fastest disease progression. Sitka, the northernmost and
+coolest node, retains the largest surviving population (36
+individuals) despite a 99.3\% crash. Newport persists with 63
+individuals. Howe Sound, a fjord-type habitat, retains only 23.
+
+Satellite SST forcing reshuffles the spatial pattern of persistence
+without altering the overall crash magnitude (99.9\% vs.\ 99.7\%).
+Howe Sound emerges as the primary refuge under satellite forcing
+(133 survivors vs.\ 23 under sinusoidal), while SJI barely persists
+(3 survivors) and Newport goes extinct. These shifts reflect real
+asymmetries in seasonal warming patterns captured by the NOAA OISST
+v2.1 climatology that sinusoidal approximation smooths over.
+
+Larval connectivity is insufficient for demographic rescue at
+post-crash densities. Adjacent nodes exchange 32--76\% of their
+larval output at the nominal dispersal kernel scale ($D_L = 400$~km),
+but with surviving populations of $<$65 individuals per node,
+absolute larval supply is negligible. The spatial sensitivity
+analysis supports this: $\alpha_{\mathrm{self,open}}$ (open-coast
+retention) ranks only \#25 and $D_L$ (dispersal scale) ranks \#26
+out of 47 parameters---both are detectable but secondary to disease
+and demographic parameters.
+
+
+% ──────────────────────────────────────────────────────────────────────
+\subsection{Scale dependence}
+\label{sec:res_scale}
+
+Scaling carrying capacity 20-fold from $K = 5{,}000$ to
+$K = 100{,}000$ per node does not ameliorate population outcomes
+(Table~\ref{tab:res_scale}). The metapopulation crash
+\emph{increases} from 98.5\% to 98.9\% (both under permanent
+immunity; the R$\to$S correction was implemented after the
+$K = 100{,}000$ run and will be repeated at scale). All five nodes
+experience $\geq$97.1\% decline, with four of five crashing
+$\geq$99.3\%. Monterey remains the most resilient node (97.1\%
+crash, 2{,}904 survivors) but still loses $>$97\% of its initial
+population.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-scale comparison ($K = 5{,}000$ vs.\ $K = 100{,}000$,
+permanent immunity, sinusoidal SST). Larger populations show equal or
+worse crashes, demonstrating that stochastic rescue does not scale.}
+\label{tab:res_scale}
+\small
+\begin{tabular}{lS[table-format=2.1]S[table-format=2.1]
+                 S[table-format=5.0]S[table-format=5.0]}
+\toprule
+& \multicolumn{2}{c}{\textbf{Crash (\%)}} &
+  \multicolumn{2}{c}{\textbf{Final population}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+\textbf{Node} & {$K = 5\text{K}$} & {$K = 100\text{K}$} &
+  {$K = 5\text{K}$} & {$K = 100\text{K}$} \\
+\midrule
+Sitka       & 98.7 & 99.3 &   65 &   718 \\
+Howe Sound  & 98.8 & 99.4 &   60 &   633 \\
+SJI         & 99.0 & 99.3 &   50 &   733 \\
+Newport     & 99.5 & 99.4 &   27 &   639 \\
+Monterey    & 99.2 & 97.1 &  163 & 2904 \\
+\midrule
+\textbf{Total} & \textbf{98.5} & \textbf{98.9} &
+  \textbf{365} & \textbf{5627} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This counterintuitive result---that larger populations fare
+\emph{worse}---arises because deterministic epidemic dynamics
+dominate at large $N$, suppressing the demographic stochasticity that
+occasionally permits small populations to escape disease through
+random fluctuations. The recovery trait hierarchy is amplified at
+scale: $\overline{\Delta c_i} = +0.063$ at $K = 100{,}000$ vs.\
+$+0.070$ at $K = 5{,}000$ (0.90$\times$), while the apparent
+resistance signal reverses from $\overline{\Delta r_i} = +0.015$ at
+small $N$ to $-0.005$ at large $N$, exposing the small-$K$ positive
+values as drift artifacts. At $K = 100{,}000$, all five nodes show
+uniformly negative $\Delta r_i$ (range: $-$0.002 to $-$0.009),
+indicating that 17 resistance loci provide insufficient genetic
+variance for resistance evolution to outpace pathogen pressure within
+20 years.
+
+The conservation implication is direct: small reintroduced populations
+cannot rely on stochastic demographic rescue, and merely increasing
+release numbers without exceeding local Allee thresholds will not
+alter the trajectory toward population collapse.
+

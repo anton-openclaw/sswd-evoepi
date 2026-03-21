@@ -1,0 +1,127 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — SENSITIVITY ANALYSIS
+% Fact-checked against:
+%   scripts/sensitivity/param_spec.py          (47 params, ranges)
+%   scripts/sensitivity/spatial_runner.py       (23 metrics, 11-node)
+%   results/sensitivity_r4/MORRIS_R4_ANALYSIS.md (960 runs, R4 results)
+%   specs/calibration-validation-plan.md        (Sobol design)
+% ══════════════════════════════════════════════════════════════════════
+
+We conducted a two-stage global sensitivity analysis (SA) to
+identify which parameters most influence model behavior and to
+quantify the strength of parameter interactions. The two stages
+serve complementary purposes: Morris elementary effects screening
+\citep{Morris1991} provides a computationally cheap qualitative
+ranking of parameter importance, while Sobol variance decomposition
+\citep{Sobol2001} yields quantitative attribution of output variance
+to individual parameters and their interactions. Morris screening
+requires $r(p+1)$ model evaluations (960 for our 47-parameter
+space), whereas Sobol analysis requires $N(p+2)$ evaluations
+(25{,}088 at $N = 512$), making the staged design roughly 25-fold
+more efficient than applying Sobol alone as an initial screen.
+
+\subsubsection{Parameter space}
+\label{sec:sa_params}
+
+The analysis spans 47 uncertain parameters across 11 functional
+groups: disease transmission and progression (10 parameters),
+population dynamics (7), three-trait genetic architecture (8),
+spawning biology (7), pathogen virulence evolution (6), spatial
+connectivity (3), and environmental forcing (2). Parameters were
+sampled over ranges informed by a systematic literature review
+(Supplementary~Table~\ref{tab:param_ranges}); log-uniform priors
+were assigned to parameters spanning orders of magnitude
+(e.g., $K_{1/2}$, $D_L$, $\sigma_{2,\mathrm{eff}}$), and
+discrete values were used for locus-count parameters constrained
+to sum to 51 ($n_R + n_T + n_C = 51$).
+
+\subsubsection{Simulation design}
+\label{sec:sa_design}
+
+All SA runs employed an 11-node stepping-stone metapopulation
+representing the northeast Pacific range of \pyc{} from Sitka,
+Alaska to Monterey, California. Adjacent nodes are separated by
+111--452\,km, ensuring that the larval dispersal kernel
+($D_L = 100$--1{,}000\,km SA range) produces meaningful
+connectivity variation across the parameter space. An earlier
+3-node network with 1{,}700+\,km inter-node gaps rendered spatial
+parameters untestable because all connectivity kernels either
+saturated or collapsed across the sampled range.
+
+Each node was initialized with a carrying capacity of $K = 5{,}000$
+individuals (${\sim}55{,}000$ total), providing a balance between
+computational tractability and sufficient population size to resolve
+genetic dynamics. Simulations ran for 20 years at daily resolution,
+with the pathogen introduced at the southern node at year~2. We
+tracked 23 output metrics spanning four categories: demographic
+outcomes (population crash, extinction, time to nadir, peak
+mortality), evolutionary dynamics (mean resistance, tolerance, and
+recovery trait shifts; additive variance retention; evolutionary
+rescue index), spatial patterns (number of extinct nodes,
+north--south mortality gradient, fjord protection effect), and
+pathogen evolution (mean final virulence, virulence shift).
+
+\subsubsection{Morris elementary effects screening}
+\label{sec:morris_method}
+
+The Morris method \citep{Morris1991, Campolongo2007} is a
+one-at-a-time (OAT) design in which each parameter is perturbed
+along $r$ independent trajectories through the $p$-level input
+space. For parameter~$x_i$ in trajectory~$j$, the elementary
+effect is
+%
+\begin{equation}
+  d_{ij} = \frac{f(x_1, \ldots, x_i + \Delta_i, \ldots, x_p)
+              - f(x_1, \ldots, x_i, \ldots, x_p)}{\Delta_i},
+  \label{eq:elementary_effect}
+\end{equation}
+%
+where $\Delta_i$ is the perturbation step. Two summary statistics
+are computed per parameter per metric \citep{Campolongo2007}:
+$\mu^*_i$, the mean of the absolute elementary effects, measuring
+overall importance regardless of sign; and $\sigma_i$, the
+standard deviation of elementary effects, measuring the strength
+of nonlinearity and interactions. When $\sigma_i / \mu^*_i > 1$,
+the parameter's influence on the metric is dominated by
+interactions with other parameters rather than by its direct
+(additive) effect \citep{Saltelli2008}.
+
+We used $r = 20$ trajectories and $p = 4$ levels, yielding
+$20 \times (47 + 1) = 960$ model evaluations, executed in
+parallel across 48~cores (Intel Xeon W-3365). To enable
+cross-metric comparison, $\mu^*$ values were normalized by the
+range of each metric across all trajectories, then ranked by the
+mean normalized $\mu^*$ across all 23 output metrics.
+
+\subsubsection{Sobol variance decomposition}
+\label{sec:sobol_method}
+
+Parameters identified by Morris screening advance to Sobol
+variance-based global sensitivity analysis \citep{Sobol2001},
+which decomposes total output variance into contributions from
+individual parameters and their interactions. Using the Saltelli
+sampling scheme \citep{Saltelli2002}, we compute two indices for
+each parameter~$x_i$ and output~$Y$:
+%
+\begin{align}
+  S_{1,i} &= \frac{V_{x_i}\!\bigl[E_{x_{\sim i}}(Y \mid x_i)\bigr]}{V(Y)},
+  \label{eq:sobol_s1} \\[4pt]
+  S_{T,i} &= 1 - \frac{V_{x_{\sim i}}\!\bigl[E_{x_i}(Y \mid x_{\sim i})\bigr]}{V(Y)},
+  \label{eq:sobol_st}
+\end{align}
+%
+where $S_{1,i}$ is the first-order index measuring the fraction of
+output variance attributable to~$x_i$ alone, and $S_{T,i}$ is the
+total-order index capturing $x_i$'s contribution including all
+interactions with other parameters. The gap
+$S_{T,i} - S_{1,i}$ quantifies interaction strength: when
+$S_{T,i} \gg S_{1,i}$, the parameter's influence is mediated
+primarily through joint effects, implying it cannot be calibrated
+independently of co-varying parameters.
+
+The Sobol analysis uses $N = 512$ base samples with
+\texttt{calc\_second\_order=False} (a computational constraint
+given the 47-dimensional parameter space), producing
+$N(p + 2) = 512 \times 49 = 25{,}088$ model evaluations. Both the
+Morris and Sobol analyses were implemented using the SALib Python
+library \citep{Herman2017}.

@@ -1,0 +1,140 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — SPATIAL STRUCTURE
+% Fact-checked against: sswd_evoepi/spatial.py, environment.py,
+%   config.py, scripts/sensitivity/spatial_runner.py
+% All parameter values verified against code defaults 2026-02-22
+% ══════════════════════════════════════════════════════════════════════
+
+\label{sec:spatial}
+
+The model represents the NE~Pacific range of \pycshort{} as a
+metapopulation network of discrete habitat nodes connected by larval
+dispersal and waterborne pathogen transport. Each node maintains its own
+population, disease state, and environmental forcing; inter-node coupling
+occurs through annual larval exchange and daily pathogen dispersal.
+
+\paragraph{Network topology.}
+The primary network used for sensitivity analysis and validation is an
+11-node stepping-stone chain spanning approximately 3{,}000\,km of
+coastline from Sitka, Alaska (57.06\textdegree N) to Monterey,
+California (36.62\textdegree N; Figure~\ref{fig:study_map}):
+%
+\begin{center}
+\small
+Sitka $\to$ Ketchikan $\to$ Haida Gwaii $\to$ Bella Bella $\to$
+Howe Sound $\to$ San Juan Islands $\to$ Westport $\to$ Newport $\to$
+Crescent City $\to$ Fort Bragg $\to$ Monterey
+\end{center}
+%
+Adjacent nodes are separated by 111--452\,km, ensuring that the larval
+dispersal kernel produces meaningful inter-node exchange across the
+sensitivity analysis parameter range ($D_L \in [200, 600]$\,km). This
+chain structure was adopted in sensitivity analysis Round~4 after
+earlier 3-node configurations (spacing $>$1{,}700\,km) rendered
+connectivity parameters effectively untestable, as
+$\exp(-1700/400) < 10^{-2}$ produced negligible larval exchange.
+
+\paragraph{Node-specific environmental forcing.}
+Each node $k$ receives locally parameterized forcing along three axes.
+
+\textit{Sea surface temperature.}\quad
+Daily SST forcing uses 365-day climatological means derived from the
+NOAA Optimum Interpolation SST version~2.1 dataset
+\citep{oisstv21}, a 0.25\textdegree{} global daily product. For each
+node, day-of-year means were computed from 24~years of monthly data
+(2002--2025), accessed via NOAA PSL OPeNDAP, and interpolated to daily
+resolution. The resulting climatologies capture real seasonal dynamics
+---including asymmetric warming and cooling profiles, coastal upwelling
+signatures at exposed sites (Newport, Crescent City), and the broad
+warm season at sheltered sites (Howe Sound)---that a symmetric
+sinusoidal approximation cannot represent. Annual means range from
+$\sim$8.9\textdegree C at Sitka to $\sim$13.3\textdegree C at Monterey.
+For projection scenarios, an optional linear warming trend $\gamma_k$
+(\textdegree C\,yr$^{-1}$) is superimposed:
+%
+\begin{equation}
+  T_k(d, y) = T_{k,\mathrm{clim}}(d)
+    + \gamma_k\,(y - y_{\mathrm{ref}}),
+  \label{eq:sst_satellite}
+\end{equation}
+%
+where $T_{k,\mathrm{clim}}(d)$ is the satellite-derived climatological
+SST for day-of-year~$d$ and $y_{\mathrm{ref}} = 2015$ is the reference
+year.
+
+\textit{Salinity.}\quad
+Each node carries a fixed effective salinity ($S_k$, psu) that
+modulates \vp{} viability through the quadratic ramp of
+Equation~\ref{eq:salinity}. Open-coast nodes receive full-marine
+salinities (30--33.5\,psu; $S_{\mathrm{sal}} \geq 0.87$), while
+the fjord node Howe Sound has $S_k = 22$\,psu due to freshwater runoff,
+yielding $S_{\mathrm{sal}} = 0.44$---a $\sim$56\% reduction in
+effective Vibrio viability that provides a mechanistic basis for fjord
+refugia \citep{montecino2016geographic}.
+
+\textit{Flushing rate.}\quad
+Hydrodynamic flushing removes waterborne pathogen at node-specific
+rates spanning two orders of magnitude: $\phi_k = 0.5$--$0.8$\,d$^{-1}$
+at open-coast sites, $\phi_k = 0.30$\,d$^{-1}$ at the semi-enclosed
+San Juan Islands, and $\phi_k = 0.03$\,d$^{-1}$ at Howe Sound, where
+the glacial sill restricts water exchange.
+
+\paragraph{Temperature-dependent processes.}
+SST drives three key rate processes through Arrhenius scaling
+(Eq.~\ref{eq:arrhenius}): disease progression rates
+(E$\to$I$_1$, I$_1$$\to$I$_2$, I$_2$$\to$D), pathogen environmental
+persistence via the viable-but-not-culturable (VBNC) transition, and
+spawning phenology. The $\sim$4.4\textdegree C latitudinal SST gradient
+produces emergent north--south gradients in disease severity, consistent
+with the observed southward-increasing SSWD mortality during the
+2013--2015 outbreak \citep{harvell2019disease}.
+
+\paragraph{Larval dispersal.}
+Annual larval exchange between nodes is governed by a connectivity
+matrix~$\mathbf{C}$ constructed from an exponential distance kernel
+with explicit self-recruitment:
+%
+\begin{equation}
+  C_{jk} =
+  \begin{cases}
+    \alpha_j & \text{if } j = k, \\[4pt]
+    (1 - \alpha_j)\;
+    \exp\!\left(-\dfrac{d_{jk}}{D_L}\right)
+    & \text{if } j \neq k,
+  \end{cases}
+  \label{eq:dispersal_kernel}
+\end{equation}
+%
+where $D_L = 400$\,km is the characteristic dispersal length scale,
+$d_{jk}$ is the pairwise distance between nodes $j$ and $k$,
+and $\alpha_j$ is the self-recruitment fraction. The dispersal scale
+reflects a pelagic larval duration (PLD) of approximately 63~days
+\citep{strathmann1987reproduction} and NE~Pacific current speeds of
+5--20\,cm\,s$^{-1}$. Self-recruitment fractions differ by habitat type:
+$\alpha_{\mathrm{fjord}} = 0.30$ for fjord nodes, encoding
+sill-mediated circulation that traps larvae near their natal site
+\citep{swearer2002evidence}, and $\alpha_{\mathrm{open}} = 0.10$ for
+open-coast nodes. Rows of~$\mathbf{C}$ are normalized so that total
+per-larva settlement probability equals $r_{\mathrm{total}} = 0.02$,
+incorporating cumulative losses from pelagic mortality, failed
+metamorphosis, and post-settlement predation. At the default
+$D_L = 400$\,km, adjacent nodes (111--452\,km) exchange 32--76\% of
+their non-self-recruiting larvae.
+
+At the end of each reproductive season, competent larvae from each
+source node are distributed to receiving nodes via
+$\mathbf{C}$: a binomial draw determines total settlement, followed by
+multinomial allocation across destinations proportional to the
+conditional probabilities $C_{jk} / \sum_k C_{jk}$.
+
+\paragraph{Pathogen dispersal.}
+Daily waterborne pathogen exchange operates at much shorter range than
+larval transport. The pathogen dispersal matrix~$\mathbf{D}$ uses an
+exponential kernel with scale $D_P = 15$\,km (reflecting tidal-current
+transport), modulated by the source node's flushing rate and a sill
+attenuation factor for fjord nodes. Pairs beyond 50\,km receive zero
+pathogen transfer. Low flushing in fjords thus acts as a double-edged
+mechanism: it reduces pathogen \emph{removal} (increasing local
+concentrations) while also reducing pathogen \emph{export} to
+neighboring nodes, effectively isolating fjords from regional epidemic
+dynamics.

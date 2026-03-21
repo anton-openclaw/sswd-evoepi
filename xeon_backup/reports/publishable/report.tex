@@ -1,0 +1,171 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{multirow}
+% \usepackage{colortbl}  % not available in local TinyTeX
+% \usepackage{pdflscape} % not needed
+\usepackage{float}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    citecolor=blue!60!black,
+    urlcolor=blue!60!black
+}
+
+\title{\textbf{Forecasting Sunflower Sea Star Recovery:\\Climate, Evolution, and the Future of \textit{Pycnopodia helianthoides} Under Sea Star Wasting Disease}\\[0.5em]\Large An Agent-Based Modeling Analysis, 2012--2050}
+\author{Willem Weertman \and Anton Star (AI Research Assistant)}
+\date{March 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Sea star wasting disease (SSWD) has reduced sunflower sea star (\textit{Pycnopodia helianthoides}) populations by over 90\% since 2013, driving the species to Critically Endangered status. With captive breeding programs now underway, wildlife managers urgently need projections of future population trajectories to guide reintroduction strategies. We developed a spatially explicit, eco-evolutionary agent-based model spanning 896 coastal sites from Alaska to Baja California, calibrated against observed disease dynamics (2012--2025) and driven by real sea surface temperature data. We then projected population trajectories to 2050 under four scenarios crossing two climate pathways (SSP2-4.5 and SSP5-8.5) with evolutionary toggles for pathogen adaptation. All scenarios predict a persistent $\sim$95\% population decline with no natural recovery to pre-disease levels. Alaska's Fairweather regions show the most reliable natural recovery (6.8--9.4\% 5-year averages), while Oregon demonstrates episodic oasis dynamics (5.4\% 5-year average despite 17.6\% endpoint artifacts from boom-bust cycles), and southern California and Baja populations face functional extinction. Climate warming produces a striking latitude-dependent trade-off: higher emissions improve northern Alaskan recovery by up to 7.7 percentage points while reducing southern recovery by up to 7.2 points. Removing pathogen evolution provides only modest coast-wide benefits ($+$0.5\%), and virulence evolution specifically has negligible impact on outcomes. Host resistance evolves substantially (0.15 to 0.43 in central California) but remains insufficient to outpace pathogen adaptation, and genetic diversity collapses in the most heavily impacted populations. These results indicate that natural recovery alone will not restore \textit{Pycnopodia} populations, particularly in the southern half of the species' range, and that active intervention through captive breeding and reintroduction is essential.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+% SECTION 1: Introduction
+% ============================================================
+\input{sections/sec1_introduction}
+
+% ============================================================
+% SECTION 2: Key Findings
+% ============================================================
+\input{sections/sec2_key_findings}
+
+% ============================================================
+% SECTION 3: Scenario Design
+% ============================================================
+\input{sections/sec3_scenario_design}
+
+% ============================================================
+% SECTION 4: Detailed Results
+% ============================================================
+\input{sections/sec4_results}
+
+% ============================================================
+% SECTION 4b: Site-Level Dynamics (Oasis Analysis)
+% ============================================================
+\input{sections/sec4b_site_dynamics}
+
+% ============================================================
+% SECTION 5: Model Description
+% ============================================================
+\input{sections/sec5_model}
+
+% ============================================================
+% SECTION 6: Discussion
+% ============================================================
+\input{sections/sec6_discussion}
+
+% ============================================================
+% ACKNOWLEDGMENTS
+% ============================================================
+\section*{Acknowledgments}
+
+We thank Jason Hodin and the members of the Sea Star Lab at Friday Harbor Laboratories for ongoing discussions about \textit{Pycnopodia} biology and captive breeding protocols. Sea surface temperature data were provided by the NOAA Optimum Interpolation Sea Surface Temperature (OISST) dataset. Climate projections were derived from CMIP6 model outputs. Computing resources were provided by a dedicated Xeon W-3365 server.
+
+% ============================================================
+% APPENDIX: Model Parameters
+% ============================================================
+\clearpage
+\input{sections/sec7_appendix}
+
+% ============================================================
+% BIBLIOGRAPHY
+% ============================================================
+\bibliographystyle{plainnat}
+
+\begin{thebibliography}{15}
+
+\bibitem[Anderson and May(1982)]{anderson1982}
+Anderson, R.M.\ and May, R.M.\ (1982).
+\newblock Coevolution of hosts and parasites.
+\newblock \textit{Parasitology}, 85(2):411--426.
+
+\bibitem[Gehman et al.(2025)]{gehman2025}
+Gehman, A.-L.M.\ et al.\ (2025).
+\newblock Fjord refugia from sea star wasting disease: environmental conditions limit pathogen impacts on the sunflower sea star.
+\newblock \textit{Proceedings of the Royal Society B}, 292(2039):20242726.
+
+\bibitem[Gravem et al.(2021)]{gravem2021}
+Gravem, S.A., Gravier, A., Bayraktarov, E., \ldots\ and Moritsch, M.M.\ (2021).
+\newblock Pycnopodia helianthoides.
+\newblock \textit{The IUCN Red List of Threatened Species}, e.T178290276A197818455.
+
+\bibitem[Hedgecock and Pudovkin(2011)]{hedgecock2011}
+Hedgecock, D.\ and Pudovkin, A.I.\ (2011).
+\newblock Sweepstakes reproductive success in highly fecund marine fish and shellfish: a review and commentary.
+\newblock \textit{Bulletin of Marine Science}, 87(4):971--1002.
+
+\bibitem[Hodin et al.(2021)]{hodin2021}
+Hodin, J., Heyland, A., Mercier, A., \ldots\ and Wahltinez, S.\ (2021).
+\newblock Culturing and spawning of the sunflower sea star, \textit{Pycnopodia helianthoides}.
+\newblock \textit{Frontiers in Marine Science}, 8:735986.
+
+\bibitem[Liu et al.(2019)]{liu2019}
+Liu, J., Deng, Y., Li, L., \ldots\ and Peters, B.M.\ (2019).
+\newblock Discovery and control of culturable and viable but non-culturable cells of a distinctive \textit{Vibrio parahaemolyticus}.
+\newblock \textit{Food Control}, 112:107153.
+
+\bibitem[Lundquist and Botsford(2004)]{lundquist2004}
+Lundquist, C.J.\ and Botsford, L.W.\ (2004).
+\newblock Model projections of the fishery implications of the Allee effect in broadcast spawners.
+\newblock \textit{Ecological Applications}, 14(3):929--941.
+
+\bibitem[Prentice et al.(2025)]{prentice2025}
+Prentice, J.A., Hewson, I., Davy, C.M., \ldots\ and Hodin, J.\ (2025).
+\newblock \textit{Vibrio pectenicida} satisfies Koch's postulates as a candidate agent of sea star wasting disease.
+\newblock \textit{Nature Ecology \& Evolution}, in press.
+
+\bibitem[Schiebelhut et al.(2018)]{schiebelhut2018}
+Schiebelhut, L.M., Puritz, J.B., and Dawson, M.N.\ (2018).
+\newblock Decimation by sea star wasting disease and rapid genetic change in a keystone species, \textit{Pisaster ochraceus}.
+\newblock \textit{Proceedings of the National Academy of Sciences}, 115(27):7069--7074.
+
+\bibitem[Alizon et al.(2009)]{alizon2009}
+Alizon, S., Hurford, A., Mideo, N., and Van~Baalen, M.\ (2009).
+\newblock Virulence evolution and the trade-off hypothesis: history, current state of affairs and the future.
+\newblock \textit{Journal of Evolutionary Biology}, 22(2):245--259.
+
+\bibitem[Bell(2008)]{bell2008}
+Bell, G.\ (2008).
+\newblock Selection: The Mechanism of Evolution.
+\newblock Oxford University Press, 2nd edition.
+
+\bibitem[Gomulkiewicz and Holt(1995)]{gomulkiewicz1995}
+Gomulkiewicz, R.\ and Holt, R.D.\ (1995).
+\newblock When does evolution by natural selection prevent extinction?
+\newblock \textit{Evolution}, 49(1):201--207.
+
+\bibitem[Reynolds et al.(2007)]{reynolds2007}
+Reynolds, R.W., Smith, T.M., Liu, C., \ldots\ and Stokes, D.B.\ (2007).
+\newblock Daily high-resolution-blended analyses for sea surface temperature.
+\newblock \textit{Journal of Climate}, 20(22):5473--5496.
+
+\bibitem[Huang et al.(2021)]{huang2021}
+Huang, B., Liu, C., Banzon, V., \ldots\ and Zhang, H.-M.\ (2021).
+\newblock Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version~2.1.
+\newblock \textit{Journal of Climate}, 34(8):2923--2939.
+
+\end{thebibliography}
+
+\end{document}

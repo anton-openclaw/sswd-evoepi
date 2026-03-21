@@ -1,0 +1,36 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Sea star wasting disease (SSWD) has reduced \pyc{} populations 
+by 90--99\% from Alaska to Baja California 
+\citep{harvell2019disease, montecino2020sunflower}, triggering 
+urchin-driven kelp forest collapse \citep{schultz2016urchin}.
+
+Conservation efforts now center on captive breeding and reintroduction 
+\citep{seastarlab2024}: caged outplanting at Friday Harbor Laboratories 
+(2023), open release of 20 juveniles (July 2024), and a California 
+release of 47 juveniles (December 2025; 46/47 survived one month). 
+These programs face a fundamental question: \textbf{how do we design a 
+breeding program that maximizes disease resistance in released stock while 
+maintaining sufficient genetic diversity for long-term population viability?}
+
+\subsection{What this module provides}
+
+The SSWD-EvoEpi model tracks individual genotypes at 51 biallelic loci 
+controlling three disease-related traits (resistance, tolerance, recovery), 
+enabling four analyses that population-level models cannot provide:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Predicted genetic state} of surviving wild populations at each site
+    \item \textbf{Screening effort} required to find founders with desired resistance
+    \item \textbf{Breeding optimization} across crossing strategies, balancing gain against diversity loss
+    \item \textbf{Reintroduction design} — release sizes, locations, and timing to shift wild evolutionary trajectories
+\end{enumerate}
+
+\subsection{Approach}
+
+Each section provides: (1) first-principles derivation, (2) mapping to our 51-locus, 3-trait architecture, (3) computable predictions, and (4) implementation pointers. All derivations assume the calibrated model; validation-run parameters serve as placeholders until then.
+
+\subsection{Scope and limitations}
+
+This module addresses the \emph{genetics} of conservation — which individuals to breed, how to cross them, and where to release offspring. It does not address habitat restoration, water quality, or disease treatment. Inbreeding depression is not currently modeled, flagged as a known gap throughout.

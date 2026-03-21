@@ -1,0 +1,105 @@
+% ══════════════════════════════════════════════════════════════════════
+% METHODS — MODEL CALIBRATION
+% Fact-checked against:
+%   specs/calibration-validation-plan.md    (ABC-SMC protocol)
+%   results/sensitivity_r4/MORRIS_R4_ANALYSIS.md (top-10 params)
+%   MEMORY.md                               (calibration strategy)
+% Note: Calibration is PLANNED, not yet executed.
+% ══════════════════════════════════════════════════════════════════════
+
+Model calibration follows an Approximate Bayesian Computation with
+Sequential Monte Carlo sampling (ABC-SMC; \citealp{Toni2009})
+approach, chosen because the individual-based model has no
+closed-form likelihood function. ABC-SMC avoids likelihood
+evaluation by comparing simulated summary statistics to empirical
+targets, accepting parameter combinations that produce sufficiently
+similar outputs. The sequential refinement of acceptance thresholds
+concentrates sampling in high-posterior regions while maintaining
+computational efficiency.
+
+\subsubsection{Calibration parameters}
+\label{sec:calib_params}
+
+Calibration focuses on the ${\sim}$10 parameters identified by
+Morris screening as highly influential (normalized
+$\mu^* > 0.4$) that simultaneously lack strong empirical
+constraints. These include the recovery rate coefficient
+($\rho_\mathrm{rec}$), half-saturating pathogen dose ($K_{1/2}$),
+environmental pathogen input ($P_\mathrm{env,max}$), settler
+survival ($s_0$), symptomatic shedding rate
+($\sigma_{2,\mathrm{eff}}$), von~Bertalanffy growth rate
+($k_\mathrm{growth}$), and the initial mean recovery trait
+($\bar{c}_0$). Parameters with well-constrained literature values
+(e.g., disease progression rates calibrated to
+\citealp{prentice2025kochs}) are fixed at their reference values.
+Prior distributions for calibrated parameters are uniform over the
+ranges used in the sensitivity analysis, informed by a systematic
+literature review of 103~sources
+(Supplementary~\ref{sec:appendix_parameters}).
+
+\subsubsection{Calibration targets}
+\label{sec:calib_targets}
+
+The calibration targets consist of five summary statistics
+derived from empirical observations of the 2013--2017 SSWD
+epizootic:
+%
+\begin{enumerate}[nosep]
+  \item Population decline magnitude: 80--99\% crash across the
+    species range \citep{harvell2019disease,
+    montecino2016sunflower};
+  \item Timeline from pathogen introduction to population nadir:
+    2--5 years \citep{montecino2016sunflower};
+  \item North--south mortality gradient: southern populations
+    experienced more severe declines
+    \citep{hamilton2021nearshore};
+  \item Fjord and semi-enclosed water refugia: higher survival
+    in protected waters relative to open coast
+    \citep{hamilton2021nearshore};
+  \item Allele frequency shift at immune-associated loci:
+    $\Delta q = 0.08$--0.15 \citep{schiebelhut2018collapse}.
+\end{enumerate}
+%
+The distance between simulated and observed outcomes is computed as
+a weighted sum of absolute deviations, normalized by the empirical
+range of each statistic:
+%
+\begin{equation}
+  d(\boldsymbol{\theta})
+  = \sum_{i=1}^{5} w_i \,
+    \frac{\bigl|S_i^{\mathrm{sim}}(\boldsymbol{\theta})
+          - S_i^{\mathrm{obs}}\bigr|}{\sigma_i},
+  \label{eq:abc_distance}
+\end{equation}
+%
+where $S_i^{\mathrm{sim}}$ and $S_i^{\mathrm{obs}}$ are simulated
+and observed summary statistics, $\sigma_i$ is a normalization
+constant (empirical range or standard deviation), and $w_i$ is a
+weight reflecting constraint quality. Well-quantified targets
+(population crash magnitude, allele frequency shift) receive higher
+weight ($w = 1.0$) than qualitative constraints (gradient sign,
+refugia effect; $w = 0.5$).
+
+\subsubsection{ABC-SMC protocol}
+\label{sec:abc_protocol}
+
+The ABC-SMC algorithm proceeds through $T = 5$--8 sequential
+populations of $N_\mathrm{particles} = 1{,}000$ parameter
+vectors. The initial acceptance threshold~$\varepsilon_1$ is set
+at the 75th percentile of distances from a prior-predictive
+sample, and is reduced by approximately 50\% at each subsequent
+population until the acceptance rate falls below 1\% or
+$\varepsilon$ stabilizes (change ${<}5$\% between consecutive
+populations). Component-wise uniform perturbation kernels with
+adaptive widths \citep{Beaumont2009} maintain particle diversity
+across populations. Each parameter vector is evaluated using
+three independent random seeds at the calibration scale
+($K = 5{,}000$ per node), with the median distance across seeds
+used to reduce stochastic noise.
+
+Total computational cost is estimated at 10{,}000--50{,}000
+forward simulations. Calibration is performed at $K = 5{,}000$
+per node; posterior parameter estimates are subsequently validated
+at $K = 100{,}000$ per node to verify scale-independence of the
+fitted dynamics. The calibration framework uses the pyABC Python
+library \citep{Klinger2018}.

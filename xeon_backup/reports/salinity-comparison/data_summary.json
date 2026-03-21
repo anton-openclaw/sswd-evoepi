@@ -1,0 +1,449 @@
+{
+  "n_sites": 896,
+  "n_direct": 235,
+  "n_nn_filled": 661,
+  "pct_nn_filled": 73.8,
+  "max_nn_distance_deg": 0.1768,
+  "mean_nn_distance_deg": 0.0935,
+  "monthly_bias_psu": -0.1295,
+  "monthly_rmse_psu": 2.4205,
+  "monthly_max_error_psu": 9.1839,
+  "annual_bias_psu": -0.1295,
+  "annual_rmse_psu": 2.2903,
+  "annual_r_squared": -0.32,
+  "woa_seasonal_range_mean_psu": 1.6757,
+  "woa_seasonal_range_max_psu": 8.113,
+  "woa_seasonal_range_median_psu": 1.0357,
+  "param_seasonal_range_psu": 0.0,
+  "param_fw15_seasonal_range_mean_psu": 3.9266,
+  "min_month_distribution": {
+    "Jan": 23,
+    "Feb": 116,
+    "Mar": 76,
+    "Apr": 37,
+    "May": 171,
+    "Jun": 152,
+    "Jul": 26,
+    "Aug": 102,
+    "Sep": 45,
+    "Oct": 62,
+    "Nov": 40,
+    "Dec": 46
+  },
+  "top_min_months": [
+    "May",
+    "Jun",
+    "Feb",
+    "Aug"
+  ],
+  "per_region": {
+    "AK-AL": {
+      "n_sites": 15,
+      "bias": -1.12,
+      "rmse": 1.177,
+      "woa_annual_mean": 32.59,
+      "param_annual_mean": 31.47,
+      "woa_seasonal_range_mean": 0.32
+    },
+    "AK-EG": {
+      "n_sites": 22,
+      "bias": 0.268,
+      "rmse": 0.716,
+      "woa_annual_mean": 31.57,
+      "param_annual_mean": 31.84,
+      "woa_seasonal_range_mean": 1.46
+    },
+    "AK-FN": {
+      "n_sites": 40,
+      "bias": 1.122,
+      "rmse": 1.682,
+      "woa_annual_mean": 30.62,
+      "param_annual_mean": 31.75,
+      "woa_seasonal_range_mean": 3.14
+    },
+    "AK-FS": {
+      "n_sites": 48,
+      "bias": 0.76,
+      "rmse": 1.246,
+      "woa_annual_mean": 30.87,
+      "param_annual_mean": 31.63,
+      "woa_seasonal_range_mean": 2.08
+    },
+    "AK-OC": {
+      "n_sites": 28,
+      "bias": 0.049,
+      "rmse": 0.371,
+      "woa_annual_mean": 31.66,
+      "param_annual_mean": 31.7,
+      "woa_seasonal_range_mean": 0.97
+    },
+    "AK-PWS": {
+      "n_sites": 43,
+      "bias": 2.294,
+      "rmse": 3.207,
+      "woa_annual_mean": 29.6,
+      "param_annual_mean": 31.89,
+      "woa_seasonal_range_mean": 6.86
+    },
+    "AK-WG": {
+      "n_sites": 79,
+      "bias": 0.17,
+      "rmse": 0.935,
+      "woa_annual_mean": 31.57,
+      "param_annual_mean": 31.74,
+      "woa_seasonal_range_mean": 1.22
+    },
+    "BC-C": {
+      "n_sites": 36,
+      "bias": -0.058,
+      "rmse": 0.734,
+      "woa_annual_mean": 31.39,
+      "param_annual_mean": 31.33,
+      "woa_seasonal_range_mean": 0.75
+    },
+    "BC-N": {
+      "n_sites": 75,
+      "bias": 0.174,
+      "rmse": 0.533,
+      "woa_annual_mean": 31.28,
+      "param_annual_mean": 31.46,
+      "woa_seasonal_range_mean": 1.09
+    },
+    "BJ": {
+      "n_sites": 31,
+      "bias": -3.447,
+      "rmse": 3.458,
+      "woa_annual_mean": 33.67,
+      "param_annual_mean": 30.22,
+      "woa_seasonal_range_mean": 0.25
+    },
+    "CA-C": {
+      "n_sites": 97,
+      "bias": -2.79,
+      "rmse": 2.796,
+      "woa_annual_mean": 33.39,
+      "param_annual_mean": 30.6,
+      "woa_seasonal_range_mean": 0.38
+    },
+    "CA-N": {
+      "n_sites": 63,
+      "bias": -2.195,
+      "rmse": 2.218,
+      "woa_annual_mean": 32.98,
+      "param_annual_mean": 30.78,
+      "woa_seasonal_range_mean": 0.8
+    },
+    "CA-S": {
+      "n_sites": 78,
+      "bias": -3.099,
+      "rmse": 3.1,
+      "woa_annual_mean": 33.54,
+      "param_annual_mean": 30.44,
+      "woa_seasonal_range_mean": 0.19
+    },
+    "JDF": {
+      "n_sites": 26,
+      "bias": 2.369,
+      "rmse": 2.691,
+      "woa_annual_mean": 28.84,
+      "param_annual_mean": 31.21,
+      "woa_seasonal_range_mean": 2.11
+    },
+    "OR": {
+      "n_sites": 59,
+      "bias": -1.047,
+      "rmse": 1.385,
+      "woa_annual_mean": 32.04,
+      "param_annual_mean": 30.99,
+      "woa_seasonal_range_mean": 1.35
+    },
+    "SS-N": {
+      "n_sites": 31,
+      "bias": 4.75,
+      "rmse": 5.136,
+      "woa_annual_mean": 26.55,
+      "param_annual_mean": 31.3,
+      "woa_seasonal_range_mean": 4.93
+    },
+    "SS-S": {
+      "n_sites": 89,
+      "bias": 3.347,
+      "rmse": 3.6,
+      "woa_annual_mean": 27.87,
+      "param_annual_mean": 31.21,
+      "woa_seasonal_range_mean": 2.95
+    },
+    "WA-O": {
+      "n_sites": 36,
+      "bias": 0.045,
+      "rmse": 0.602,
+      "woa_annual_mean": 31.14,
+      "param_annual_mean": 31.19,
+      "woa_seasonal_range_mean": 1.46
+    }
+  },
+  "per_group": {
+    "Alaska": {
+      "n_sites": 275,
+      "bias": 0.669,
+      "rmse": 1.635,
+      "woa_annual_mean": 31.07,
+      "woa_seasonal_range_mean": 2.48
+    },
+    "British Columbia": {
+      "n_sites": 111,
+      "bias": 0.099,
+      "rmse": 0.606,
+      "woa_annual_mean": 31.32,
+      "woa_seasonal_range_mean": 0.98
+    },
+    "Salish Sea / WA": {
+      "n_sites": 182,
+      "bias": 2.793,
+      "rmse": 3.455,
+      "woa_annual_mean": 28.43,
+      "woa_seasonal_range_mean": 2.87
+    },
+    "OR / California": {
+      "n_sites": 328,
+      "bias": -2.498,
+      "rmse": 2.649,
+      "woa_annual_mean": 33.13,
+      "woa_seasonal_range_mean": 0.58
+    }
+  },
+  "woa_min_psu": 22.14,
+  "woa_max_psu": 34.31,
+  "param_min_psu": 30.05,
+  "param_max_psu": 31.92,
+  "lat_range": [
+    26.56,
+    61.19
+  ],
+  "lon_range": [
+    -178.8,
+    -113.15
+  ],
+  "dfo_stations": 12,
+  "dfo_rmse_woa_mean": 1.578,
+  "dfo_rmse_param_mean": 2.26,
+  "dfo_rmse_woa_per_station": {
+    "Langara Island": 0.279,
+    "Bonilla Island": 0.414,
+    "McInnes Island": 1.426,
+    "Egg Island": 1.615,
+    "Pine Island": 0.247,
+    "Kains Island": 1.742,
+    "Nootka Point": 5.023,
+    "Chrome Island": 0.715,
+    "Departure Bay PBS": 1.508,
+    "Entrance Island": 1.256,
+    "Amphitrite Point": 2.047,
+    "Race Rocks": 2.669
+  },
+  "dfo_rmse_param_per_station": {
+    "Langara Island": 0.266,
+    "Bonilla Island": 0.326,
+    "McInnes Island": 1.489,
+    "Egg Island": 1.667,
+    "Pine Island": 0.204,
+    "Kains Island": 1.558,
+    "Nootka Point": 4.732,
+    "Chrome Island": 3.55,
+    "Departure Bay PBS": 6.206,
+    "Entrance Island": 4.669,
+    "Amphitrite Point": 2.278,
+    "Race Rocks": 0.179
+  },
+  "fjord_bias_correlation": 0.2919,
+  "suppression_june": {
+    "n_suppressed_woa": 143,
+    "n_suppressed_param": 0,
+    "mean_suppression_woa_pct": 3.29,
+    "mean_suppression_param_pct": 0.0,
+    "max_suppression_woa_pct": 54.5,
+    "max_suppression_param_pct": 0.0,
+    "per_group": {
+      "Alaska": {
+        "mean_suppression_woa_pct": 0.0,
+        "mean_suppression_param_pct": 0.0,
+        "max_suppression_woa_pct": 0.0,
+        "max_suppression_param_pct": 0.0,
+        "woa_june_mean": 30.75,
+        "param_june_mean": 31.74
+      },
+      "British Columbia": {
+        "mean_suppression_woa_pct": 0.25,
+        "mean_suppression_param_pct": 0.0,
+        "max_suppression_woa_pct": 27.25,
+        "max_suppression_param_pct": 0.0,
+        "woa_june_mean": 30.88,
+        "param_june_mean": 31.42
+      },
+      "Salish Sea / WA": {
+        "mean_suppression_woa_pct": 16.02,
+        "mean_suppression_param_pct": 0.0,
+        "max_suppression_woa_pct": 54.5,
+        "max_suppression_param_pct": 0.0,
+        "woa_june_mean": 27.02,
+        "param_june_mean": 31.22
+      },
+      "OR / California": {
+        "mean_suppression_woa_pct": 0.0,
+        "mean_suppression_param_pct": 0.0,
+        "max_suppression_woa_pct": 0.0,
+        "max_suppression_param_pct": 0.0,
+        "woa_june_mean": 33.19,
+        "param_june_mean": 30.63
+      }
+    }
+  },
+  "latitude_correlation": {
+    "woa_june_vs_lat": -0.4586,
+    "param_june_vs_lat": 1.0
+  },
+  "worst_10_sites": [
+    {
+      "name": "SS-N-022",
+      "region": "SS-N",
+      "bias": 5.74,
+      "woa_ann": 25.55,
+      "param_ann": 31.29
+    },
+    {
+      "name": "SS-S-001",
+      "region": "SS-S",
+      "bias": 5.72,
+      "woa_ann": 25.55,
+      "param_ann": 31.27
+    },
+    {
+      "name": "SS-S-009",
+      "region": "SS-S",
+      "bias": 5.7,
+      "woa_ann": 25.55,
+      "param_ann": 31.25
+    },
+    {
+      "name": "SS-N-015",
+      "region": "SS-N",
+      "bias": 5.61,
+      "woa_ann": 25.69,
+      "param_ann": 31.3
+    },
+    {
+      "name": "SS-N-020",
+      "region": "SS-N",
+      "bias": 5.6,
+      "woa_ann": 25.69,
+      "param_ann": 31.29
+    },
+    {
+      "name": "SS-N-023",
+      "region": "SS-N",
+      "bias": 5.59,
+      "woa_ann": 25.69,
+      "param_ann": 31.28
+    },
+    {
+      "name": "SS-N-024",
+      "region": "SS-N",
+      "bias": 5.59,
+      "woa_ann": 25.69,
+      "param_ann": 31.28
+    },
+    {
+      "name": "SS-N-026",
+      "region": "SS-N",
+      "bias": 5.59,
+      "woa_ann": 25.69,
+      "param_ann": 31.28
+    },
+    {
+      "name": "SS-N-030",
+      "region": "SS-N",
+      "bias": 5.58,
+      "woa_ann": 25.69,
+      "param_ann": 31.27
+    },
+    {
+      "name": "SS-N-031",
+      "region": "SS-N",
+      "bias": 5.58,
+      "woa_ann": 25.69,
+      "param_ann": 31.27
+    }
+  ],
+  "best_10_sites": [
+    {
+      "name": "JDF-007",
+      "region": "JDF",
+      "bias": 0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.24
+    },
+    {
+      "name": "WA-O-001",
+      "region": "WA-O",
+      "bias": -0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.23
+    },
+    {
+      "name": "WA-O-002",
+      "region": "WA-O",
+      "bias": -0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.23
+    },
+    {
+      "name": "WA-O-003",
+      "region": "WA-O",
+      "bias": -0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.23
+    },
+    {
+      "name": "WA-O-004",
+      "region": "WA-O",
+      "bias": -0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.23
+    },
+    {
+      "name": "JDF-003",
+      "region": "JDF",
+      "bias": 0.0,
+      "woa_ann": 31.24,
+      "param_ann": 31.24
+    },
+    {
+      "name": "WA-O-024",
+      "region": "WA-O",
+      "bias": -0.0,
+      "woa_ann": 31.19,
+      "param_ann": 31.18
+    },
+    {
+      "name": "OR-010",
+      "region": "OR",
+      "bias": -0.01,
+      "woa_ann": 31.07,
+      "param_ann": 31.06
+    },
+    {
+      "name": "WA-O-005",
+      "region": "WA-O",
+      "bias": -0.01,
+      "woa_ann": 31.24,
+      "param_ann": 31.23
+    },
+    {
+      "name": "BC-C-009",
+      "region": "BC-C",
+      "bias": -0.01,
+      "woa_ann": 31.38,
+      "param_ann": 31.37
+    }
+  ]
+}

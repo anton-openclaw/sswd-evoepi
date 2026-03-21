@@ -1,0 +1,193 @@
+\section{Reintroduction Genetics}
+\label{sec:reintroduction}
+
+Releasing captive-bred individuals into the wild creates a 
+genetic mixing event. The outcome depends on the genetic 
+composition of the released stock, the recipient population, 
+and the ongoing disease dynamics. This section develops the 
+theory.
+
+\subsection{Allele frequency shift from supplementation}
+
+When $N_r$ captive-bred individuals (with allele frequency 
+$q_r$ at locus $\ell$) are released into a wild population 
+of $N_w$ individuals (with frequency $q_w$):
+\begin{equation}
+    q_{\text{post}} = \frac{N_w \cdot q_w + N_r \cdot q_r}
+    {N_w + N_r}
+    \label{eq:admixture}
+\end{equation}
+
+The frequency shift is:
+\begin{equation}
+    \Delta q = q_{\text{post}} - q_w = 
+    \frac{N_r}{N_w + N_r} \cdot (q_r - q_w)
+    \label{eq:freq_shift}
+\end{equation}
+
+\begin{remark}
+The shift is proportional to $N_r / (N_w + N_r)$. When wild 
+populations are severely depleted ($N_w \ll K$), a modest 
+release can have a large genetic impact. This is the 
+\textbf{genetic rescue} scenario — the depleted wild 
+population is easily ``swamped'' by captive stock.
+\end{remark}
+
+\subsection{Genetic rescue vs.\ genetic swamping}
+
+\begin{definition}[Genetic rescue]
+Introduction of new genetic variation into an inbred or 
+genetically depauperate population, increasing fitness 
+through heterosis (masking of deleterious recessives) and/or 
+introduction of beneficial alleles 
+\citep{whiteley2015genetic}.
+\end{definition}
+
+\begin{definition}[Genetic swamping]
+Replacement of locally adapted alleles by maladapted 
+introduced alleles, reducing population fitness 
+\citep{rhymer1996extinction}.
+\end{definition}
+
+For \pyc{}, the risk of genetic swamping is low because:
+\begin{enumerate}
+    \item The captive stock is derived from wild populations 
+    (no interspecific hybridization)
+    \item The target trait (disease resistance) is universally 
+    beneficial across the range
+    \item Local adaptation to non-disease factors (temperature, 
+    salinity) is likely weak relative to the disease-driven 
+    selection pressure
+\end{enumerate}
+
+The primary risk is \textbf{outbreeding depression}: if 
+captive-bred stock from one population is released into a 
+genetically divergent population, offspring may have reduced 
+fitness due to disruption of co-adapted gene complexes. 
+However, for traits controlled by our 51 additive loci, 
+this is not possible by construction (no epistasis). 
+Outbreeding depression would come from the rest of the genome, 
+which we do not model.
+
+\subsection{Effective migration rate}
+
+In the spatial model, captive-bred releases function as a 
+human-mediated migration event. The effective migration rate 
+at node $k$ from a release of $N_r$ individuals is:
+\begin{equation}
+    m_k^{\text{eff}} = \frac{N_r}{N_k + N_r}
+    \label{eq:effective_migration}
+\end{equation}
+
+For the genetic effects to be sustained, releases must either:
+\begin{enumerate}
+    \item Be large enough to shift allele frequencies 
+    significantly in a single event
+    \item Be repeated over multiple generations to maintain 
+    elevated frequencies against the erosion from wild-type 
+    reproduction
+\end{enumerate}
+
+\subsection{Persistence of introduced alleles}
+
+After a one-time release, the introduced allele frequency 
+decays if the captive stock has lower overall fitness 
+(e.g., maladaptation to local conditions, inbreeding depression). 
+However, if the introduced alleles confer a \emph{selective 
+advantage} (higher disease resistance), they will increase in 
+frequency:
+\begin{equation}
+    \Delta q_\ell = s_\ell \cdot q_\ell (1 - q_\ell)
+    \label{eq:freq_change_selection}
+\end{equation}
+where $s_\ell$ is the selection coefficient at locus $\ell$. 
+In our model, this is determined by the fitness function 
+(\Cref{eq:fitness_function}) and the local disease pressure.
+
+\begin{proposition}[Resistance alleles are self-sustaining]
+\label{prop:self_sustaining}
+In populations where disease pressure maintains $s_\ell > 0$ 
+for resistance alleles, a one-time release that shifts $q_\ell$ 
+above the drift threshold ($q_\ell > 1/\sqrt{N_e}$) will lead 
+to continued frequency increase through natural selection. The 
+release provides the initial ``push''; selection does the rest.
+\end{proposition}
+
+This is the optimistic scenario for conservation: captive-bred 
+stock doesn't need to permanently replace the wild population. 
+It just needs to inject enough resistant alleles that natural 
+selection can amplify them.
+
+\subsection{Release strategy optimization}
+
+Given a total budget of $N_{\text{total}}$ captive-bred 
+individuals, how should they be distributed?
+
+\subsubsection{Spatial allocation}
+
+For $K$ release sites with wild populations $N_1, \ldots, N_K$:
+\begin{equation}
+    \text{max}_{\{n_k\}} \; \sum_{k=1}^{K} 
+    \phi_k(n_k, N_k, q_k^w, q^r)
+    \quad \text{s.t.} \quad 
+    \sum_k n_k = N_{\text{total}}
+    \label{eq:spatial_allocation}
+\end{equation}
+where $\phi_k$ is a node-specific benefit function 
+(e.g., expected 20-year population size, or mean resistance 
+at year 20).
+
+Intuition:
+\begin{itemize}
+    \item Depleted populations benefit most per released 
+    individual (higher $m_k^{\text{eff}}$)
+    \item But populations near extinction may not be viable 
+    regardless (wasted effort)
+    \item Populations with some natural resistance gain 
+    less from supplementation
+    \item Connectivity matters: releases at well-connected 
+    nodes spread alleles further via larval dispersal
+\end{itemize}
+
+\subsubsection{Temporal allocation}
+
+Should we release all at once or spread across years?
+
+\textbf{Arguments for single large release:}
+\begin{itemize}
+    \item Maximizes initial frequency shift 
+    (\Cref{eq:freq_shift})
+    \item Dilutes local disease pressure through density effects
+    \item Immediate demographic rescue
+\end{itemize}
+
+\textbf{Arguments for repeated releases:}
+\begin{itemize}
+    \item Hedges against stochastic die-off of released cohorts
+    \item Allows improving genetic quality as breeding 
+    program advances
+    \item Maintains genetic influx against drift erosion
+\end{itemize}
+
+The optimal strategy depends on disease dynamics (seasonal 
+peaks, inter-annual variation) and the breeding program's 
+trajectory — questions the calibrated model can answer.
+
+\subsection{Monitoring and adaptive management}
+
+Post-release monitoring should track:
+\begin{enumerate}
+    \item \textbf{Survival} of released individuals (mark--recapture)
+    \item \textbf{Allele frequencies} at marker loci 
+    (non-invasive genetic sampling)
+    \item \textbf{Resistance phenotype} if challenge assays 
+    are feasible
+    \item \textbf{Population growth rate} ($\lambda$) — 
+    is the population recovering?
+    \item \textbf{Connectivity signal} — are introduced alleles 
+    spreading to adjacent nodes via larvae?
+\end{enumerate}
+
+The model provides predicted trajectories for all of these, 
+which serve as benchmarks for assessing whether the 
+reintroduction is on track.

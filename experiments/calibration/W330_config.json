@@ -1,0 +1,24 @@
+{
+  "param_overrides": {
+    "disease.K_half": 800000.0,
+    "disease.T_vbnc_min": 10.0,
+    "disease.seed_vibrio": 2000.0,
+    "disease.fw_strength": 25.0,
+    "disease.alpha_env": 0.18,
+    "disease.k_vbnc": 2.0,
+    "disease.pathogen_adapt_rate": 0.001,
+    "disease.v_max_warm": 0.7,
+    "disease.cumulative_dose_threshold": 1000.0,
+    "disease.wavefront_D_P": 300.0,
+    "spatial.n_connectivity": 0.3,
+    "spatial.r_total": 0.003,
+    "spatial.alpha_self_open": 0.05,
+    "spatial.alpha_self_fjord": 0.5,
+    "disease.delta_env_T_dependent": true,
+    "disease.delta_env_cold": 0.05,
+    "disease.delta_env_warm": 0.01,
+    "disease.recovery_P_env_gated": true,
+    "disease.recovery_P_env_half": 800.0,
+    "disease.recovery_P_env_hill": 2.0
+  }
+}
