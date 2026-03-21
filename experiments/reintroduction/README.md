@@ -26,9 +26,16 @@ W330 baseline at year 13 (2025), run forward to year 38 (2050).
 | D3 | 500 | Large release (at K=1000, this is 50% of K) |
 | D4 | 1000 | Full saturation (= K) |
 
-### Full Factorial: 5 × 4 = 20 scenarios
+### Axis 3: Release Location (2 sites)
 
-Naming: `REINTRO_{R#}_{D#}` (e.g., `REINTRO_R1_D2` = CA survivors at 200/site)
+| ID | Location | Node | Region | Coords |
+|----|----------|------|--------|--------|
+| L1 | **Monterey, CA** | 230 (CA-C-050) | CA-C | 36.605°N, 121.890°W |
+| L2 | **Friday Harbor, WA** | 413 (JDF-001) | JDF | 48.542°N, 123.010°W |
+
+### Full Factorial: 5 × 4 × 2 = 40 scenarios
+
+Naming: `REINTRO_{L#}_{R#}_{D#}` (e.g., `REINTRO_L1_R1_D2` = Monterey, CA survivors, 200/site)
 
 ### Release Parameters
 - **Release year**: 13 (= 2025)
@@ -50,9 +57,12 @@ Naming: `REINTRO_{R#}_{D#}` (e.g., `REINTRO_R1_D2` = CA survivors at 200/site)
    animals succeed at any density, but naive animals need critical mass)
 5. **P_env barrier**: Does the warm-water pathogen reservoir overwhelm even
    resistant animals in CA? (P_env gating may prevent recovery regardless)
-6. **Spillover**: Do released CA populations seed recovery in OR/WA via
-   larval transport?
-7. **Evolutionary dynamics**: Do released genetics persist or get swamped by
+6. **Location contrast**: Is reintroduction easier in cold WA (Friday Harbor)
+   where environmental Vibrio clears faster, vs warm CA (Monterey) where
+   P_env stays high? The model predicts WA should be more favorable.
+7. **Spillover**: Do released populations seed recovery in neighboring regions
+   via larval transport?
+8. **Evolutionary dynamics**: Do released genetics persist or get swamped by
    local survivor genetics? Does Va recover?
 
 ### Response Variables
