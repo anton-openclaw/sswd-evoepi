@@ -19,7 +19,10 @@ coupling:
 
 ## Status
 
-🚧 **Active development** — Phase 0 infrastructure complete.
+🚧 **Active development** — Core model calibrated, 1020 tests passing.
+Reintroduction and forecast experiments complete; MHW (marine heatwave)
+experiments pending. All computation runs locally on a Ryzen 7 / 32 GB
+workstation (see [INFRASTRUCTURE.md](INFRASTRUCTURE.md)).
 
 ## Quick Start
 
@@ -42,19 +45,20 @@ sswd-evoepi/
 │   ├── types.py          # Core data types (AGENT_DTYPE, enums)
 │   ├── config.py         # Configuration system (YAML loading)
 │   ├── rng.py            # Seeded RNG hierarchy
-│   ├── population.py     # Population dynamics (stub)
-│   ├── disease.py        # Disease dynamics (stub)
-│   ├── genetics.py       # Genetics & evolution (stub)
-│   ├── spatial.py        # Spatial connectivity (stub)
-│   ├── conservation.py   # Conservation interventions (stub)
-│   ├── environment.py    # Environmental forcing (stub)
-│   ├── recorder.py       # Data recording (stub)
-│   ├── model.py          # Simulation orchestrator (stub)
+│   ├── population.py     # Population dynamics
+│   ├── disease.py        # Disease dynamics (SEIPD+R)
+│   ├── genetics.py       # Polygenic resistance evolution
+│   ├── spatial.py        # Spatial connectivity & dispersal
+│   ├── conservation.py   # Conservation interventions
+│   ├── environment.py    # Environmental forcing (SST, MHW)
+│   ├── recorder.py       # Data recording & output
+│   ├── model.py          # Simulation orchestrator
 │   └── utils.py          # Utility functions
 ├── configs/
 │   └── default.yaml      # Default parameters (all modules)
-├── tests/                # Test suite
+├── tests/                # Test suite (1020 tests)
 ├── CODE_ERRATA.md        # Implementation errata tracker
+├── INFRASTRUCTURE.md     # Compute environment & benchmarks
 └── README.md
 ```
 
