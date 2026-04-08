@@ -1,7 +1,9 @@
 #!/bin/bash
-# Launch marine heatwave experiments (12 scenarios, 8 concurrent)
+# Launch marine heatwave experiments (12 scenarios, sequential at K=2000)
 # All use W330 best-calibrated baseline + MHW SST scenarios
 # 38 years total (2012-2050), disease at year 1 (2013)
+# Running locally on Ryzen 7 5700 / 32GB — K=2000 sequential for publication fidelity
+# See INFRASTRUCTURE.md for K sensitivity benchmarks
 
 set -euo pipefail
 
@@ -10,11 +12,11 @@ RUNNER="$REPO/experiments/calibration_runner.py"
 CONFIG_DIR="$REPO/experiments/heatwave/configs"
 OUTPUT_BASE="$REPO/results/mhw_2050"
 YEARS=38
-K=1000
+K=2000
 K_REF=5000
 SEED=42
 DISEASE_YEAR=1
-MAX_JOBS=8
+MAX_JOBS=1
 
 # Thread control — CRITICAL for parallel launches
 export OMP_NUM_THREADS=1
