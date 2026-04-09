@@ -50,6 +50,7 @@ from sswd_evoepi.disease import (
     adapt_community_virulence,
     adapt_pathogen_thermal,
     daily_disease_update,
+    load_dependent_disease_update,
     environmental_vibrio,
     vibrio_decay_rate,
     arrhenius,
@@ -1433,6 +1434,8 @@ def run_coupled_simulation(
             )
             agents['disease_state'][sick] = DiseaseState.S
             agents['disease_timer'][sick] = 0.0
+            if 'pathogen_load' in agents.dtype.names:
+                agents['pathogen_load'][sick] = 0.0
 
         # Reset daily demographic accumulators for this year
         daily_nat_deaths_accum = 0
@@ -1479,20 +1482,36 @@ def run_coupled_simulation(
                         config.sentinel.shedding_fraction
                         if config.sentinel.enabled else 0.0
                     )
-                    node_disease = daily_disease_update(
-                        agents=agents,
-                        node_state=node_disease,
-                        T_celsius=today_T,
-                        salinity=salinity,
-                        phi_k=phi_k,
-                        dispersal_input=0.0,
-                        day=global_day,
-                        cfg=dis_cfg,
-                        rng=rng,
-                        pe_cfg=pe_cfg,
-                        tau_max=gen_cfg.tau_max,
-                        sentinel_shedding_fraction=_sentinel_shed_frac,
-                    )
+                    if config.disease_load_dependent.enabled:
+                        node_disease = load_dependent_disease_update(
+                            agents=agents,
+                            node_state=node_disease,
+                            T_celsius=today_T,
+                            salinity=salinity,
+                            phi_k=phi_k,
+                            dispersal_input=0.0,
+                            day=global_day,
+                            cfg=dis_cfg,
+                            ld_cfg=config.disease_load_dependent,
+                            rng=rng,
+                            tau_max=gen_cfg.tau_max,
+                            sentinel_shedding_fraction=_sentinel_shed_frac,
+                        )
+                    else:
+                        node_disease = daily_disease_update(
+                            agents=agents,
+                            node_state=node_disease,
+                            T_celsius=today_T,
+                            salinity=salinity,
+                            phi_k=phi_k,
+                            dispersal_input=0.0,
+                            day=global_day,
+                            cfg=dis_cfg,
+                            rng=rng,
+                            pe_cfg=pe_cfg,
+                            tau_max=gen_cfg.tau_max,
+                            sentinel_shedding_fraction=_sentinel_shed_frac,
+                        )
                     new_deaths = node_disease.cumulative_deaths - deaths_before
                     cumulative_disease_deaths += new_deaths
 
@@ -2376,6 +2395,8 @@ def run_spatial_simulation(
                 )
                 node.agents['disease_state'][sick] = DiseaseState.S
                 node.agents['disease_timer'][sick] = 0.0
+                if 'pathogen_load' in node.agents.dtype.names:
+                    node.agents['pathogen_load'][sick] = 0.0
             if progress_callback and hasattr(progress_callback, 'log'):
                 progress_callback.log(f"Year {year}: disease_end_year reached — all pathogen removed")
             else:
@@ -2467,25 +2488,46 @@ def run_spatial_simulation(
                     continue
                 _T_vbnc_local_i = node_disease_states[i].T_vbnc_local if _pathogen_adapt else None
                 deaths_before = node_disease_states[i].cumulative_deaths
-                node_disease_states[i] = daily_disease_update(
-                    agents=node.agents,
-                    node_state=node_disease_states[i],
-                    T_celsius=node.current_sst,
-                    salinity=node.current_salinity,
-                    phi_k=node.current_flushing,
-                    dispersal_input=0.0,  # handled below
-                    day=year * DAYS_PER_YEAR + day,
-                    cfg=dis_cfg,
-                    rng=rng,
-                    infected_density_grid=(
-                        density_grids[i] if spatial_tx else None
-                    ),
-                    pe_cfg=pe_cfg,
-                    disease_reached=disease_reached[i],
-                    T_vbnc_local=_T_vbnc_local_i,
-                    tau_max=gen_cfg.tau_max,
-                    sentinel_shedding_fraction=_sentinel_shed_frac_spatial,
-                )
+                if config.disease_load_dependent.enabled:
+                    node_disease_states[i] = load_dependent_disease_update(
+                        agents=node.agents,
+                        node_state=node_disease_states[i],
+                        T_celsius=node.current_sst,
+                        salinity=node.current_salinity,
+                        phi_k=node.current_flushing,
+                        dispersal_input=0.0,  # handled below
+                        day=year * DAYS_PER_YEAR + day,
+                        cfg=dis_cfg,
+                        ld_cfg=config.disease_load_dependent,
+                        rng=rng,
+                        infected_density_grid=(
+                            density_grids[i] if spatial_tx else None
+                        ),
+                        disease_reached=disease_reached[i],
+                        T_vbnc_local=_T_vbnc_local_i,
+                        tau_max=gen_cfg.tau_max,
+                        sentinel_shedding_fraction=_sentinel_shed_frac_spatial,
+                    )
+                else:
+                    node_disease_states[i] = daily_disease_update(
+                        agents=node.agents,
+                        node_state=node_disease_states[i],
+                        T_celsius=node.current_sst,
+                        salinity=node.current_salinity,
+                        phi_k=node.current_flushing,
+                        dispersal_input=0.0,  # handled below
+                        day=year * DAYS_PER_YEAR + day,
+                        cfg=dis_cfg,
+                        rng=rng,
+                        infected_density_grid=(
+                            density_grids[i] if spatial_tx else None
+                        ),
+                        pe_cfg=pe_cfg,
+                        disease_reached=disease_reached[i],
+                        T_vbnc_local=_T_vbnc_local_i,
+                        tau_max=gen_cfg.tau_max,
+                        sentinel_shedding_fraction=_sentinel_shed_frac_spatial,
+                    )
                 new_deaths = (
                     node_disease_states[i].cumulative_deaths - deaths_before
                 )

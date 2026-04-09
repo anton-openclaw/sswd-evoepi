@@ -1292,6 +1292,395 @@ def daily_disease_update(
 
 
 # ═══════════════════════════════════════════════════════════════════════
+# LOAD-DEPENDENT DISEASE MODEL
+# ═══════════════════════════════════════════════════════════════════════
+
+def within_host_load_step(
+    L: np.ndarray,
+    r_i: np.ndarray,
+    c_i: np.ndarray,
+    T_celsius: float,
+    P_k: float,
+    cfg: DiseaseSection,
+    ld_cfg: "LoadDependentSection",
+) -> np.ndarray:
+    """Vectorized within-host pathogen load ODE (daily Euler step).
+
+    For all infected agents simultaneously:
+      growth = r_growth × arrhenius_factor × L × (1 - L/L_max)
+      clearance = delta_clear × (0.3 + 0.7×r_i) × (0.5 + 0.5×c_i) × L
+      reinfection = alpha_reinfect × P_k/(K_half+P_k) × (1 - r_i)
+      L_new = max(0, L + growth - clearance + reinfection)
+
+    Args:
+        L: Pathogen load array (n_infected,).
+        r_i: Resistance scores (n_infected,).
+        c_i: Recovery ability scores (n_infected,).
+        T_celsius: Current SST (°C).
+        P_k: Vibrio concentration at node (bacteria/mL).
+        cfg: Disease configuration section.
+        ld_cfg: Load-dependent configuration section.
+
+    Returns:
+        Updated pathogen load array (n_infected,).
+    """
+    # Temperature-dependent growth rate
+    arrhenius_factor = arrhenius(1.0, ld_cfg.Ea_growth, T_celsius)
+    growth = ld_cfg.r_growth * arrhenius_factor * L * (1.0 - L / ld_cfg.L_max)
+
+    # Immune clearance (resistance + recovery traits)
+    clearance = ld_cfg.delta_clear * (0.3 + 0.7 * r_i) * (0.5 + 0.5 * c_i) * L
+
+    # Environmental reinfection
+    if P_k > 0.0:
+        dose_frac = P_k / (cfg.K_half + P_k)
+        reinfection = ld_cfg.alpha_reinfect * dose_frac * (1.0 - r_i)
+    else:
+        reinfection = np.zeros_like(L)
+
+    # Euler step
+    dL = growth - clearance + reinfection
+    L_new = np.maximum(0.0, L + dL)
+    return L_new
+
+
+def load_mortality_probability(
+    L: np.ndarray,
+    t_i: np.ndarray,
+    ld_cfg: "LoadDependentSection",
+    tau_max: float,
+) -> np.ndarray:
+    """Vectorized Hill-function daily mortality probability.
+
+    LD50_i = LD50_base × (1 + t_i × tau_max)
+    p_death = p_death_max × L^n / (LD50_i^n + L^n)
+
+    Args:
+        L: Pathogen load array (n_infected,).
+        t_i: Tolerance scores (n_infected,).
+        ld_cfg: Load-dependent configuration section.
+        tau_max: Maximum mortality reduction from tolerance.
+
+    Returns:
+        Daily mortality probability array (n_infected,).
+    """
+    LD50_i = ld_cfg.LD50_base * (1.0 + t_i * tau_max)
+    n = ld_cfg.n_hill
+    L_n = np.power(L, n)
+    LD50_n = np.power(LD50_i, n)
+    p_death = ld_cfg.p_death_max * L_n / (LD50_n + L_n)
+    return p_death
+
+
+def load_dependent_disease_update(
+    agents: np.ndarray,
+    node_state: NodeDiseaseState,
+    T_celsius: float,
+    salinity: float,
+    phi_k: float,
+    dispersal_input: float,
+    day: int,
+    cfg: DiseaseSection,
+    ld_cfg: "LoadDependentSection",
+    rng: np.random.Generator,
+    infected_density_grid=None,
+    disease_reached: bool = True,
+    T_vbnc_local: float = None,
+    tau_max: float = 0.85,
+    sentinel_shedding_fraction: float = 0.0,
+) -> NodeDiseaseState:
+    """One daily timestep of load-dependent disease dynamics at a single node.
+
+    Replaces timer-based SEIPD with within-host pathogen load dynamics.
+    Disease state is determined by load level, mortality by Hill function.
+
+    Sequence:
+      1. Compute load-proportional shedding from current infected
+      2. Update environmental Vibrio concentration (P_k ODE)
+      3. Transmission (S → Infected with initial load)
+      4. Within-host ODE for all infected (vectorized)
+      5. Update disease_state based on load thresholds
+      6. Mortality (Hill function check for all infected)
+      7. Carcass tracking
+      8. Update compartment counts & diagnostics
+
+    Args:
+        agents: Structured array of agents at this node.
+        node_state: Mutable NodeDiseaseState for this node.
+        T_celsius: Current SST (°C).
+        salinity: Current salinity (psu).
+        phi_k: Flushing rate (d⁻¹).
+        dispersal_input: Pathogen input from neighbor nodes (bact/mL/d).
+        day: Current simulation day.
+        cfg: Disease configuration section.
+        ld_cfg: Load-dependent configuration section.
+        rng: NumPy random generator for this node.
+        infected_density_grid: Optional spatial transmission grid.
+        disease_reached: Whether pathogen has reached this node.
+        T_vbnc_local: Per-node VBNC midpoint for thermal adaptation.
+        tau_max: Max mortality reduction from tolerance.
+        sentinel_shedding_fraction: Shedding fraction for sentinel agents.
+
+    Returns:
+        Updated NodeDiseaseState.
+    """
+    import math as _math
+
+    alive = agents['alive']
+    ds = agents['disease_state']
+    resistance = agents['resistance']
+    size = agents['size']
+    load = agents['pathogen_load']
+
+    new_infections = 0
+    new_deaths = 0
+    new_recoveries = 0
+
+    alive_mask = alive.astype(bool)
+
+    _has_sentinel_field = 'is_sentinel' in agents.dtype.names
+
+    # ── STEP 1: Compute load-proportional shedding ─────────────────
+    # All infected agents (I1 or I2 in disease_state)
+    infected_mask = alive_mask & ((ds == DiseaseState.I1) | (ds == DiseaseState.I2))
+    infected_idx = np.where(infected_mask)[0]
+
+    total_shedding = 0.0
+    if len(infected_idx) > 0:
+        L_infected = load[infected_idx].astype(np.float64)
+        shedding_per_agent = ld_cfg.sigma_load * L_infected / ld_cfg.L_ref
+
+        # Sentinel shedding adjustment
+        if _has_sentinel_field and sentinel_shedding_fraction > 0.0 and sentinel_shedding_fraction < 1.0:
+            is_sent = agents['is_sentinel'][infected_idx].astype(bool)
+            shedding_per_agent[is_sent] *= sentinel_shedding_fraction
+
+        total_shedding = float(np.sum(shedding_per_agent))
+
+    # Carcass shedding (saprophytic burst — unchanged from timer model)
+    n_D_fresh = node_state.carcass_tracker.n_fresh
+    total_shedding += cfg.sigma_D * n_D_fresh
+
+    # Density-invariant K scaling
+    _ds_scale = cfg.density_scale
+    if _ds_scale != 1.0:
+        total_shedding *= _ds_scale
+
+    # ── Dynamic P_env pool update ──────────────────────────────────
+    if getattr(cfg, 'P_env_dynamic', False):
+        pool_input = cfg.alpha_env * total_shedding
+        if getattr(cfg, 'delta_env_T_dependent', False):
+            _sigmoid = 1.0 / (1.0 + _math.exp(cfg.k_delta_env * (T_celsius - cfg.T_delta_env)))
+            delta_local = cfg.delta_env_warm + (cfg.delta_env_cold - cfg.delta_env_warm) * _sigmoid
+        else:
+            delta_local = cfg.delta_env
+        pool_decay = delta_local * node_state.P_env_pool
+        node_state.P_env_pool = max(0.0, node_state.P_env_pool + pool_input - pool_decay)
+
+    # ── STEP 2: Update Vibrio concentration ────────────────────────
+    P_k = update_vibrio_concentration(
+        node_state.vibrio_concentration,
+        0, 0, n_D_fresh,  # n_I1/n_I2 not used when override_shedding set
+        T_celsius, salinity, phi_k, dispersal_input,
+        cfg,
+        override_shedding=total_shedding,
+        disease_reached=disease_reached,
+        P_env_pool=node_state.P_env_pool,
+        T_vbnc_local=T_vbnc_local,
+    )
+    node_state.vibrio_concentration = P_k
+
+    # ── STEP 3: Transmission (S → Infected with initial load) ──────
+    if P_k > 0:
+        sal_mod = salinity_modifier(salinity, cfg.s_min, cfg.s_full)
+
+        susceptible = alive_mask & (ds == DiseaseState.S)
+
+        # Phase 11: Juvenile immunity — exclude recently settled agents
+        if cfg.min_susceptible_age_days > 0:
+            age_days = day - agents['settlement_day']
+            juvenile_mask = age_days < cfg.min_susceptible_age_days
+            susceptible = susceptible & ~juvenile_mask
+
+        susc_indices = np.where(susceptible)[0]
+
+        if len(susc_indices) > 0:
+            # Vectorized force of infection with immunosuppression
+            r_raw = resistance[susc_indices].astype(np.float64)
+            immuno_timers = agents['immunosuppression_timer'][susc_indices]
+
+            if cfg.immunosuppression_enabled:
+                immuno_mask = immuno_timers > 0
+                r_eff = r_raw.copy()
+                r_eff[immuno_mask] = r_raw[immuno_mask] / cfg.susceptibility_multiplier
+                r_eff = np.clip(r_eff, 0.0, 1.0)
+            else:
+                r_eff = r_raw
+
+            r_mod = 1.0 - r_eff
+            s_mod = np.exp(BETA_L * (size[susc_indices].astype(np.float64) - L_BAR) / SIGMA_L)
+
+            # Dose-response: spatial or mean-field
+            if infected_density_grid is not None:
+                local_factors = infected_density_grid.lookup(
+                    agents['x'][susc_indices],
+                    agents['y'][susc_indices],
+                )
+                P_local = P_k * local_factors
+                dose_resp = P_local / (cfg.K_half + P_local)
+            else:
+                dose_resp = P_k / (cfg.K_half + P_k)
+
+            lambda_arr = cfg.a_exposure * dose_resp * r_mod * sal_mod * s_mod
+            p_inf = 1.0 - np.exp(-lambda_arr)
+
+            # Stochastic infection draws
+            draws = rng.random(len(susc_indices))
+            infected_draw_mask = draws < p_inf
+
+            new_inf_idx = susc_indices[infected_draw_mask]
+            n_new = len(new_inf_idx)
+            if n_new > 0:
+                # Initial load: L_0 = L_init_base × P_k/(K_half+P_k)
+                if infected_density_grid is not None:
+                    # Use per-agent local P for dose
+                    P_dose = P_local[infected_draw_mask]
+                    dose_frac_init = P_dose / (cfg.K_half + P_dose)
+                else:
+                    dose_frac_init = P_k / (cfg.K_half + P_k)
+                L_init = ld_cfg.L_init_base * dose_frac_init
+
+                load[new_inf_idx] = L_init
+
+                # Set disease_state based on initial load level
+                # L < L_symp → I1, L >= L_symp → I2
+                L_init_arr = np.asarray(L_init)
+                new_ds = np.where(
+                    L_init_arr >= ld_cfg.L_symp,
+                    DiseaseState.I2,
+                    DiseaseState.I1,
+                )
+                ds[new_inf_idx] = new_ds.astype(np.int8)
+                agents['disease_timer'][new_inf_idx] = 0  # unused in load model
+
+                new_infections += n_new
+
+    # ── STEP 4: Within-host ODE for all infected ───────────────────
+    # Refresh infected mask after new infections
+    infected_mask = alive_mask & ((ds == DiseaseState.I1) | (ds == DiseaseState.I2))
+    infected_idx = np.where(infected_mask)[0]
+
+    if len(infected_idx) > 0:
+        L_arr = load[infected_idx].astype(np.float64)
+        r_arr = resistance[infected_idx].astype(np.float64)
+        c_arr = agents['recovery_ability'][infected_idx].astype(np.float64)
+
+        # Apply immunosuppression to resistance for clearance computation
+        if cfg.immunosuppression_enabled:
+            immuno_timers_inf = agents['immunosuppression_timer'][infected_idx]
+            immuno_mask_inf = immuno_timers_inf > 0
+            r_arr_eff = r_arr.copy()
+            r_arr_eff[immuno_mask_inf] = r_arr[immuno_mask_inf] / cfg.susceptibility_multiplier
+            r_arr_eff = np.clip(r_arr_eff, 0.0, 1.0)
+        else:
+            r_arr_eff = r_arr
+
+        # Vectorized within-host ODE step
+        L_new = within_host_load_step(
+            L_arr, r_arr_eff, c_arr, T_celsius, P_k, cfg, ld_cfg,
+        )
+        load[infected_idx] = L_new
+
+        # ── STEP 5: Update disease_state based on load thresholds ──
+        # L < L_clear → S (recovered)
+        cleared = L_new < ld_cfg.L_clear
+        cleared_idx = infected_idx[cleared]
+        if len(cleared_idx) > 0:
+            ds[cleared_idx] = DiseaseState.S
+            load[cleared_idx] = 0.0
+            agents['disease_timer'][cleared_idx] = 0
+            agents['pathogen_virulence'][cleared_idx] = 0.0
+            new_recoveries += len(cleared_idx)
+
+        # Still infected (not cleared)
+        still_inf = ~cleared
+        still_idx = infected_idx[still_inf]
+        L_still = L_new[still_inf]
+
+        if len(still_idx) > 0:
+            # L_clear <= L < L_symp → I1
+            # L >= L_symp → I2
+            new_state = np.where(
+                L_still >= ld_cfg.L_symp,
+                DiseaseState.I2,
+                DiseaseState.I1,
+            )
+            ds[still_idx] = new_state.astype(np.int8)
+
+            # ── STEP 6: Mortality (Hill function check) ────────────
+            t_arr = agents['tolerance'][still_idx].astype(np.float64)
+            p_death = load_mortality_probability(L_still, t_arr, ld_cfg, tau_max)
+
+            # Sentinels: skip mortality (immortal)
+            if _has_sentinel_field:
+                is_sentinel = agents['is_sentinel'][still_idx].astype(bool)
+                p_death[is_sentinel] = 0.0
+
+            # Bernoulli draw for death
+            death_draws = rng.random(len(still_idx))
+            death_mask = death_draws < p_death
+            dead_idx = still_idx[death_mask]
+
+            if len(dead_idx) > 0:
+                ds[dead_idx] = DiseaseState.D
+                agents['alive'][dead_idx] = False
+                agents['cause_of_death'][dead_idx] = 1  # DeathCause.DISEASE
+                load[dead_idx] = 0.0
+                new_deaths += len(dead_idx)
+
+    # ── STEP 7: Carcass tracking ───────────────────────────────────
+    node_state.carcass_tracker.add_deaths(new_deaths)
+
+    # ── STEP 8: Update compartment counts & diagnostics ────────────
+    alive_mask = agents['alive'].astype(bool)  # refresh after deaths
+    alive_ds = ds[alive_mask]
+    if len(alive_ds) > 0:
+        counts = np.bincount(alive_ds, minlength=6)
+        node_state.n_S = int(counts[DiseaseState.S])
+        node_state.n_E = int(counts[DiseaseState.E])
+        node_state.n_I1 = int(counts[DiseaseState.I1])
+        node_state.n_I2 = int(counts[DiseaseState.I2])
+        node_state.n_R = int(counts[DiseaseState.R])
+    else:
+        node_state.n_S = 0
+        node_state.n_E = 0
+        node_state.n_I1 = 0
+        node_state.n_I2 = 0
+        node_state.n_R = 0
+    node_state.n_D_fresh = node_state.carcass_tracker.n_fresh
+
+    node_state.cumulative_infections += new_infections
+    node_state.cumulative_deaths += new_deaths
+    node_state.cumulative_recoveries += new_recoveries
+
+    n_alive = int(np.sum(alive_mask))
+    if n_alive > 0:
+        prevalence = (node_state.n_I1 + node_state.n_I2) / n_alive
+        node_state.peak_prevalence = max(node_state.peak_prevalence, prevalence)
+    node_state.peak_vibrio = max(node_state.peak_vibrio, P_k)
+
+    # Epidemic detection
+    if new_infections > 0 and not node_state.epidemic_active:
+        node_state.epidemic_active = True
+        node_state.epidemic_start_day = day
+    elif (node_state.epidemic_active
+          and node_state.n_I1 + node_state.n_I2 + node_state.n_E == 0):
+        node_state.epidemic_active = False
+
+    return node_state
+
+
+# ═══════════════════════════════════════════════════════════════════════
 # EPIDEMIC SIMULATION (standalone, for testing / single-node runs)
 # ═══════════════════════════════════════════════════════════════════════
 

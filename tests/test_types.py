@@ -133,6 +133,7 @@ class TestAgentDtype:
             'node_id', 'alive', 'origin', 'release_cohort', 'cause_of_death',  # Administrative
             'is_sentinel',  # Sentinel (non-Pyc species)
             'pathogen_virulence',  # Pathogen evolution
+            'pathogen_load',  # Load-dependent disease model
             'settlement_day',  # Juvenile immunity
         ]
         actual_fields = [name for name in AGENT_DTYPE.names]

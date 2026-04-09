@@ -180,6 +180,7 @@ AGENT_DTYPE = np.dtype([
                                       #         2=natural, 3=senescence)
     ('is_sentinel', np.int8),         #  1 B — 1 = sentinel (non-Pyc species), 0 = normal Pyc
     ('pathogen_virulence', np.float32),  #  4 B — virulence of infecting strain (0 when S)
+    ('pathogen_load', np.float64),    #  8 B — within-host pathogen load (load-dependent model)
     ('settlement_day', np.int32),     #  4 B — absolute sim day when settled/initialized
                                       #         0 for initial pop (always susceptible)
                                       #         Used for juvenile immunity (Phase 11)

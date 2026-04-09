@@ -396,6 +396,43 @@ class PathogenEvolutionSection:
 
 
 @dataclass
+class LoadDependentSection:
+    """Load-dependent disease model parameters.
+
+    When enabled=True, replaces the timer-based SEIPD system with a
+    within-host pathogen load model where disease state is determined
+    by pathogen load level and mortality follows a Hill function.
+
+    References:
+      - LD50_LOAD_DEPENDENT_DISEASE.md (design spec)
+    """
+    enabled: bool = False
+
+    # Within-host dynamics
+    r_growth: float = 0.5        # Pathogen growth rate (d^-1) at T_ref
+    Ea_growth: float = 5000.0    # Growth activation energy (K)
+    L_max: float = 1e6           # Within-host carrying capacity
+    delta_clear: float = 0.3     # Base immune clearance rate (d^-1)
+    alpha_reinfect: float = 0.01 # Environmental reinfection strength
+
+    # Initial infection
+    L_init_base: float = 1000.0  # Initial load scale at max dose-response
+
+    # Load thresholds
+    L_clear: float = 10.0        # Below this → cleared (recovered)
+    L_symp: float = 1e4          # Above this → symptomatic (I2 behavior)
+
+    # Mortality
+    LD50_base: float = 5e5       # Load for 50% daily mortality (no tolerance)
+    n_hill: float = 3.0          # Hill coefficient (steepness)
+    p_death_max: float = 0.15    # Max daily mortality probability at saturating load
+
+    # Shedding
+    sigma_load: float = 50.0     # Shedding rate at L_ref load
+    L_ref: float = 1e5           # Reference load for shedding normalization
+
+
+@dataclass
 class SentinelSection:
     """Sentinel agents — multi-host disease reservoir.
 
@@ -440,6 +477,7 @@ class SimulationConfig:
     movement: MovementSection = field(default_factory=MovementSection)
     conservation: ConservationSection = field(default_factory=ConservationSection)
     sentinel: SentinelSection = field(default_factory=SentinelSection)
+    disease_load_dependent: LoadDependentSection = field(default_factory=LoadDependentSection)
     output: OutputSection = field(default_factory=OutputSection)
     release_events: List[ReleaseEvent] = field(default_factory=list)
 
@@ -496,6 +534,7 @@ def _yaml_to_config(data: Dict) -> SimulationConfig:
         'movement': MovementSection,
         'conservation': ConservationSection,
         'sentinel': SentinelSection,
+        'disease_load_dependent': LoadDependentSection,
         'output': OutputSection,
     }
     for key, cls in section_map.items():
