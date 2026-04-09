@@ -409,26 +409,26 @@ class LoadDependentSection:
     enabled: bool = False
 
     # Within-host dynamics
-    r_growth: float = 0.5        # Pathogen growth rate (d^-1) at T_ref
+    r_growth: float = 0.16       # Pathogen growth rate (d^-1) at T_ref — calibrated so r=1.0 confers immunity
     Ea_growth: float = 5000.0    # Growth activation energy (K)
     L_max: float = 1e6           # Within-host carrying capacity
-    delta_clear: float = 0.3     # Base immune clearance rate (d^-1)
+    delta_clear: float = 0.55    # Base immune clearance rate (d^-1) — must exceed r_growth for immunity to work
     alpha_reinfect: float = 0.01 # Environmental reinfection strength
 
     # Initial infection
-    L_init_base: float = 1000.0  # Initial load scale at max dose-response
+    L_init_base: float = 1e5     # Initial load scale at max dose-response (scaled for K_half=800K)
 
     # Load thresholds
     L_clear: float = 10.0        # Below this → cleared (recovered)
     L_symp: float = 1e4          # Above this → symptomatic (I2 behavior)
 
     # Mortality
-    LD50_base: float = 5e5       # Load for 50% daily mortality (no tolerance)
+    LD50_base: float = 5e4       # Load for 50% daily mortality (no tolerance)
     n_hill: float = 3.0          # Hill coefficient (steepness)
     p_death_max: float = 0.15    # Max daily mortality probability at saturating load
 
     # Shedding
-    sigma_load: float = 50.0     # Shedding rate at L_ref load
+    sigma_load: float = 150.0    # Shedding rate at L_ref load (adequate for feedback loop)
     L_ref: float = 1e5           # Reference load for shedding normalization
 
 
