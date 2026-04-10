@@ -1,0 +1,77 @@
+{
+  "param_overrides": {
+    "disease.K_half": 800000.0,
+    "disease.T_vbnc_min": 10.0,
+    "disease.seed_vibrio": 2000.0,
+    "disease.fw_strength": 25.0,
+    "disease.alpha_env": 0.18,
+    "disease.k_vbnc": 2.0,
+    "disease.pathogen_adapt_rate": 0.001,
+    "disease.v_max_warm": 0.7,
+    "disease.cumulative_dose_threshold": 1000.0,
+    "disease.wavefront_D_P": 300.0,
+    "spatial.n_connectivity": 0.3,
+    "spatial.r_total": 0.003,
+    "spatial.alpha_self_open": 0.05,
+    "spatial.alpha_self_fjord": 0.5,
+    "disease.delta_env_T_dependent": true,
+    "disease.delta_env_cold": 0.05,
+    "disease.delta_env_warm": 0.01,
+    "disease.recovery_P_env_gated": true,
+    "disease.recovery_P_env_half": 800.0,
+    "disease.recovery_P_env_hill": 2.0,
+    "disease_load_dependent.enabled": true,
+    "disease_load_dependent.r_growth": 0.16,
+    "disease_load_dependent.delta_clear": 0.4,
+    "disease_load_dependent.LD50_base": 10000.0,
+    "disease_load_dependent.sigma_load": 150.0
+  },
+  "scenario": {
+    "name": "LD50_G1_C1_L0_S1",
+    "type": "ld50_sweep",
+    "param_indices": {
+      "G": 1,
+      "C": 1,
+      "L": 0,
+      "S": 1
+    },
+    "param_values": {
+      "r_growth": 0.16,
+      "delta_clear": 0.4,
+      "LD50_base": 10000.0,
+      "sigma_load": 150.0
+    },
+    "param_names": [
+      "r_growth",
+      "delta_clear",
+      "LD50_base",
+      "sigma_load"
+    ],
+    "grid_levels": {
+      "r_growth": [
+        0.08,
+        0.16,
+        0.32,
+        0.64
+      ],
+      "delta_clear": [
+        0.25,
+        0.4,
+        0.55,
+        0.8
+      ],
+      "LD50_base": [
+        10000.0,
+        50000.0,
+        250000.0,
+        1000000.0
+      ],
+      "sigma_load": [
+        50.0,
+        150.0,
+        450.0,
+        1350.0
+      ]
+    }
+  }
+}
